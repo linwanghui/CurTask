@@ -1,0 +1,163 @@
+{
+  "__version__": "1.0.6",
+  "general": {
+    "designResolution": {
+      "width": 2340,
+      "height": 1080,
+      "fitWidth": false,
+      "fitHeight": true
+    }
+  },
+  "physics": {
+    "gravity": {
+      "y": -80
+    },
+    "allowSleep": false,
+    "collisionGroups": [
+      {
+        "index": 1,
+        "name": "Tier1"
+      },
+      {
+        "index": 2,
+        "name": "Tier2"
+      },
+      {
+        "index": 3,
+        "name": "Tier3"
+      },
+      {
+        "index": 4,
+        "name": "Tier4"
+      },
+      {
+        "index": 5,
+        "name": "Tier5"
+      },
+      {
+        "index": 6,
+        "name": "Tier6"
+      },
+      {
+        "index": 7,
+        "name": "Tier7"
+      },
+      {
+        "index": 8,
+        "name": "Tier8"
+      },
+      {
+        "index": 9,
+        "name": "Tier9"
+      },
+      {
+        "index": 10,
+        "name": "Tier10"
+      },
+      {
+        "index": 11,
+        "name": "Tier11"
+      },
+      {
+        "index": 12,
+        "name": "Tier12"
+      },
+      {
+        "index": 13,
+        "name": "Tier13"
+      },
+      {
+        "index": 14,
+        "name": "Tier14"
+      },
+      {
+        "index": 15,
+        "name": "Tier15"
+      },
+      {
+        "index": 16,
+        "name": "Tier16"
+      },
+      {
+        "index": 17,
+        "name": "Tier17"
+      },
+      {
+        "index": 18,
+        "name": "Tier18"
+      },
+      {
+        "index": 19,
+        "name": "Tier19"
+      },
+      {
+        "index": 20,
+        "name": "Tier20"
+      },
+      {
+        "index": 21,
+        "name": "Tier21"
+      },
+      {
+        "index": 22,
+        "name": "Tier22"
+      },
+      {
+        "index": 23,
+        "name": "Tier23"
+      }
+    ],
+    "collisionMatrix": {
+      "0": 1,
+      "1": 28,
+      "2": 42,
+      "3": 6,
+      "4": 2,
+      "5": 4,
+      "6": 0,
+      "7": 0,
+      "8": 0,
+      "9": 0,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0,
+      "15": 0,
+      "16": 0,
+      "17": 0,
+      "18": 0,
+      "19": 0,
+      "20": 0,
+      "21": 0,
+      "22": 0,
+      "23": 0,
+      "24": 0,
+      "25": 0,
+      "26": 0,
+      "27": 0,
+      "28": 0,
+      "29": 0,
+      "30": 0,
+      "31": 0
+    }
+  },
+  "layer": [
+    {
+      "name": "UI",
+      "value": 1
+    },
+    {
+      "name": "BannerUI",
+      "value": 2
+    },
+    {
+      "name": "Map",
+      "value": 4
+    }
+  ],
+  "script": {
+    "preserveSymlinks": true
+  },
+  "custom_joint_texture_layouts": []
+}
