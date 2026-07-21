@@ -43,6 +43,7 @@ export class ZRSJZ_GameData {
     public PropID: number = 0;//道具的唯一ID
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};//道具数据
     public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
+    public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
 
     ChangeGold(gold: number) {
         this.Gold += gold;

@@ -209,12 +209,6 @@ export class ZRSJZ_PropGrid extends Component {
                 const offsetY = location.y - this._touchStartPos.y;
 
                 // 小范围移动视为手指抖动，超过阈值后锁定本次触摸方向。
-                // if (offsetY * offsetY > 10) {
-                // if (offsetX * offsetX + offsetY * offsetY < 5) {
-                //     this._touchID = -1;
-                //     ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.道具弹窗, this.PropID);
-                //     return;
-                // } else
                 if (ZRSJZ_Tools.IsSlide(this._inventory)) {
 
                     if (offsetY * offsetY > offsetX * offsetX) {
@@ -252,10 +246,6 @@ export class ZRSJZ_PropGrid extends Component {
     OnTouchEnd(event: EventTouch) {
         if (this.PropID == "") return;
         if (event.getID() == this._touchID) {
-            // if (!ZRSJZ_INVENTORY_CONFIG.get(this._inventory)?.IsDilatation) {
-            //     event.propagationStopped = true;
-            // }
-            console.error(11);
             this._touchID = -1;
             if (this._isMove) {
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
@@ -277,10 +267,6 @@ export class ZRSJZ_PropGrid extends Component {
     OnTouchCancel(event: EventTouch) {
         if (this.PropID == "") return;
         if (event.getID() == this._touchID) {
-            // if (!ZRSJZ_INVENTORY_CONFIG.get(this._inventory)?.IsDilatation) {
-            //     event.propagationStopped = true;
-            // }
-            console.error(22);
             this._touchID = -1;
             if (this._isMove) {
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
@@ -290,7 +276,6 @@ export class ZRSJZ_PropGrid extends Component {
                 this._propSFNode = null;
                 this.UIOpacity.opacity = 255;
             }
-            // this.node.setWorldPosition(this._startPos);
         }
     }
 
