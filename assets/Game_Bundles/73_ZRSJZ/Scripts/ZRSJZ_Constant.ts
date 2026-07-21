@@ -9,6 +9,7 @@ export enum ZRSJZ_PANEL {
     仓库界面 = "Prefabs/Panel/仓库界面",
     角色界面 = "Prefabs/Panel/角色界面",
     作弊界面 = "Prefabs/Panel/作弊界面",
+    道具弹窗 = "Prefabs/Panel/道具弹窗",
 }
 
 //物理层级
@@ -44,7 +45,7 @@ export enum ZRSJZ_GRID_TYPE {
  * @param Description 道具描述
  * @param GridType 格子类型
  * @param Quality 品质
- * @param PropType 物品类别 --(装备（头盔/防弹衣/背包）、武器（枪/刀）、弹药、物品(门禁卡/物品))
+ * @param PropType 物品类别 --装备（头盔/防弹衣/背包）、武器（枪/刀）、弹药、物品(门禁卡/物品))
  * @param UnitPrice 单价 
  * @param MaxCount 最多数量
  */

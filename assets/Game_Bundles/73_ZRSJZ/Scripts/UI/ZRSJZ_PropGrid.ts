@@ -1,6 +1,6 @@
 import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame, UIOpacity, v3, Vec2, Vec3, Widget } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PROP_CONFIG, ZRSJZ_GRID_TYPE, ZRSJZ_PropData, ZRSJZ_INVENTORY, ZRSJZ_GRID_SIZE, ZRSJZ_GRID_INTERVAL, ZRSJZ_INVENTORY_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_PROP_CONFIG, ZRSJZ_GRID_TYPE, ZRSJZ_PropData, ZRSJZ_INVENTORY, ZRSJZ_GRID_SIZE, ZRSJZ_GRID_INTERVAL, ZRSJZ_INVENTORY_CONFIG, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -210,17 +210,25 @@ export class ZRSJZ_PropGrid extends Component {
 
                 // 小范围移动视为手指抖动，超过阈值后锁定本次触摸方向。
                 // if (offsetY * offsetY > 10) {
+                // if (offsetX * offsetX + offsetY * offsetY < 5) {
+                //     this._touchID = -1;
+                //     ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.道具弹窗, this.PropID);
+                //     return;
+                // } else
                 if (ZRSJZ_Tools.IsSlide(this._inventory)) {
 
-                    if (offsetY * offsetY >= offsetX * offsetX) {
+                    if (offsetY * offsetY > offsetX * offsetX) {
                         this._touchID = -1;
                         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
                         return;
                     }
                     if (offsetX * offsetX < 10) return;
+                } else if (offsetX * offsetX + offsetY * offsetY < 2) {
+                    return;
                 }
 
                 this._dragAxis = 1;
+                event.propagationStopped = true;
                 if (this._dragAxis === 1 && !this._isCreatingMove) {
                     this.PropMove();
                 }
@@ -244,9 +252,10 @@ export class ZRSJZ_PropGrid extends Component {
     OnTouchEnd(event: EventTouch) {
         if (this.PropID == "") return;
         if (event.getID() == this._touchID) {
-            if (!ZRSJZ_INVENTORY_CONFIG.get(this._inventory)?.IsDilatation) {
-                event.propagationStopped = true;
-            }
+            // if (!ZRSJZ_INVENTORY_CONFIG.get(this._inventory)?.IsDilatation) {
+            //     event.propagationStopped = true;
+            // }
+            console.error(11);
             this._touchID = -1;
             if (this._isMove) {
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
@@ -259,6 +268,8 @@ export class ZRSJZ_PropGrid extends Component {
                 ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.PropID);
                 this._isSellCheck = !this._isSellCheck;
                 this.ShowSellButton();
+            } else if (!this._isCreatingMove) {
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.道具弹窗, this.PropID);
             }
         }
     }
@@ -266,9 +277,10 @@ export class ZRSJZ_PropGrid extends Component {
     OnTouchCancel(event: EventTouch) {
         if (this.PropID == "") return;
         if (event.getID() == this._touchID) {
-            if (!ZRSJZ_INVENTORY_CONFIG.get(this._inventory)?.IsDilatation) {
-                event.propagationStopped = true;
-            }
+            // if (!ZRSJZ_INVENTORY_CONFIG.get(this._inventory)?.IsDilatation) {
+            //     event.propagationStopped = true;
+            // }
+            console.error(22);
             this._touchID = -1;
             if (this._isMove) {
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);

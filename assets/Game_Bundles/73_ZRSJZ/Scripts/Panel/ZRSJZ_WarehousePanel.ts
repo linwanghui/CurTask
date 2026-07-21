@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, find, instantiate, Node, Prefab, ScrollView, tween, Tween, UITransform } from 'cc';
+import { _decorator, Component, EventTouch, find, instantiate, Node, Prefab, ScrollView, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -34,12 +34,12 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     }
 
     protected onEnable(): void {
-        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.ADDSellProp, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
     }
 
     protected onDisable(): void {
-        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.ADDSellProp, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
     }
 
@@ -56,6 +56,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         this._curInventory = await ZRSJZ_UIManager.Instance.GetInventory(`仓库_${inventoryName}`);
         this._curInventory.active = true;
         this._curInventory.parent = this.Content;
+        this._curInventory.setPosition(Vec3.ZERO);
     }
 
     PropMove(move: boolean) {
@@ -121,7 +122,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         find("选中", this._warehouseNode).active = true;
     }
 
-    ADDSellProp(propID: string) {
+    AddSellProp(propID: string) {
         if (this._sellPropID.includes(propID)) {
             this._sellPropID.splice(this._sellPropID.indexOf(propID), 1);
         } else {
