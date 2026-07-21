@@ -11,6 +11,13 @@ export enum ZRSJZ_PANEL {
     作弊界面 = "Prefabs/Panel/作弊界面",
 }
 
+//物理层级
+export enum ZRSJZ_TIER {
+    地形 = 1 << 0,
+    玩家 = 1 << 1,
+    敌人 = 1 << 2,
+    场景物 = 1 << 3,
+};
 
 //#region 道具配置
 //装备品质
