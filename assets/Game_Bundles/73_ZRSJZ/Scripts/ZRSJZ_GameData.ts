@@ -164,6 +164,12 @@ export class ZRSJZ_GameData {
             ZRSJZ_GameData.Instance.AddPropByName(propID);
         }
     }
+
+
+
+    //DLC存档数据
+    public BNS_Property: { 木材: number } =
+        { 木材: 0 };
 }
 
 
