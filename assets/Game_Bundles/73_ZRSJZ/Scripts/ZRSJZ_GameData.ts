@@ -30,7 +30,9 @@ export class ZRSJZ_GameData {
 
     public Init() {
         // this.AddAllProp();
-        this.WeaponryID[4] = this.AddPropByName("战术匕首");
+        const propId = this.AddPropByName("战术匕首");
+        this.WeaponryID[4] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_刀, 1, 0, 0);
     }
 
     public Gold: number = 0;
@@ -39,7 +41,9 @@ export class ZRSJZ_GameData {
     public HaveSkin: string[] = ["洛克", "安娜"];
     public CurSkin: string[] = ["洛克", "安娜"];
     public PropID: number = 0;//道具的唯一ID
-    public PropData: { [ID: string]: ZRSJZ_PropData } = {};//道具数据
+    public PropData: { [ID: string]: ZRSJZ_PropData } = {
+        "ZRSJZ_PropID_1": new ZRSJZ_PropData(),
+    };//道具数据
     public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
 
     ChangeGold(gold: number) {

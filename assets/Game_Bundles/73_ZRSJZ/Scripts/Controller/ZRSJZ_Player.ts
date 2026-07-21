@@ -28,6 +28,7 @@ export class ZRSJZ_Player extends Component {
 
     protected start(): void {
         this.WeaponType == ZRSJZ_GameData.Instance.WeaponryID[0] ? this.WeaponType = "枪" : this.WeaponType = "刀";
+        this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
         if (ZRSJZ_GameData.Instance.WeaponryID[0]) {
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
         } else {
