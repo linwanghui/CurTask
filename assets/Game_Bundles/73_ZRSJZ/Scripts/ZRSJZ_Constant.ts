@@ -1,3 +1,4 @@
+//#region 常量
 //格子大小
 export const ZRSJZ_GRID_SIZE = 132;//格子大小
 export const ZRSJZ_GRID_INTERVAL = 5;//格子间隔
@@ -10,24 +11,8 @@ export enum ZRSJZ_PANEL {
     作弊界面 = "Prefabs/Panel/作弊界面",
 }
 
-//玩家动画
-export enum ZRSJZ_ANI {
-    Appear1 = "cc_1",
-    Appear2 = "cc_2",
-    Idle_D1 = "daiji_dao1",
-    Idle_D2 = "daiji_dao2",
-    Idle_Q = "daiji_q",
-    Attack_Idle_D2 = "gj_dao3",
-    Attack_Move_D2 = "gj_dao3_2",
-    Attack_Idle_D3 = "gj_dao4",
-    Attack_Move_D3 = "gj_dao4_2",
-    Attack_Idle_Q = "gj_qiang",
-    Attack_Move_Q = "gj_qiang2",
-    Walk_D = "zl_dao",
-    Walk_Q = "zl_q",
-    HC = "hc",
-}
 
+//#region 道具配置
 //装备品质
 export enum ZRSJZ_PROP_QUALITY {
     白色 = "白色格子",
@@ -329,9 +314,63 @@ const ZRSJZ_PROP_DESCRIPTION: Map<string, string> = new Map([
     ["熔岩剑", "剑身仿佛流淌着炽热熔岩，锋利而危险，是稀有的高级近战武器。"],
 ]);
 
+
 ZRSJZ_PROP_CONFIG.forEach((config, name) => {
     config.Description = ZRSJZ_PROP_DESCRIPTION.get(name) || `一件名为“${name}”的道具。`;
 });
+
+//配置道具的属性
+export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new Map([
+    //子弹
+    ["1级子弹", { "增伤": 0 }],
+    ["2级子弹", { "增伤": 2 }],
+    ["3级子弹", { "增伤": 8 }],
+    ["4级子弹", { "增伤": 10 }],
+    ["5级子弹", { "增伤": 15 }],
+    ["6级子弹", { "增伤": 18 }],
+    //头盔
+    ["一级头", { "护甲等级": 1, "减伤": 5, }],
+    ["二级头", { "护甲等级": 2, "减伤": 10, }],
+    ["三级头", { "护甲等级": 3, "减伤": 15, }],
+    ["四级头", { "护甲等级": 4, "减伤": 20, }],
+    ["五级头", { "护甲等级": 5, "减伤": 25, }],
+    ["六级头", { "护甲等级": 6, "减伤": 30, }],
+    //防弹衣
+    ["一级甲", { "护甲等级": 1, "减伤": 5, }],
+    ["二级甲", { "护甲等级": 2, "减伤": 10, }],
+    ["三级甲", { "护甲等级": 3, "减伤": 15, }],
+    ["四级甲", { "护甲等级": 4, "减伤": 20, }],
+    ["五级甲", { "护甲等级": 5, "减伤": 25, }],
+    ["六级甲", { "护甲等级": 6, "减伤": 30, }],
+    //背包
+    ["一级包", { "背包等级": 1, "容量": 18, }],
+    ["二级包", { "背包等级": 2, "容量": 30, }],
+    ["三级包", { "背包等级": 3, "容量": 42, }],
+    ["四级包", { "背包等级": 4, "容量": 54, }],
+    ["五级包", { "背包等级": 5, "容量": 66, }],
+    ["六级包", { "背包等级": 6, "容量": 78, }],
+    //枪
+    ["突击步枪", { "伤害": 30, "射程": 500, "射速": 700, "弹夹": 30 }],
+    ["散弹枪", { "伤害": 35, "射程": 500, "射速": 300, "弹夹": 6 }],
+    ["ssv狙击枪", { "伤害": 200, "射程": 900, "射速": 100, "弹夹": 5 }],
+    //刀
+    ["战术匕首", { "伤害": 65 }],
+    ["刺厌", { "伤害": 85 }],
+    ["科技斧", { "伤害": 100 }],
+    ["熔岩剑", { "伤害": 105 }],
+])
+
+export const ZRSJZ_PROP_PROPERTY_MAX: Map<string, number> = new Map([
+    ["增伤", 20],
+    ["背包等级", 6],
+    ["容量", 80],
+    ["护甲等级", 6],
+    ["减伤", 50],
+    ["伤害", 200],
+    ["射程", 800],
+    ["射速", 800],
+    ["弹夹", 35],
+])
 
 //道具存储类型
 export class ZRSJZ_PropData {
@@ -396,6 +435,7 @@ export const ZRSJZ_SHOP_CONFIG: Map<string, string[]> = new Map([
     ["房卡", ["曼德尔", "哑铃", "沙袋", "高速阵列", "6级子弹", "万金泪冠", "劳力士"]],
 ])
 
+//#region 角色配置
 export const ZRSJZ_ROLE_CONFIG: Map<string, {
     Name: string,
     Skin: string[],
@@ -416,3 +456,21 @@ export const ZRSJZ_SKIN_CONFIG: Map<string, {
     ["安娜", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
     ["安娜2", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
 ])
+
+//玩家动画
+export enum ZRSJZ_ANI {
+    Appear1 = "cc_1",
+    Appear2 = "cc_2",
+    Idle_D1 = "daiji_dao1",
+    Idle_D2 = "daiji_dao2",
+    Idle_Q = "daiji_q",
+    Attack_Idle_D2 = "gj_dao3",
+    Attack_Move_D2 = "gj_dao3_2",
+    Attack_Idle_D3 = "gj_dao4",
+    Attack_Move_D3 = "gj_dao4_2",
+    Attack_Idle_Q = "gj_qiang",
+    Attack_Move_Q = "gj_qiang2",
+    Walk_D = "zl_dao",
+    Walk_Q = "zl_q",
+    HC = "hc",
+}

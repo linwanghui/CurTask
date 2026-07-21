@@ -1,10 +1,11 @@
 import { _decorator, Button, Component, easing, EventHandler, EventTouch, find, Label, Node, Prefab, Sprite, Tween, tween, UIOpacity, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_SHOP_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_PROP_PROPERTY, ZRSJZ_PROP_PROPERTY_MAX, ZRSJZ_SHOP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_ShopItem } from '../UI/ZRSJZ_ShopItem';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
+import { ZRSJZ_ShopStats } from '../UI/ZRSJZ_ShopStats';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_ShowPanel')
@@ -20,7 +21,10 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     public Shop: Node = null;
     public ShopPrice: Label = null;
     public ShopDesc: Label = null;
+    public ShopProperty: Node = null;
+    public ShopSkin: Node = null;
 
+    private _shopPropertyMap: Map<string, ZRSJZ_ShopStats> = new Map<string, ZRSJZ_ShopStats>();
     private _shopType: string = "";
     private _curShop: string = "";
     private _curShops: string[] = [];
@@ -39,6 +43,15 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopRight = find("Panel/展示/下一个", this.node);
         this.Shop = find("Panel/商品", this.node);
         this.ShopPrice = find("Panel/购买/Price", this.node).getComponent(Label);
+        this.ShopDesc = find("Panel/详情/描述/Desc", this.node).getComponent(Label);
+        this.ShopProperty = find("Panel/详情/属性", this.node);
+        this.ShopSkin = find("Panel/详情/皮肤", this.node);
+
+        this.ShopProperty.children.forEach(child => {
+            const shopStats = child.getComponent(ZRSJZ_ShopStats);
+            shopStats.Init();
+            this._shopPropertyMap.set(child.name, shopStats);
+        });
     }
 
     protected onEnable(): void {
@@ -141,6 +154,30 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this._curShopsTs[this._curShowIndex].Chekcked.active = true;
         ZRSJZ_Tools.ScaleNodeToFit(this.ShopIcon.node, 500, 200);
         this.ShopIcon.node.setScale(this._scale, this._scale, 1);
+        this.ShowShopDesc(this._curShop);
+    }
+
+    ShowShopDesc(shopName: string) {
+        //显示商品描述
+        this.ShopDesc.string = ZRSJZ_PROP_CONFIG.get(shopName).Description;
+
+        //显示商品属性
+        if (ZRSJZ_PROP_PROPERTY.has(shopName)) {
+            this.ShopProperty.active = true;
+            const shopProperty = ZRSJZ_PROP_PROPERTY.get(shopName);
+            for (const [key, shopStats] of this._shopPropertyMap) {
+                if (shopProperty.hasOwnProperty(key)) {
+                    shopStats.Show(shopProperty[key], ZRSJZ_PROP_PROPERTY_MAX.get(key))
+                } else {
+                    shopStats.Hide();
+                }
+            }
+        } else {
+            this.ShopProperty.active = false;
+        }
+
+        //显示商品皮肤
+        this.ShopSkin.active = false;
     }
 
     TweenShop() {
