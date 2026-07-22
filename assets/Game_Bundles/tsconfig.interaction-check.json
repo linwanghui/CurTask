@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "types": [
+      "../../temp/declarations/cc.custom-macro",
+      "../../temp/declarations/cc",
+      "../../temp/declarations/jsb",
+      "../../temp/declarations/cc.env"
+    ]
+  },
+  "include": ["73_ZRSJZ_DLC_BNS/Script/ZRSJZ_BNS_InteractionButtom.ts"]
+}

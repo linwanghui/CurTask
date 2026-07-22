@@ -168,8 +168,10 @@ export class ZRSJZ_GameData {
 
 
     //DLC存档数据
-    public BNS_Property: { 木材: number } =
-        { 木材: 0 };
+    public BNS_Property: { 木材: number, 矿石: number, 食物: number } =
+        { 木材: 0, 矿石: 0, 食物: 0 };
+
+
 }
 
 
