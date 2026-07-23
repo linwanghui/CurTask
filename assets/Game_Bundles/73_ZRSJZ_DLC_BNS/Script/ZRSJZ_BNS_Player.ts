@@ -1,13 +1,16 @@
-import { _decorator, Component, Node, RigidBody2D, sp, v2 } from 'cc';
+import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, sp, v2 } from 'cc';
 import { ZRSJZ_PlayerSkeleton } from '../../73_ZRSJZ/Scripts/Controller/ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_ANI } from '../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_EventManager';
+import { ZRSJZ_BNS_InteractionNode } from './ZRSJZ_BNS_InteractionNode';
+import { ZRSJZ_BNS_EventManager, ZRSJZ_BNS_MyEvent } from './ZRSJZ_BNS_EventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_BNS_Player')
 export class ZRSJZ_BNS_Player extends Component {
     RigidBody: RigidBody2D = null;
+    collider: Collider2D = null;
     Skeleton: sp.Skeleton = null;
     WeaponType: string = "枪";
 
@@ -21,6 +24,7 @@ export class ZRSJZ_BNS_Player extends Component {
 
     protected onLoad(): void {
         this.RigidBody = this.getComponent(RigidBody2D);
+        this.collider = this.node.getComponent(Collider2D);
         this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
         this.PlayerSkeleton = this.Skeleton.node.getComponent(ZRSJZ_PlayerSkeleton);
     }
@@ -38,6 +42,9 @@ export class ZRSJZ_BNS_Player extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
+        ZRSJZ_BNS_EventManager.On(ZRSJZ_BNS_MyEvent.交互被按下, this.OnInteractionClick, this);
+        this.collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);//添加碰撞监听
+        this.collider.on(Contact2DType.END_CONTACT, this.onEndContact, this);//添加碰撞监听
     }
 
     protected onDisable(): void {
@@ -123,7 +130,26 @@ export class ZRSJZ_BNS_Player extends Component {
         }
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
     }
+    onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
+        if (otherCollider.node.getComponent(ZRSJZ_BNS_InteractionNode)) {
+            ZRSJZ_BNS_EventManager.Emit(ZRSJZ_BNS_MyEvent.进入交互对象范围, otherCollider.node);
+        }
 
+    }
+    onEndContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
+        if (otherCollider.node.getComponent(ZRSJZ_BNS_InteractionNode)) {
+            ZRSJZ_BNS_EventManager.Emit(ZRSJZ_BNS_MyEvent.离开交互对象范围, otherCollider.node);
+        }
+
+    }
+    //按下交互
+    OnInteractionClick(node: Node) {
+        switch (node.name) {
+            case "松树":
+
+                break;
+        }
+    }
 }
 
 
