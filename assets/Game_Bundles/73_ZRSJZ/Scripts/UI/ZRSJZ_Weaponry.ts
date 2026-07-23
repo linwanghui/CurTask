@@ -20,9 +20,10 @@ export class ZRSJZ_Weaponry extends Component {
         this.Dagger = this.node.getChildByName("刀");
     }
 
-    start() {
+    protected onEnable(): void {
         this.Show();
     }
+
 
     async Show() {
         const gun = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.武器_枪);

@@ -8,6 +8,9 @@ const { ccclass, property } = _decorator;
 @ccclass('ZRSJZ_PlayerSkeleton')
 export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
+    @property({ tooltip: "补偿 Spine 持枪约束的初始角度偏差" })
+    AimAngleOffset: number = 17.1;
+
     CurPlayerIndex: number = 0;
 
     AttackX: number = 0;
@@ -70,8 +73,16 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         if (this.IsKnife) return;
         // BEFORE_DRAW 在 Spine 动画的 postUpdate 之后执行，避免坐标被动画覆盖。
         // 节点镜像后，IK 目标使用角色本地朝前方向，避免 X 方向被翻转两次。
-        this._mzBone.x = this.AttackX * this.Facing * distance;
-        this._mzBone.y = this.AttackY * distance;
+        const localDirX = this.AttackX * this.Facing;
+        const localDirY = this.AttackY;
+        const offsetRadian = this.AimAngleOffset * Math.PI / 180;
+        const cos = Math.cos(offsetRadian);
+        const sin = Math.sin(offsetRadian);
+
+        // Spine 的 qqq 约束自带 -17.1° 旋转，这里将 IK 目标反向预补偿。
+        // 使用角色镜像后的本地方向计算，左右朝向都能获得相同的世界射击方向。
+        this._mzBone.x = (localDirX * cos - localDirY * sin) * distance;
+        this._mzBone.y = (localDirX * sin + localDirY * cos) * distance;
 
         // 重新计算 IK 和所有骨骼世界坐标
         this.Skeleton._skeleton.updateWorldTransform();

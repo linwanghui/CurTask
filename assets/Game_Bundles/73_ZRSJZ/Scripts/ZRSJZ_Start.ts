@@ -26,6 +26,12 @@ export class ZRSJZ_Start extends Component {
             case "切换武器":
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON);
                 break;
+            case "背包":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.背包弹窗);
+                break;
+            case "开始行动":
+                director.loadScene("ZRSJZ_Game");
+                break;
             case "更多游戏":
                 BundleManager.LoadBundle("73_ZRSJZ_DLC_BNS", () => {
                     director.loadScene("ZRSJZ_BNS_Game");

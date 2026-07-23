@@ -260,6 +260,7 @@ export class ZRSJZ_PropGrid extends Component {
                 this.ShowSellButton();
             } else if (!this._isCreatingMove) {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.道具弹窗, this.PropID);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
             }
         }
     }

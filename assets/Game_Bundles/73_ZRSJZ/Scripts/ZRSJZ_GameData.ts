@@ -2,6 +2,7 @@ import { sys } from "cc";
 import { ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData } from "./ZRSJZ_Constant";
 import { ZRSJZ_Tools } from "./ZRSJZ_Tools";
 import { ZRSJZ_PlayerSwitchButton } from "./UI/ZRSJZ_PlayerSwitchButton";
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "./Manager/ZRSJZ_EventManager";
 
 export class ZRSJZ_GameData {
 
@@ -44,9 +45,11 @@ export class ZRSJZ_GameData {
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};//道具数据
     public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
     public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
+    // public GameTempID: string[] = [];//战斗时的临时ID
 
     ChangeGold(gold: number) {
         this.Gold += gold;
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
         ZRSJZ_GameData.SaveData();
     }
 
@@ -108,6 +111,12 @@ export class ZRSJZ_GameData {
         ZRSJZ_GameData.SaveData();
     }
 
+    public SetAmmoID(ammoID: string[]) {
+        this.AmmoID = ammoID.slice(0, 6);
+        while (this.AmmoID.length < 6) this.AmmoID.push("");
+        ZRSJZ_GameData.SaveData();
+    }
+
     public ChangePropGridPos(propID: string, index: number, x: number, y: number) {
         if (!this.PropData.hasOwnProperty(propID)) return;
         this.PropData[propID].GridData[index].GridX = x;
@@ -160,10 +169,27 @@ export class ZRSJZ_GameData {
         return `ZRSJZ_PropID_${this.PropID}`;
     }
 
+
+    public ReloadPropData() {
+        for (const key in this.PropData) {
+            if (this.PropData[key].CurInventory === ZRSJZ_INVENTORY.背包) {
+                delete this.PropData[key];
+            }
+        }
+        ZRSJZ_GameData.SaveData();
+    }
+
     public AddAllProp() {
         for (let propID of ZRSJZ_PROP_CONFIG.keys()) {
             ZRSJZ_GameData.Instance.AddPropByName(propID);
         }
+    }
+
+    public AddAllAmmo(count: number) {
+        const ammoNames: string[] = ["1级子弹", "2级子弹", "3级子弹", "4级子弹", "5级子弹", "6级子弹"];
+        ammoNames.forEach(name => {
+            ZRSJZ_GameData.Instance.AddPropByName(name, count);
+        })
     }
 }
 

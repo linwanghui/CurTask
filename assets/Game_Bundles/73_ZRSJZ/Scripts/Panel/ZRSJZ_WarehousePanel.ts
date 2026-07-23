@@ -5,12 +5,14 @@ import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
+import { ZRSJZ_Prepare } from '../UI/ZRSJZ_Prepare';
 const { ccclass, property } = _decorator;
 
 const GridCol: number = 7;
 @ccclass('ZRSJZ_WarehousePanel')
 export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
 
+    public Prepare: ZRSJZ_Prepare = null;
     public Content: Node = null;
     public ContentUITansform: UITransform = null;
     public ScrollView: ScrollView = null;
@@ -25,6 +27,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     private _sellPropID: string[] = [];
 
     protected onLoad(): void {
+        this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
         this.Content = find("Panel/仓库/Mask/Content", this.node);
         this.ContentUITansform = this.Content.getComponent(UITransform);
         this.ScrollView = find("Panel/仓库", this.node).getComponent(ScrollView);
@@ -34,6 +37,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     }
 
     protected onEnable(): void {
+        this.Prepare.Show();
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
     }
