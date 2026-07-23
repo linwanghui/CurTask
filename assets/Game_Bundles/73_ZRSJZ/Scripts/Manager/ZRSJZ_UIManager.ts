@@ -148,7 +148,7 @@ export class ZRSJZ_UIManager extends Component {
         if (!this._panelMap.has(panelName)) {
             const bundlePath = panel.split('/')[0];
             const resPath = panel.replace(bundlePath, '');
-            BundleManager.GetBundle(panel.split('/')[0]).load(resPath, Prefab, (err: any, prefab: Prefab) => {
+            BundleManager.GetBundle(bundlePath).load(resPath, Prefab, (err: any, prefab: Prefab) => {
                 if (err) {
                     console.error(`加载 Bundle: 73_ZRSJZ Prefab 加载失败 Path: ${resPath}`);
                 } else {
