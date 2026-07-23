@@ -6,8 +6,7 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_PLAYER_ATTACK: string = 'ZRSJZ_PLAYER_ATTACK';//射击
     public static ZRSJZ_PLAYER_SWITCH_WEAPON: string = 'ZRSJZ_PLAYER_SWITCH_WEAPON';//切换武器
 
-    public static ZRSJZ_PANEL_SHOW: string = 'ZRSJZ_PANEL_SHOW';//显示面板
-    public static ZRSJZ_PANEL_HIDE: string = 'ZRSJZ_PANEL_HIDE';//隐藏面板
+    public static ZRSJZ_CURRENCY_CHANGE: string = 'ZRSJZ_CURRENCY_CHANGE';//货币发生变动
     public static ZRSJZ_PROP_MOVE: string = 'ZRSJZ_PROP_MOVE';//道具拖动
     public static ZRSJZ_GRID_SHOW: string = 'ZRSJZ_GRID_SHOW';//格子显示
     public static ZRSJZ_GRID_MOVE: string = 'ZRSJZ_GRID_MOVE';//格子移动

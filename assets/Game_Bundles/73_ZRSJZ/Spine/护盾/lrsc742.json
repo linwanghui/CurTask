@@ -1,0 +1,105 @@
+{
+"skeleton": { "hash": "ErbK7EuR6gzP+Wbund1sZpMaiiE", "spine": "3.8.75", "images": "./images/", "audio": "" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "liu", "parent": "root", "length": 196.35, "rotation": 90 },
+	{ "name": "liuguang", "parent": "root", "length": 160.08, "rotation": 90 },
+	{ "name": "zaoa", "parent": "root", "length": 177.75, "rotation": 90 }
+],
+"slots": [
+	{ "name": "liu_0000", "bone": "liu" },
+	{ "name": "jiaa_0000", "bone": "zaoa", "blend": "additive" },
+	{ "name": "jiab_0010", "bone": "liuguang", "blend": "additive" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"liu_0000": {
+				"liu_0000": { "rotation": -90, "width": 720, "height": 720 },
+				"liu_0001": { "rotation": -90, "width": 720, "height": 720 },
+				"liu_0002": { "rotation": -90, "width": 720, "height": 720 },
+				"liu_0003": { "rotation": -90, "width": 720, "height": 720 },
+				"liu_0004": { "rotation": -90, "width": 720, "height": 720 },
+				"liu_0005": { "rotation": -90, "width": 720, "height": 720 },
+				"liu_0006": { "rotation": -90, "width": 720, "height": 720 },
+				"liu_0007": { "rotation": -90, "width": 720, "height": 720 },
+				"liu_0008": { "rotation": -90, "width": 720, "height": 720 },
+				"liu_0009": { "rotation": -90, "width": 720, "height": 720 }
+			},
+			"jiab_0010": {
+				"jiab_0010": { "rotation": -90, "width": 720, "height": 720 },
+				"jiab_0012": { "rotation": -90, "width": 720, "height": 720 },
+				"jiab_0014": { "rotation": -90, "width": 720, "height": 720 },
+				"jiab_0016": { "rotation": -90, "width": 720, "height": 720 },
+				"jiab_0018": { "rotation": -90, "width": 720, "height": 720 },
+				"jiab_0020": { "rotation": -90, "width": 720, "height": 720 },
+				"jiab_0022": { "rotation": -90, "width": 720, "height": 720 },
+				"jiab_0024": { "rotation": -90, "width": 720, "height": 720 },
+				"jiab_0026": { "rotation": -90, "width": 720, "height": 720 },
+				"jiab_0028": { "rotation": -90, "width": 720, "height": 720 }
+			},
+			"jiaa_0000": {
+				"jiaa_0000": { "rotation": -90, "width": 720, "height": 720 }
+			}
+		}
+	}
+],
+"animations": {
+	"action": {
+		"slots": {
+			"jiaa_0000": {
+				"color": [
+					{ "color": "82bcffcc" }
+				],
+				"attachment": [
+					{ "name": "jiaa_0000" }
+				]
+			},
+			"liu_0000": {
+				"color": [
+					{ "color": "75beff64" }
+				],
+				"attachment": [
+					{ "name": "liu_0000" },
+					{ "time": 0.1667, "name": "liu_0001" },
+					{ "time": 0.3333, "name": "liu_0002" },
+					{ "time": 0.5, "name": "liu_0003" },
+					{ "time": 0.6667, "name": "liu_0004" },
+					{ "time": 0.8333, "name": "liu_0005" },
+					{ "time": 1, "name": "liu_0006" },
+					{ "time": 1.1667, "name": "liu_0007" },
+					{ "time": 1.3333, "name": "liu_0008" },
+					{ "time": 1.5, "name": "liu_0009" },
+					{ "time": 1.6667, "name": "liu_0000" }
+				]
+			},
+			"jiab_0010": {
+				"color": [
+					{ "color": "129effff" }
+				],
+				"attachment": [
+					{ "time": 0.3, "name": "jiab_0010" },
+					{ "time": 0.4, "name": "jiab_0012" },
+					{ "time": 0.5333, "name": "jiab_0014" },
+					{ "time": 0.6333, "name": "jiab_0016" },
+					{ "time": 0.7667, "name": "jiab_0018" },
+					{ "time": 0.9, "name": "jiab_0020" },
+					{ "time": 1, "name": "jiab_0022" },
+					{ "time": 1.1333, "name": "jiab_0024" },
+					{ "time": 1.2333, "name": "jiab_0026" },
+					{ "time": 1.3667, "name": "jiab_0028" },
+					{ "time": 1.5, "name": null }
+				]
+			}
+		},
+		"bones": {
+			"root": {
+				"translate": [
+					{ "x": 1.25, "y": 34.29 }
+				]
+			}
+		}
+	}
+}
+}

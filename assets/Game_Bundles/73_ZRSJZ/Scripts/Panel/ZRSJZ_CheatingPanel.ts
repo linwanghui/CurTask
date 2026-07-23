@@ -16,6 +16,9 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             case "所有道具加1":
                 ZRSJZ_GameData.Instance.AddAllProp();
                 break;
+            case "所有子弹加20":
+                ZRSJZ_GameData.Instance.AddAllAmmo(20);
+                break;
         }
     }
 }

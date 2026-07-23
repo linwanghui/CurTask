@@ -2,13 +2,17 @@
 //格子大小
 export const ZRSJZ_GRID_SIZE = 132;//格子大小
 export const ZRSJZ_GRID_INTERVAL = 5;//格子间隔
+// 单个弹药格最多可堆叠的子弹数量。
+export const ZRSJZ_AMMO_MAX_COUNT = 60;
 
 //界面路径
 export enum ZRSJZ_PANEL {
-    商店界面 = "Prefabs/Panel/商店界面",
-    仓库界面 = "Prefabs/Panel/仓库界面",
-    角色界面 = "Prefabs/Panel/角色界面",
-    作弊界面 = "Prefabs/Panel/作弊界面",
+    商店界面 = "73_ZRSJZ/Prefabs/Panel/商店界面",
+    仓库界面 = "73_ZRSJZ/Prefabs/Panel/仓库界面",
+    角色界面 = "73_ZRSJZ/Prefabs/Panel/角色界面",
+    作弊界面 = "73_ZRSJZ/Prefabs/Panel/作弊界面",
+    道具弹窗 = "73_ZRSJZ/Prefabs/Panel/道具弹窗",
+    背包弹窗 = "73_ZRSJZ/Prefabs/Panel/背包弹窗",
 }
 
 //物理层级
@@ -17,6 +21,7 @@ export enum ZRSJZ_TIER {
     玩家 = 1 << 1,
     敌人 = 1 << 2,
     场景物 = 1 << 3,
+    玩家子弹 = 1 << 4,
 };
 
 //#region 道具配置
@@ -44,7 +49,7 @@ export enum ZRSJZ_GRID_TYPE {
  * @param Description 道具描述
  * @param GridType 格子类型
  * @param Quality 品质
- * @param PropType 物品类别 --(装备（头盔/防弹衣/背包）、武器（枪/刀）、弹药、物品(门禁卡/物品))
+ * @param PropType 物品类别 --装备（头盔/防弹衣/背包）、武器（枪/刀）、弹药、物品(门禁卡/物品))
  * @param UnitPrice 单价 
  * @param MaxCount 最多数量
  */
@@ -171,12 +176,12 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["火箭燃料", { Name: "火箭燃料", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1068000, MaxCount: 1 }],
 
     //子弹
-    ["1级子弹", { Name: "1级子弹", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 1900, MaxCount: 1 }],
-    ["2级子弹", { Name: "2级子弹", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 4700, MaxCount: 1 }],
-    ["3级子弹", { Name: "3级子弹", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 13000, MaxCount: 1 }],
-    ["4级子弹", { Name: "4级子弹", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 26000, MaxCount: 1 }],
-    ["5级子弹", { Name: "5级子弹", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 79000, MaxCount: 1 }],
-    ["6级子弹", { Name: "6级子弹", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 218000, MaxCount: 1 }],
+    ["1级子弹", { Name: "1级子弹", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 1900, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["2级子弹", { Name: "2级子弹", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 4700, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["3级子弹", { Name: "3级子弹", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 13000, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["4级子弹", { Name: "4级子弹", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 26000, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["5级子弹", { Name: "5级子弹", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 79000, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["6级子弹", { Name: "6级子弹", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 218000, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
     //头盔
     ["一级头", { Name: "一级头", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 2200, MaxCount: 1 }],
     ["二级头", { Name: "二级头", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 5100, MaxCount: 1 }],
@@ -350,12 +355,12 @@ export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new M
     ["五级甲", { "护甲等级": 5, "减伤": 25, }],
     ["六级甲", { "护甲等级": 6, "减伤": 30, }],
     //背包
-    ["一级包", { "背包等级": 1, "容量": 18, }],
-    ["二级包", { "背包等级": 2, "容量": 30, }],
-    ["三级包", { "背包等级": 3, "容量": 42, }],
-    ["四级包", { "背包等级": 4, "容量": 54, }],
-    ["五级包", { "背包等级": 5, "容量": 66, }],
-    ["六级包", { "背包等级": 6, "容量": 78, }],
+    ["一级包", { "背包等级": 1, "容量": 4 * 4, }],
+    ["二级包", { "背包等级": 2, "容量": 6 * 4, }],
+    ["三级包", { "背包等级": 3, "容量": 9 * 4, }],
+    ["四级包", { "背包等级": 4, "容量": 13 * 4, }],
+    ["五级包", { "背包等级": 5, "容量": 16 * 4, }],
+    ["六级包", { "背包等级": 6, "容量": 20 * 4, }],
     //枪
     ["突击步枪", { "伤害": 30, "射程": 500, "射速": 700, "弹夹": 30 }],
     ["散弹枪", { "伤害": 35, "射程": 500, "射速": 300, "弹夹": 6 }],
@@ -414,6 +419,7 @@ export enum ZRSJZ_INVENTORY {
     武器_防弹衣 = "武器_防弹衣",
     武器_背包 = "武器_背包",
     武器_刀 = "武器_刀",
+    背包 = "背包",
 }
 
 export const ZRSJZ_INVENTORY_CONFIG: Map<ZRSJZ_INVENTORY, { Row: number, Col: number, IsDilatation: boolean }> = new Map([
@@ -430,6 +436,7 @@ export const ZRSJZ_INVENTORY_CONFIG: Map<ZRSJZ_INVENTORY, { Row: number, Col: nu
     [ZRSJZ_INVENTORY.武器_防弹衣, { Row: 1, Col: 1, IsDilatation: false }],
     [ZRSJZ_INVENTORY.武器_背包, { Row: 1, Col: 1, IsDilatation: false }],
     [ZRSJZ_INVENTORY.武器_刀, { Row: 1, Col: 1, IsDilatation: false }],
+    [ZRSJZ_INVENTORY.背包, { Row: 2, Col: 4, IsDilatation: false }],
 ])
 
 export const ZRSJZ_SHOP_CONFIG: Map<string, string[]> = new Map([

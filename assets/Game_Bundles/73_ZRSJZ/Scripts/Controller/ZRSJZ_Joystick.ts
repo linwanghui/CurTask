@@ -171,6 +171,7 @@ export class ZRSJZ_Joystick extends Component {
         }
     }
 
+    //#region 键盘监听
     private _keysRow = [];
     private _keysCol = [];
 

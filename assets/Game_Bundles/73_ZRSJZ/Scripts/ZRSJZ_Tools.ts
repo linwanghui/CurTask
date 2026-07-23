@@ -70,9 +70,26 @@ export class ZRSJZ_Tools {
                 return 3;
             case ZRSJZ_INVENTORY.武器_刀:
                 return 4;
+
         }
     }
 
+    public static GetWeaponryIndexByType(propType: string): number {
+        switch (propType) {
+            case "枪":
+                return 0;
+            case "头盔":
+                return 1;
+            case "防弹衣":
+                return 2;
+            case "背包":
+                return 3;
+            case "刀":
+                return 4;
+        }
+    }
+
+    //能否滑动
     public static IsSlide(inventory: ZRSJZ_INVENTORY): boolean {
         return inventory == ZRSJZ_INVENTORY.仓库_全部 || inventory == ZRSJZ_INVENTORY.仓库_弹药 || inventory == ZRSJZ_INVENTORY.仓库_武器 ||
             inventory == ZRSJZ_INVENTORY.仓库_物品 || inventory == ZRSJZ_INVENTORY.仓库_装备 || inventory == ZRSJZ_INVENTORY.弹药 ||

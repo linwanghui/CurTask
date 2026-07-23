@@ -3,6 +3,12 @@ import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
 import { ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_InventoryAmmo } from '../UI/ZRSJZ_InventoryAmmo';
+import { ZRSJZ_PoolManager } from './ZRSJZ_PoolManager';
+import { ZRSJZ_CurrencyEffect } from '../UI/ZRSJZ_CurrencyEffect';
+import { ZRSJZ_InventoryBackpack } from '../UI/ZRSJZ_InventoryBackpack';
+import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_UIManager')
@@ -28,6 +34,7 @@ export class ZRSJZ_UIManager extends Component {
     private _panelMap: Map<string, Node> = new Map<string, Node>();
     private _curPanel: string[] = [];
 
+    //#region 初始化
     public static Init() {
         const node = new Node("ZRSJZ_UIManager");
         node.addComponent(ZRSJZ_UIManager);
@@ -94,7 +101,17 @@ export class ZRSJZ_UIManager extends Component {
             for (let key in ZRSJZ_INVENTORY) {
                 if (weaponry.includes(ZRSJZ_INVENTORY[key])) continue;
                 const inventory: Node = instantiate(perfab);
-                inventory.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY[key]);
+                let inventoryComponent: ZRSJZ_Inventory;
+                if (ZRSJZ_INVENTORY[key] === ZRSJZ_INVENTORY.弹药) {
+                    inventory.getComponent(ZRSJZ_Inventory)?.destroy();
+                    inventoryComponent = inventory.addComponent(ZRSJZ_InventoryAmmo);
+                } else if (ZRSJZ_INVENTORY[key] === ZRSJZ_INVENTORY.背包) {
+                    inventory.getComponent(ZRSJZ_Inventory)?.destroy();
+                    inventoryComponent = inventory.addComponent(ZRSJZ_InventoryBackpack);
+                } else {
+                    inventoryComponent = inventory.getComponent(ZRSJZ_Inventory);
+                }
+                inventoryComponent.Init(ZRSJZ_INVENTORY[key]);
                 ZRSJZ_UIManager._instance.InventoryMap.set(ZRSJZ_INVENTORY[key], inventory);
                 inventory.active = false;
             }
@@ -109,11 +126,9 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     public static InitEvent() {
-        //开启键盘监听
-        // Input.on(SystemEvent.EventType.KEY_DOWN, ZRSJZ_UIManager._instance.OnKeyDown, ZRSJZ_UIManager._instance);
-        input.on(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._instance.OnKeyDown, ZRSJZ_UIManager._instance);
     }
 
+    //#region UI展示
     //展示面板
     public ShowPanel(panel: string, ...args: any[]) {
         const panelName = panel.split('/').pop() || panel;
@@ -131,12 +146,18 @@ export class ZRSJZ_UIManager extends Component {
 
         //加载面板
         if (!this._panelMap.has(panelName)) {
-            ZRSJZ_Tools.LoadPrefab(panel).then(prefab => {
-                const panelNode = instantiate(prefab);
-                this._panelNode.addChild(panelNode);
-                panelNode.active = false;
-                this._panelMap.set(panelName, panelNode);
-                showPanel();
+            const bundlePath = panel.split('/')[0];
+            const resPath = panel.replace(bundlePath, '');
+            BundleManager.GetBundle(panel.split('/')[0]).load(resPath, Prefab, (err: any, prefab: Prefab) => {
+                if (err) {
+                    console.error(`加载 Bundle: 73_ZRSJZ Prefab 加载失败 Path: ${resPath}`);
+                } else {
+                    const panelNode = instantiate(prefab);
+                    this._panelNode.addChild(panelNode);
+                    panelNode.active = false;
+                    this._panelMap.set(panelName, panelNode);
+                    showPanel();
+                }
             });
             return;
         }
@@ -204,12 +225,37 @@ export class ZRSJZ_UIManager extends Component {
         return Promise.resolve(this.InventoryMap.get(inventoryName));
     }
 
-    //监听案件p
-    OnKeyDown(event: EventKeyboard) {
-        if (event.keyCode == KeyCode.KEY_P) {
-            this.ShowPanel(ZRSJZ_PANEL.作弊界面);
-        }
+    //重新初始化背包
+    public async ReloadBackpack() {
+        ZRSJZ_GameData.Instance.ReloadPropData();
+        const backpack = await this.GetInventory(ZRSJZ_INVENTORY.背包);
+        backpack.getComponent(ZRSJZ_InventoryBackpack).Init();
     }
+
+    //目前显示的金币框
+    public _curCurrencyUI: Node[] = [];
+
+    public AddCurrency(currency: Node) {
+        if (this._curCurrencyUI.includes(currency)) return;
+        this._curCurrencyUI.push(currency);
+    }
+
+    public RemoveCurrency(currency: Node) {
+        if (!this._curCurrencyUI.includes(currency)) return;
+        this._curCurrencyUI.splice(this._curCurrencyUI.indexOf(currency), 1);
+    }
+
+    public async ShowCurrencyEffect() {
+        if (this._curCurrencyUI.length <= 0) {
+            console.error("没有显示的金币框！");
+            return;
+        }
+        const effect: Node = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/货币特效");
+        effect.parent = this.node;
+        effect.active = true;
+        effect.getComponent(ZRSJZ_CurrencyEffect).Show(this._curCurrencyUI[this._curCurrencyUI.length - 1].getWorldPosition().clone())
+    }
+
 }
 
 

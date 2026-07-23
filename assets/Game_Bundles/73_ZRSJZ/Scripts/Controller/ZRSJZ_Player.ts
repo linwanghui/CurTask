@@ -3,6 +3,8 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager
 import { ZRSJZ_ANI } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -14,11 +16,14 @@ export class ZRSJZ_Player extends Component {
 
     PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
 
-    private _moveSpeed: number = 500;
+    private _moveSpeed: number = 3000;
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _moveRadius: number = 0;
     private _aniName: string = "";
+    private _attackX: number = 0;
+    private _attackY: number = 0;
+    private _isFireing: boolean = false;
 
     protected onLoad(): void {
         this.RigidBody = this.getComponent(RigidBody2D);
@@ -27,7 +32,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected start(): void {
-        this.WeaponType == ZRSJZ_GameData.Instance.WeaponryID[0] ? this.WeaponType = "枪" : this.WeaponType = "刀";
+        this.WeaponType = ZRSJZ_GameData.Instance.WeaponryID[0] != "" ? "枪" : "刀";
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
         if (ZRSJZ_GameData.Instance.WeaponryID[0]) {
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
@@ -63,13 +68,23 @@ export class ZRSJZ_Player extends Component {
     }
 
     Attack(x: number, y: number, radius: number) {
+        this._attackX = x;
+        this._attackY = y;
         if (x === 0 && y === 0) {
             this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
             this.PlayerSkeleton.HasDirection = false;
+            if (this._isFireing) {
+                this._isFireing = false;
+                this.unschedule(this.Fire);
+            }
             return;
         }
         if (this.WeaponType === "枪") {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q) : this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
+            if (!this._isFireing) {
+                this._isFireing = true;
+                this.schedule(this.Fire, 0.1);
+            }
         } else {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
         }
@@ -126,6 +141,12 @@ export class ZRSJZ_Player extends Component {
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
     }
 
+    async Fire() {
+        const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
+        bullet.parent = this.node;
+        bullet.active = true;
+        bullet.getComponent(ZRSJZ_Bullet).Show(this.node.worldPosition, this._attackX, this._attackY, 1000);
+    }
 
 }
 

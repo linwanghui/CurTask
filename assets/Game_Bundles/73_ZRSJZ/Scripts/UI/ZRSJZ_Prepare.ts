@@ -30,10 +30,6 @@ export class ZRSJZ_Prepare extends Component {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
     }
 
-    protected start(): void {
-        this.Show();
-    }
-
     async Show(isShowProtectorCase: boolean = false) {
         const cardBag = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.卡包);
         cardBag.active = true;

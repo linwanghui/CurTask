@@ -16,12 +16,12 @@ export class ZRSJZ_Inventory extends Component {
     public UITransform: UITransform = null;
 
     public InventoryConfig: { Row: number, Col: number, IsDilatation: boolean };
+    public IsInitialized: boolean = false;
     private _newAddPropID: string[] = [];
-    private _isInitialized: boolean = false;
     private _isShowingPropItem: boolean = false;
 
     protected onEnable(): void {
-        if (this._isInitialized) {
+        if (this.IsInitialized) {
             this.ShowPropItem();
         }
     }
@@ -75,7 +75,7 @@ export class ZRSJZ_Inventory extends Component {
         const height = this.Grids.length * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL);
         this.UITransform = this.getComponent(UITransform);
         this.UITransform.height = height;
-        this._isInitialized = true;
+        this.IsInitialized = true;
 
         if (this.node.active) {
             this.ShowPropItem();
@@ -83,7 +83,7 @@ export class ZRSJZ_Inventory extends Component {
     }
 
     async ShowPropItem() {
-        if (!this._isInitialized || !this.InventoryConfig || this._isShowingPropItem) {
+        if (!this.IsInitialized || !this.InventoryConfig || this._isShowingPropItem) {
             return;
         }
 
