@@ -129,6 +129,7 @@ export class ZRSJZ_UIManager extends Component {
 
     public static InitAudio() {
         ZRSJZ_AudioManager.Instance = ZRSJZ_UIManager._instance.node.addComponent(ZRSJZ_AudioManager);
+        ZRSJZ_AudioManager.Instance.Init();
         //音频资源地址
         const audioRes: string[] = [
             "73_ZRSJZ/Audios",

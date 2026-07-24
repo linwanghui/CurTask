@@ -45,7 +45,7 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_AudioManager.Instance.PlayMusic("BGM1")
                 break;
             case "紫":
-                ZRSJZ_AudioManager.Instance.PlaySound("紫")
+                ZRSJZ_AudioManager.Instance.PlayMusic("紫")
                 break;
             case "枪声":
                 ZRSJZ_AudioManager.Instance.PlaySound("枪声")

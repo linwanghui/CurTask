@@ -29,10 +29,26 @@ export class ZRSJZ_AudioManager extends Component {
         this._curMusicAudioSource.play();
     }
 
+    public PlayMusicByClip(audioClip: AudioClip, loop: boolean = true, valume: number = 1) {
+        if (ZRSJZ_GameData.Instance.MusicMute || this._curMusic == audioClip.name) return;
+        if (!audioClip) {
+            error(`音频不存在: `);
+            return;
+        }
+        this._curMusic = audioClip.name;
+        if (this._curMusicAudioSource) this.freeSource(this._curMusicAudioSource);
+        this._curMusicAudioSource = this.getIdleSource();
+        this._curMusicAudioSource.clip = audioClip;
+        this._curMusicAudioSource.loop = loop;
+        this._curMusicAudioSource.volume = valume;
+        this._curMusicAudioSource.play();
+    }
+
     public StopMusic() {
         if (this._curMusicAudioSource) {
             this.freeSource(this._curMusicAudioSource);
             this._curMusicAudioSource = null;
+            this._curMusic = "";
         }
     }
 
@@ -44,6 +60,19 @@ export class ZRSJZ_AudioManager extends Component {
         }
         const sound = this.getIdleSource();
         sound.clip = this.AudioClipMaps.get(audioName);
+        sound.loop = false;
+        sound.volume = valume;
+        sound.play();
+    }
+
+    public PlaySoundByClip(audioClip: AudioClip, valume: number = 1) {
+        if (ZRSJZ_GameData.Instance.SoundMute) return;
+        if (!audioClip) {
+            error(`音频不存在:`);
+            return;
+        }
+        const sound = this.getIdleSource();
+        sound.clip = audioClip;
         sound.loop = false;
         sound.volume = valume;
         sound.play();
@@ -62,7 +91,7 @@ export class ZRSJZ_AudioManager extends Component {
     }
 
     private onPlayEnded(event: AudioSource) {
-        console.error(event);
+        this.freeSource(event);
     }
 
 }
