@@ -1,4 +1,4 @@
-import { Prefab, SpriteFrame, UITransform, Node } from "cc";
+import { Prefab, SpriteFrame, UITransform, Node, AudioClip } from "cc";
 import { BundleManager } from "db://assets/Scripts/Framework/Managers/BundleManager";
 import { ZRSJZ_INVENTORY } from "./ZRSJZ_Constant";
 
@@ -23,6 +23,19 @@ export class ZRSJZ_Tools {
                 if (err) {
                     reject(err);
                     console.error(`加载 Bundle: 73_ZRSJZ SpriteFrame 加载失败 Path: ${path}`);
+                    return;
+                }
+                resolve && resolve(sprites);
+            });
+        });
+    }
+
+    public static LoadAudioClips(bundlePath: string, resPath: string): Promise<AudioClip[]> {
+        return new Promise((resolve, reject) => {
+            BundleManager.GetBundle(bundlePath).loadDir(resPath, AudioClip, (err: any, sprites: AudioClip[]) => {
+                if (err) {
+                    reject(err);
+                    console.error(`加载 Bundle: 73_ZRSJZ AudioBuffer 加载失败 Path: ${resPath}`);
                     return;
                 }
                 resolve && resolve(sprites);

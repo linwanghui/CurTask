@@ -1,4 +1,4 @@
-import { _decorator, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, SpriteFrame, Widget } from 'cc';
+import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, SpriteFrame, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
@@ -9,6 +9,8 @@ import { ZRSJZ_CurrencyEffect } from '../UI/ZRSJZ_CurrencyEffect';
 import { ZRSJZ_InventoryBackpack } from '../UI/ZRSJZ_InventoryBackpack';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
+import { ZRSJZ_AudioManager } from './ZRSJZ_AudioManager';
+import { ZRSJZ_Tip } from '../UI/ZRSJZ_Tip';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_UIManager')
@@ -18,7 +20,7 @@ export class ZRSJZ_UIManager extends Component {
     public static get Instance(): ZRSJZ_UIManager {
         if (!ZRSJZ_UIManager._instance) {
             ZRSJZ_UIManager.Init();
-            ZRSJZ_UIManager.InitEvent();
+            ZRSJZ_UIManager.InitAudio();
             ZRSJZ_UIManager.InitUI();
             ZRSJZ_UIManager.InitInventory();
         }
@@ -125,7 +127,29 @@ export class ZRSJZ_UIManager extends Component {
         })
     }
 
-    public static InitEvent() {
+    public static InitAudio() {
+        ZRSJZ_AudioManager.Instance = ZRSJZ_UIManager._instance.node.addComponent(ZRSJZ_AudioManager);
+        //音频资源地址
+        const audioRes: string[] = [
+            "73_ZRSJZ/Audios",
+        ]
+        let initCount = 0;
+        audioRes.forEach(path => {
+            const bundlePath: string = path.split("/").shift();
+            const resPath: string = path.split("/").slice(1).join("/");
+            ZRSJZ_Tools.LoadAudioClips(bundlePath, resPath).then((clips: AudioClip[]) => {
+                clips.forEach((clip, index) => {
+                    ZRSJZ_AudioManager.Instance.AudioClipMaps.set(clip.name, clip);
+                    if (index === clips.length - 1) {
+                        initCount++;
+                        if (initCount === audioRes.length) {
+                            //初始化完成
+                            console.error("音频初始化完成");
+                        }
+                    }
+                })
+            })
+        });
     }
 
     //#region UI展示
@@ -173,6 +197,13 @@ export class ZRSJZ_UIManager extends Component {
 
         if (!this._panelMap.has(panelName)) return;
         this._panelMap.get(panelName).getComponent(ZRSJZ_Panel).Hide(...args);
+    }
+
+    public async ShowTip(tip: string) {
+        const tipNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/Tip")
+        tipNode.parent = this.node;
+        tipNode.active = true;
+        tipNode.getComponent(ZRSJZ_Tip).Show(tip);
     }
 
     //获取格子UI

@@ -4,6 +4,7 @@ import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
+import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -36,6 +37,18 @@ export class ZRSJZ_Start extends Component {
                 BundleManager.LoadBundle("73_ZRSJZ_DLC_BNS", () => {
                     director.loadScene("ZRSJZ_BNS_Game");
                 })
+                break;
+            case "BGM0":
+                ZRSJZ_AudioManager.Instance.PlayMusic("BGM0")
+                break;
+            case "BGM1":
+                ZRSJZ_AudioManager.Instance.PlayMusic("BGM1")
+                break;
+            case "紫":
+                ZRSJZ_AudioManager.Instance.PlaySound("紫")
+                break;
+            case "枪声":
+                ZRSJZ_AudioManager.Instance.PlaySound("枪声")
                 break;
         }
     }

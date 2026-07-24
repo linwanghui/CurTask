@@ -484,6 +484,8 @@ export enum ZRSJZ_ANI {
     Attack_Move_D3 = "gj_dao4_2",
     Attack_Idle_Q = "gj_qiang",
     Attack_Move_Q = "gj_qiang2",
+    Attack_Idle_Q2 = "gj_jjq",
+    Attack_Move_Q2 = "gj_jjq2",
     Walk_D = "zl_dao",
     Walk_Q = "zl_q",
     HC = "hc",
