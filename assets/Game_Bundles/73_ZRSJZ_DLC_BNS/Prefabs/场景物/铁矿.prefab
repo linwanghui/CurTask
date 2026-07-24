@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "松树",
+    "_name": "铁矿",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "松树",
+    "_name": "铁矿",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -48,8 +48,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 837.532,
-      "y": -154.588,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -139,8 +139,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 360,
-      "height": 540
+      "width": 268,
+      "height": 213
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -176,7 +176,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "68c718e0-766e-4e90-86dd-a578a56a2bd7@f9941",
+      "__uuid__": "12ff32b4-a21f-429c-9132-d06aeeb1afee@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -234,8 +234,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -6.605,
-      "y": -214.815,
+      "x": 0,
+      "y": -41.732,
       "z": 0
     },
     "_lrot": {
@@ -275,8 +275,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 207,
-      "height": 112
+      "width": 268,
+      "height": 128
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -312,7 +312,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "6bfa8438-cddd-4d7d-8e83-b767f8a97cf2@f9941",
+      "__uuid__": "781232a5-3dc5-4e5a-b89f-d62c4affd33d@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -361,8 +361,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 360,
-      "height": 540
+      "width": 255.91,
+      "height": 203.07600000000002
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -430,12 +430,12 @@
     "_offset": {
       "__type__": "cc.Vec2",
       "x": -0.7,
-      "y": -52
+      "y": -8.8
     },
     "_size": {
       "__type__": "cc.Size",
       "width": 162,
-      "height": 302.1
+      "height": 167.3
     },
     "_id": ""
   },
@@ -463,13 +463,13 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -6.8,
-      "y": -182.8
+      "x": 0.2,
+      "y": 5.7
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 312.6,
-      "height": 153.7
+      "width": 255.9,
+      "height": 198.2
     },
     "_id": ""
   },

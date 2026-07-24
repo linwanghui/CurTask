@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "松树",
+    "_name": "金矿",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "松树",
+    "_name": "金矿",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -48,8 +48,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 837.532,
-      "y": -154.588,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -139,8 +139,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 360,
-      "height": 540
+      "width": 284,
+      "height": 298
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -176,7 +176,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "68c718e0-766e-4e90-86dd-a578a56a2bd7@f9941",
+      "__uuid__": "fae357db-c2c3-47cb-ade0-46530b892e9c@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -234,8 +234,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -6.605,
-      "y": -214.815,
+      "x": -1.83,
+      "y": -84.732,
       "z": 0
     },
     "_lrot": {
@@ -275,8 +275,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 207,
-      "height": 112
+      "width": 278,
+      "height": 130
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -312,7 +312,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "6bfa8438-cddd-4d7d-8e83-b767f8a97cf2@f9941",
+      "__uuid__": "420ec817-e796-41bf-b077-411abe3477a8@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -361,8 +361,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 360,
-      "height": 540
+      "width": 255.91,
+      "height": 203.07600000000002
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -429,13 +429,13 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -0.7,
-      "y": -52
+      "x": 18.1,
+      "y": -2.4
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 162,
-      "height": 302.1
+      "width": 199.5,
+      "height": 267.9
     },
     "_id": ""
   },
@@ -463,13 +463,13 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -6.8,
-      "y": -182.8
+      "x": 1.1,
+      "y": -2.2
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 312.6,
-      "height": 153.7
+      "width": 285.2,
+      "height": 263.2
     },
     "_id": ""
   },
@@ -504,7 +504,6 @@
       "__id__": 0
     },
     "fileId": "079D81ggBK8riUalgbokwO",
-    "instance": null,
-    "targetOverrides": null
+    "instance": null
   }
 ]

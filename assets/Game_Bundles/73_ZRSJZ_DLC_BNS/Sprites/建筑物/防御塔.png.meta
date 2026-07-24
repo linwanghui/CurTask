@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "5e5c09fd-2b81-448e-854e-5ce526eb331a",
+  "uuid": "2e1847f1-4392-4e01-931d-43c2bedb605f",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "5e5c09fd-2b81-448e-854e-5ce526eb331a@6c48a",
-      "displayName": "医疗",
+      "uuid": "2e1847f1-4392-4e01-931d-43c2bedb605f@6c48a",
+      "displayName": "防御塔",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "5e5c09fd-2b81-448e-854e-5ce526eb331a",
+        "imageUuidOrDatabaseUri": "2e1847f1-4392-4e01-931d-43c2bedb605f",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "5e5c09fd-2b81-448e-854e-5ce526eb331a@f9941",
-      "displayName": "医疗",
+      "uuid": "2e1847f1-4392-4e01-931d-43c2bedb605f@f9941",
+      "displayName": "防御塔",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 453,
-        "height": 285,
-        "rawWidth": 453,
-        "rawHeight": 285,
+        "width": 210,
+        "height": 174,
+        "rawWidth": 210,
+        "rawHeight": 174,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -226.5,
-            -142.5,
+            -105,
+            -87,
             0,
-            226.5,
-            -142.5,
+            105,
+            -87,
             0,
-            -226.5,
-            142.5,
+            -105,
+            87,
             0,
-            226.5,
-            142.5,
+            105,
+            87,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            285,
-            453,
-            285,
+            174,
+            210,
+            174,
             0,
             0,
-            453,
+            210,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -226.5,
-            -142.5,
+            -105,
+            -87,
             0
           ],
           "maxPos": [
-            226.5,
-            142.5,
+            105,
+            87,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "5e5c09fd-2b81-448e-854e-5ce526eb331a@6c48a",
+        "imageUuidOrDatabaseUri": "2e1847f1-4392-4e01-931d-43c2bedb605f@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "5e5c09fd-2b81-448e-854e-5ce526eb331a@6c48a"
+    "redirect": "2e1847f1-4392-4e01-931d-43c2bedb605f@6c48a"
   }
 }
