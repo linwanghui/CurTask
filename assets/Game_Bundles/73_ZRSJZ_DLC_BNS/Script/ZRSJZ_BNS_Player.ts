@@ -5,6 +5,8 @@ import { ZRSJZ_ANI } from '../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_EventManager';
 import { ZRSJZ_BNS_InteractionNode } from './ZRSJZ_BNS_InteractionNode';
 import { ZRSJZ_BNS_EventManager, ZRSJZ_BNS_MyEvent } from './ZRSJZ_BNS_EventManager';
+import { ZRSJZ_BNS_Arrows } from './ZRSJZ_BNS_Arrows';
+import { ZRSJZ_BNS_Constant, ZRSJZ_BNS_GatherConfig } from './ZRSJZ_BNS_Constant';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_BNS_Player')
@@ -21,6 +23,7 @@ export class ZRSJZ_BNS_Player extends Component {
     private _moveY: number = 0;
     private _moveRadius: number = 0;
     private _aniName: string = "";
+    private _isInteracting: boolean = false;
 
     protected onLoad(): void {
         this.RigidBody = this.getComponent(RigidBody2D);
@@ -43,6 +46,7 @@ export class ZRSJZ_BNS_Player extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
         ZRSJZ_BNS_EventManager.On(ZRSJZ_BNS_MyEvent.交互被按下, this.OnInteractionClick, this);
+        ZRSJZ_BNS_EventManager.On(ZRSJZ_BNS_MyEvent.开启建筑指引, this.ShowBuildingGuide, this);
         this.collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);//添加碰撞监听
         this.collider.on(Contact2DType.END_CONTACT, this.onEndContact, this);//添加碰撞监听
     }
@@ -51,14 +55,28 @@ export class ZRSJZ_BNS_Player extends Component {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
+        ZRSJZ_BNS_EventManager.Off(ZRSJZ_BNS_MyEvent.交互被按下, this.OnInteractionClick, this);
+        ZRSJZ_BNS_EventManager.Off(ZRSJZ_BNS_MyEvent.开启建筑指引, this.ShowBuildingGuide, this);
     }
 
     protected update(dt: number): void {
+        if (this._isInteracting) {
+            this.RigidBody.linearVelocity = v2(0, 0);
+            return;
+        }
+
         this.AniSwitch();
         this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed * this._moveRadius, this._moveY * dt * this._moveSpeed * this._moveRadius);
     }
 
     Move(x: number, y: number, radius: number) {
+        if (this._isInteracting) {
+            this._moveX = 0;
+            this._moveY = 0;
+            this._moveRadius = 0;
+            return;
+        }
+
         this._moveX = x;
         this._moveY = y;
         this._moveRadius = radius;
@@ -68,6 +86,8 @@ export class ZRSJZ_BNS_Player extends Component {
     }
 
     Attack(x: number, y: number, radius: number) {
+        if (this._isInteracting) return;
+
         if (x === 0 && y === 0) {
             this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
             this.PlayerSkeleton.HasDirection = false;
@@ -144,11 +164,50 @@ export class ZRSJZ_BNS_Player extends Component {
     }
     //按下交互
     OnInteractionClick(node: Node) {
-        switch (node.name) {
-            case "松树":
+        if (this._isInteracting) return;
 
-                break;
+        const gatherConfig = ZRSJZ_BNS_Constant.采集配置[node.name];
+        if (!gatherConfig) return;
+
+        this.StartGather(gatherConfig);
+    }
+
+    private StartGather(gatherConfig: ZRSJZ_BNS_GatherConfig): void {
+        this._isInteracting = true;
+        this._moveX = 0;
+        this._moveY = 0;
+        this._moveRadius = 0;
+        this.RigidBody.linearVelocity = v2(0, 0);
+        this.PlayerSkeleton.HasDirection = false;
+
+        this._aniName = gatherConfig.aniName;
+        this.PlayerSkeleton.PlayAni(gatherConfig.aniName, false, () => {
+            const count = this.GetRandomInt(gatherConfig.minCount, gatherConfig.maxCount);
+            ZRSJZ_GameData.Instance.ChangeBNSProperty(gatherConfig.propertyName, count);
+            this._isInteracting = false;
+            this._aniName = "";
+            this.PlayIdleAni();
+        });
+    }
+
+    private GetRandomInt(minCount: number, maxCount: number): number {
+        return Math.floor(Math.random() * (maxCount - minCount + 1)) + minCount;
+    }
+
+    private PlayIdleAni(): void {
+        this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D1);
+    }
+
+    private ShowBuildingGuide(targetBuilding: Node, arriveDistance: number): void {
+        const arrows = this.node
+            .getChildByName("指向")
+            ?.getComponent(ZRSJZ_BNS_Arrows);
+        if (!arrows) {
+            console.warn("[ZRSJZ_BNS_Player] 找不到子节点“指向”或其指引脚本");
+            return;
         }
+
+        arrows.SetTarget(targetBuilding, arriveDistance);
     }
 }
 

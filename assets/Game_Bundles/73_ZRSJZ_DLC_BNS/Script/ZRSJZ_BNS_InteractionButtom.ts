@@ -6,6 +6,7 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_BNS_InteractionButtom extends Component {
     private InteractionNode: Node = null;
     private InteractionNodes: Node[] = [];
+    private readonly InteractionIconNames: string[] = ["砍树", "挖矿", "采集", "升级"];
 
     start() {
         ZRSJZ_BNS_EventManager.On(ZRSJZ_BNS_MyEvent.进入交互对象范围, this.Show, this);
@@ -21,6 +22,7 @@ export class ZRSJZ_BNS_InteractionButtom extends Component {
         // 保持原有行为：最后进入范围的对象作为当前交互目标。
         this.node.active = true;
         this.InteractionNode = node;
+        this.RefreshIcon(node);
     }
 
     Exit(node: Node) {
@@ -38,6 +40,11 @@ export class ZRSJZ_BNS_InteractionButtom extends Component {
 
         // 只有范围内已经没有任何交互对象时才隐藏按钮。
         this.node.active = this.InteractionNodes.length > 0;
+        if (this.InteractionNode) {
+            this.RefreshIcon(this.InteractionNode);
+        } else {
+            this.HideAllIcons();
+        }
     }
 
     OnClick() {
@@ -45,6 +52,52 @@ export class ZRSJZ_BNS_InteractionButtom extends Component {
             ZRSJZ_BNS_EventManager.Emit(ZRSJZ_BNS_MyEvent.交互被按下, this.InteractionNode);
         }
     }
-}
 
+    private RefreshIcon(interactionNode: Node) {
+        this.HideAllIcons();
+
+        let iconName: string = "";
+        switch (interactionNode.name) {
+            case "桦树":
+            case "松树":
+                iconName = "砍树";
+                break;
+            case "金矿":
+            case "钻石矿":
+            case "铁矿":
+                iconName = "挖矿";
+                break;
+            case "果丛":
+                iconName = "采集";
+                break;
+            case "主基地":
+            case "仓库":
+            case "伐木场":
+            case "医疗部":
+            case "发电厂":
+            case "矿场":
+            case "科研所":
+            case "研究所":
+            case "防御塔":
+                iconName = "升级";
+                break;
+        }
+
+        if (iconName) {
+            const iconNode = this.node.getChildByName(iconName);
+            if (iconNode) {
+                iconNode.active = true;
+            }
+        }
+    }
+
+    private HideAllIcons() {
+        for (const iconName of this.InteractionIconNames) {
+            const iconNode = this.node.getChildByName(iconName);
+            if (iconNode) {
+                iconNode.active = false;
+            }
+        }
+    }
+}
 
