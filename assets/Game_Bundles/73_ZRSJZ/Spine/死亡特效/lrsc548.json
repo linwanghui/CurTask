@@ -1,0 +1,68 @@
+{
+"skeleton": {
+	"hash": "cDZ/ChwoDAJX4Gh5tKmzbogb3b8",
+	"spine": "3.8.75",
+	"x": -77.46,
+	"y": 17.55,
+	"width": 162,
+	"height": 203,
+	"images": "./images/",
+	"audio": "G:/游戏素材收集/军团战棋/动作/spine/spell/magic/undead/corpsebomb"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "image/a1", "parent": "root", "x": 2.22, "y": 38.65 }
+],
+"slots": [
+	{ "name": "image/a1", "bone": "image/a1", "attachment": "image/a1" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"image/a1": {
+				"image/a1": { "x": 1.32, "y": 80.4, "width": 162, "height": 203 },
+				"image/a2": { "x": 1.32, "y": 80.4, "width": 130, "height": 231 },
+				"image/a3": { "x": 1.32, "y": 80.4, "width": 159, "height": 259 },
+				"image/a4": { "x": 1.32, "y": 80.4, "width": 246, "height": 329 },
+				"image/a5": { "x": 1.32, "y": 80.4, "width": 290, "height": 365 },
+				"image/a6": { "x": 1.32, "y": 80.4, "width": 290, "height": 365 },
+				"image/a7": { "x": 1.32, "y": 80.4, "width": 290, "height": 365 },
+				"image/a8": { "x": 1.32, "y": 80.4, "scaleX": 2, "scaleY": 2, "width": 145, "height": 183 },
+				"image/a9": { "x": 1.32, "y": 80.4, "scaleX": 2, "scaleY": 2, "width": 145, "height": 183 },
+				"image/a10": { "x": 1.32, "y": 80.4, "scaleX": 2, "scaleY": 2, "width": 145, "height": 183 },
+				"image/a11": { "x": 1.32, "y": 80.4, "scaleX": 2, "scaleY": 2, "width": 145, "height": 183 },
+				"image/a12": { "x": 1.32, "y": 80.4, "scaleX": 2, "scaleY": 2, "width": 145, "height": 183 },
+				"image/a13": { "x": 1.32, "y": 80.4, "scaleX": 2, "scaleY": 2, "width": 145, "height": 183 },
+				"image/a14": { "x": 1.32, "y": 80.4, "scaleX": 2, "scaleY": 2, "width": 145, "height": 183 }
+			}
+		}
+	}
+],
+"animations": {
+	"eff": {
+		"slots": {
+			"image/a1": {
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.0667, "name": "image/a1" },
+					{ "time": 0.1333, "name": "image/a2" },
+					{ "time": 0.2, "name": "image/a3" },
+					{ "time": 0.2667, "name": "image/a4" },
+					{ "time": 0.3333, "name": "image/a5" },
+					{ "time": 0.4, "name": "image/a6" },
+					{ "time": 0.4667, "name": "image/a7" },
+					{ "time": 0.5333, "name": "image/a8" },
+					{ "time": 0.6, "name": "image/a9" },
+					{ "time": 0.6667, "name": "image/a10" },
+					{ "time": 0.7333, "name": "image/a11" },
+					{ "time": 0.8, "name": "image/a12" },
+					{ "time": 0.8667, "name": "image/a13" },
+					{ "time": 0.9333, "name": "image/a14" },
+					{ "time": 1, "name": null }
+				]
+			}
+		}
+	}
+}
+}

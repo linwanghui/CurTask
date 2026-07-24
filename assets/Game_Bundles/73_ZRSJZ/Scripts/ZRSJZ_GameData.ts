@@ -36,6 +36,9 @@ export class ZRSJZ_GameData {
         this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_刀, 1, 0, 0);
     }
 
+    public MusicMute: boolean = false;//音乐静音
+    public SoundMute: boolean = false;//音效静音
+
     public Gold: number = 0;
     public HaveRole: string[] = ["洛克", "安娜"];
     public CurRole: string[] = ["洛克", "安娜"];

@@ -20,6 +20,7 @@ export class ZRSJZ_PoolManager extends Component {
             ZRSJZ_PoolManager._instance.Preload("Prefabs/UI/SkinItem", 5);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/UI/货币特效", 2);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Unit/PlayerBullet", 20);
+            ZRSJZ_PoolManager._instance.Preload("Prefabs/UI/Tip", 10);
         }
         return ZRSJZ_PoolManager._instance;
     }
