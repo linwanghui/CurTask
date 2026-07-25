@@ -6,7 +6,9 @@ export class ZRSJZ_BNS_MyEvent {
     public static 离开交互对象范围: string = 'ZRSJZ_BNS_离开交互对象范围';//离开交互对象范围，参数0为对象Node
     public static 交互被按下: string = 'ZRSJZ_BNS_交互被按下';//交互被按下，参数0为对象Node
     public static 资源数量改变: string = 'ZRSJZ_BNS_资源数量改变';//参数0为资源名称，参数1为最新数量
+    public static 播放资源特效: string = 'ZRSJZ_BNS_播放资源特效';//参数0为资源名称，参数1为资源点Node，参数2为播放结束回调
     public static 开启建筑指引: string = 'ZRSJZ_BNS_开启建筑指引';//参数0为目标建筑Node，参数1为到达关闭距离
+    public static 建筑等级改变: string = 'ZRSJZ_BNS_建筑等级改变';//参数0为建筑名称，参数1为建筑等级
 }
 @ccclass('ZRSJZ_BNS_EventManager')
 export class ZRSJZ_BNS_EventManager extends Component {
@@ -17,6 +19,9 @@ export class ZRSJZ_BNS_EventManager extends Component {
     public static BindGameDataEvent(): void {
         ZRSJZ_GameData.BNS_PropertyChangeCallback = (propertyName, value) => {
             this.Emit(ZRSJZ_BNS_MyEvent.资源数量改变, propertyName, value);
+        };
+        ZRSJZ_GameData.BNS_BuildingChangeCallback = (buildingName, level) => {
+            this.Emit(ZRSJZ_BNS_MyEvent.建筑等级改变, buildingName, level);
         };
     }
 
@@ -31,4 +36,3 @@ export class ZRSJZ_BNS_EventManager extends Component {
         director.getScene()?.emit(type, ...args);
     }
 }
-

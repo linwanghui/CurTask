@@ -1,8 +1,9 @@
 import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, sp, v2 } from 'cc';
 import { ZRSJZ_PlayerSkeleton } from '../../73_ZRSJZ/Scripts/Controller/ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
-import { ZRSJZ_ANI } from '../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
+import { ZRSJZ_ANI, ZRSJZ_PANEL } from '../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_EventManager';
+import { ZRSJZ_UIManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
 import { ZRSJZ_BNS_InteractionNode } from './ZRSJZ_BNS_InteractionNode';
 import { ZRSJZ_BNS_EventManager, ZRSJZ_BNS_MyEvent } from './ZRSJZ_BNS_EventManager';
 import { ZRSJZ_BNS_Arrows } from './ZRSJZ_BNS_Arrows';
@@ -167,12 +168,18 @@ export class ZRSJZ_BNS_Player extends Component {
         if (this._isInteracting) return;
 
         const gatherConfig = ZRSJZ_BNS_Constant.采集配置[node.name];
-        if (!gatherConfig) return;
+        if (!gatherConfig) {
+            const buildingName = ZRSJZ_BNS_Constant.GetBuildingName(node.name);
+            if (buildingName) {
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.避难所_升级界面, buildingName);
+            }
+            return;
+        }
 
-        this.StartGather(gatherConfig);
+        this.StartGather(gatherConfig, node);
     }
 
-    private StartGather(gatherConfig: ZRSJZ_BNS_GatherConfig): void {
+    private StartGather(gatherConfig: ZRSJZ_BNS_GatherConfig, targetNode: Node): void {
         this._isInteracting = true;
         this._moveX = 0;
         this._moveY = 0;
@@ -183,10 +190,24 @@ export class ZRSJZ_BNS_Player extends Component {
         this._aniName = gatherConfig.aniName;
         this.PlayerSkeleton.PlayAni(gatherConfig.aniName, false, () => {
             const count = this.GetRandomInt(gatherConfig.minCount, gatherConfig.maxCount);
-            ZRSJZ_GameData.Instance.ChangeBNSProperty(gatherConfig.propertyName, count);
             this._isInteracting = false;
             this._aniName = "";
             this.PlayIdleAni();
+
+            let hasReward = false;
+            const addReward = () => {
+                if (hasReward) return;
+                hasReward = true;
+                ZRSJZ_GameData.Instance.ChangeBNSProperty(gatherConfig.propertyName, count);
+            };
+
+            ZRSJZ_BNS_EventManager.Emit(
+                ZRSJZ_BNS_MyEvent.播放资源特效,
+                gatherConfig.propertyName,
+                targetNode,
+                addReward
+            );
+            this.scheduleOnce(addReward, 5);
         });
     }
 

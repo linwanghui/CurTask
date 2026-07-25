@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "b1139e35-c776-4f94-a124-d6aad84166f9",
+  "uuid": "ccb877bb-5019-4319-a501-d643e77b0c42",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "b1139e35-c776-4f94-a124-d6aad84166f9@6c48a",
-      "displayName": "矿石资源",
+      "uuid": "ccb877bb-5019-4319-a501-d643e77b0c42@6c48a",
+      "displayName": "电力资源",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "b1139e35-c776-4f94-a124-d6aad84166f9",
+        "imageUuidOrDatabaseUri": "ccb877bb-5019-4319-a501-d643e77b0c42",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,19 +34,19 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "b1139e35-c776-4f94-a124-d6aad84166f9@f9941",
-      "displayName": "矿石资源",
+      "uuid": "ccb877bb-5019-4319-a501-d643e77b0c42@f9941",
+      "displayName": "电力资源",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
         "offsetX": 0,
-        "offsetY": 0,
-        "trimX": 0,
-        "trimY": 0,
-        "width": 63,
-        "height": 58,
+        "offsetY": 2.5,
+        "trimX": 17,
+        "trimY": 6,
+        "width": 29,
+        "height": 41,
         "rawWidth": 63,
         "rawHeight": 58,
         "borderTop": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -31.5,
-            -29,
+            -14.5,
+            -20.5,
             0,
-            31.5,
-            -29,
+            14.5,
+            -20.5,
             0,
-            -31.5,
-            29,
+            -14.5,
+            20.5,
             0,
-            31.5,
-            29,
+            14.5,
+            20.5,
             0
           ],
           "indexes": [
@@ -82,40 +82,40 @@
             3
           ],
           "uv": [
-            0,
-            58,
-            63,
-            58,
-            0,
-            0,
-            63,
-            0
+            17,
+            52,
+            46,
+            52,
+            17,
+            11,
+            46,
+            11
           ],
           "nuv": [
-            0,
-            0,
-            1,
-            0,
-            0,
-            1,
-            1,
-            1
+            0.2698412698412698,
+            0.1896551724137931,
+            0.7301587301587301,
+            0.1896551724137931,
+            0.2698412698412698,
+            0.896551724137931,
+            0.7301587301587301,
+            0.896551724137931
           ],
           "minPos": [
-            -31.5,
-            -29,
+            -14.5,
+            -20.5,
             0
           ],
           "maxPos": [
-            31.5,
-            29,
+            14.5,
+            20.5,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "b1139e35-c776-4f94-a124-d6aad84166f9@6c48a",
+        "imageUuidOrDatabaseUri": "ccb877bb-5019-4319-a501-d643e77b0c42@6c48a",
         "atlasUuid": "",
-        "trimType": "none"
+        "trimType": "auto"
       },
       "ver": "1.0.12",
       "imported": true,
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "b1139e35-c776-4f94-a124-d6aad84166f9@6c48a"
+    "redirect": "ccb877bb-5019-4319-a501-d643e77b0c42@6c48a"
   }
 }

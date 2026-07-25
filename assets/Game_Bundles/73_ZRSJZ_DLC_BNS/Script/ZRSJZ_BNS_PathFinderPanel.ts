@@ -17,6 +17,7 @@ export class ZRSJZ_BNS_PathFinderPanel extends Component {
             医疗部: '医疗部',
             研究所: '科研所',
             防御塔: '防御塔',
+            果园: '果园',
         };
         const buildingName = buildingNameMap[buttonNode?.name];
         if (!buildingName) return;
@@ -32,5 +33,4 @@ export class ZRSJZ_BNS_PathFinderPanel extends Component {
         );
     }
 }
-
 

@@ -79,6 +79,7 @@ export class ZRSJZ_BNS_InteractionButtom extends Component {
             case "科研所":
             case "研究所":
             case "防御塔":
+            case "果园":
                 iconName = "升级";
                 break;
         }
@@ -100,4 +101,3 @@ export class ZRSJZ_BNS_InteractionButtom extends Component {
         }
     }
 }
-
