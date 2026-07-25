@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "Player",
+    "_name": "持枪小怪",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Player",
+    "_name": "持枪小怪",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -136,13 +136,13 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 382.1600036621094,
-      "height": 758.52001953125
+      "width": 343.9200134277344,
+      "height": 724.739990234375
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.535534858962011,
-      "y": 0.07635922148071807
+      "x": 0.46234586037037256,
+      "y": 0.07991831408422
     },
     "_id": ""
   },
@@ -173,10 +173,10 @@
       "a": 255
     },
     "_skeletonData": {
-      "__uuid__": "0797d2bd-9982-470f-8dfd-49b4877f52df",
+      "__uuid__": "ef59739f-7e57-40bf-b316-e0d3450aa237",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "default",
+    "defaultSkin": "xb/XB1",
     "defaultAnimation": "",
     "_premultipliedAlpha": true,
     "_timeScale": 1,
@@ -196,7 +196,7 @@
     "fileId": "e7HbNUHDBNHa1TUrSL2/93"
   },
   {
-    "__type__": "69db1IMTARO1JdzvrbRNvFs",
+    "__type__": "c14cf5zWfFGKLeO/nQ3pFyq",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -207,12 +207,12 @@
     "__prefab": {
       "__id__": 8
     },
-    "AimAngleOffset": 0,
+    "AimAngleOffset": 17,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "07BwQ/AhBNWoEik3YN6ZXm"
+    "fileId": "8fLnXOmsJP8ZwA6Kct55dh"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -256,7 +256,7 @@
     "fileId": "5eFKl7qZVDgaA3UuBomRLk"
   },
   {
-    "__type__": "636fdT/7v5BlJ0MuehMle4P",
+    "__type__": "cc.RigidBody2D",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -267,28 +267,10 @@
     "__prefab": {
       "__id__": 13
     },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "37Z5ZDPvVIxqMQ7y0RwBgI"
-  },
-  {
-    "__type__": "cc.RigidBody2D",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 15
-    },
     "enabledContactListener": true,
     "bullet": false,
     "awakeOnLoad": true,
-    "_group": 2,
+    "_group": 4,
     "_type": 2,
     "_allowSleep": true,
     "_gravityScale": 0,
@@ -317,10 +299,10 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 17
+      "__id__": 15
     },
     "tag": 0,
-    "_group": 2,
+    "_group": 4,
     "_density": 1,
     "_sensor": false,
     "_friction": 0.2,
@@ -336,6 +318,38 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "a8+BxljsJH1oyGNJdhOhsr"
+  },
+  {
+    "__type__": "3d73e1t9m1Ad4pssLAaQlqh",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 17
+    },
+    "MaxHealth": 100,
+    "DetectionRange": 800,
+    "LoseRange": 1200,
+    "PatrolRadius": 500,
+    "PatrolSpeed": 500,
+    "ChaseSpeed": 600,
+    "PatrolWaitTime": 1,
+    "PatrolArriveDistance": 50,
+    "AttackRange": 300,
+    "AttackInterval": 1,
+    "IdleAnimation": "daiji_q",
+    "MoveAnimation": "zl_q",
+    "AttackAnimation": "gj_qiang",
+    "WeaponName": "突击步枪",
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "55Q3pf1QRMxZ/CTY2ef8X5"
   },
   {
     "__type__": "cc.PrefabInfo",

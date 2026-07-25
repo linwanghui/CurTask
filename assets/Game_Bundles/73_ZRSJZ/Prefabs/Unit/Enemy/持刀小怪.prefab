@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "Enemy",
+    "_name": "持刀小怪",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Enemy",
+    "_name": "持刀小怪",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -176,7 +176,7 @@
       "__uuid__": "ef59739f-7e57-40bf-b316-e0d3450aa237",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "",
+    "defaultSkin": "xb/XB1",
     "defaultAnimation": "",
     "_premultipliedAlpha": true,
     "_timeScale": 1,
@@ -331,6 +331,7 @@
     "__prefab": {
       "__id__": 17
     },
+    "MaxHealth": 100,
     "DetectionRange": 800,
     "LoseRange": 1200,
     "PatrolRadius": 500,
@@ -338,10 +339,12 @@
     "ChaseSpeed": 600,
     "PatrolWaitTime": 1,
     "PatrolArriveDistance": 50,
-    "ChaseStopDistance": 300,
-    "IdleAnimation": "daiji_q",
-    "MoveAnimation": "zl_q",
-    "WeaponName": "突击步枪",
+    "AttackRange": 200,
+    "AttackInterval": 1,
+    "IdleAnimation": "daiji_dao1",
+    "MoveAnimation": "zl_dao",
+    "AttackAnimation": "gj_dao3",
+    "WeaponName": "战术匕首",
     "_id": ""
   },
   {

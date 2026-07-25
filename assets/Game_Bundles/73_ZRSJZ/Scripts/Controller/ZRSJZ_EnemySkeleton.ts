@@ -88,7 +88,6 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
 
             const targetSlot = skeleton.slots[slotIndex];
             const slotName = targetSlot.data.name;
-            console.error(slotName);
 
             // The gun and knife use different slots, so hide the other weapon slot.
             if (slotName === '步枪') {

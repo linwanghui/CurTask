@@ -1,10 +1,11 @@
-import { _decorator, Component, director, Director, RigidBody2D, sp, v2, Vec3 } from 'cc';
+import { _decorator, Component, director, Node, RigidBody2D, sp, v2, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_ANI } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
+import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -14,16 +15,16 @@ export class ZRSJZ_Player extends Component {
     Skeleton: sp.Skeleton = null;
     WeaponType: string = "枪";
 
-
     PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
+
+    TargetEnemy: Node = null;
+    TargetRange: number = 1000;
 
     private _moveSpeed: number = 1000;
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _moveRadius: number = 0;
     private _aniName: string = "";
-    private _attackX: number = 0;
-    private _attackY: number = 0;
     private _isFireing: boolean = false;
 
     protected onLoad(): void {
@@ -61,6 +62,9 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected update(dt: number): void {
+        this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : 0;
+        this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
+        this.FindTarget();
         this.AniSwitch();
         this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed * this._moveRadius, this._moveY * dt * this._moveSpeed * this._moveRadius);
     }
@@ -75,11 +79,11 @@ export class ZRSJZ_Player extends Component {
     }
 
     Attack(x: number, y: number, radius: number) {
-        this._attackX = x;
-        this._attackY = y;
+        const targetX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : 0;
+        const targetY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
         if (x === 0 && y === 0) {
             this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
-            this.PlayerSkeleton.HasDirection = false;
+            // this.PlayerSkeleton.HasDirection = false;
             if (this._isFireing) {
                 this._isFireing = false;
                 // this.unschedule(this.Fire);
@@ -95,9 +99,9 @@ export class ZRSJZ_Player extends Component {
         } else {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
         }
-        this.PlayerSkeleton.AttackX = x;
-        this.PlayerSkeleton.AttackY = y;
-        this.PlayerSkeleton.HasDirection = true;
+        this.PlayerSkeleton.AttackX = targetX;
+        this.PlayerSkeleton.AttackY = targetY;
+        // this.PlayerSkeleton.HasDirection = true;
     }
 
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
@@ -171,10 +175,25 @@ export class ZRSJZ_Player extends Component {
 
         bullet.getComponent(ZRSJZ_Bullet).Show(
             muzzleWorldPos,
-            this._attackX,
-            this._attackY,
+            this.PlayerSkeleton.AttackX,
+            this.PlayerSkeleton.AttackY,
             1000,
         );
+    }
+
+    protected FindTarget() {
+        if (this.TargetEnemy && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= this.TargetRange) {
+            return;
+        }
+
+        const players = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
+        const currentPosition = this.node.worldPosition;
+
+        players.sort((a, b) => (
+            Vec3.distance(a.node.worldPosition, currentPosition)
+            - Vec3.distance(b.node.worldPosition, currentPosition)
+        ));
+        this.TargetEnemy = players[0]?.node ?? null;
     }
 
 }

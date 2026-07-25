@@ -17,7 +17,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
     AttackX: number = 0;
     AttackY: number = 0;
-    HasDirection: boolean = false;
+    HasDirection: boolean = true;
     Facing: number = 1;
     IsKnife: boolean = false;
     private _mzBone: sp.spine.Bone = null;
