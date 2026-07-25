@@ -1,4 +1,4 @@
-import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, SpriteFrame, Widget } from 'cc';
+import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, SpriteFrame, Texture2D, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
@@ -11,15 +11,19 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ZRSJZ_AudioManager } from './ZRSJZ_AudioManager';
 import { ZRSJZ_Tip } from '../UI/ZRSJZ_Tip';
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './ZRSJZ_EventManager';
+import Banner from 'db://assets/Scripts/Banner';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_UIManager')
 export class ZRSJZ_UIManager extends Component {
+    public static ZRSJZ_DLC: boolean = false;
 
     private static _instance: ZRSJZ_UIManager = null;
     public static get Instance(): ZRSJZ_UIManager {
         if (!ZRSJZ_UIManager._instance) {
             ZRSJZ_UIManager.Init();
+            ZRSJZ_UIManager.InitDLC();
             ZRSJZ_UIManager.InitAudio();
             ZRSJZ_UIManager.InitUI();
             ZRSJZ_UIManager.InitInventory();
@@ -30,6 +34,7 @@ export class ZRSJZ_UIManager extends Component {
     PropParent: Node = null;
     PropGridSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     PropSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
+    WeaponryTextureMap: Map<string, Texture2D> = new Map<string, Texture2D>();
     InventoryMap: Map<string, Node> = new Map<string, Node>();
 
     private _panelNode: Node = null;
@@ -88,6 +93,16 @@ export class ZRSJZ_UIManager extends Component {
         ZRSJZ_Tools.LoadSprites("Sprites/格子").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.PropGridSFMap.set(sf.name, sf)));
         //初始化道具UI
         ZRSJZ_Tools.LoadSprites("Sprites/Prop").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.PropSFMap.set(sf.name, sf)));
+        //初始化武器UI
+        ZRSJZ_Tools.LoadSprites("Sprites/Weaponry").then(spriteFrames => spriteFrames.forEach(sf => ZRSJZ_UIManager._instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D)));
+    }
+
+    public static InitDLC() {
+        if (!Banner.TimeMask) return;
+        BundleManager.LoadBundle("73_ZRSJZ_DLC", () => {
+            ZRSJZ_UIManager.ZRSJZ_DLC = true;
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC);
+        })
     }
 
     //初始化仓库
@@ -238,6 +253,23 @@ export class ZRSJZ_UIManager extends Component {
             return null;
         }
         return Promise.resolve(this.PropSFMap.get(propName));
+    }
+
+    //获取道具UI
+    public GetWeaponryUI(propName: string): Promise<Texture2D> {
+        if (this.WeaponryTextureMap.size === 0) {
+            return new Promise(resolve => {
+                setTimeout(async () => {
+                    resolve(await this.GetWeaponryUI(propName));
+                }, 100);
+            });
+        }
+
+        if (!this.WeaponryTextureMap.has(propName)) {
+            console.error("没找到武器ui:", propName);
+            return null;
+        }
+        return Promise.resolve(this.WeaponryTextureMap.get(propName));
     }
 
     //获取仓库

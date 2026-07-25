@@ -1,19 +1,12 @@
-import { _decorator, Component, Director, director, error, Node, sp, Texture2D, Vec3 } from 'cc';
-import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
-import { ZRSJZ_ANI, ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
+import { _decorator, Component, Director, director, Node, sp, Vec3 } from 'cc';
 import { ZRSJZ_Skeleton } from './ZRSJZ_Skeleton';
-import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_ANI } from '../ZRSJZ_Constant';
 const { ccclass, property } = _decorator;
 
-@ccclass('ZRSJZ_PlayerSkeleton')
-export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
-
+@ccclass('ZRSJZ_EnemySkeleton')
+export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
     @property({ tooltip: "补偿 Spine 持枪约束的初始角度偏差" })
     AimAngleOffset: number = 17;
-
-    CurPlayerIndex: number = 0;
-    QKBone: sp.spine.Bone = null;
 
     AttackX: number = 0;
     AttackY: number = 0;
@@ -29,23 +22,12 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         this._baseScale.set(this.node.scale.x, this.node.scale.y, this.node.scale.z);
     }
 
-    protected start(): void {
-        this.SetSkin(ZRSJZ_GameData.Instance.CurSkin[this.CurPlayerIndex]);
-        for (let i = ZRSJZ_GameData.Instance.WeaponryID.length - 1; i >= 0; i--) {
-            if (ZRSJZ_GameData.Instance.WeaponryID[i]) {
-                this.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[i]].Name);
-            }
-        }
-    }
-
     protected onEnable(): void {
         director.on(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
-        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
     }
 
     protected onDisable(): void {
         director.off(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
-        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
     }
 
 
@@ -95,20 +77,51 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         if (!equipmentName || !this.Skeleton?._skeleton) {
             return;
         }
-        super.ShowEquipment(equipmentName, isEquipment);
 
-        //枪的穿戴
-        for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
-            const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);
-            if (flag) {
+        const skeleton = this.Skeleton._skeleton;
+
+        // Find the owning slot by attachment name instead of hard-coding slot names.
+        for (let slotIndex = 0; slotIndex < skeleton.slots.length; slotIndex++) {
+            if (!skeleton.getAttachment(slotIndex, equipmentName)) {
+                continue;
+            }
+
+            const targetSlot = skeleton.slots[slotIndex];
+            const slotName = targetSlot.data.name;
+            console.error(slotName);
+
+            // The gun and knife use different slots, so hide the other weapon slot.
+            if (slotName === '步枪') {
+                //装备
                 if (isEquipment) {
-                    this.QKBone = this.Skeleton.findBone(key + "枪口");
+                    const otherWeaponSlot = skeleton.findSlot('dao');
+                    otherWeaponSlot?.setAttachment(null);
+                } else {
+                    //卸下装备
+                    skeleton.findSlot('wq1')?.setAttachment(null);
+                    this.Skeleton.setAttachment('dao', "战术匕首");
+                    return;
+                }
+            } else if (slotName === 'dao') {
+                //装备
+                if (isEquipment) {
+                    const otherWeaponSlot = skeleton.findSlot('wq1');
+                    otherWeaponSlot?.setAttachment(null);
+                    this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
+                        this.PlayAni(ZRSJZ_ANI.Idle_D1);
+                    })
                 }
             }
+
+            targetSlot.setAttachment(null);
+            if (isEquipment) {
+                this.Skeleton.setAttachment(slotName, equipmentName);
+            }
+            return;
         }
+        console.error(`[ZRSJZ_PlayerSpine] Equipment attachment not found: ${equipmentName}`);
 
     }
-
 }
 
 

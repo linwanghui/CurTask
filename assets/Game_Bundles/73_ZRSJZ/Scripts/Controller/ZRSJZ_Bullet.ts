@@ -1,4 +1,4 @@
-import { _decorator, Collider2D, Component, Contact2DType, Vec3 } from 'cc';
+import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 const { ccclass, property } = _decorator;
 
@@ -51,7 +51,8 @@ export class ZRSJZ_Bullet extends Component {
         this.node.setWorldRotationFromEuler(0, 0, angle);
     }
 
-    BeginContact(selfCollider: Collider2D, otherCollider: Collider2D) {
+    BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
+        contract.disabled = true;
         console.error(otherCollider.node.name);
     }
 

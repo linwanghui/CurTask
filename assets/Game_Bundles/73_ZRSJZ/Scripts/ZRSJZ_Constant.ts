@@ -384,6 +384,12 @@ export const ZRSJZ_PROP_PROPERTY_MAX: Map<string, number> = new Map([
     ["弹夹", 35],
 ])
 
+export const ZRSJZ_WEAPONRY_TYPE: Map<string, string[]> = new Map([
+    ["步枪", ["突击步枪"]],
+    ["狙击枪", ["ssv狙击枪"]],
+    ["散弹枪", ["散弹枪"]],
+])
+
 //道具存储类型
 export class ZRSJZ_PropData {
     public InstanceID: string;//唯一ID(可区分两把相同的枪)
@@ -456,6 +462,7 @@ export const ZRSJZ_ROLE_CONFIG: Map<string, {
 }> = new Map([
     ["洛克", { Name: "洛克", Skin: ["洛克", "洛克2"] }],
     ["安娜", { Name: "安娜", Skin: ["安娜", "安娜2"] }],
+    ["小美", { Name: "小美", Skin: ["小美", "小美2"] }],
 ])
 
 export const ZRSJZ_SKIN_CONFIG: Map<string, {
@@ -469,6 +476,8 @@ export const ZRSJZ_SKIN_CONFIG: Map<string, {
     ["洛克2", { Name: "洛克", UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0003_曲线-3-拷贝-3", "llpf1_0000s_0001_前刘海"] }],
     ["安娜", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
     ["安娜2", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
+    ["小美", { Name: "小美", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [] }],
+    ["小美2", { Name: "小美2", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: [] }],
 ])
 
 //玩家动画

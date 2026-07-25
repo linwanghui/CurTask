@@ -1,6 +1,6 @@
 {
 "skeleton": {
-	"hash": "5eQ/u5Ndjojru8ONc1hRBE4uSk8",
+	"hash": "w1J5EXdyif/SK0qgVDHkE++ztnM",
 	"spine": "3.8.75",
 	"x": -159.01,
 	"y": -57.92,
@@ -206,7 +206,15 @@
 		"color": "ff5151ff"
 	},
 	{ "name": "mz", "parent": "root", "x": 293.53, "y": 243.94, "color": "ff3f00ff" },
-	{ "name": "骨骼39", "parent": "骨骼40", "length": 290.62, "rotation": 13.49, "x": 66.81, "y": -20.22 },
+	{
+		"name": "骨骼39",
+		"parent": "骨骼40",
+		"length": 290.62,
+		"rotation": 13.49,
+		"x": 66.81,
+		"y": -20.22,
+		"color": "abe323ff"
+	},
 	{ "name": "ys2", "parent": "骨骼39", "rotation": 6.47, "x": 5.8, "y": -53.34, "color": "ff3f00ff" },
 	{ "name": "ys1", "parent": "ys2", "x": -62.48, "y": 3.26, "color": "ff3f00ff" },
 	{ "name": "zs2", "parent": "骨骼39", "rotation": 6.47, "x": 149.07, "y": -55.37, "color": "ff3f00ff" },
@@ -306,63 +314,39 @@
 	{ "name": "dian3", "parent": "kaihuo" },
 	{ "name": "dian4", "parent": "kaihuo" },
 	{ "name": "shan", "parent": "kaihuo" },
-	{ "name": "yan", "parent": "kaihuo" }
+	{ "name": "yan", "parent": "kaihuo" },
+	{
+		"name": "dao1",
+		"parent": "root",
+		"rotation": 180,
+		"x": 210.74,
+		"y": 275.14,
+		"scaleX": 4,
+		"scaleY": 5,
+		"shearX": -180
+	},
+	{ "name": "dao2", "parent": "root", "scaleX": 3, "scaleY": 3 },
+	{ "name": "skill0", "parent": "dao2" },
+	{ "name": "guang", "parent": "skill0", "scaleX": 0.5644, "scaleY": 0.5644 },
+	{ "name": "tuci", "parent": "skill0" },
+	{ "name": "skill2", "parent": "dao2" },
+	{ "name": "guangzi", "parent": "skill2", "scaleX": 0.5874, "scaleY": 0.5874 },
+	{ "name": "js01", "parent": "skill2", "x": 327.49, "y": 3.73 },
+	{ "name": "js1", "parent": "skill2", "x": 327.49, "y": 3.73 },
+	{ "name": "tuci5", "parent": "skill2" },
+	{ "name": "tuoweixian2", "parent": "skill2" },
+	{ "name": "tuoweixian3", "parent": "skill2" },
+	{ "name": "tuoweixian4", "parent": "skill2" },
+	{ "name": "xuanfeng", "parent": "dao2" },
+	{ "name": "xuanfeng2", "parent": "dao2" },
+	{ "name": "zhccy", "parent": "dao2" },
+	{ "name": "zhccy2", "parent": "dao2" },
+	{ "name": "zhccy3", "parent": "dao2" },
+	{ "name": "步枪枪口", "parent": "骨骼39", "x": 272.86, "y": -1.05, "color": "abe323ff" }
 ],
 "slots": [
-	{ "name": "m1__0007_马尾", "bone": "zb_q", "attachment": "m1__0007_马尾" },
 	{ "name": "b", "bone": "zb_bb" },
-	{ "name": "bj", "bone": "骨骼47" },
 	{ "name": "yy", "bone": "骨骼46", "attachment": "图层 7 拷贝 8" },
-	{ "name": "尾巴-猫", "bone": "zb_q", "attachment": "尾巴-猫" },
-	{ "name": "左手1-猫", "bone": "zb_q", "attachment": "左手1-猫" },
-	{ "name": "左手2-猫", "bone": "zb_q", "attachment": "左手2-猫" },
-	{ "name": "左手3拿枪手1-猫", "bone": "zb_q", "attachment": "左手3拿枪手1-猫" },
-	{ "name": "左脚-猫", "bone": "zb_q", "attachment": "左脚-猫" },
-	{ "name": "右脚-猫", "bone": "zb_q", "attachment": "右脚-猫" },
-	{ "name": "身体-猫", "bone": "zb_q", "attachment": "身体-猫" },
-	{ "name": "胯部-猫", "bone": "zb_q", "attachment": "胯部-猫" },
-	{ "name": "右手2-猫", "bone": "zb_q" },
-	{ "name": "右手3-猫", "bone": "zb_q", "attachment": "右手3-猫" },
-	{ "name": "左手3拿枪手2-猫", "bone": "zb_q", "attachment": "左手3拿枪手2-猫" },
-	{ "name": "ll-_0010_左手1_蓝狼", "bone": "root", "attachment": "ll-_0010_左手1_蓝狼" },
-	{ "name": "ll-_0009_左手2_蓝狼", "bone": "root", "attachment": "ll-_0009_左手2_蓝狼" },
-	{ "name": "ll-_0008_左手3拿枪手1_蓝狼", "bone": "root", "attachment": "ll-_0008_左手3拿枪手1_蓝狼" },
-	{ "name": "ll-_0011_左脚_蓝狼", "bone": "root", "attachment": "ll-_0011_左脚_蓝狼" },
-	{ "name": "ll-_0012_右脚2_蓝狼", "bone": "root" },
-	{ "name": "ll-_0013_右脚", "bone": "root", "attachment": "ll-_0013_右脚" },
-	{ "name": "ll-_0006_胯部_蓝狼", "bone": "root", "attachment": "ll-_0006_胯部_蓝狼" },
-	{ "name": "ll-_0005_身体_蓝狼", "bone": "root", "attachment": "ll-_0005_身体_蓝狼" },
-	{ "name": "llpf1__0000s_0023_曲线-3-拷贝-13", "bone": "root", "attachment": "llpf1__0000s_0023_曲线-3-拷贝-13" },
-	{ "name": "llpf1__0000s_0031_曲线-3-拷贝-17", "bone": "root", "attachment": "llpf1__0000s_0031_曲线-3-拷贝-17" },
-	{ "name": "llpf1__0000s_0029_曲线-3-拷贝-16", "bone": "root", "attachment": "llpf1__0000s_0029_曲线-3-拷贝-16" },
-	{ "name": "llpf1__0000s_0021_曲线-3-拷贝-12", "bone": "root", "attachment": "llpf1__0000s_0021_曲线-3-拷贝-12" },
-	{ "name": "llpf1__0000s_0027_曲线-3-拷贝-15", "bone": "root", "attachment": "llpf1__0000s_0027_曲线-3-拷贝-15" },
-	{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11", "bone": "root", "attachment": "llpf1__0000s_0017_曲线-3-拷贝-10" },
-	{ "name": "llpf1__0000s_0015_曲线-3-拷贝-9", "bone": "root", "attachment": "llpf1__0000s_0015_曲线-3-拷贝-9" },
-	{ "name": "llpf1__0000s_0013_曲线-3-拷贝-8", "bone": "root", "attachment": "llpf1__0000s_0013_曲线-3-拷贝-8" },
-	{ "name": "llpf1__0000s_0009_曲线-3-拷贝-6", "bone": "root" },
-	{ "name": "llpf1__0000s_0007_曲线-3-拷贝-5", "bone": "root", "attachment": "llpf1__0000s_0007_曲线-3-拷贝-5" },
-	{ "name": "llpf1__0000s_0025_曲线-3-拷贝-14", "bone": "root", "attachment": "llpf1__0000s_0025_曲线-3-拷贝-14" },
-	{ "name": "m1__0019_左脚", "bone": "zb_q", "attachment": "m1__0019_左脚" },
-	{ "name": "m1__0017_左脚", "bone": "zb_q", "attachment": "m1__0018_右脚" },
-	{ "name": "m1__0015_左手1", "bone": "zb_q", "attachment": "m1__0015_左手1" },
-	{ "name": "m1__0014_左手2", "bone": "zb_q", "attachment": "m1__0014_左手2" },
-	{ "name": "m1__0013_左手3拿枪手1", "bone": "zb_q", "attachment": "m1__0013_左手3拿枪手1" },
-	{ "name": "m1__0016_胯部", "bone": "zb_q", "attachment": "m1__0016_胯部" },
-	{ "name": "m1__0011_身体", "bone": "zb_q", "attachment": "m1__0011_身体" },
-	{ "name": "m1__0009_右手2", "bone": "zb_q" },
-	{ "name": "m1__0008_右手2-拷贝", "bone": "zb_q", "attachment": "m1__0008_右手2-拷贝" },
-	{ "name": "w1__0000s_0017_左手1", "bone": "root", "attachment": "w1__0000s_0017_左手1" },
-	{ "name": "w1__0000s_0016_左手2", "bone": "root", "attachment": "w1__0000s_0016_左手2" },
-	{ "name": "w1__0000s_0015_左手3拿枪手1", "bone": "root", "attachment": "w1__0000s_0015_左手3拿枪手1" },
-	{ "name": "w1__0000s_0014_左手3拿枪手2", "bone": "root", "attachment": "w1__0000s_0014_左手3拿枪手2" },
-	{ "name": "w1__0000s_0022_左脚", "bone": "root", "attachment": "w1__0000s_0022_左脚" },
-	{ "name": "w1__0000s_0021_右脚", "bone": "root", "attachment": "w1__0000s_0021_右脚" },
-	{ "name": "w1__0000s_0018_裤子上的飘带", "bone": "root", "attachment": "w1__0000s_0018_裤子上的飘带" },
-	{ "name": "w1__0000s_0019_胯部", "bone": "root", "attachment": "w1__0000s_0019_胯部" },
-	{ "name": "w1__0000s_0013_身体", "bone": "root", "attachment": "w1__0000s_0013_身体" },
-	{ "name": "w1__0000s_0011_右手2", "bone": "root", "attachment": "w1__0000s_0011_右手2" },
-	{ "name": "w1__0000s_0010_右手3", "bone": "root", "attachment": "w1__0000s_0010_右手3" },
 	{ "name": "小兵1__0009_右手1", "bone": "root", "attachment": "小兵1__0009_右手1" },
 	{ "name": "小兵1__0008_左手2", "bone": "root", "attachment": "小兵1__0008_左手2" },
 	{ "name": "小兵1__0007_左手3拿枪手1", "bone": "root", "attachment": "小兵1__0007_左手3拿枪手1" },
@@ -372,53 +356,17 @@
 	{ "name": "小兵1__0010_胯部", "bone": "root", "attachment": "小兵1__0010_胯部" },
 	{ "name": "小兵1__0005_身体", "bone": "root", "attachment": "小兵1__0005_身体" },
 	{ "name": "j", "bone": "zb_fdy" },
-	{ "name": "llpf1__0000s_0005_曲线-3-拷贝-4", "bone": "root", "attachment": "llpf1__0000s_0005_曲线-3-拷贝-4" },
-	{ "name": "llpf1__0000s_0003_曲线-3-拷贝-3", "bone": "root", "attachment": "llpf1__0000s_0003_曲线-3-拷贝-3" },
-	{ "name": "llpf1__0000s_0001_前刘海", "bone": "root", "attachment": "llpf1__0000s_0001_前刘海" },
-	{ "name": "llpf1__0000s_0002_面具", "bone": "root", "attachment": "llpf1__0000s_0002_面具" },
-	{ "name": "发尾-猫", "bone": "zb_q", "attachment": "发尾-猫" },
-	{ "name": "左耳朵-猫", "bone": "zb_q", "attachment": "左耳朵-猫" },
-	{ "name": "头-猫", "bone": "zb_q", "attachment": "头-猫" },
-	{ "name": "左眼皮-猫", "bone": "zb_q", "attachment": "左眼皮-猫" },
-	{ "name": "右眼皮-猫", "bone": "zb_q", "attachment": "右眼皮-猫" },
-	{ "name": "左刘海-猫", "bone": "zb_q", "attachment": "左刘海-猫" },
-	{ "name": "右刘海-猫", "bone": "zb_q", "attachment": "右刘海-猫" },
-	{ "name": "右耳朵-猫", "bone": "zb_q", "attachment": "右耳朵-猫" },
-	{ "name": "m1__0006_头", "bone": "zb_q", "attachment": "m1__0006_头" },
-	{ "name": "m1__0004_右眼皮", "bone": "zb_q", "attachment": "m1__0004_右眼皮" },
-	{ "name": "m1__0005_左眼皮", "bone": "zb_q", "attachment": "m1__0005_左眼皮" },
-	{ "name": "m1__0000_右刘海", "bone": "zb_q", "attachment": "m1__0000_右刘海" },
-	{ "name": "m1__0001_左刘海", "bone": "zb_q", "attachment": "m1__0001_左刘海" },
-	{ "name": "ll-_0001_面具_蓝狼", "bone": "root", "attachment": "ll-_0001_面具_蓝狼" },
-	{ "name": "ll-_0003_头_蓝狼", "bone": "root", "attachment": "ll-_0003_头_蓝狼" },
-	{ "name": "ll-_0002_耳机_蓝狼", "bone": "root", "attachment": "ll-_0002_耳机_蓝狼" },
-	{ "name": "ll-_0000_前刘海_蓝狼", "bone": "root", "attachment": "ll-_0000_前刘海_蓝狼" },
-	{ "name": "ll-_0000_面具_蓝狼", "bone": "root", "attachment": "ll-_0000_面具_蓝狼" },
-	{ "name": "w1__0000s_0009_头", "bone": "root", "attachment": "w1__0000s_0009_头" },
-	{ "name": "w1__0001_左眼皮", "bone": "root", "attachment": "w1__0001_左眼皮" },
-	{ "name": "w1__0000_右眼皮", "bone": "root", "attachment": "w1__0000_右眼皮" },
-	{ "name": "w1__0000s_0001_左刘海", "bone": "root", "attachment": "w1__0000s_0001_左刘海" },
-	{ "name": "w1__0000s_0002_右刘海", "bone": "root", "attachment": "w1__0000s_0002_右刘海" },
-	{ "name": "w1__0000s_0000_墨镜", "bone": "root", "attachment": "w1__0000s_0000_墨镜" },
 	{ "name": "小兵1__0004_右手1", "bone": "root", "attachment": "小兵1__0004_右手1" },
 	{ "name": "小兵1__0001_图层-17", "bone": "root", "attachment": "小兵1__0001_图层-17" },
 	{ "name": "小兵1__0000_围巾", "bone": "root", "attachment": "小兵1__0000_围巾" },
 	{ "name": "t", "bone": "zb_tk" },
 	{ "name": "小兵1__0003_右手2", "bone": "root", "attachment": "小兵1__0003_右手2" },
-	{ "name": "llpf1__0000s_0011_曲线-3-拷贝-7", "bone": "root", "attachment": "llpf1__0000s_0011_曲线-3-拷贝-7" },
-	{ "name": "llpf1__0000s_0000_曲线-3-拷贝", "bone": "root", "attachment": "llpf1__0000s_0000_曲线-3-拷贝" },
-	{ "name": "w1__0000s_0012_右手1", "bone": "root", "attachment": "w1__0000s_0012_右手1" },
-	{ "name": "m1__0010_右手1", "bone": "zb_q", "attachment": "m1__0010_右手1" },
-	{ "name": "ll-_0004_右手1_蓝狼", "bone": "root", "attachment": "ll-_0004_右手1_蓝狼" },
-	{ "name": "右手1-猫", "bone": "骨骼4", "attachment": "右手1-猫" },
-	{ "name": "ll-_0003_右手2_蓝狼", "bone": "root", "attachment": "llpf1__0000s_0009_曲线-3-拷贝-6" },
 	{ "name": "dao", "bone": "zb_dao" },
-	{ "name": "wq1", "bone": "zb_q" },
+	{ "name": "步枪", "bone": "步枪枪口" },
 	{ "name": "小兵1__0006_左手3拿枪手2", "bone": "root", "attachment": "小兵1__0006_左手3拿枪手2" },
 	{ "name": "小兵1__0002_右手3", "bone": "root", "attachment": "小兵1__0002_右手3" },
 	{ "name": "ll-_0007_左手3拿枪手2_蓝狼", "bone": "root", "attachment": "ll-_0007_左手3拿枪手2_蓝狼" },
 	{ "name": "m1__0012_左手3拿枪手2", "bone": "骨骼39", "attachment": "m1__0012_左手3拿枪手2" },
-	{ "name": "ll-_0002_右手3_蓝狼", "bone": "root", "attachment": "ll-_0002_右手3_蓝狼" },
 	{ "name": "images/skill/qxyan_add/qipaoyan_00035", "bone": "qxyan", "blend": "additive" },
 	{ "name": "images/skill/qiquan_add/qq_1", "bone": "quan2", "blend": "additive" },
 	{ "name": "images/skill/qiquan_add/qq_2", "bone": "quan3", "blend": "additive" },
@@ -432,7 +380,22 @@
 	{ "name": "effect/dian01", "bone": "dian", "blend": "additive" },
 	{ "name": "effect/dian1", "bone": "dian2", "blend": "additive" },
 	{ "name": "effect/dian2", "bone": "dian3", "blend": "additive" },
-	{ "name": "effect/dian3", "bone": "dian4", "blend": "additive" }
+	{ "name": "effect/dian3", "bone": "dian4", "blend": "additive" },
+	{ "name": "images/effect/zhccy_nom/zhccy_01", "bone": "zhccy", "blend": "additive" },
+	{ "name": "images/effect/zhccy_nom/zhccy_1", "bone": "zhccy2" },
+	{ "name": "images/skill/slj/tc_add/tc_0001", "bone": "tuci" },
+	{ "name": "images/skill/tybg_add/tybg_01", "bone": "guang", "blend": "additive" },
+	{ "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0001", "bone": "tuci5", "blend": "additive" },
+	{ "name": "images/skill/zuihouyiji/twtd/twtd_0001", "bone": "tuoweixian2", "blend": "additive" },
+	{ "name": "images/skill/zuihouyiji/twtd/twtd_1", "bone": "tuoweixian3", "blend": "additive" },
+	{ "name": "images/skill/zuihouyiji/twtd/twtd_2", "bone": "tuoweixian4", "blend": "additive" },
+	{ "name": "images/skill/tybg_add/tybg_1", "bone": "guangzi", "blend": "additive" },
+	{ "name": "images/skill/baodian_add/js_5_normal/js_5_0001", "bone": "js01", "blend": "additive" },
+	{ "name": "images/skill/baodian_add/js_5_normal/js_5_1", "bone": "js1", "blend": "additive" },
+	{ "name": "images/effect/zhccy_nom/zhccy_2", "bone": "zhccy3", "blend": "additive" },
+	{ "name": "images/effect/xuanfeng/xuanfeng_00045", "bone": "xuanfeng" },
+	{ "name": "images/effect/xuanfeng/xuanfeng_45", "bone": "xuanfeng2", "blend": "additive" },
+	{ "name": "dao1", "bone": "dao1", "blend": "additive" }
 ],
 "ik": [
 	{
@@ -474,7 +437,7 @@
 "transform": [
 	{
 		"name": "ddd",
-		"order": 13,
+		"order": 14,
 		"bones": [ "zb_dao" ],
 		"target": "骨骼27",
 		"rotation": 14.29,
@@ -509,7 +472,7 @@
 	},
 	{
 		"name": "pf3",
-		"order": 14,
+		"order": 15,
 		"bones": [ "骨骼54" ],
 		"target": "骨骼4",
 		"rotation": 9.45,
@@ -536,7 +499,7 @@
 	},
 	{
 		"name": "qqq",
-		"order": 12,
+		"order": 13,
 		"bones": [ "骨骼39" ],
 		"target": "mz",
 		"rotation": -17.1,
@@ -581,14 +544,25 @@
 		"translateMix": 0,
 		"scaleMix": 0,
 		"shearMix": 0
+	},
+	{
+		"name": "zskz",
+		"order": 12,
+		"bones": [ "骨骼27" ],
+		"target": "骨骼39",
+		"rotation": 2.21,
+		"x": -66.87,
+		"y": -58.72
 	}
 ],
 "skins": [
 	{
 		"name": "default",
 		"attachments": {
-			"effect/shan": {
-				"effect/shan": { "width": 67, "height": 122 }
+			"images/effect/zhccy_nom/zhccy_2": {
+				"images/effect/zhccy_nom/zhccy_07": { "width": 190, "height": 72 },
+				"images/effect/zhccy_nom/zhccy_09": { "width": 190, "height": 72 },
+				"images/effect/zhccy_nom/zhccy_11": { "width": 190, "height": 72 }
 			},
 			"images/skill/qiquan_add/qq_1": {
 				"images/skill/qiquan_add/qq_0001": { "width": 47, "height": 103 },
@@ -600,61 +574,45 @@
 				"images/skill/qiquan_add/qq_0003": { "width": 47, "height": 103 },
 				"images/skill/qiquan_add/qq_0005": { "width": 47, "height": 103 }
 			},
-			"effect/danjia2": {
-				"effect/danjia": { "width": 38, "height": 24 }
-			},
-			"effect/danjia3": {
-				"effect/danjia": { "width": 38, "height": 24 }
-			},
-			"effect/danjia4": {
-				"effect/danjia": { "width": 38, "height": 24 }
-			},
-			"effect/danjia5": {
-				"effect/danjia": { "width": 38, "height": 24 }
-			},
-			"bj": {
-				"画板 3": { "x": 224.85, "y": 407.98, "rotation": 1.1, "width": 2340, "height": 1080 }
-			},
-			"effect/danjia": {
-				"effect/danjia": { "width": 38, "height": 24 }
-			},
 			"dao": {
-				"刺厌": { "x": 43.59, "y": 43.82, "rotation": -21.85, "width": 141, "height": 310 },
-				"战术匕首": { "x": 26.01, "y": 23.5, "rotation": -14.67, "width": 141, "height": 217 },
-				"熔岩剑": { "x": 71.46, "y": 72.27, "rotation": -0.93, "width": 309, "height": 314 },
-				"科技斧": { "x": 54.24, "y": 47.67, "rotation": -1.89, "width": 234, "height": 248 }
+				"战术匕首": { "x": 26.01, "y": 23.5, "rotation": -14.67, "width": 141, "height": 217 }
 			},
-			"wq1": {
-				"ssv狙击枪": {
-					"type": "mesh",
-					"uvs": [ 1, 1, 0, 1, 0, 0, 1, 0 ],
-					"triangles": [ 1, 2, 3, 1, 3, 0 ],
-					"vertices": [ 1, 44, 342, -107.56, 1, 1, 44, -160.92, -176.33, 1, 1, 44, -188.11, 22.52, 1, 1, 44, 314.81, 91.29, 1 ],
-					"hull": 4,
-					"edges": [ 0, 2, 2, 4, 4, 6, 0, 6 ],
-					"width": 564,
-					"height": 223
-				},
-				"wq1": {
-					"type": "mesh",
-					"uvs": [ 1, 1, 0, 1, 0, 0, 1, 0 ],
-					"triangles": [ 1, 2, 3, 1, 3, 0 ],
-					"vertices": [ 1, 44, 259.34, -32.32, 1, 1, 44, -68.91, -128.33, 1, 1, 44, -109.33, 9.88, 1, 1, 44, 218.91, 105.89, 1 ],
-					"hull": 4,
-					"edges": [ 0, 2, 2, 4, 4, 6, 0, 6 ],
-					"width": 342,
-					"height": 144
-				},
-				"散弹枪": {
-					"type": "mesh",
-					"uvs": [ 1, 1, 0, 1, 0, 0, 1, 0 ],
-					"triangles": [ 1, 2, 3, 1, 3, 0 ],
-					"vertices": [ 1, 44, 333.13, -56.27, 1, 1, 44, -184.11, -163.77, 1, 1, 44, -215.06, -14.86, 1, 1, 44, 302.18, 92.65, 1 ],
-					"hull": 4,
-					"edges": [ 0, 2, 2, 4, 4, 6, 0, 6 ],
-					"width": 587,
-					"height": 169
-				},
+			"images/skill/baodian_add/js_5_normal/js_5_0001": {
+				"images/skill/baodian_add/js_5_normal/js_5_0001": { "width": 86, "height": 191 },
+				"images/skill/baodian_add/js_5_normal/js_5_0003": { "width": 86, "height": 191 },
+				"images/skill/baodian_add/js_5_normal/js_5_0005": { "width": 86, "height": 191 }
+			},
+			"images/effect/xuanfeng/xuanfeng_00045": {
+				"images/effect/xuanfeng/xuanfeng_00045": { "width": 192, "height": 92 },
+				"images/effect/xuanfeng/xuanfeng_00047": { "width": 192, "height": 92 },
+				"images/effect/xuanfeng/xuanfeng_00051": { "width": 192, "height": 92 },
+				"images/effect/xuanfeng/xuanfeng_00055": { "width": 192, "height": 92 },
+				"images/effect/xuanfeng/xuanfeng_00059": { "width": 192, "height": 92 }
+			},
+			"images/skill/zuihouyiji/twtd/twtd_0001": {
+				"images/skill/zuihouyiji/twtd/twtd_0001": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0002": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0004": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0006": { "width": 229, "height": 64 }
+			},
+			"images/skill/zuihouyiji/dtcg_add/dtcg_0001": {
+				"images/skill/zuihouyiji/dtcg_add/dtcg_0001": { "width": 246, "height": 54 },
+				"images/skill/zuihouyiji/dtcg_add/dtcg_0003": { "width": 414, "height": 106 },
+				"images/skill/zuihouyiji/dtcg_add/dtcg_0005": { "width": 414, "height": 106 },
+				"images/skill/zuihouyiji/dtcg_add/dtcg_0006": { "width": 414, "height": 106 },
+				"images/skill/zuihouyiji/dtcg_add/dtcg_0008": { "width": 414, "height": 106 }
+			},
+			"dao1": {
+				"dg3/1_00031": { "width": 276, "height": 223 },
+				"dg3/1_00032": { "width": 276, "height": 223 },
+				"dg3/1_00033": { "width": 276, "height": 223 },
+				"dg3/1_00034": { "width": 276, "height": 223 },
+				"dg3/1_00036": { "width": 276, "height": 223 }
+			},
+			"yy": {
+				"图层 7 拷贝 8": { "y": 0.5, "width": 306, "height": 111 }
+			},
+			"步枪": {
 				"突击步枪": {
 					"type": "mesh",
 					"uvs": [ 1, 1, 0, 1, 0, 0, 1, 0 ],
@@ -666,30 +624,29 @@
 					"height": 214
 				}
 			},
-			"effect/dian3": {
-				"effect/dian01": { "width": 29, "height": 29 }
+			"images/skill/slj/tc_add/tc_0001": {
+				"images/skill/slj/tc_add/tc_0001": { "width": 181, "height": 68 },
+				"images/skill/slj/tc_add/tc_0003": { "width": 181, "height": 68 },
+				"images/skill/slj/tc_add/tc_0004": { "width": 181, "height": 68 },
+				"images/skill/slj/tc_add/tc_0005": { "width": 181, "height": 68 },
+				"images/skill/slj/tc_add/tc_0006": { "width": 181, "height": 68 }
 			},
-			"yy": {
-				"图层 7 拷贝 8": { "y": 0.5, "width": 306, "height": 111 }
+			"images/skill/tybg_add/tybg_01": {
+				"images/skill/tybg_add/tybg_01": { "width": 46, "height": 42 }
 			},
-			"b": {
-				"一级包": { "x": 39.19, "y": 34.86, "width": 204, "height": 256 },
-				"三级包": { "x": 38.74, "y": 41.09, "width": 220, "height": 298 },
-				"二级包": { "x": 48.62, "y": 32.48, "width": 243, "height": 284 }
+			"images/skill/tybg_add/tybg_1": {
+				"images/skill/tybg_add/tybg_01": { "width": 46, "height": 42 }
 			},
-			"effect/dian2": {
-				"effect/dian01": { "width": 29, "height": 29 }
+			"images/skill/zuihouyiji/twtd/twtd_1": {
+				"images/skill/zuihouyiji/twtd/twtd_0001": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0002": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0004": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0006": { "width": 229, "height": 64 }
 			},
-			"effect/yan": {
-				"effect/yan": { "width": 95, "height": 95 }
-			},
-			"j": {
-				"一级甲": { "x": -19.77, "y": 35.94, "width": 162, "height": 169 },
-				"三级甲": { "x": -19.23, "y": -0.71, "width": 161, "height": 229 },
-				"二级甲": { "x": -19.77, "y": 35.94, "width": 164, "height": 170 }
-			},
-			"effect/dian01": {
-				"effect/dian01": { "width": 29, "height": 29 }
+			"images/effect/zhccy_nom/zhccy_01": {
+				"images/effect/zhccy_nom/zhccy_07": { "width": 190, "height": 72 },
+				"images/effect/zhccy_nom/zhccy_09": { "width": 190, "height": 72 },
+				"images/effect/zhccy_nom/zhccy_11": { "width": 190, "height": 72 }
 			},
 			"t": {
 				"一级头": { "x": 19.36, "y": -130.02, "width": 291, "height": 183 },
@@ -706,8 +663,30 @@
 				"images/skill/qxyan_add/qipaoyan_00046": { "width": 195, "height": 101 },
 				"images/skill/qxyan_add/qipaoyan_00048": { "width": 195, "height": 101 }
 			},
-			"effect/dian1": {
-				"effect/dian01": { "width": 29, "height": 29 }
+			"images/skill/zuihouyiji/twtd/twtd_2": {
+				"images/skill/zuihouyiji/twtd/twtd_0001": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0002": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0003": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0004": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0006": { "width": 229, "height": 64 }
+			},
+			"images/effect/xuanfeng/xuanfeng_45": {
+				"images/effect/xuanfeng/xuanfeng_00045": { "width": 192, "height": 92 },
+				"images/effect/xuanfeng/xuanfeng_00047": { "width": 192, "height": 92 },
+				"images/effect/xuanfeng/xuanfeng_00051": { "width": 192, "height": 92 },
+				"images/effect/xuanfeng/xuanfeng_00055": { "width": 192, "height": 92 },
+				"images/effect/xuanfeng/xuanfeng_00059": { "width": 192, "height": 92 }
+			},
+			"images/skill/baodian_add/js_5_normal/js_5_1": {
+				"images/skill/baodian_add/js_5_normal/js_5_0001": { "width": 86, "height": 191 },
+				"images/skill/baodian_add/js_5_normal/js_5_0003": { "width": 86, "height": 191 },
+				"images/skill/baodian_add/js_5_normal/js_5_0005": { "width": 86, "height": 191 }
+			},
+			"images/effect/zhccy_nom/zhccy_1": {
+				"images/effect/zhccy_nom/zhccy_05": { "width": 190, "height": 72 },
+				"images/effect/zhccy_nom/zhccy_07": { "width": 190, "height": 72 },
+				"images/effect/zhccy_nom/zhccy_09": { "width": 190, "height": 72 },
+				"images/effect/zhccy_nom/zhccy_11": { "width": 190, "height": 72 }
 			}
 		}
 	},
@@ -885,24 +864,21 @@
 	}
 ],
 "events": {
+	"dao": {},
+	"hui": {},
 	"kq": {}
 },
 "animations": {
 	"daiji_dao1": {
 		"slots": {
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
+			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
+					{ "name": null }
 				]
 			},
 			"小兵1__0011_右脚2": {
 				"attachment": [
 					{ "name": "小兵1__0012_右脚" }
-				]
-			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
-				"attachment": [
-					{ "name": null }
 				]
 			}
 		},
@@ -1247,23 +1223,23 @@
 					{ "x": -6.03, "y": -22.21 }
 				]
 			}
+		},
+		"transform": {
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
+			]
 		}
 	},
 	"daiji_dao2": {
 		"slots": {
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
+			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
+					{ "name": null }
 				]
 			},
 			"小兵1__0011_右脚2": {
 				"attachment": [
 					{ "name": "小兵1__0012_右脚" }
-				]
-			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
-				"attachment": [
-					{ "name": null }
 				]
 			}
 		},
@@ -1640,42 +1616,20 @@
 		"transform": {
 			"ddd": [
 				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
+			],
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
 			]
 		}
 	},
 	"daiji_q": {
 		"slots": {
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
-				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
 			"小兵1__0011_右脚2": {
 				"attachment": [
 					{ "name": "小兵1__0012_右脚" }
 				]
 			},
-			"左手3拿枪手1-猫": {
+			"小兵1__0007_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -2005,24 +1959,114 @@
 		"transform": {
 			"qqq": [
 				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
+			],
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
 			]
 		}
 	},
 	"gj_dao3": {
 		"slots": {
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
+			"images/skill/zuihouyiji/dtcg_add/dtcg_0001": {
 				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
-			"小兵1__0011_右脚2": {
-				"attachment": [
-					{ "name": "小兵1__0012_右脚" }
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0003" },
+					{ "time": 0.3667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0005" },
+					{ "time": 0.4, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0006" },
+					{ "time": 0.4667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0008" },
+					{ "time": 0.5, "name": null }
 				]
 			},
 			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
+				]
+			},
+			"images/skill/baodian_add/js_5_normal/js_5_1": {
+				"attachment": [
+					{ "time": 0.1667, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
+					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
+					{ "time": 0.3667, "name": null }
+				]
+			},
+			"images/skill/zuihouyiji/twtd/twtd_0001": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.3667, "name": null }
+				]
+			},
+			"images/effect/xuanfeng/xuanfeng_00045": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/effect/xuanfeng/xuanfeng_00045" },
+					{ "time": 0.2667, "name": "images/effect/xuanfeng/xuanfeng_00047" },
+					{ "time": 0.3333, "name": "images/effect/xuanfeng/xuanfeng_00051" },
+					{ "time": 0.4, "name": "images/effect/xuanfeng/xuanfeng_00055" },
+					{ "time": 0.4667, "name": "images/effect/xuanfeng/xuanfeng_00059" },
+					{ "time": 0.5, "name": null }
+				]
+			},
+			"images/skill/baodian_add/js_5_normal/js_5_0001": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
+					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
+					{ "time": 0.3333, "name": null }
+				]
+			},
+			"images/skill/tybg_add/tybg_1": {
+				"color": [
+					{ "time": 0.1333, "color": "0544bcff" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "images/skill/tybg_add/tybg_01" },
+					{ "time": 0.2, "name": null }
+				]
+			},
+			"images/skill/slj/tc_add/tc_0001": {
+				"attachment": [
+					{ "time": 0.1333, "name": "images/skill/slj/tc_add/tc_0001" },
+					{ "time": 0.2, "name": "images/skill/slj/tc_add/tc_0003" },
+					{ "time": 0.2667, "name": "images/skill/slj/tc_add/tc_0004" },
+					{ "time": 0.3333, "name": "images/skill/slj/tc_add/tc_0005" },
+					{ "time": 0.4, "name": "images/skill/slj/tc_add/tc_0006" },
+					{ "time": 0.4667, "name": null }
+				]
+			},
+			"images/skill/zuihouyiji/twtd/twtd_1": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.3667, "name": null }
+				]
+			},
+			"images/skill/tybg_add/tybg_01": {
+				"color": [
+					{ "time": 0.2333, "color": "0093ffff" },
+					{ "time": 0.5, "color": "00acff00" }
+				],
+				"attachment": [
+					{ "time": 0.2333, "name": "images/skill/tybg_add/tybg_01" }
+				]
+			},
+			"images/skill/zuihouyiji/twtd/twtd_2": {
+				"attachment": [
+					{ "time": 0.1333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.1667, "name": "images/skill/zuihouyiji/twtd/twtd_0003" },
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.2667, "name": null }
+				]
+			},
+			"images/effect/xuanfeng/xuanfeng_45": {
+				"color": [
+					{ "time": 0.1333, "color": "00a0ffff" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "images/effect/xuanfeng/xuanfeng_00045" },
+					{ "time": 0.2, "name": null }
 				]
 			}
 		},
@@ -2385,34 +2429,158 @@
 					{ "time": 0.3602, "x": 163.91, "y": 11.78 },
 					{ "time": 0.4987, "x": -5.6, "y": -6.54 }
 				]
+			},
+			"xuanfeng2": {
+				"rotate": [
+					{ "time": 0.1333, "angle": 170.32 }
+				],
+				"translate": [
+					{ "time": 0.1333, "x": -46.23, "y": 37.48 }
+				],
+				"scale": [
+					{ "time": 0.1333, "x": 1.336, "y": 1.336 }
+				]
+			},
+			"tuci": {
+				"rotate": [
+					{ "time": 0.1333, "angle": -3.5 },
+					{ "time": 0.1667, "angle": -2.68 },
+					{ "time": 0.2, "angle": -5.57 },
+					{ "time": 0.2667, "angle": -1.3 }
+				],
+				"translate": [
+					{ "time": 0.1333, "x": 4.6, "y": 39.56 },
+					{ "time": 0.1667, "x": -2.99, "y": 41.97 },
+					{ "time": 0.2, "x": -1.39, "y": 55.43 },
+					{ "time": 0.2667, "x": 88.56, "y": 42.26 }
+				],
+				"scale": [
+					{ "time": 0.1333, "x": 1.648, "y": 0.84 },
+					{ "time": 0.2, "x": 1.981, "y": 1.686 }
+				]
+			},
+			"tuoweixian4": {
+				"rotate": [
+					{ "time": 0.1333, "angle": 179.92 }
+				],
+				"translate": [
+					{ "time": 0.1333, "x": -29.74, "y": 37.06 }
+				],
+				"scale": [
+					{ "time": 0.1333, "x": 0.611, "y": 0.611 }
+				]
+			},
+			"guangzi": {
+				"rotate": [
+					{ "time": 0.1333, "angle": -5.23 },
+					{ "time": 0.1667, "angle": -7.67 }
+				],
+				"translate": [
+					{ "time": 0.1333, "x": 3.46, "y": 45.05 },
+					{ "time": 0.1667, "x": 27.86, "y": 41.82 }
+				],
+				"scale": [
+					{ "time": 0.1333, "x": 12.837, "y": 4.232 }
+				]
+			},
+			"js1": {
+				"rotate": [
+					{ "time": 0.1667, "angle": 87.75 }
+				],
+				"translate": [
+					{ "time": 0.1667, "x": -358.03, "y": 23.94 },
+					{ "time": 0.2667, "x": -254.24, "y": 20.49 }
+				]
+			},
+			"tuoweixian3": {
+				"rotate": [
+					{ "time": 0.1667, "angle": -145.36 },
+					{ "time": 0.2, "angle": -174.25 }
+				],
+				"translate": [
+					{ "time": 0.1667, "x": -149.55, "y": 53.29 },
+					{ "time": 0.2, "x": 26.36, "y": 36.1 },
+					{ "time": 0.2667, "x": 135.96, "y": 32.4 }
+				]
+			},
+			"js01": {
+				"rotate": [
+					{ "time": 0.2, "angle": 77.71 }
+				],
+				"translate": [
+					{ "time": 0.2, "x": -306.49, "y": 36.82 },
+					{ "time": 0.2667, "x": -202.7, "y": 33.37 }
+				]
+			},
+			"tuoweixian2": {
+				"translate": [
+					{ "time": 0.2, "x": -24.07, "y": 38.96 },
+					{ "time": 0.2667, "x": 86.77, "y": 41.02 }
+				],
+				"scale": [
+					{ "time": 0.2, "x": -0.937, "y": 0.555 }
+				]
+			},
+			"xuanfeng": {
+				"rotate": [
+					{ "time": 0.2, "angle": 167.19 }
+				],
+				"translate": [
+					{ "time": 0.2, "x": -104.74, "y": 55.74 },
+					{ "time": 0.2667, "x": 109.3, "y": 49 }
+				],
+				"scale": [
+					{ "time": 0.2, "x": 1.919, "y": 1.919, "curve": "stepped" },
+					{ "time": 0.2333, "x": 1.919, "y": 1.919 },
+					{ "time": 0.2667, "x": 1.508, "y": 1.508 }
+				]
+			},
+			"guang": {
+				"translate": [
+					{ "time": 0.2333, "x": 157.69, "y": 40.24 },
+					{ "time": 0.2667, "x": 209.89, "y": 34.32 }
+				],
+				"scale": [
+					{ "time": 0.2333, "x": 13.347, "y": 3.265 }
+				]
+			},
+			"tuci5": {
+				"translate": [
+					{ "time": 0.2667, "x": 28.51, "y": 38.76 },
+					{ "time": 0.3333, "x": 139, "y": 38.76 }
+				],
+				"scale": [
+					{ "time": 0.2667, "x": 0.604, "y": 0.604 }
+				]
+			},
+			"dao2": {
+				"translate": [
+					{ "x": -213.21, "y": 217.95 },
+					{ "time": 0.1667, "x": -211.44, "y": 194.11 }
+				]
 			}
 		},
 		"transform": {
 			"ddd": [
 				{ "rotateMix": -0.166, "translateMix": -0.166, "scaleMix": -0.166, "shearMix": -0.166 }
+			],
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
 			]
-		}
+		},
+		"events": [
+			{ "time": 0.2667, "name": "dao" }
+		]
 	},
 	"gj_dao3_2": {
 		"slots": {
-			"右脚-猫": {
+			"images/skill/zuihouyiji/dtcg_add/dtcg_0001": {
 				"attachment": [
-					{ "name": "右脚2-猫" }
-				]
-			},
-			"m1__0017_左脚": {
-				"attachment": [
-					{ "name": "m1__0017_左脚" }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0003" },
+					{ "time": 0.3667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0005" },
+					{ "time": 0.4, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0006" },
+					{ "time": 0.4667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0008" },
+					{ "time": 0.5, "name": null }
 				]
 			},
 			"小兵1__0006_左手3拿枪手2": {
@@ -2423,6 +2591,94 @@
 			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
+				]
+			},
+			"images/skill/baodian_add/js_5_normal/js_5_1": {
+				"attachment": [
+					{ "time": 0.1667, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
+					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
+					{ "time": 0.3667, "name": null }
+				]
+			},
+			"images/skill/zuihouyiji/twtd/twtd_0001": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.3667, "name": null }
+				]
+			},
+			"images/effect/xuanfeng/xuanfeng_00045": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/effect/xuanfeng/xuanfeng_00045" },
+					{ "time": 0.2667, "name": "images/effect/xuanfeng/xuanfeng_00047" },
+					{ "time": 0.3333, "name": "images/effect/xuanfeng/xuanfeng_00051" },
+					{ "time": 0.4, "name": "images/effect/xuanfeng/xuanfeng_00055" },
+					{ "time": 0.4667, "name": "images/effect/xuanfeng/xuanfeng_00059" },
+					{ "time": 0.5, "name": null }
+				]
+			},
+			"images/skill/baodian_add/js_5_normal/js_5_0001": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
+					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
+					{ "time": 0.3333, "name": null }
+				]
+			},
+			"images/skill/tybg_add/tybg_1": {
+				"color": [
+					{ "time": 0.1333, "color": "0544bcff" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "images/skill/tybg_add/tybg_01" },
+					{ "time": 0.2, "name": null }
+				]
+			},
+			"images/skill/slj/tc_add/tc_0001": {
+				"attachment": [
+					{ "time": 0.1333, "name": "images/skill/slj/tc_add/tc_0001" },
+					{ "time": 0.2, "name": "images/skill/slj/tc_add/tc_0003" },
+					{ "time": 0.2667, "name": "images/skill/slj/tc_add/tc_0004" },
+					{ "time": 0.3333, "name": "images/skill/slj/tc_add/tc_0005" },
+					{ "time": 0.4, "name": "images/skill/slj/tc_add/tc_0006" },
+					{ "time": 0.4667, "name": null }
+				]
+			},
+			"images/skill/zuihouyiji/twtd/twtd_1": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.3667, "name": null }
+				]
+			},
+			"images/skill/tybg_add/tybg_01": {
+				"color": [
+					{ "time": 0.2333, "color": "0093ffff" },
+					{ "time": 0.5, "color": "00acff00" }
+				],
+				"attachment": [
+					{ "time": 0.2333, "name": "images/skill/tybg_add/tybg_01" }
+				]
+			},
+			"images/skill/zuihouyiji/twtd/twtd_2": {
+				"attachment": [
+					{ "time": 0.1333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.1667, "name": "images/skill/zuihouyiji/twtd/twtd_0003" },
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.2667, "name": null }
+				]
+			},
+			"images/effect/xuanfeng/xuanfeng_45": {
+				"color": [
+					{ "time": 0.1333, "color": "00a0ffff" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "images/effect/xuanfeng/xuanfeng_00045" },
+					{ "time": 0.2, "name": null }
 				]
 			}
 		},
@@ -2880,21 +3136,151 @@
 					{ "time": 0.3577, "x": 156.47, "y": 78.8 },
 					{ "time": 0.4953 }
 				]
+			},
+			"xuanfeng2": {
+				"rotate": [
+					{ "time": 0.1333, "angle": 170.32 }
+				],
+				"translate": [
+					{ "time": 0.1333, "x": -46.23, "y": 37.48 }
+				],
+				"scale": [
+					{ "time": 0.1333, "x": 1.336, "y": 1.336 }
+				]
+			},
+			"tuci": {
+				"rotate": [
+					{ "time": 0.1333, "angle": -3.5 },
+					{ "time": 0.1667, "angle": -2.68 },
+					{ "time": 0.2, "angle": -5.57 },
+					{ "time": 0.2667, "angle": -1.3 }
+				],
+				"translate": [
+					{ "time": 0.1333, "x": 4.6, "y": 39.56 },
+					{ "time": 0.1667, "x": -2.99, "y": 41.97 },
+					{ "time": 0.2, "x": -1.39, "y": 55.43 },
+					{ "time": 0.2667, "x": 88.56, "y": 42.26 }
+				],
+				"scale": [
+					{ "time": 0.1333, "x": 1.648, "y": 0.84 },
+					{ "time": 0.2, "x": 1.981, "y": 1.686 }
+				]
+			},
+			"tuoweixian4": {
+				"rotate": [
+					{ "time": 0.1333, "angle": 179.92 }
+				],
+				"translate": [
+					{ "time": 0.1333, "x": -29.74, "y": 37.06 }
+				],
+				"scale": [
+					{ "time": 0.1333, "x": 0.611, "y": 0.611 }
+				]
+			},
+			"guangzi": {
+				"rotate": [
+					{ "time": 0.1333, "angle": -5.23 },
+					{ "time": 0.1667, "angle": -7.67 }
+				],
+				"translate": [
+					{ "time": 0.1333, "x": 3.46, "y": 45.05 },
+					{ "time": 0.1667, "x": 27.86, "y": 41.82 }
+				],
+				"scale": [
+					{ "time": 0.1333, "x": 12.837, "y": 4.232 }
+				]
+			},
+			"js1": {
+				"rotate": [
+					{ "time": 0.1667, "angle": 87.75 }
+				],
+				"translate": [
+					{ "time": 0.1667, "x": -358.03, "y": 23.94 },
+					{ "time": 0.2667, "x": -254.24, "y": 20.49 }
+				]
+			},
+			"tuoweixian3": {
+				"rotate": [
+					{ "time": 0.1667, "angle": -145.36 },
+					{ "time": 0.2, "angle": -174.25 }
+				],
+				"translate": [
+					{ "time": 0.1667, "x": -149.55, "y": 53.29 },
+					{ "time": 0.2, "x": 26.36, "y": 36.1 },
+					{ "time": 0.2667, "x": 135.96, "y": 32.4 }
+				]
+			},
+			"js01": {
+				"rotate": [
+					{ "time": 0.2, "angle": 77.71 }
+				],
+				"translate": [
+					{ "time": 0.2, "x": -306.49, "y": 36.82 },
+					{ "time": 0.2667, "x": -202.7, "y": 33.37 }
+				]
+			},
+			"tuoweixian2": {
+				"translate": [
+					{ "time": 0.2, "x": -24.07, "y": 38.96 },
+					{ "time": 0.2667, "x": 86.77, "y": 41.02 }
+				],
+				"scale": [
+					{ "time": 0.2, "x": -0.937, "y": 0.555 }
+				]
+			},
+			"xuanfeng": {
+				"rotate": [
+					{ "time": 0.2, "angle": 167.19 }
+				],
+				"translate": [
+					{ "time": 0.2, "x": -104.74, "y": 55.74 },
+					{ "time": 0.2667, "x": 109.3, "y": 49 }
+				],
+				"scale": [
+					{ "time": 0.2, "x": 1.919, "y": 1.919, "curve": "stepped" },
+					{ "time": 0.2333, "x": 1.919, "y": 1.919 },
+					{ "time": 0.2667, "x": 1.508, "y": 1.508 }
+				]
+			},
+			"guang": {
+				"translate": [
+					{ "time": 0.2333, "x": 157.69, "y": 40.24 },
+					{ "time": 0.2667, "x": 209.89, "y": 34.32 }
+				],
+				"scale": [
+					{ "time": 0.2333, "x": 13.347, "y": 3.265 }
+				]
+			},
+			"tuci5": {
+				"translate": [
+					{ "time": 0.2667, "x": 28.51, "y": 38.76 },
+					{ "time": 0.3333, "x": 139, "y": 38.76 }
+				],
+				"scale": [
+					{ "time": 0.2667, "x": 0.604, "y": 0.604 }
+				]
+			},
+			"dao2": {
+				"translate": [
+					{ "x": -213.21, "y": 217.95 },
+					{ "time": 0.1667, "x": -211.44, "y": 194.11 }
+				]
 			}
 		},
 		"transform": {
 			"ddd": [
 				{ "rotateMix": -0.166, "translateMix": -0.166, "scaleMix": -0.166, "shearMix": -0.166 }
+			],
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
 			]
-		}
+		},
+		"events": [
+			{ "time": 0.2667, "name": "dao" }
+		]
 	},
 	"gj_dao4": {
 		"slots": {
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
-				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
 			"小兵1__0006_左手3拿枪手2": {
 				"attachment": [
 					{ "name": null }
@@ -2903,6 +3289,16 @@
 			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
+				]
+			},
+			"dao1": {
+				"attachment": [
+					{ "time": 0.3333, "name": "dg3/1_00031" },
+					{ "time": 0.4, "name": "dg3/1_00032" },
+					{ "time": 0.4333, "name": "dg3/1_00033" },
+					{ "time": 0.4667, "name": "dg3/1_00034" },
+					{ "time": 0.5, "name": "dg3/1_00036" },
+					{ "time": 0.5333, "name": null }
 				]
 			}
 		},
@@ -3245,31 +3641,30 @@
 					{ "time": 0.3004, "x": 1.148, "y": 0.93 },
 					{ "time": 0.5608, "x": 1.015, "y": 1.015 }
 				]
+			},
+			"dao1": {
+				"rotate": [
+					{ "time": 0.3333, "angle": 0.06 }
+				],
+				"translate": [
+					{ "time": 0.3333, "x": 27.08, "y": 51.47 }
+				],
+				"scale": [
+					{ "time": 0.3333, "x": 0.87, "y": 0.477 }
+				]
 			}
-		}
+		},
+		"transform": {
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
+			]
+		},
+		"events": [
+			{ "time": 0.3333, "name": "hui" }
+		]
 	},
 	"gj_dao4_2": {
 		"slots": {
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" }
-				]
-			},
-			"m1__0017_左脚": {
-				"attachment": [
-					{ "name": "m1__0017_左脚" }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
 			"小兵1__0006_左手3拿枪手2": {
 				"attachment": [
 					{ "name": null }
@@ -3278,6 +3673,16 @@
 			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
+				]
+			},
+			"dao1": {
+				"attachment": [
+					{ "time": 0.2667, "name": "dg3/1_00031" },
+					{ "time": 0.3333, "name": "dg3/1_00032" },
+					{ "time": 0.3667, "name": "dg3/1_00033" },
+					{ "time": 0.4, "name": "dg3/1_00034" },
+					{ "time": 0.4333, "name": "dg3/1_00036" },
+					{ "time": 0.4667, "name": null }
 				]
 			}
 		},
@@ -3713,42 +4118,36 @@
 					{ "time": 0.3056, "x": -91.2, "y": -603.93 },
 					{ "time": 0.4692 }
 				]
+			},
+			"dao1": {
+				"rotate": [
+					{ "time": 0.2667, "angle": 0.06 }
+				],
+				"translate": [
+					{ "time": 0.2667, "x": 27.08, "y": 51.47 }
+				],
+				"scale": [
+					{ "time": 0.2667, "x": 0.87, "y": 0.477 }
+				]
 			}
-		}
+		},
+		"transform": {
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
+			]
+		},
+		"events": [
+			{ "time": 0.2667, "name": "hui" }
+		]
 	},
 	"gj_jjq": {
 		"slots": {
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
-				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
 			"小兵1__0011_右脚2": {
 				"attachment": [
 					{ "name": "小兵1__0012_右脚" }
 				]
 			},
-			"左手3拿枪手1-猫": {
+			"小兵1__0007_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -4040,41 +4439,6 @@
 	"gj_jjq2": {
 		"slots": {
 			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"左手3拿枪手1-猫": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -4435,37 +4799,12 @@
 	},
 	"gj_qiang": {
 		"slots": {
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
 			"小兵1__0011_右脚2": {
 				"attachment": [
 					{ "name": "小兵1__0012_右脚" }
 				]
 			},
-			"左手3拿枪手1-猫": {
+			"小兵1__0007_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -4759,41 +5098,6 @@
 				"attachment": [
 					{ "name": null }
 				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"左手3拿枪手1-猫": {
-				"attachment": [
-					{ "name": null }
-				]
 			}
 		},
 		"bones": {
@@ -4921,7 +5225,7 @@
 			},
 			"mz": {
 				"translate": [
-					{ "x": 113.92, "y": 99.84 }
+					{ "x": 113.92, "y": 101.35 }
 				]
 			},
 			"zb_q": {
@@ -5156,32 +5460,16 @@
 	},
 	"hc": {
 		"slots": {
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" },
-					{ "time": 0.6667, "name": "右脚-猫" }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"m1__0017_左脚": {
-				"attachment": [
-					{ "name": "m1__0017_左脚" }
-				]
-			},
-			"images/skill/qiquan_add/qq_2": {
+			"images/skill/qiquan_add/qq_1": {
 				"color": [
 					{ "time": 0.0944, "color": "ffffffff" },
-					{ "time": 0.2312, "color": "ffffff64" }
+					{ "time": 0.197, "color": "ffffff64" }
 				],
 				"attachment": [
-					{ "time": 0.0944, "name": "images/skill/qiquan_add/qq_0001" },
-					{ "time": 0.1628, "name": "images/skill/qiquan_add/qq_0003" },
-					{ "time": 0.2312, "name": "images/skill/qiquan_add/qq_0005" },
-					{ "time": 0.2654, "name": null }
+					{ "time": 0.0602, "name": "images/skill/qiquan_add/qq_0001" },
+					{ "time": 0.1286, "name": "images/skill/qiquan_add/qq_0003" },
+					{ "time": 0.197, "name": "images/skill/qiquan_add/qq_0005" },
+					{ "time": 0.2312, "name": null }
 				]
 			},
 			"images/skill/qxyan_add/qipaoyan_00035": {
@@ -5197,21 +5485,16 @@
 					{ "time": 0.539, "name": null }
 				]
 			},
-			"images/skill/qiquan_add/qq_1": {
+			"images/skill/qiquan_add/qq_2": {
 				"color": [
 					{ "time": 0.0944, "color": "ffffffff" },
-					{ "time": 0.197, "color": "ffffff64" }
+					{ "time": 0.2312, "color": "ffffff64" }
 				],
 				"attachment": [
-					{ "time": 0.0602, "name": "images/skill/qiquan_add/qq_0001" },
-					{ "time": 0.1286, "name": "images/skill/qiquan_add/qq_0003" },
-					{ "time": 0.197, "name": "images/skill/qiquan_add/qq_0005" },
-					{ "time": 0.2312, "name": null }
-				]
-			},
-			"左手3拿枪手1-猫": {
-				"attachment": [
-					{ "name": null }
+					{ "time": 0.0944, "name": "images/skill/qiquan_add/qq_0001" },
+					{ "time": 0.1628, "name": "images/skill/qiquan_add/qq_0003" },
+					{ "time": 0.2312, "name": "images/skill/qiquan_add/qq_0005" },
+					{ "time": 0.2654, "name": null }
 				]
 			}
 		},
@@ -5695,48 +5978,12 @@
 	},
 	"hc_dao": {
 		"slots": {
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" },
-					{ "time": 0.6667, "name": "右脚-猫" }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
+			"小兵1__0006_左手3拿枪手2": {
 				"attachment": [
 					{ "name": null }
 				]
 			},
-			"m1__0017_左脚": {
-				"attachment": [
-					{ "name": "m1__0017_左脚" }
-				]
-			},
-			"images/skill/qiquan_add/qq_2": {
-				"color": [
-					{ "time": 0.0944, "color": "ffffffff" },
-					{ "time": 0.2312, "color": "ffffff64" }
-				],
-				"attachment": [
-					{ "time": 0.0944, "name": "images/skill/qiquan_add/qq_0001" },
-					{ "time": 0.1628, "name": "images/skill/qiquan_add/qq_0003" },
-					{ "time": 0.2312, "name": "images/skill/qiquan_add/qq_0005" },
-					{ "time": 0.2654, "name": null }
-				]
-			},
-			"images/skill/qxyan_add/qipaoyan_00035": {
-				"attachment": [
-					{ "time": 0.0602, "name": "images/skill/qxyan_add/qipaoyan_00036" },
-					{ "time": 0.0944, "name": "images/skill/qxyan_add/qipaoyan_00037" },
-					{ "time": 0.1286, "name": "images/skill/qxyan_add/qipaoyan_00038" },
-					{ "time": 0.197, "name": "images/skill/qxyan_add/qipaoyan_00040" },
-					{ "time": 0.2654, "name": "images/skill/qxyan_add/qipaoyan_00042" },
-					{ "time": 0.3338, "name": "images/skill/qxyan_add/qipaoyan_00044" },
-					{ "time": 0.4022, "name": "images/skill/qxyan_add/qipaoyan_00046" },
-					{ "time": 0.4706, "name": "images/skill/qxyan_add/qipaoyan_00048" },
-					{ "time": 0.539, "name": null }
-				]
-			},
-			"小兵1__0006_左手3拿枪手2": {
+			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -5753,14 +6000,29 @@
 					{ "time": 0.2312, "name": null }
 				]
 			},
-			"左手3拿枪手1-猫": {
+			"images/skill/qxyan_add/qipaoyan_00035": {
 				"attachment": [
-					{ "name": null }
+					{ "time": 0.0602, "name": "images/skill/qxyan_add/qipaoyan_00036" },
+					{ "time": 0.0944, "name": "images/skill/qxyan_add/qipaoyan_00037" },
+					{ "time": 0.1286, "name": "images/skill/qxyan_add/qipaoyan_00038" },
+					{ "time": 0.197, "name": "images/skill/qxyan_add/qipaoyan_00040" },
+					{ "time": 0.2654, "name": "images/skill/qxyan_add/qipaoyan_00042" },
+					{ "time": 0.3338, "name": "images/skill/qxyan_add/qipaoyan_00044" },
+					{ "time": 0.4022, "name": "images/skill/qxyan_add/qipaoyan_00046" },
+					{ "time": 0.4706, "name": "images/skill/qxyan_add/qipaoyan_00048" },
+					{ "time": 0.539, "name": null }
 				]
 			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
+			"images/skill/qiquan_add/qq_2": {
+				"color": [
+					{ "time": 0.0944, "color": "ffffffff" },
+					{ "time": 0.2312, "color": "ffffff64" }
+				],
 				"attachment": [
-					{ "name": null }
+					{ "time": 0.0944, "name": "images/skill/qiquan_add/qq_0001" },
+					{ "time": 0.1628, "name": "images/skill/qiquan_add/qq_0003" },
+					{ "time": 0.2312, "name": "images/skill/qiquan_add/qq_0005" },
+					{ "time": 0.2654, "name": null }
 				]
 			}
 		},
@@ -6251,15 +6513,15 @@
 					{ "time": 0.2312, "x": 1.726, "y": 1.726 }
 				]
 			}
+		},
+		"transform": {
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
+			]
 		}
 	},
 	"sw": {
 		"slots": {
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
-				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
 			"小兵1__0006_左手3拿枪手2": {
 				"attachment": [
 					{ "name": null }
@@ -6699,31 +6961,14 @@
 		"transform": {
 			"ddd": [
 				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
+			],
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
 			]
 		}
 	},
 	"zl_dao": {
 		"slots": {
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" }
-				]
-			},
-			"m1__0017_左脚": {
-				"attachment": [
-					{ "name": "m1__0017_左脚" }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
 			"小兵1__0006_左手3拿枪手2": {
 				"attachment": [
 					{ "name": null }
@@ -7106,56 +7351,16 @@
 					{ "time": 0.5333 }
 				]
 			}
+		},
+		"transform": {
+			"zskz": [
+				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
+			]
 		}
 	},
 	"zl_q": {
 		"slots": {
 			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"m1__0017_左脚": {
-				"attachment": [
-					{ "name": "m1__0017_左脚" }
-				]
-			},
-			"m1__0013_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"左手3拿枪手1-猫": {
 				"attachment": [
 					{ "name": null }
 				]

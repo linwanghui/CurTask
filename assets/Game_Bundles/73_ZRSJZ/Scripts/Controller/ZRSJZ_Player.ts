@@ -14,9 +14,10 @@ export class ZRSJZ_Player extends Component {
     Skeleton: sp.Skeleton = null;
     WeaponType: string = "枪";
 
+
     PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
 
-    private _moveSpeed: number = 3000;
+    private _moveSpeed: number = 1000;
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _moveRadius: number = 0;
@@ -39,6 +40,12 @@ export class ZRSJZ_Player extends Component {
         } else {
             this.PlayAni(ZRSJZ_ANI.Idle_D1);
         }
+
+        this.Skeleton.setEventListener((trackEntry, event) => {
+            if (typeof event !== "number" && event.data.name === "kq" && this._isFireing && this.WeaponType === "枪") {
+                void this.Fire();
+            }
+        });
     }
 
     protected onEnable(): void {
@@ -75,7 +82,7 @@ export class ZRSJZ_Player extends Component {
             this.PlayerSkeleton.HasDirection = false;
             if (this._isFireing) {
                 this._isFireing = false;
-                this.unschedule(this.Fire);
+                // this.unschedule(this.Fire);
             }
             return;
         }
@@ -83,7 +90,7 @@ export class ZRSJZ_Player extends Component {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q) : this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
             if (!this._isFireing) {
                 this._isFireing = true;
-                this.schedule(this.Fire, 0.1);
+                // this.schedule(this.Fire, 0.1);
             }
         } else {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
@@ -142,12 +149,32 @@ export class ZRSJZ_Player extends Component {
     }
 
     async Fire() {
+        const qkBone = this.PlayerSkeleton?.QKBone;
+        if (!qkBone) {
+            console.warn("[ZRSJZ_Player] 找不到枪口骨骼 kaihuo/texiao");
+            return;
+        }
+
         const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
         bullet.parent = this.node;
         bullet.active = true;
-        bullet.getComponent(ZRSJZ_Bullet).Show(this.node.worldPosition, this._attackX, this._attackY, 1000);
+
+        // Bone.worldX/worldY 是 Spine 节点空间坐标。
+        // 再经过 Spine 节点的世界矩阵，得到 Cocos 世界坐标。
+        const boneLocalPos = new Vec3(qkBone.worldX, qkBone.worldY, 0);
+        const muzzleWorldPos = new Vec3();
+        Vec3.transformMat4(
+            muzzleWorldPos,
+            boneLocalPos,
+            this.PlayerSkeleton.node.worldMatrix,
+        );
+
+        bullet.getComponent(ZRSJZ_Bullet).Show(
+            muzzleWorldPos,
+            this._attackX,
+            this._attackY,
+            1000,
+        );
     }
 
 }
-
-

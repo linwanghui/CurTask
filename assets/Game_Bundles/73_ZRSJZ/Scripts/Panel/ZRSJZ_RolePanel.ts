@@ -75,6 +75,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
                     this.ShowButton();
                 } else {
                     //金币不足
+                    ZRSJZ_UIManager.Instance.ShowTip("金币不足");
                 }
                 break;
             case "视频获取":

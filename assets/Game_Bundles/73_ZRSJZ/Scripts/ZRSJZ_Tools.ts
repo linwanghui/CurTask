@@ -1,4 +1,4 @@
-import { Prefab, SpriteFrame, UITransform, Node, AudioClip } from "cc";
+import { Prefab, SpriteFrame, UITransform, Node, AudioClip, Texture2D } from "cc";
 import { BundleManager } from "db://assets/Scripts/Framework/Managers/BundleManager";
 import { ZRSJZ_INVENTORY } from "./ZRSJZ_Constant";
 

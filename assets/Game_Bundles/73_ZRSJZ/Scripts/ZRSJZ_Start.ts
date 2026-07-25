@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventTouch, Node } from 'cc';
+import { _decorator, Component, director, EventTouch, instantiate, Node, Prefab } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
@@ -9,6 +9,9 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
 export class ZRSJZ_Start extends Component {
+
+    @property(Node)
+    Canvas: Node = null;
     protected start(): void {
         ZRSJZ_UIManager.Instance;
     }
@@ -38,17 +41,12 @@ export class ZRSJZ_Start extends Component {
                     director.loadScene("ZRSJZ_BNS_Game");
                 })
                 break;
-            case "BGM0":
-                ZRSJZ_AudioManager.Instance.PlayMusic("BGM0")
-                break;
-            case "BGM1":
-                ZRSJZ_AudioManager.Instance.PlayMusic("BGM1")
-                break;
-            case "紫":
-                ZRSJZ_AudioManager.Instance.PlayMusic("紫")
-                break;
-            case "枪声":
-                ZRSJZ_AudioManager.Instance.PlaySound("枪声")
+            case "加载玩家":
+                ZRSJZ_Tools.LoadPrefab('Prefabs/Unit/Player').then((prefab: Prefab) => {
+                    const player = instantiate(prefab);
+                    player.parent = this.Canvas;
+                    player.setPosition(0, 0, 0);
+                })
                 break;
         }
     }

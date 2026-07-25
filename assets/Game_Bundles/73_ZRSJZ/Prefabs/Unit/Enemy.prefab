@@ -176,7 +176,7 @@
       "__uuid__": "ef59739f-7e57-40bf-b316-e0d3450aa237",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "xb/XB1",
+    "defaultSkin": "",
     "defaultAnimation": "",
     "_premultipliedAlpha": true,
     "_timeScale": 1,
@@ -196,7 +196,7 @@
     "fileId": "e7HbNUHDBNHa1TUrSL2/93"
   },
   {
-    "__type__": "69db1IMTARO1JdzvrbRNvFs",
+    "__type__": "c14cf5zWfFGKLeO/nQ3pFyq",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -207,12 +207,12 @@
     "__prefab": {
       "__id__": 8
     },
-    "AimAngleOffset": 17.1,
+    "AimAngleOffset": 17,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "07BwQ/AhBNWoEik3YN6ZXm"
+    "fileId": "8fLnXOmsJP8ZwA6Kct55dh"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -256,7 +256,7 @@
     "fileId": "5eFKl7qZVDgaA3UuBomRLk"
   },
   {
-    "__type__": "636fdT/7v5BlJ0MuehMle4P",
+    "__type__": "cc.RigidBody2D",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -267,28 +267,10 @@
     "__prefab": {
       "__id__": 13
     },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "37Z5ZDPvVIxqMQ7y0RwBgI"
-  },
-  {
-    "__type__": "cc.RigidBody2D",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 15
-    },
     "enabledContactListener": true,
     "bullet": false,
     "awakeOnLoad": true,
-    "_group": 2,
+    "_group": 4,
     "_type": 2,
     "_allowSleep": true,
     "_gravityScale": 0,
@@ -317,10 +299,10 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 17
+      "__id__": 15
     },
     "tag": 0,
-    "_group": 2,
+    "_group": 4,
     "_density": 1,
     "_sensor": false,
     "_friction": 0.2,
@@ -336,6 +318,35 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "a8+BxljsJH1oyGNJdhOhsr"
+  },
+  {
+    "__type__": "3d73e1t9m1Ad4pssLAaQlqh",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 17
+    },
+    "DetectionRange": 800,
+    "LoseRange": 1200,
+    "PatrolRadius": 500,
+    "PatrolSpeed": 500,
+    "ChaseSpeed": 600,
+    "PatrolWaitTime": 1,
+    "PatrolArriveDistance": 50,
+    "ChaseStopDistance": 300,
+    "IdleAnimation": "daiji_q",
+    "MoveAnimation": "zl_q",
+    "WeaponName": "突击步枪",
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "55Q3pf1QRMxZ/CTY2ef8X5"
   },
   {
     "__type__": "cc.PrefabInfo",

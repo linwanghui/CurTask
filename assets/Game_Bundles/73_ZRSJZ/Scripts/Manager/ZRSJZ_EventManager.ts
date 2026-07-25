@@ -2,6 +2,8 @@ import { director } from "cc";
 import { ZRSJZ_UIManager } from "./ZRSJZ_UIManager";
 
 export class ZRSJZ_MyEvent {
+    public static ZRSJZ_LOADED_DLC: string = 'ZRSJZ_LOADED_DLC';//DLC加载完毕
+
     public static ZRSJZ_PLAYER_MOVE: string = 'ZRSJZ_PLAYER_MOVE';//玩家移动
     public static ZRSJZ_PLAYER_ATTACK: string = 'ZRSJZ_PLAYER_ATTACK';//射击
     public static ZRSJZ_PLAYER_SWITCH_WEAPON: string = 'ZRSJZ_PLAYER_SWITCH_WEAPON';//切换武器
