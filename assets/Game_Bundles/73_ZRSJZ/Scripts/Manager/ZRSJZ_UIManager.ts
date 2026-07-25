@@ -51,7 +51,7 @@ export class ZRSJZ_UIManager extends Component {
         const uiiCamera = uiiCameraNode.addComponent(Camera);
         uiiCamera.clearFlags = Camera.ClearFlag.DEPTH_ONLY;
         uiiCamera.visibility = 1 << 0;
-        uiiCamera.priority = 1;
+        uiiCamera.priority = 10;
         uiiCamera.projection = Camera.ProjectionType.ORTHO;
         const canvas = node.addComponent(Canvas);
         canvas.cameraComponent = uiiCamera;

@@ -13,6 +13,7 @@ export enum ZRSJZ_PANEL {
     作弊界面 = "73_ZRSJZ/Prefabs/Panel/作弊界面",
     道具弹窗 = "73_ZRSJZ/Prefabs/Panel/道具弹窗",
     背包弹窗 = "73_ZRSJZ/Prefabs/Panel/背包弹窗",
+    避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
 }
 
 //物理层级

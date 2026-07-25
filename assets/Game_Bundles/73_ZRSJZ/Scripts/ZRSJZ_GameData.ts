@@ -197,8 +197,44 @@ export class ZRSJZ_GameData {
     }
 
     //DLC存档数据
-    public BNS_Property: { 木材: number, 矿石: number, 食物: number } =
-        { 木材: 0, 矿石: 0, 食物: 0 };
+    public BNS_Property: { 木材: number, 矿石: number, 食物: number, 宝石: number, 电力: number, 繁荣度: number } =
+        { 木材: 0, 矿石: 0, 食物: 0, 宝石: 0, 电力: 0, 繁荣度: 0 };
+
+    /**
+     * DLC 在运行时注入资源变化回调，基础包不直接依赖 DLC 脚本。
+     * 静态字段不会进入存档 JSON。
+     */
+    public static BNS_PropertyChangeCallback:
+        ((propertyName: keyof ZRSJZ_GameData["BNS_Property"], value: number) => void) | null = null;
+    public static BNS_BuildingChangeCallback:
+        ((buildingName: string, level: number) => void) | null = null;
+
+    public GetBNSProperty(propertyName: keyof ZRSJZ_GameData["BNS_Property"]): number {
+        // 兼容添加“宝石”字段之前生成的旧存档。
+        return this.BNS_Property[propertyName] ?? 0;
+    }
+
+    public SetBNSProperty(
+        propertyName: keyof ZRSJZ_GameData["BNS_Property"],
+        value: number
+    ): void {
+        if (!Number.isFinite(value)) return;
+
+        const newValue = Math.max(0, Math.floor(value));
+        if (this.GetBNSProperty(propertyName) === newValue) return;
+
+        this.BNS_Property[propertyName] = newValue;
+        ZRSJZ_GameData.SaveData();
+        ZRSJZ_GameData.BNS_PropertyChangeCallback?.(propertyName, newValue);
+    }
+
+    public ChangeBNSProperty(
+        propertyName: keyof ZRSJZ_GameData["BNS_Property"],
+        changeValue: number
+    ): void {
+        this.SetBNSProperty(propertyName, this.GetBNSProperty(propertyName) + changeValue);
+    }
+
     public BNS_Building: { name: string, Level: number }[] = [
         { name: "主基地", Level: 1 },
         { name: "仓库", Level: 0 },
@@ -208,8 +244,31 @@ export class ZRSJZ_GameData {
         { name: "矿场", Level: 0 },
         { name: "科研所", Level: 0 },
         { name: "防御塔", Level: 0 },
+        { name: "果园", Level: 0 },
     ];
 
+    public GetBNSBuildingLevel(buildingName: string): number {
+        return this.BNS_Building.find(building => building.name === buildingName)?.Level ?? 0;
+    }
+
+    public SetBNSBuildingLevel(buildingName: string, level: number): void {
+        if (!Number.isFinite(level)) return;
+
+        const newLevel = Math.max(0, Math.floor(level));
+        let building = this.BNS_Building.find(buildingData => buildingData.name === buildingName);
+        if (!building) {
+            building = { name: buildingName, Level: 0 };
+            this.BNS_Building.push(building);
+        }
+        if (building.Level === newLevel) return;
+
+        building.Level = newLevel;
+        ZRSJZ_GameData.SaveData();
+        ZRSJZ_GameData.BNS_BuildingChangeCallback?.(buildingName, newLevel);
+    }
+
+    public ChangeBNSBuildingLevel(buildingName: string, changeValue: number): void {
+        this.SetBNSBuildingLevel(buildingName, this.GetBNSBuildingLevel(buildingName) + changeValue);
+    }
+
 }
-
-
