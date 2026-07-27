@@ -190,10 +190,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             return;
         }
 
-        this.MoveTowards(
-            offsetX,
-            offsetY,
-            distance,
+        this.NavigateTo(
+            this._patrolTarget,
             this.EnemyConfig.PatrolSpeed,
             dt,
             this.EnemyConfig.MoveAnimation,
@@ -647,13 +645,25 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
     private SelectNextPatrolPoint(): void {
         const radius = Math.max(0, this.EnemyConfig.PatrolRadius);
-        const angle = Math.random() * Math.PI * 2;
-        const distance = Math.sqrt(Math.random()) * radius;
-        this._patrolTarget.set(
-            this._patrolCenter.x + Math.cos(angle) * distance,
-            this._patrolCenter.y + Math.sin(angle) * distance,
-            this._patrolCenter.z,
-        );
+        const candidate = new Vec3();
+
+        // 随机点可能生成在墙内或墙后，优先选择当前位置能够直接到达的巡逻点。
+        for (let attempt = 0; attempt < 16; attempt++) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.sqrt(Math.random()) * radius;
+            candidate.set(
+                this._patrolCenter.x + Math.cos(angle) * distance,
+                this._patrolCenter.y + Math.sin(angle) * distance,
+                this._patrolCenter.z,
+            );
+            if (this.HasDirectPath(candidate)) {
+                this._patrolTarget.set(candidate);
+                return;
+            }
+        }
+
+        // 周围暂时没有合适位置时留在原地，等待下一轮重新选择。
+        this._patrolTarget.set(this.node.worldPosition);
     }
 
     private TryAttack(): void {
