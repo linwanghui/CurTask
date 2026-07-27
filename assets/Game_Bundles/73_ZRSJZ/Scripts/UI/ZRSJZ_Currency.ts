@@ -40,12 +40,12 @@ export class ZRSJZ_Currency extends Component {
             .to(0.5, { value: ZRSJZ_GameData.Instance.Gold }, {
                 onUpdate: () => {
                     this._curCurrency = object.value;
-                    this.Currency.string = object.value.toFixed(0);
+                    if (this.Currency) this.Currency.string = object.value.toFixed(0);
                 }
             })
             .call(() => {
                 this._curCurrency = Math.floor(ZRSJZ_GameData.Instance.Gold);
-                this.Currency.string = this._curCurrency.toString();
+                if (this.Currency) this.Currency.string = this._curCurrency.toString();
             })
             .start();
     }

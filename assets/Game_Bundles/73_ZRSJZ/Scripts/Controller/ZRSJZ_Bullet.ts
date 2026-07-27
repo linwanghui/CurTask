@@ -1,5 +1,8 @@
 import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_TIER } from '../ZRSJZ_Constant';
+import { ZRSJZ_Player } from './ZRSJZ_Player';
+import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Bullet')
@@ -19,13 +22,14 @@ export class ZRSJZ_Bullet extends Component {
     private _dirX: number = 0;
     private _dirY: number = 0;
     private _isFlying: boolean = false;
+    private _harm: number = 0;
 
     Init() {
         this.Collider = this.getComponent(Collider2D);
         this.Collider?.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this);
     }
 
-    Show(worldPos: Vec3, dirX: number, dirY: number, range: number) {
+    Show(worldPos: Vec3, dirX: number, dirY: number, range: number, harm: number = 0) {
         if (!this._isInit) {
             this._isInit = true;
             this.Init();
@@ -46,6 +50,7 @@ export class ZRSJZ_Bullet extends Component {
         this._maxRange = Math.max(0, range);
         this._curRange = 0;
         this._isFlying = directionLength > 0 && this._maxRange > 0;
+        this._harm = Math.max(10, harm);
 
         const angle = Math.atan2(this._dirY, this._dirX) * 180 / Math.PI + this.RotationOffset;
         this.node.setWorldRotationFromEuler(0, 0, angle);
@@ -53,7 +58,19 @@ export class ZRSJZ_Bullet extends Component {
 
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
         contract.disabled = true;
+
         console.error(otherCollider.node.name);
+        if (otherCollider.group === ZRSJZ_TIER.地形) {
+            this.scheduleOnce(this.Recycle);
+        } else if (otherCollider.group === ZRSJZ_TIER.玩家 && otherCollider.node.getComponent(ZRSJZ_Player)) {
+            otherCollider.node.getComponent(ZRSJZ_Player).BeHit(this._harm);
+            this.scheduleOnce(this.Recycle);
+            // this.Recycle();
+        } else if (otherCollider.group === ZRSJZ_TIER.敌人 && otherCollider.node.getComponent(ZRSJZ_EnemyBase)) {
+            otherCollider.node.getComponent(ZRSJZ_EnemyBase).BeHit(this._harm);
+            this.scheduleOnce(this.Recycle);
+            // this.Recycle();
+        }
     }
 
     protected update(dt: number): void {

@@ -7,6 +7,7 @@ import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
+import { ZRSJZ_Game } from '../ZRSJZ_Game';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -18,6 +19,9 @@ export class ZRSJZ_Player extends Component {
 
     PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
     HP: ZRSJZ_HP = null;
+
+    MaxHP: number = 100;
+    CurHP: number = 100;
 
     TargetEnemy: Node = null;
     TargetRange: number = 1000;
@@ -46,7 +50,6 @@ export class ZRSJZ_Player extends Component {
         }
 
         this.Skeleton.setEventListener((trackEntry, event) => {
-            if (typeof event !== "number") console.error(event.data.name);
 
             if (typeof event !== "number" && (event.data.name === "kq" || event.data.name === "gj_jjq") && this._isFireing && this.WeaponType === "枪") {
                 void this.Fire();
@@ -57,7 +60,7 @@ export class ZRSJZ_Player extends Component {
             }
         });
 
-        this.HP.Init(100);
+        this.HP.Init(this.MaxHP);
     }
 
     protected onEnable(): void {
@@ -73,10 +76,10 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected update(dt: number): void {
-        this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : 0;
-        this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
         this.FindTarget();
         this.AniSwitch();
+        this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) : this.PlayerSkeleton.AttackX;
+        this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
         this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed * this._moveRadius, this._moveY * dt * this._moveSpeed * this._moveRadius);
     }
 
@@ -106,8 +109,8 @@ export class ZRSJZ_Player extends Component {
         } else {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
         }
-        this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : 0;
-        this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
+        // this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : 0;
+        // this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
         // this.PlayerSkeleton.HasDirection = true;
     }
 
@@ -167,7 +170,7 @@ export class ZRSJZ_Player extends Component {
         }
 
         const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
-        bullet.parent = this.node;
+        bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
         bullet.active = true;
 
         // Bone.worldX/worldY 是 Spine 节点空间坐标。
@@ -189,18 +192,27 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected FindTarget() {
-        if (this.TargetEnemy && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= this.TargetRange) {
+        if (this.TargetEnemy && !this.TargetEnemy.getComponent(ZRSJZ_EnemyBase).IsDead && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= this.TargetRange) {
             return;
         }
 
-        const players = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
+        let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         const currentPosition = this.node.worldPosition;
-
-        players.sort((a, b) => (
+        enemys = enemys.filter(enemy => !enemy.IsDead);
+        enemys.sort((a, b) => (
             Vec3.distance(a.node.worldPosition, currentPosition)
             - Vec3.distance(b.node.worldPosition, currentPosition)
         ));
-        this.TargetEnemy = players[0]?.node ?? null;
+        this.TargetEnemy = enemys[0]?.node ?? null;
+    }
+
+    //受到打击
+    BeHit(harm: number) {
+        this.CurHP -= harm;
+        if (this.CurHP <= 0) {
+            console.error("玩家死亡");
+        }
+        this.HP.Show(this.CurHP);
     }
 
 }

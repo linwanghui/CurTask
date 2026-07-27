@@ -23,6 +23,7 @@ export enum ZRSJZ_TIER {
     敌人 = 1 << 2,
     场景物 = 1 << 3,
     玩家子弹 = 1 << 4,
+    敌人子弹 = 1 << 5,
 };
 
 //#region 道具配置
@@ -499,6 +500,7 @@ export enum ZRSJZ_ANI {
     Walk_D = "zl_dao",
     Walk_Q = "zl_q",
     HC = "hc",
+    SW = "sw",
 }
 
 //#region 敌人配置
@@ -544,8 +546,8 @@ export interface ZRSJZ_EnemyConfig {
 export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>> = new Map([
     ["持枪小怪", {
         MaxHealth: 100,
-        DetectionRange: 800,
-        LoseRange: 1200,
+        DetectionRange: 1000,
+        LoseRange: 1500,
         PatrolRadius: 500,
         PatrolSpeed: 500,
         ChaseSpeed: 600,
@@ -562,8 +564,8 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
     }],
     ["持刀小怪", {
         MaxHealth: 100,
-        DetectionRange: 800,
-        LoseRange: 1200,
+        DetectionRange: 1000,
+        LoseRange: 1500,
         PatrolRadius: 500,
         PatrolSpeed: 500,
         ChaseSpeed: 600,
@@ -579,3 +581,50 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
         WeaponName: "战术匕首",
     }],
 ]);
+
+//#region 寻路配置
+export interface ZRSJZ_PathConfig {
+    /** 是否启用遇墙后的智能寻路。 */
+    EnablePathFinding: boolean;
+    /** A* 寻路网格的边长。 */
+    GridSize: number;
+    /** 寻路时为敌人身体预留的半径。 */
+    AgentRadius: number;
+    /** 敌人节点位置到碰撞体中心的 Y 轴偏移。 */
+    AgentOffsetY: number;
+    /** 通路检测射线相对敌人半径的内缩比例，避免贴墙时射线起点落入墙内。 */
+    RaycastRadiusScale: number;
+    /** 每次卡住检测之间的时间，单位为秒。 */
+    StuckCheckInterval: number;
+    /** 一次检测中位移小于该值时视为没有正常移动。 */
+    StuckDistance: number;
+    /** 持续卡住多久后强制重新计算路径，单位为秒。 */
+    StuckTime: number;
+    /** 两次寻路计算之间的最短间隔，单位为秒。 */
+    RepathInterval: number;
+    /** 目标移动超过该距离后重新计算路径。 */
+    TargetMoveDistance: number;
+    /** 距离路径节点小于该值时切换至下一个节点。 */
+    WaypointDistance: number;
+    /** 单次 A* 寻路允许搜索的最大节点数量。 */
+    MaxSearchNodes: number;
+    /** A* 暂时失败时，沿障碍边缘尝试绕行的步长。 */
+    FallbackAvoidanceDistance: number;
+}
+
+/** 敌人智能寻路的统一配置。 */
+export const ZRSJZ_PATH_CONFIG: Readonly<ZRSJZ_PathConfig> = {
+    EnablePathFinding: true,
+    GridSize: 60,
+    AgentRadius: 82,
+    AgentOffsetY: 100,
+    RaycastRadiusScale: 0.75,
+    StuckCheckInterval: 0.25,
+    StuckDistance: 3,
+    StuckTime: 0.5,
+    RepathInterval: 0.5,
+    TargetMoveDistance: 100,
+    WaypointDistance: 25,
+    MaxSearchNodes: 4000,
+    FallbackAvoidanceDistance: 120,
+};

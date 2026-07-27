@@ -3,6 +3,7 @@ import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
+import { ZRSJZ_Game } from '../ZRSJZ_Game';
 
 const { ccclass } = _decorator;
 
@@ -24,8 +25,17 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
         return players[0]?.node ?? null;
     }
 
-    protected OnAttack(): void {
-        void this.Fire();
+    protected OnAttack(attack: string): void {
+        switch (attack) {
+            case "kq":
+            case "gj_jjq":
+                this.Fire();
+                break;
+            case "dao":
+                break;
+            case "hui":
+                break;
+        }
     }
 
     /**
@@ -40,8 +50,8 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
             return;
         }
 
-        const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
-        bullet.parent = this.node;
+        const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/EnemyBullet");
+        bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
         bullet.active = true;
 
         // Bone.worldX/worldY 是 Spine 节点空间坐标。
