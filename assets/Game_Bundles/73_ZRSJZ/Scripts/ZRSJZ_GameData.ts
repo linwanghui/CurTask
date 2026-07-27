@@ -196,6 +196,29 @@ export class ZRSJZ_GameData {
         })
     }
 
+    //收藏室数据
+    public BoxroomPropLevel: { [propName: string]: number } = {};
+
+    public GetBoxroomPropLevel(propName: string): number {
+        return Math.max(0, Math.min(3, Math.floor(this.BoxroomPropLevel?.[propName] ?? 0)));
+    }
+
+    public SetBoxroomPropLevel(propName: string, level: number): void {
+        if (!propName || !Number.isFinite(level)) return;
+
+        const newLevel = Math.max(0, Math.min(3, Math.floor(level)));
+        if (!this.BoxroomPropLevel) this.BoxroomPropLevel = {};
+        if (this.GetBoxroomPropLevel(propName) === newLevel) return;
+
+        if (newLevel === 0) {
+            delete this.BoxroomPropLevel[propName];
+        } else {
+            this.BoxroomPropLevel[propName] = newLevel;
+        }
+        ZRSJZ_GameData.SaveData();
+    }
+
+
     //DLC存档数据
     public BNS_Property: { 木材: number, 矿石: number, 食物: number, 宝石: number, 电力: number, 繁荣度: number } =
         { 木材: 0, 矿石: 0, 食物: 0, 宝石: 0, 电力: 0, 繁荣度: 0 };

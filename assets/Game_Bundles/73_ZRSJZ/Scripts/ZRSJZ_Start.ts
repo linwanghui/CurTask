@@ -33,6 +33,9 @@ export class ZRSJZ_Start extends Component {
             case "背包":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.背包弹窗);
                 break;
+            case "收藏室":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.收藏室界面);
+                break;
             case "开始行动":
                 director.loadScene("ZRSJZ_Game");
                 break;
