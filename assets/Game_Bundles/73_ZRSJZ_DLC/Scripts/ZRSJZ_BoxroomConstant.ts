@@ -10,6 +10,38 @@ export const ZRSJZ_BOXROOM_CATEGORIES: readonly ZRSJZ_BoxroomCategory[] = [
 /** 每次升到对应等级时需要放入的同名道具数量。 */
 export const ZRSJZ_BOXROOM_LEVEL_COST: readonly number[] = [1, 3, 5];
 
+export type ZRSJZ_BoxroomAttribute = "生命" | "近战伤害" | "枪械伤害";
+
+/** 使用整数基点保存百分比：1 基点 = 0.01%。 */
+export const ZRSJZ_BOXROOM_LEVEL_BONUS_BASIS_POINT: readonly number[] = [
+    0,
+    50,
+    110,
+    180,
+];
+
+const PROP_ATTRIBUTE = new Map<string, ZRSJZ_BoxroomAttribute>([
+    ["各种红蛋", "生命"],
+    ["咖啡豆", "生命"],
+    ["万金泪冠", "生命"],
+    ["曼德尔", "生命"],
+    ["呼吸机", "生命"],
+    ["欧洲之心", "生命"],
+    ["医疗机器人", "生命"],
+
+    ["劳力士", "近战伤害"],
+    ["金玫瑰", "近战伤害"],
+    ["步战车", "近战伤害"],
+    ["坦克", "近战伤害"],
+    ["浮力机器设备", "近战伤害"],
+
+    ["155炮弹", "枪械伤害"],
+    ["供能单元", "枪械伤害"],
+    ["装甲车电池", "枪械伤害"],
+    ["反应炉", "枪械伤害"],
+    ["火箭燃料", "枪械伤害"],
+]);
+
 const FOOD_PROPS = new Set<string>([
     "八宝粥", "柠檬茶", "苹果", "鱼子酱", "香槟", "各种红蛋", "咖啡豆",
 ]);
@@ -40,4 +72,21 @@ export function GetBoxroomCategory(propName: string): ZRSJZ_BoxroomCategory {
     if (COLLECTION_PROPS.has(propName)) return "收藏品";
     if (HIGH_TECH_PROPS.has(propName)) return "高科技";
     return "工艺品";
+}
+
+export function GetBoxroomAttribute(propName: string): ZRSJZ_BoxroomAttribute {
+    return PROP_ATTRIBUTE.get(propName) ?? "生命";
+}
+
+export function GetBoxroomBonusBasisPoint(level: number, propCount: number = 15): number {
+    const safeLevel = Math.max(0, Math.min(3, Math.floor(level)));
+    // 红色收藏品继续增加时自动等比压缩单件收益，保证全部满级总和不超过 30%。
+    const maxBasisPoint = Math.min(180, Math.floor(3000 / Math.max(1, propCount)));
+    return Math.floor(
+        ZRSJZ_BOXROOM_LEVEL_BONUS_BASIS_POINT[safeLevel] * maxBasisPoint / 180
+    );
+}
+
+export function FormatBoxroomPercent(basisPoint: number): string {
+    return `${(Math.max(0, Math.floor(basisPoint)) / 100).toFixed(2)}%`;
 }

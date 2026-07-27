@@ -1,4 +1,20 @@
-import { _decorator, EventTouch, instantiate, Node, Prefab, ScrollView, tween, Tween, UITransform, Vec3, Widget } from 'cc';
+import {
+    _decorator,
+    Button,
+    EventTouch,
+    instantiate,
+    isValid,
+    Label,
+    Node,
+    Prefab,
+    ScrollView,
+    Sprite,
+    tween,
+    Tween,
+    UITransform,
+    Vec3,
+    Widget
+} from 'cc';
 import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
 import {
@@ -8,8 +24,18 @@ import {
     ZRSJZ_PROP_QUALITY
 } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
-import { GetBoxroomCategory, ZRSJZ_BOXROOM_CATEGORIES, ZRSJZ_BoxroomCategory } from '../ZRSJZ_BoxroomConstant';
+import {
+    FormatBoxroomPercent,
+    GetBoxroomAttribute,
+    GetBoxroomBonusBasisPoint,
+    GetBoxroomCategory,
+    ZRSJZ_BOXROOM_CATEGORIES,
+    ZRSJZ_BOXROOM_LEVEL_COST,
+    ZRSJZ_BoxroomAttribute,
+    ZRSJZ_BoxroomCategory
+} from '../ZRSJZ_BoxroomConstant';
 import { ZRSJZ_BoxroomBox } from '../ZRSJZ_BoxroomBox';
+import { ZRSJZ_GameData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 const { ccclass } = _decorator;
 
 type ZRSJZ_BoxroomCategoryView = {
@@ -32,6 +58,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
     private _selectedTab: Node = null;
     private _boxPrefab: Prefab = null;
     private _refreshVersion: number = 0;
+    private _selectedPropName: string = "";
     private _categoryCache: Map<ZRSJZ_BoxroomCategory, ZRSJZ_BoxroomCategoryView> = new Map();
     private _categoryBuildTasks: Map<
         ZRSJZ_BoxroomCategory,
@@ -56,6 +83,8 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
 
     public Show(...args: any[]): void {
         super.Show(...args);
+        this.SyncAttributeBonus();
+        this.RefreshTotalBonus();
         this.SelectCategory(this._curCategory);
     }
 
@@ -63,6 +92,12 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         switch (event.getCurrentTarget().name) {
             case "返回":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.收藏室界面);
+                break;
+            case "详情关闭":
+                this.CloseDetail();
+                break;
+            case "放入":
+                this.UpgradeSelectedProp();
                 break;
         }
     }
@@ -176,7 +211,12 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
                 - position.row * (ZRSJZ_BoxroomPanel.CELL_HEIGHT + ZRSJZ_BoxroomPanel.VERTICAL_GAP)
                 - boxHeight * 0.5;
             box.setPosition(x, y);
-            box.getComponent(ZRSJZ_BoxroomBox)?.Init(config.Name, boxWidth, boxHeight);
+            box.getComponent(ZRSJZ_BoxroomBox)?.Init(
+                config.Name,
+                boxWidth,
+                boxHeight,
+                propName => this.ShowDetail(propName)
+            );
         }
 
         const contentWidth = ZRSJZ_BoxroomPanel.CONTENT_PADDING * 2
@@ -185,6 +225,140 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         const view = { node: categoryNode, contentWidth };
         this._categoryCache.set(category, view);
         return view;
+    }
+
+    private async ShowDetail(propName: string): Promise<void> {
+        const detail = this.node.getChildByName("Panel")?.getChildByName("详情弹板");
+        if (!detail) return;
+
+        this._selectedPropName = propName;
+        detail.active = true;
+        this.RefreshDetail();
+
+        const imageSprite = detail.getChildByName("Panel")
+            ?.getChildByName("图片")
+            ?.getComponent(Sprite);
+        if (imageSprite) imageSprite.spriteFrame = null;
+
+        const spriteFrame = await ZRSJZ_UIManager.Instance.GetPropUI(propName);
+        if (!spriteFrame || !isValid(detail) || this._selectedPropName !== propName) return;
+
+        if (imageSprite) {
+            imageSprite.spriteFrame = spriteFrame;
+            imageSprite.grayscale = ZRSJZ_GameData.Instance.GetBoxroomPropLevel(propName) <= 0;
+        }
+    }
+
+    private CloseDetail(): void {
+        const detail = this.node.getChildByName("Panel")?.getChildByName("详情弹板");
+        if (detail) detail.active = false;
+        this._selectedPropName = "";
+    }
+
+    private RefreshDetail(): void {
+        if (!this._selectedPropName) return;
+
+        const detail = this.node.getChildByName("Panel")?.getChildByName("详情弹板");
+        const detailPanel = detail?.getChildByName("Panel");
+        if (!detail || !detailPanel) return;
+
+        const level = ZRSJZ_GameData.Instance.GetBoxroomPropLevel(this._selectedPropName);
+        const propCount = this.GetCollectionProps().length;
+        const attribute = GetBoxroomAttribute(this._selectedPropName);
+        const currentBonus = GetBoxroomBonusBasisPoint(level, propCount);
+        const nextBonus = GetBoxroomBonusBasisPoint(Math.min(3, level + 1), propCount);
+        const isMaxLevel = level >= 3;
+
+        const costLabel = detailPanel.getChildByName("升级消耗文本")?.getComponent(Label);
+        const currentLabel = detailPanel.getChildByName("属性加成")?.getComponent(Label);
+        const nextLabel = detailPanel.getChildByName("升级后属性加成")?.getComponent(Label);
+        const arrow = detailPanel.getChildByName("箭头");
+        const upgradeButton = detailPanel.getChildByName("放入")?.getComponent(Button);
+        const imageSprite = detailPanel.getChildByName("图片")?.getComponent(Sprite);
+
+        if (costLabel) {
+            costLabel.string = isMaxLevel
+                ? "已满级"
+                : `提交${ZRSJZ_BOXROOM_LEVEL_COST[level]}个道具`;
+        }
+        if (currentLabel) {
+            currentLabel.string = `${attribute}+${FormatBoxroomPercent(currentBonus)}`;
+        }
+        if (nextLabel) {
+            nextLabel.string = FormatBoxroomPercent(nextBonus);
+            nextLabel.node.active = !isMaxLevel;
+        }
+        if (arrow) arrow.active = !isMaxLevel;
+        if (upgradeButton) upgradeButton.interactable = !isMaxLevel;
+        if (imageSprite) imageSprite.grayscale = level <= 0;
+    }
+
+    private UpgradeSelectedProp(): void {
+        if (!this._selectedPropName) return;
+
+        const gameData = ZRSJZ_GameData.Instance;
+        const level = gameData.GetBoxroomPropLevel(this._selectedPropName);
+        if (level >= 3) return;
+
+        const cost = ZRSJZ_BOXROOM_LEVEL_COST[level];
+        if (gameData.GetPropCountByName(this._selectedPropName) < cost) {
+            ZRSJZ_UIManager.Instance.ShowTip("道具不足");
+            return;
+        }
+
+        gameData.ConsumeProp(this._selectedPropName, cost);
+        gameData.SetBoxroomPropLevel(this._selectedPropName, level + 1);
+        this.SyncAttributeBonus();
+        this.RefreshTotalBonus();
+        this._categoryCache.forEach(view => {
+            view.node.getComponentsInChildren(ZRSJZ_BoxroomBox)
+                .forEach(box => box.RefreshLevel());
+        });
+        this.RefreshDetail();
+    }
+
+    private SyncAttributeBonus(): void {
+        const bonus: { [attributeName: string]: number } = {
+            "生命": 0,
+            "近战伤害": 0,
+            "枪械伤害": 0,
+        };
+        const props = this.GetCollectionProps();
+        for (const config of props) {
+            const attribute = GetBoxroomAttribute(config.Name);
+            const level = ZRSJZ_GameData.Instance.GetBoxroomPropLevel(config.Name);
+            bonus[attribute] += GetBoxroomBonusBasisPoint(level, props.length);
+        }
+        ZRSJZ_GameData.Instance.SetBoxroomAttributeBonusBasisPoints(bonus);
+    }
+
+    private RefreshTotalBonus(): void {
+        const bonusBottom = this.node.getChildByName("Panel")?.getChildByName("加成底");
+        if (!bonusBottom) return;
+
+        this.SetTotalBonusLabel(bonusBottom, "生命加成", "生命");
+        this.SetTotalBonusLabel(bonusBottom, "近战伤害加成", "近战伤害");
+        this.SetTotalBonusLabel(bonusBottom, "近战伤害加成-001", "枪械伤害");
+    }
+
+    private SetTotalBonusLabel(
+        bonusBottom: Node,
+        labelNodeName: string,
+        attribute: ZRSJZ_BoxroomAttribute
+    ): void {
+        const label = bonusBottom.getChildByName(labelNodeName)?.getComponent(Label);
+        if (!label) return;
+
+        const rate = ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate(attribute);
+        const basisPoint = Math.round(rate * 10000);
+        label.string = `${attribute}+${FormatBoxroomPercent(basisPoint)}`;
+    }
+
+    private GetCollectionProps() {
+        return [...ZRSJZ_PROP_CONFIG.values()].filter(config =>
+            config.PropType === "物品"
+            && config.Quality === ZRSJZ_PROP_QUALITY.红色
+        );
     }
 
     private GetBoxPrefab(): Promise<Prefab> {

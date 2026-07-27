@@ -228,6 +228,7 @@ export class ZRSJZ_GameData {
 
     //收藏室数据
     public BoxroomPropLevel: { [propName: string]: number } = {};
+    public BoxroomAttributeBonusBasisPoint: { [attributeName: string]: number } = {};
 
     public GetBoxroomPropLevel(propName: string): number {
         return Math.max(0, Math.min(3, Math.floor(this.BoxroomPropLevel?.[propName] ?? 0)));
@@ -246,6 +247,40 @@ export class ZRSJZ_GameData {
             this.BoxroomPropLevel[propName] = newLevel;
         }
         ZRSJZ_GameData.SaveData();
+    }
+
+    public SetBoxroomAttributeBonusBasisPoints(
+        bonusBasisPoints: { [attributeName: string]: number }
+    ): void {
+        const safeBonus: { [attributeName: string]: number } = {};
+        for (const attributeName in bonusBasisPoints) {
+            const value = bonusBasisPoints[attributeName];
+            safeBonus[attributeName] = Number.isFinite(value)
+                ? Math.max(0, Math.floor(value))
+                : 0;
+        }
+
+        if (JSON.stringify(this.BoxroomAttributeBonusBasisPoint ?? {}) === JSON.stringify(safeBonus)) {
+            return;
+        }
+        this.BoxroomAttributeBonusBasisPoint = safeBonus;
+        ZRSJZ_GameData.SaveData();
+    }
+
+    /**
+     * 返回收藏室提供的属性增幅比例，例如 5.00% 返回 0.05。
+     */
+    public GetBoxroomAttributeBonusRate(attributeName: string): number {
+        const basisPoint = this.BoxroomAttributeBonusBasisPoint?.[attributeName] ?? 0;
+        return Math.max(0, Math.floor(basisPoint)) / 10000;
+    }
+
+    /**
+     * 根据传入的基础属性返回收藏室额外增加的实际数值，不修改游戏属性。
+     */
+    public GetBoxroomAttributeIncrease(attributeName: string, baseValue: number): number {
+        if (!Number.isFinite(baseValue)) return 0;
+        return baseValue * this.GetBoxroomAttributeBonusRate(attributeName);
     }
 
 

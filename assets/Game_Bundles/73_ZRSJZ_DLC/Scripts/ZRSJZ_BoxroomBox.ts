@@ -1,4 +1,4 @@
-import { _decorator, Component, isValid, Label, Sprite, UITransform } from 'cc';
+import { _decorator, Component, isValid, Label, Node, Sprite, UITransform } from 'cc';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
 const { ccclass, property } = _decorator;
@@ -6,9 +6,17 @@ const { ccclass, property } = _decorator;
 @ccclass('ZRSJZ_BoxroomBox')
 export class ZRSJZ_BoxroomBox extends Component {
     private _propName: string = "";
+    private _clickCallback: (propName: string) => void = null;
 
-    public async Init(propName: string, width: number, height: number): Promise<void> {
+    public async Init(
+        propName: string,
+        width: number,
+        height: number,
+        clickCallback: (propName: string) => void
+    ): Promise<void> {
         this._propName = propName;
+        this._clickCallback = clickCallback;
+        this.node.on(Node.EventType.TOUCH_END, this.OnClick, this);
         this.Resize(width, height);
 
         const nameLabel = this.node.getChildByName("名字")?.getComponent(Label);
@@ -44,6 +52,10 @@ export class ZRSJZ_BoxroomBox extends Component {
             const light = levelNode?.getChildByName(index.toString())?.getChildByName("点亮");
             if (light) light.active = index <= level;
         }
+    }
+
+    private OnClick(): void {
+        this._clickCallback?.(this._propName);
     }
 
     private Resize(width: number, height: number): void {
