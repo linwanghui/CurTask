@@ -4,16 +4,13 @@ import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
 
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_Enemy')
 export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
-    @property({ tooltip: '武器名称' })
-    WeaponName: string = '突击步枪';
-
     protected start(): void {
         super.start();
-        this.EnemySkeleton?.ShowEquipment(this.WeaponName);
+        this.EnemySkeleton?.ShowEquipment(this.EnemyConfig.WeaponName);
     }
 
     protected FindTarget(): Node {

@@ -500,3 +500,82 @@ export enum ZRSJZ_ANI {
     Walk_Q = "zl_q",
     HC = "hc",
 }
+
+//#region 敌人配置
+export interface ZRSJZ_EnemyConfig {
+    /** 最大生命值。 */
+    MaxHealth: number;
+    /** 目标进入该范围后，敌人开始追击。 */
+    DetectionRange: number;
+    /** 追击过程中目标超出该范围后，敌人丢失目标并返回巡逻。 */
+    LoseRange: number;
+    /** 以敌人出生点为中心的巡逻半径。 */
+    PatrolRadius: number;
+    /** 巡逻时的移动速度。 */
+    PatrolSpeed: number;
+    /** 追击及移动攻击时的移动速度。 */
+    ChaseSpeed: number;
+    /** 到达巡逻点后的停留时间，单位为秒。 */
+    PatrolWaitTime: number;
+    /** 判定敌人已经到达巡逻点的距离。 */
+    PatrolArriveDistance: number;
+    /** 进入该范围后，敌人会一边靠近目标一边攻击。 */
+    MovingAttackRange: number;
+    /** 进入该范围后，敌人停止移动并站立攻击。 */
+    StandingAttackRange: number;
+    /** 两次攻击之间的冷却时间，单位为秒。 */
+    AttackInterval: number;
+    /** 待机动画名称。 */
+    IdleAnimation: string;
+    /** 巡逻或普通追击时播放的移动动画名称。 */
+    MoveAnimation: string;
+    /** 边移动边攻击时播放的动画名称。 */
+    MovingAttackAnimation: string[];
+    /** 停止移动并站立攻击时播放的动画名称。 */
+    StandingAttackAnimation: string[];
+    /** 敌人默认装备的武器名称。 */
+    WeaponName: string;
+}
+
+/**
+ * 敌人配置统一入口。
+ * ZRSJZ_EnemyBase 只按 EnemyName（未填写时使用节点名）读取这里的配置。
+ */
+export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>> = new Map([
+    ["持枪小怪", {
+        MaxHealth: 100,
+        DetectionRange: 800,
+        LoseRange: 1200,
+        PatrolRadius: 500,
+        PatrolSpeed: 500,
+        ChaseSpeed: 600,
+        PatrolWaitTime: 1,
+        PatrolArriveDistance: 50,
+        MovingAttackRange: 800,
+        StandingAttackRange: 300,
+        AttackInterval: 1,
+        IdleAnimation: ZRSJZ_ANI.Idle_Q,
+        MoveAnimation: ZRSJZ_ANI.Walk_Q,
+        MovingAttackAnimation: [ZRSJZ_ANI.Attack_Move_Q],
+        StandingAttackAnimation: [ZRSJZ_ANI.Attack_Idle_Q],
+        WeaponName: "突击步枪",
+    }],
+    ["持刀小怪", {
+        MaxHealth: 100,
+        DetectionRange: 800,
+        LoseRange: 1200,
+        PatrolRadius: 500,
+        PatrolSpeed: 500,
+        ChaseSpeed: 600,
+        PatrolWaitTime: 1,
+        PatrolArriveDistance: 50,
+        MovingAttackRange: 200,
+        StandingAttackRange: 200,
+        AttackInterval: 1,
+        IdleAnimation: ZRSJZ_ANI.Idle_D1,
+        MoveAnimation: ZRSJZ_ANI.Walk_D,
+        MovingAttackAnimation: [ZRSJZ_ANI.Attack_Move_D2, ZRSJZ_ANI.Attack_Move_D3],
+        StandingAttackAnimation: [ZRSJZ_ANI.Attack_Idle_D2, ZRSJZ_ANI.Attack_Idle_D3],
+        WeaponName: "战术匕首",
+    }],
+]);

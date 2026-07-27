@@ -6,6 +6,7 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
+import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -16,6 +17,7 @@ export class ZRSJZ_Player extends Component {
     WeaponType: string = "枪";
 
     PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
+    HP: ZRSJZ_HP = null;
 
     TargetEnemy: Node = null;
     TargetRange: number = 1000;
@@ -31,6 +33,7 @@ export class ZRSJZ_Player extends Component {
         this.RigidBody = this.getComponent(RigidBody2D);
         this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
         this.PlayerSkeleton = this.Skeleton.node.getComponent(ZRSJZ_PlayerSkeleton);
+        this.HP = this.node.getChildByName("HP").getComponent(ZRSJZ_HP);
     }
 
     protected start(): void {
@@ -43,10 +46,18 @@ export class ZRSJZ_Player extends Component {
         }
 
         this.Skeleton.setEventListener((trackEntry, event) => {
-            if (typeof event !== "number" && event.data.name === "kq" && this._isFireing && this.WeaponType === "枪") {
+            if (typeof event !== "number") console.error(event.data.name);
+
+            if (typeof event !== "number" && (event.data.name === "kq" || event.data.name === "gj_jjq") && this._isFireing && this.WeaponType === "枪") {
                 void this.Fire();
+            } else if (typeof event !== "number" && event.data.name === "dao") {
+
+            } else if (typeof event !== "number" && event.data.name === "hui") {
+
             }
         });
+
+        this.HP.Init(100);
     }
 
     protected onEnable(): void {
@@ -79,14 +90,11 @@ export class ZRSJZ_Player extends Component {
     }
 
     Attack(x: number, y: number, radius: number) {
-        const targetX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : 0;
-        const targetY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
         if (x === 0 && y === 0) {
             this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
             // this.PlayerSkeleton.HasDirection = false;
             if (this._isFireing) {
                 this._isFireing = false;
-                // this.unschedule(this.Fire);
             }
             return;
         }
@@ -94,13 +102,12 @@ export class ZRSJZ_Player extends Component {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q) : this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
             if (!this._isFireing) {
                 this._isFireing = true;
-                // this.schedule(this.Fire, 0.1);
             }
         } else {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
         }
-        this.PlayerSkeleton.AttackX = targetX;
-        this.PlayerSkeleton.AttackY = targetY;
+        this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : 0;
+        this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
         // this.PlayerSkeleton.HasDirection = true;
     }
 

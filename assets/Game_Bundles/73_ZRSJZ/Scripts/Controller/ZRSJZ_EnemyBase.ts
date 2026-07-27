@@ -1,12 +1,14 @@
 import { _decorator, Component, Node, RigidBody2D, Vec2, Vec3 } from 'cc';
-import { ZRSJZ_ANI } from '../ZRSJZ_Constant';
+import { ZRSJZ_ENEMY_CONFIG, ZRSJZ_EnemyConfig } from '../ZRSJZ_Constant';
 import { ZRSJZ_EnemySkeleton } from './ZRSJZ_EnemySkeleton';
+import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
 
 const { ccclass, property } = _decorator;
 
 export enum ZRSJZ_ENEMY_STATE {
     PATROL,
     CHASE,
+    MOVING_ATTACK,
     ATTACK,
     DEAD,
 }
@@ -19,47 +21,15 @@ export enum ZRSJZ_ENEMY_STATE {
  */
 @ccclass('ZRSJZ_EnemyBase')
 export abstract class ZRSJZ_EnemyBase extends Component {
-    @property({ tooltip: '最大生命值' })
-    MaxHealth: number = 100;
-
-    @property({ tooltip: '目标进入该距离后开始追击' })
-    DetectionRange: number = 800;
-
-    @property({ tooltip: '追击中目标超过该距离后返回巡逻' })
-    LoseRange: number = 1200;
-
-    @property({ tooltip: '以出生点为中心的巡逻半径' })
-    PatrolRadius: number = 500;
-
-    @property({ tooltip: '巡逻移动速度' })
-    PatrolSpeed: number = 120;
-
-    @property({ tooltip: '追击移动速度' })
-    ChaseSpeed: number = 220;
-
-    @property({ tooltip: '到达巡逻点后的停留时间' })
-    PatrolWaitTime: number = 1;
-
-    @property({ tooltip: '判定到达巡逻点的距离' })
-    PatrolArriveDistance: number = 20;
-
-    @property({ tooltip: '目标进入该距离后开始攻击' })
-    AttackRange: number = 300;
-
-    @property({ tooltip: '两次攻击之间的冷却时间' })
-    AttackInterval: number = 1;
-
-    @property({ tooltip: '待机动画名' })
-    IdleAnimation: string = ZRSJZ_ANI.Idle_Q;
-    @property({ tooltip: '移动动画名' })
-    MoveAnimation: string = ZRSJZ_ANI.Walk_Q;
-    @property({ tooltip: '攻击动画名' })
-    AttackAnimation: string = ZRSJZ_ANI.Attack_Idle_Q;
+    @property({ tooltip: '敌人配置名；留空时使用当前节点名' })
+    EnemyName: string = '';
 
     Target: Node = null;
+    HP: ZRSJZ_HP = null;
 
     protected RigidBody: RigidBody2D = null;
     protected EnemySkeleton: ZRSJZ_EnemySkeleton = null;
+    protected EnemyConfig: Readonly<ZRSJZ_EnemyConfig> = null;
 
     protected AttackX: number = 0;
     protected AttackY: number = 0;
@@ -74,6 +44,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     private _targetSearchRemaining: number = 0;
     private _attackCooldown: number = 0;
     private _animationName: string = '';
+    private _aniIndex: number = 0;
 
     public get State(): ZRSJZ_ENEMY_STATE {
         return this._state;
@@ -88,16 +59,38 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected onLoad(): void {
+        const enemyName = this.EnemyName.trim() || this.node.name;
+        this.EnemyConfig = ZRSJZ_ENEMY_CONFIG.get(enemyName);
+        if (!this.EnemyConfig) {
+            console.error(`[ZRSJZ_EnemyBase] 未找到敌人配置: ${enemyName}`);
+            this.enabled = false;
+            return;
+        }
+
+        this.HP = this.getComponentInChildren(ZRSJZ_HP);
         this.RigidBody = this.getComponent(RigidBody2D);
         this.EnemySkeleton = this.getComponentInChildren(ZRSJZ_EnemySkeleton);
-        this._health = Math.max(1, this.MaxHealth);
+        this._health = Math.max(1, this.EnemyConfig.MaxHealth);
     }
 
     protected start(): void {
         this._patrolCenter.set(this.node.worldPosition);
         this.SelectNextPatrolPoint();
         this.TryFindTarget();
-        this.PlayAnimation(this.IdleAnimation);
+        this.PlayAnimation(this.EnemyConfig.IdleAnimation);
+        this.HP.Init(this._health);
+
+        this.EnemySkeleton.Skeleton.setEventListener((trackEntry, event) => {
+            if (typeof event !== "number") console.error(event.data.name);
+
+            if (typeof event !== "number" && (event.data.name === "kq" || event.data.name === "gj_jjq")) {
+                this.OnAttack();
+            } else if (typeof event !== "number" && event.data.name === "dao") {
+                this.OnAttack();
+            } else if (typeof event !== "number" && event.data.name === "hui") {
+                this.OnAttack();
+            }
+        });
     }
 
     protected update(dt: number): void {
@@ -115,17 +108,24 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         }
 
         const distance = Vec3.distance(this.node.worldPosition, this.Target.worldPosition);
-        const detectionRange = Math.max(0, this.DetectionRange);
-        const loseRange = Math.max(detectionRange, this.LoseRange);
-        const attackRange = Math.max(0, this.AttackRange);
+        const detectionRange = Math.max(0, this.EnemyConfig.DetectionRange);
+        const loseRange = Math.max(detectionRange, this.EnemyConfig.LoseRange);
+        const movingAttackRange = Math.max(0, this.EnemyConfig.MovingAttackRange);
+        const standingAttackRange = Math.min(
+            movingAttackRange,
+            Math.max(0, this.EnemyConfig.StandingAttackRange),
+        );
 
         if (distance > loseRange) {
             this.Target = null;
             this.ChangeState(ZRSJZ_ENEMY_STATE.PATROL);
             this.Patrol(dt);
-        } else if (distance <= attackRange) {
+        } else if (distance <= standingAttackRange) {
             this.ChangeState(ZRSJZ_ENEMY_STATE.ATTACK);
             this.Attack(dt);
+        } else if (distance <= movingAttackRange) {
+            this.ChangeState(ZRSJZ_ENEMY_STATE.MOVING_ATTACK);
+            this.MovingAttack(dt);
         } else if (this._state !== ZRSJZ_ENEMY_STATE.PATROL || distance <= detectionRange) {
             this.ChangeState(ZRSJZ_ENEMY_STATE.CHASE);
             this.Chase(dt);
@@ -143,16 +143,16 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
     /** 巡逻行为接口。 */
     public Patrol(dt: number): void {
-        if (this.PatrolRadius <= 0 || this.PatrolSpeed <= 0) {
+        if (this.EnemyConfig.PatrolRadius <= 0 || this.EnemyConfig.PatrolSpeed <= 0) {
             this.StopMoving();
-            this.PlayAnimation(this.IdleAnimation);
+            this.PlayAnimation(this.EnemyConfig.IdleAnimation);
             return;
         }
 
         if (this._patrolWaitRemaining > 0) {
             this._patrolWaitRemaining -= dt;
             this.StopMoving();
-            this.PlayAnimation(this.IdleAnimation);
+            this.PlayAnimation(this.EnemyConfig.IdleAnimation);
             if (this._patrolWaitRemaining <= 0) {
                 this.SelectNextPatrolPoint();
             }
@@ -164,17 +164,24 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         const offsetY = this._patrolTarget.y - current.y;
         const distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
 
-        if (distance <= Math.max(0, this.PatrolArriveDistance)) {
+        if (distance <= Math.max(0, this.EnemyConfig.PatrolArriveDistance)) {
             this.StopMoving();
-            this.PlayAnimation(this.IdleAnimation);
-            this._patrolWaitRemaining = Math.max(0, this.PatrolWaitTime);
+            this.PlayAnimation(this.EnemyConfig.IdleAnimation);
+            this._patrolWaitRemaining = Math.max(0, this.EnemyConfig.PatrolWaitTime);
             if (this._patrolWaitRemaining === 0) {
                 this.SelectNextPatrolPoint();
             }
             return;
         }
 
-        this.MoveTowards(offsetX, offsetY, distance, this.PatrolSpeed, dt);
+        this.MoveTowards(
+            offsetX,
+            offsetY,
+            distance,
+            this.EnemyConfig.PatrolSpeed,
+            dt,
+            this.EnemyConfig.MoveAnimation,
+        );
     }
 
     /** 追击行为接口。 */
@@ -189,7 +196,40 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         const offsetY = target.y - current.y;
         const distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
         this.UpdateAimDirection(offsetX, offsetY, distance);
-        this.MoveTowards(offsetX, offsetY, distance, this.ChaseSpeed, dt);
+        this.MoveTowards(
+            offsetX,
+            offsetY,
+            distance,
+            this.EnemyConfig.ChaseSpeed,
+            dt,
+            this.EnemyConfig.MoveAnimation,
+        );
+    }
+
+    /** 进入移动攻击范围后，保持向目标移动并按攻击间隔发动攻击。 */
+    public MovingAttack(dt: number): void {
+        if (!this.IsTargetAvailable()) {
+            return;
+        }
+
+        const current = this.node.worldPosition;
+        const target = this.Target.worldPosition;
+        this.AttackX = target.x - current.x;
+        this.AttackY = target.y - current.y;
+        const distance = Math.sqrt(this.AttackX * this.AttackX + this.AttackY * this.AttackY);
+
+        this.UpdateAimDirection(this.AttackX, this.AttackY, distance);
+        this.MoveTowards(
+            this.AttackX,
+            this.AttackY,
+            distance,
+            this.EnemyConfig.ChaseSpeed,
+            dt,
+            this.EnemyConfig.MovingAttackAnimation[this._aniIndex % this.EnemyConfig.MovingAttackAnimation.length],
+            this.EnemyConfig.MovingAttackAnimation.length == 1,
+            () => { this._aniIndex++ }
+        );
+        this.TryAttack();
     }
 
     /** 攻击行为接口。攻击频率由 AttackInterval 控制。 */
@@ -206,12 +246,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         this.StopMoving();
         this.UpdateAimDirection(this.AttackX, this.AttackY, distance);
-        this.PlayAnimation(this.AttackAnimation);
-
-        if (this._attackCooldown <= 0) {
-            this._attackCooldown = Math.max(0, this.AttackInterval);
-            this.OnAttack();
-        }
+        this.PlayAnimation(this.EnemyConfig.StandingAttackAnimation[this._aniIndex % this.EnemyConfig.MovingAttackAnimation.length], this.EnemyConfig.MovingAttackAnimation.length == 1, () => { this._aniIndex++ });
+        this.TryAttack();
     }
 
     /** 死亡行为接口。重复调用不会重复触发死亡逻辑。 */
@@ -253,13 +289,13 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.node.active = false;
     }
 
-    protected PlayAnimation(animationName: string): void {
+    protected PlayAnimation(animationName: string, loop: boolean = true, cb: Function = null): void {
         if (!animationName || animationName === this._animationName || !this.EnemySkeleton?.Skeleton) {
             return;
         }
 
         this._animationName = animationName;
-        this.EnemySkeleton.PlayAni(animationName);
+        this.EnemySkeleton.PlayAni(animationName, loop, cb);
     }
 
     private ChangeState(state: ZRSJZ_ENEMY_STATE): void {
@@ -306,10 +342,13 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         distance: number,
         speed: number,
         dt: number,
+        animationName: string,
+        loop: boolean = true,
+        cb: Function = null
     ): void {
         if (distance <= 0 || speed <= 0) {
             this.StopMoving();
-            this.PlayAnimation(this.IdleAnimation);
+            this.PlayAnimation(this.EnemyConfig.IdleAnimation);
             return;
         }
 
@@ -329,7 +368,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (this.EnemySkeleton && directionX !== 0) {
             this.EnemySkeleton.SetPlayerDir(directionX > 0 ? 1 : -1);
         }
-        this.PlayAnimation(this.MoveAnimation);
+        this.PlayAnimation(animationName, loop, cb);
     }
 
     private StopMoving(): void {
@@ -340,7 +379,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     private UpdateAimDirection(offsetX: number, offsetY: number, distance: number): void {
-        if (!this.EnemySkeleton || distance <= 0) {
+        if (!this.EnemySkeleton || distance <= 0 || this.EnemyConfig.WeaponName == "战术匕首") {
             return;
         }
 
@@ -350,7 +389,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     private SelectNextPatrolPoint(): void {
-        const radius = Math.max(0, this.PatrolRadius);
+        const radius = Math.max(0, this.EnemyConfig.PatrolRadius);
         const angle = Math.random() * Math.PI * 2;
         const distance = Math.sqrt(Math.random()) * radius;
         this._patrolTarget.set(
@@ -358,5 +397,14 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             this._patrolCenter.y + Math.sin(angle) * distance,
             this._patrolCenter.z,
         );
+    }
+
+    private TryAttack(): void {
+        if (this._attackCooldown > 0) {
+            return;
+        }
+
+        this._attackCooldown = Math.max(0, this.EnemyConfig.AttackInterval);
+        // this.OnAttack();
     }
 }
