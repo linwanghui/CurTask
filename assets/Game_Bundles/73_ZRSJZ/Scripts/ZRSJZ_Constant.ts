@@ -13,6 +13,7 @@ export enum ZRSJZ_PANEL {
     作弊界面 = "73_ZRSJZ/Prefabs/Panel/作弊界面",
     道具弹窗 = "73_ZRSJZ/Prefabs/Panel/道具弹窗",
     背包弹窗 = "73_ZRSJZ/Prefabs/Panel/背包弹窗",
+    收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
 }
 
@@ -98,7 +99,6 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["沙袋", { Name: "沙袋", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 3200, MaxCount: 1 }],
     ["高精数显卡尺", { Name: "高精数显卡尺", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 3300, MaxCount: 1 }],
     //1x2 --  绿
-    ["各种红蛋", { Name: "各种红蛋", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 9000, MaxCount: 1 }],
     ["太阳能板", { Name: "太阳能板", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 11000, MaxCount: 1 }],
     ["扫地机器", { Name: "扫地机器", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 9000, MaxCount: 1 }],
     //1x2 --  蓝
@@ -114,6 +114,7 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["外星人笔记本", { Name: "外星人笔记本", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 146000, MaxCount: 1 }],
     ["炮弹", { Name: "炮弹", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 184000, MaxCount: 1 }],
     //1x2 --  红
+    ["各种红蛋", { Name: "各种红蛋", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 500000, MaxCount: 1 }],
     ["155炮弹", { Name: "155炮弹", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 420000, MaxCount: 1 }],
     ["供能单元", { Name: "供能单元", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 412000, MaxCount: 1 }],
     ["装甲车电池", { Name: "装甲车电池", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 476000, MaxCount: 1 }],
@@ -152,7 +153,6 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
 
     //2x3 --  白
     ["勇士半身像", { Name: "勇士半身像", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 10000, MaxCount: 1 }],
-    ["咖啡豆", { Name: "咖啡豆", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 13000, MaxCount: 1 }],
     ["水泥", { Name: "水泥", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 13000, MaxCount: 1 }],
     //2x3 --  绿
     ["八音盒", { Name: "八音盒", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 33000, MaxCount: 1 }],
@@ -171,6 +171,7 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["军用雷达", { Name: "军用雷达", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 552000, MaxCount: 1 }],
     ["黄金鳄鱼头", { Name: "黄金鳄鱼头", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 475000, MaxCount: 1 }],
     //2x3 --  红
+    ["咖啡豆", { Name: "咖啡豆", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1250000, MaxCount: 1 }],
     ["医疗机器人", { Name: "医疗机器人", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1224000, MaxCount: 1 }],
     ["坦克", { Name: "坦克", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1332000, MaxCount: 1 }],
     ["浮力机器设备", { Name: "浮力机器设备", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1368000, MaxCount: 1 }],
