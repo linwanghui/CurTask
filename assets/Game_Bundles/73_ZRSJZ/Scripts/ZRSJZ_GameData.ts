@@ -177,6 +177,36 @@ export class ZRSJZ_GameData {
         ZRSJZ_GameData.SaveData();
     }
 
+    //获取道具数量
+    public GetPropCountByName(propName: string): number {
+        let propCount: number = 0;
+        for (const propID in this.PropData) {
+            if (this.PropData[propID].Name === propName) {
+                propCount += this.PropData[propID].CurCount;
+            }
+        }
+        return propCount;
+    }
+
+    //消耗道具
+    public ConsumeProp(propName: string, count: number = 1) {
+        if (this.GetPropCountByName(propName) < count) {
+            console.error("道具数量不足！");
+            return;
+        }
+        for (const propID in this.PropData) {
+            if (this.PropData[propID].Name === propName) {
+                if (count < this.PropData[propID].CurCount) {
+                    this.PropData[propID].CurCount -= count;
+                    break;
+                } else {
+                    count -= this.PropData[propID].CurCount;
+                    delete this.PropData[propID];
+                }
+            }
+        }
+    }
+
     public GetPropID(): string {
         this.PropID++;
         ZRSJZ_GameData.SaveData();
