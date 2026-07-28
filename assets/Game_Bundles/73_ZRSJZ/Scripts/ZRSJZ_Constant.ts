@@ -13,6 +13,7 @@ export enum ZRSJZ_PANEL {
     作弊界面 = "73_ZRSJZ/Prefabs/Panel/作弊界面",
     道具弹窗 = "73_ZRSJZ/Prefabs/Panel/道具弹窗",
     背包弹窗 = "73_ZRSJZ/Prefabs/Panel/背包弹窗",
+    地图弹窗 = "73_ZRSJZ/Prefabs/Panel/地图弹窗",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -501,7 +502,8 @@ export enum ZRSJZ_ANI {
     Attack_Move_Q2 = "gj_jjq2",
     Walk_D = "zl_dao",
     Walk_Q = "zl_q",
-    HC = "hc",
+    HC_Q = "hc",
+    HC_D = "hc_dao",
     SW = "sw",
 }
 

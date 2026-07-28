@@ -1,4 +1,4 @@
-import { _decorator, Component, director, Node, RigidBody2D, sp, v2, Vec3 } from 'cc';
+import { _decorator, Component, director, Node, RigidBody2D, sp, Sprite, v2, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_ANI } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
@@ -28,6 +28,8 @@ export class ZRSJZ_Player extends Component {
 
     TargetEnemy: Node = null;
     TargetRange: number = 1000;
+    Reloading: Node = null;
+    Loading: Sprite = null;
 
     private _moveSpeed: number = 1000;
     private _moveX: number = 0;
@@ -35,12 +37,15 @@ export class ZRSJZ_Player extends Component {
     private _moveRadius: number = 0;
     private _aniName: string = "";
     private _isFireing: boolean = false;
+    private _isSlide: boolean = false;
 
     protected onLoad(): void {
         this.RigidBody = this.getComponent(RigidBody2D);
         this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
         this.PlayerSkeleton = this.Skeleton.node.getComponent(ZRSJZ_PlayerSkeleton);
         this.HP = this.node.getChildByName("HP").getComponent(ZRSJZ_HP);
+        this.Reloading = this.node.getChildByName("Reloading");
+        this.Loading = this.Reloading.getChildByName("Loading").getComponent(Sprite);
     }
 
     protected start(): void {
@@ -64,41 +69,50 @@ export class ZRSJZ_Player extends Component {
         });
 
         this.HP.Init(this.MaxHP);
+        this.PlayerSkeleton.AttackX = 200;
     }
 
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, this.Reload, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
     }
 
     protected onDisable(): void {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, this.Reload, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
     }
 
     protected update(dt: number): void {
         this.FindTarget();
         this.AniSwitch();
-        this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) : this.PlayerSkeleton.AttackX;
-        this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
+        if (this._isSlide) {
+            this.PlayerSkeleton.AttackX = Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
+        } else {
+            this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
+            this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
+        }
         this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed * this._moveRadius, this._moveY * dt * this._moveSpeed * this._moveRadius);
     }
 
     Move(x: number, y: number, radius: number) {
         this._moveX = x;
         this._moveY = y;
-        this._moveRadius = radius;
+        this._moveRadius = 1;
         if (x != 0) {
             this.PlayerSkeleton.SetPlayerDir(x / Math.abs(x))
         }
     }
 
-    Attack(x: number, y: number, radius: number) {
-        if (x === 0 && y === 0) {
+    Attack(fireing: boolean) {
+        if (this._isSlide) return;
+        if (!fireing) {
             this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
-            // this.PlayerSkeleton.HasDirection = false;
             if (this._isFireing) {
                 this._isFireing = false;
             }
@@ -112,9 +126,6 @@ export class ZRSJZ_Player extends Component {
         } else {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
         }
-        // this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : 0;
-        // this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
-        // this.PlayerSkeleton.HasDirection = true;
     }
 
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
@@ -152,13 +163,12 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
-    SwitchWeapon() {
-        if (this.WeaponType === "刀") {
-            this.WeaponType = "枪";
+    SwitchWeapon(weaponType: string) {
+        this.WeaponType = weaponType;
+        if (this.WeaponType === "枪") {
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
             this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name);
-        } else if (this.WeaponType === "枪") {
-            this.WeaponType = "刀";
+        } else if (this.WeaponType === "刀") {
             this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
             this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
         }
@@ -223,7 +233,11 @@ export class ZRSJZ_Player extends Component {
             Vec3.distance(a.node.worldPosition, currentPosition)
             - Vec3.distance(b.node.worldPosition, currentPosition)
         ));
-        this.TargetEnemy = enemys[0]?.node ?? null;
+        if (enemys.length > 0 && Vec3.distance(enemys[0].node.worldPosition, this.node.worldPosition) <= this.TargetRange) {
+            this.TargetEnemy = enemys[0].node;
+        } else {
+            this.TargetEnemy = null;
+        }
     }
 
     //受到打击
@@ -233,6 +247,24 @@ export class ZRSJZ_Player extends Component {
             console.error("玩家死亡");
         }
         this.HP.Show(this.CurHP);
+    }
+
+    Reload(fill: number) {
+        this.Reloading.active = fill < 1;
+        this.Loading.fillRange = fill;
+    }
+
+    Slide() {
+        this._moveSpeed += 1000;
+        this._isSlide = true;
+        console.error(1);
+        const anis: string[] = this.WeaponType === "枪" ? [ZRSJZ_ANI.HC_Q, ZRSJZ_ANI.Idle_Q] : [ZRSJZ_ANI.HC_D, ZRSJZ_ANI.Idle_D1];
+        this.PlayAni(anis[0], false, () => {
+            console.error(2);
+            this._isSlide = false;
+            this._moveSpeed -= 1000;
+            this.PlayAni(anis[1]);
+        })
     }
 
 }

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, RigidBody2D, Vec2, Vec3 } from 'cc';
+import { _decorator, Collider2D, Component, Node, RigidBody2D, Vec2, Vec3 } from 'cc';
 import {
     ZRSJZ_ANI,
     ZRSJZ_ENEMY_CONFIG,
@@ -37,6 +37,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     HP: ZRSJZ_HP = null;
 
     protected RigidBody: RigidBody2D = null;
+    protected Colliders: Collider2D[] = [];
     protected EnemySkeleton: ZRSJZ_EnemySkeleton = null;
     protected EnemyConfig: Readonly<ZRSJZ_EnemyConfig> = null;
 
@@ -88,6 +89,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.RigidBody = this.getComponent(RigidBody2D);
         this.EnemySkeleton = this.getComponentInChildren(ZRSJZ_EnemySkeleton);
         this._health = Math.max(1, this.EnemyConfig.MaxHealth);
+        this.Colliders = this.getComponents(Collider2D);
     }
 
     protected start(): void {
@@ -293,6 +295,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         }
         ZRSJZ_Game.Instance.CreateDieEffect(this.node.worldPosition.clone());
         this.OnDeath();
+        this.Colliders.forEach(collider => collider.enabled = false);
     }
 
     /** 统一受伤入口，生命值降至 0 时自动调用 Die。 */

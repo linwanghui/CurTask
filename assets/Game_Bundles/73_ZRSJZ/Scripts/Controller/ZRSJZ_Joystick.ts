@@ -13,27 +13,16 @@ export class ZRSJZ_Joystick extends Component {
     private _joystickDot: Node = null;
     private _movementTouch: Touch = null;
 
-    private _attackBase: UITransform = null;
-    private _attackDot: Node = null;
-    private _attackTouch: Touch = null;
-
     start() {
         this._cameraArea = this.getComponent(UITransform);
         this._joystickBase = this.node.getChildByName('JoystickBase').getComponent(UITransform);
         this._joystickDot = this._joystickBase.node.getChildByName('JoystickDot');
-        this._attackBase = this.node.getChildByName('AttackBase').getComponent(UITransform);
-        this._attackDot = this._attackBase.node.getChildByName('AttackDot');
 
         let joystickArea = this.node.getChildByName(`JoystickArea`).getComponent(UITransform);
         joystickArea.node.on(Node.EventType.TOUCH_START, this.OnTouchStart_JoystickArea, this);
         joystickArea.node.on(Node.EventType.TOUCH_MOVE, this.OnTouchMove_JoystickArea, this);
         joystickArea.node.on(Node.EventType.TOUCH_END, this.OnTouchEnd_JoystickArea, this);
         joystickArea.node.on(Node.EventType.TOUCH_CANCEL, this.OnTouchEnd_JoystickArea, this);
-
-        this._attackBase.node.on(Node.EventType.TOUCH_START, this.OnTouchStart_Attack, this);
-        this._attackBase.node.on(Node.EventType.TOUCH_MOVE, this.OnTouchMove_Attack, this);
-        this._attackBase.node.on(Node.EventType.TOUCH_END, this.OnTouchEnd_Attack, this);
-        this._attackBase.node.on(Node.EventType.TOUCH_CANCEL, this.OnTouchEnd_Attack, this);
 
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
@@ -50,10 +39,6 @@ export class ZRSJZ_Joystick extends Component {
             let x = touch.getUILocationX();
             let y = touch.getUILocationY();
             if (!this._movementTouch) {
-                // we sub halfWidth,halfHeight here.
-                // because, the touch event use left bottom as zero point(0,0), ui node use the center of screen as zero point(0,0)
-                // this._ctrlRoot.setPosition(x - halfWidth, y - halfHeight, 0);
-
                 let halfWidth = this._cameraArea.width / 2;
                 let halfHeight = this._cameraArea.height / 2;
 
@@ -109,64 +94,6 @@ export class ZRSJZ_Joystick extends Component {
                 // this._joystickBase.node.active = false;
                 this._joystickDot.setPosition(Vec3.ZERO);
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0);
-            }
-        }
-    }
-    //#region 射击
-    OnTouchStart_Attack(event: EventTouch) {
-        let touches = event.getTouches();
-        for (let i = 0; i < touches.length; ++i) {
-            let touch = touches[i];
-            if (!this._attackTouch) {
-                this._attackTouch = touch;
-            }
-        }
-    }
-
-    OnTouchMove_Attack(event: EventTouch) {
-        let touches = event.getTouches();
-        for (let i = 0; i < touches.length; ++i) {
-            let touch = touches[i];
-            if (this._attackTouch && touch.getID() == this._attackTouch.getID()) {
-                let halfWidth = this._cameraArea.width / 2;
-                let halfHeight = this._cameraArea.height / 2;
-                let x = touch.getUILocationX();
-                let y = touch.getUILocationY();
-
-                let pos = this._attackBase.node.position;
-                let ox = x - halfWidth - pos.x;
-                let oy = y - halfHeight - pos.y;
-
-                let len = Math.sqrt(ox * ox + oy * oy);
-                if (len <= 0) {
-                    return;
-                }
-
-                let dirX = ox / len;
-                let dirY = oy / len;
-                let radius = this._attackBase.width / 2;
-                if (len > radius) {
-                    len = radius;
-                    ox = dirX * radius;
-                    oy = dirY * radius;
-                }
-
-                this._attackDot.setPosition(ox, oy, 0);
-
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, dirX, dirY, len / radius);
-            }
-        }
-    }
-
-    OnTouchEnd_Attack(event: EventTouch) {
-        let touches = event.getTouches();
-        for (let i = 0; i < touches.length; ++i) {
-            let touch = touches[i];
-            if (this._attackTouch && touch.getID() == this._attackTouch.getID()) {
-                // director.getScene().emit(MyEvent.MOVEMENT_STOP)//移动停止
-                this._attackTouch = null;
-                this._attackDot.setPosition(Vec3.ZERO);
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, 0, 0, 0);
             }
         }
     }

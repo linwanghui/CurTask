@@ -1,9 +1,11 @@
-import { _decorator, Component, instantiate, math, Node, Prefab, Vec3 } from 'cc';
+import { _decorator, Component, EventTouch, instantiate, math, Node, Prefab, Vec3 } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Controller/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
+import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
+import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -50,6 +52,14 @@ export class ZRSJZ_Game extends Component {
         const effect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/DieEffect");
         effect.parent = this.CurMap.BulletParent;
         effect.getComponent(ZRSJZ_Effect_CB).Show(worldPos);
+    }
+
+    OnButtonClick(event: EventTouch) {
+        switch (event.getCurrentTarget().name) {
+            case "小地图":
+                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.地图弹窗);
+                break;
+        }
     }
 
 }

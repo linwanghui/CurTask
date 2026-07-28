@@ -7,6 +7,8 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_PLAYER_MOVE: string = 'ZRSJZ_PLAYER_MOVE';//玩家移动
     public static ZRSJZ_PLAYER_ATTACK: string = 'ZRSJZ_PLAYER_ATTACK';//射击
     public static ZRSJZ_PLAYER_SWITCH_WEAPON: string = 'ZRSJZ_PLAYER_SWITCH_WEAPON';//切换武器
+    public static ZRSJZ_PLAYER_RELOAD: string = 'ZRSJZ_PLAYER_RELOAD';//装填弹药
+    public static ZRSJZ_PLAYER_SLIDE: string = 'ZRSJZ_PLAYER_SLIDE';//滑铲
 
     public static ZRSJZ_CURRENCY_CHANGE: string = 'ZRSJZ_CURRENCY_CHANGE';//货币发生变动
     public static ZRSJZ_PROP_MOVE: string = 'ZRSJZ_PROP_MOVE';//道具拖动
