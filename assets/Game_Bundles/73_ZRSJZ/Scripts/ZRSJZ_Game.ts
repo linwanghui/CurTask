@@ -1,7 +1,9 @@
-import { _decorator, Component, instantiate, math, Node, Prefab } from 'cc';
+import { _decorator, Component, instantiate, math, Node, Prefab, Vec3 } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Controller/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
+import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -42,6 +44,12 @@ export class ZRSJZ_Game extends Component {
             player.setWorldPosition(this.CurMap.PlayerPoints[math.randomRangeInt(0, this.CurMap.PlayerPoints.length)].worldPosition.clone());
             this.Camera.Init(player, this.CurMap.Map);
         })
+    }
+
+    async CreateDieEffect(worldPos: Vec3) {
+        const effect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/DieEffect");
+        effect.parent = this.CurMap.BulletParent;
+        effect.getComponent(ZRSJZ_Effect_CB).Show(worldPos);
     }
 
 }

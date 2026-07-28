@@ -5,7 +5,7 @@ import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
 import { ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_InventoryAmmo } from '../UI/ZRSJZ_InventoryAmmo';
 import { ZRSJZ_PoolManager } from './ZRSJZ_PoolManager';
-import { ZRSJZ_CurrencyEffect } from '../UI/ZRSJZ_CurrencyEffect';
+import { ZRSJZ_CurrencyEffect } from '../Effect/ZRSJZ_CurrencyEffect';
 import { ZRSJZ_InventoryBackpack } from '../UI/ZRSJZ_InventoryBackpack';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';

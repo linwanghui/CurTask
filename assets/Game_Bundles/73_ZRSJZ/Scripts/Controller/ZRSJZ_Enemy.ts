@@ -32,8 +32,10 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
                 this.Fire();
                 break;
             case "dao":
+                this.Knife(250);
                 break;
             case "hui":
+                this.Knife(300);
                 break;
         }
     }
@@ -70,5 +72,12 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
             this.AttackY,
             1000,
         );
+    }
+
+    Knife(range: number) {
+        if (!this.Target || this.IsDead) return;
+        if (Vec3.distance(this.node.worldPosition, this.Target.worldPosition) <= range) {
+            this.Target.getComponent(ZRSJZ_Player)?.BeHit(10);
+        }
     }
 }

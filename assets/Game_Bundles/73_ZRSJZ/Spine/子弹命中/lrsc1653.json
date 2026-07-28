@@ -1,0 +1,102 @@
+{
+"skeleton": { "hash": "ZNQ2MA45qG0w8hYcJAKYqEfxIxI", "spine": "3.8.75", "images": "./images/", "audio": "" },
+"bones": [
+	{ "name": "root", "rotation": 0.61 },
+	{ "name": "skill1", "parent": "root" },
+	{ "name": "sj", "parent": "skill1" },
+	{ "name": "gd4", "parent": "sj" },
+	{ "name": "gd7", "parent": "sj" },
+	{ "name": "s2", "parent": "sj" }
+],
+"slots": [
+	{ "name": "effect/skill1/shouji/1_1", "bone": "s2" },
+	{ "name": "effect/skill1/2_2", "bone": "gd4", "blend": "additive" },
+	{ "name": "effect/skill1/shouji/1_0", "bone": "s2", "blend": "additive" },
+	{ "name": "effect/skill1/3_00000", "bone": "gd7", "blend": "additive" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"effect/skill1/3_00000": {
+				"effect/skill1/3_00000": { "width": 32, "height": 32 }
+			},
+			"effect/skill1/2_2": {
+				"effect/skill1/2_00000": { "width": 50, "height": 50 }
+			},
+			"effect/skill1/shouji/1_0": {
+				"effect/skill1/shouji/1_00000": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00001": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00002": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00003": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00004": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00005": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00006": { "width": 256, "height": 256 }
+			},
+			"effect/skill1/shouji/1_1": {
+				"effect/skill1/shouji/1_00000": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00001": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00002": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00003": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00004": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00005": { "width": 256, "height": 256 },
+				"effect/skill1/shouji/1_00006": { "width": 256, "height": 256 }
+			}
+		}
+	}
+],
+"events": {
+	"dead": {}
+},
+"animations": {
+	"skill1_hit": {
+		"slots": {
+			"effect/skill1/2_2": {
+				"color": [
+					{ "time": 0.0333, "color": "ffffffcb" },
+					{ "time": 0.0667, "color": "ffffffba" },
+					{ "time": 0.1, "color": "ffffff5c" },
+					{ "time": 0.4333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.0333, "name": "effect/skill1/2_00000" }
+				]
+			},
+			"effect/skill1/shouji/1_1": {
+				"attachment": [
+					{ "name": "effect/skill1/shouji/1_00000" },
+					{ "time": 0.0333, "name": "effect/skill1/shouji/1_00001" },
+					{ "time": 0.1, "name": "effect/skill1/shouji/1_00002" },
+					{ "time": 0.1667, "name": "effect/skill1/shouji/1_00003" },
+					{ "time": 0.2333, "name": "effect/skill1/shouji/1_00004" },
+					{ "time": 0.3, "name": "effect/skill1/shouji/1_00005" },
+					{ "time": 0.3667, "name": "effect/skill1/shouji/1_00006" },
+					{ "time": 0.4333, "name": null }
+				]
+			},
+			"effect/skill1/shouji/1_0": {
+				"attachment": [
+					{ "name": "effect/skill1/shouji/1_00000" },
+					{ "time": 0.0333, "name": "effect/skill1/shouji/1_00001" },
+					{ "time": 0.1, "name": "effect/skill1/shouji/1_00002" },
+					{ "time": 0.1667, "name": "effect/skill1/shouji/1_00003" },
+					{ "time": 0.2333, "name": "effect/skill1/shouji/1_00004" },
+					{ "time": 0.3, "name": "effect/skill1/shouji/1_00005" },
+					{ "time": 0.3667, "name": "effect/skill1/shouji/1_00006" },
+					{ "time": 0.4333, "name": null }
+				]
+			}
+		},
+		"bones": {
+			"gd4": {
+				"scale": [
+					{ "time": 0.0333, "x": 10.042, "y": 10.042, "curve": "stepped" },
+					{ "time": 0.0667, "x": 10.042, "y": 10.042 },
+					{ "time": 0.3667, "x": 8.459, "y": 8.459 },
+					{ "time": 0.4333, "x": 6, "y": 6 }
+				]
+			}
+		}
+	}
+}
+}

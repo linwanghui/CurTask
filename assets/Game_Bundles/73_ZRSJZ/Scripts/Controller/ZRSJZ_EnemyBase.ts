@@ -10,6 +10,7 @@ import { ZRSJZ_EnemySkeleton } from './ZRSJZ_EnemySkeleton';
 import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
 import { ZRSJZ_PathFinder } from './ZRSJZ_PathFinder';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_Game } from '../ZRSJZ_Game';
 
 const { ccclass, property } = _decorator;
 
@@ -290,6 +291,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (this.EnemySkeleton) {
             this.EnemySkeleton.HasDirection = false;
         }
+        ZRSJZ_Game.Instance.CreateDieEffect(this.node.worldPosition.clone());
         this.OnDeath();
     }
 

@@ -8,6 +8,9 @@ import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
+import { ZRSJZ_MuzzleEffect } from '../Effect/ZRSJZ_MuzzleEffect';
+import { ZRSJZ_Effect_CB } from '../Effect/ZRSJZ_Effect_CB';
+import { ZRSJZ_Effect } from '../Effect/ZRSJZ_Effect';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -168,11 +171,6 @@ export class ZRSJZ_Player extends Component {
             console.warn("[ZRSJZ_Player] 找不到枪口骨骼 kaihuo/texiao");
             return;
         }
-
-        const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
-        bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
-        bullet.active = true;
-
         // Bone.worldX/worldY 是 Spine 节点空间坐标。
         // 再经过 Spine 节点的世界矩阵，得到 Cocos 世界坐标。
         const boneLocalPos = new Vec3(qkBone.worldX, qkBone.worldY, 0);
@@ -183,13 +181,35 @@ export class ZRSJZ_Player extends Component {
             this.PlayerSkeleton.node.worldMatrix,
         );
 
+        const muzzleEffect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect");
+        muzzleEffect.parent = this.node;
+        muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
+
+        const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
+        bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+        bullet.active = true;
+
         bullet.getComponent(ZRSJZ_Bullet).Show(
             muzzleWorldPos,
             this.PlayerSkeleton.AttackX,
             this.PlayerSkeleton.AttackY,
-            1000,
+            3000,
         );
+
     }
+
+    async Recover(hp: number) {
+        this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
+        this.HP.Show(this.CurHP);
+        const effect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect");
+        effect.parent = this.node;
+        effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition, () => {
+            this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
+            this.HP.Show(this.CurHP);
+        });
+    }
+
+
 
     protected FindTarget() {
         if (this.TargetEnemy && !this.TargetEnemy.getComponent(ZRSJZ_EnemyBase).IsDead && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= this.TargetRange) {

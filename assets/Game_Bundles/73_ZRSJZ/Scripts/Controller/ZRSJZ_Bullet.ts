@@ -1,8 +1,9 @@
-import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Vec3 } from 'cc';
+import { _decorator, Collider2D, Color, Component, Contact2DType, IPhysics2DContact, sp, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_TIER } from '../ZRSJZ_Constant';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
+import { ZRSJZ_Effect } from '../Effect/ZRSJZ_Effect';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Bullet')
@@ -15,6 +16,7 @@ export class ZRSJZ_Bullet extends Component {
     RotationOffset: number = 0;
 
     Collider: Collider2D = null;
+    Skeleton: sp.Skeleton = null;
 
     private _isInit: boolean = false;
     private _maxRange: number = 0;
@@ -27,9 +29,10 @@ export class ZRSJZ_Bullet extends Component {
     Init() {
         this.Collider = this.getComponent(Collider2D);
         this.Collider?.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this);
+        this.Skeleton = this.node.getChildByName("子弹").getComponent(sp.Skeleton);
     }
 
-    Show(worldPos: Vec3, dirX: number, dirY: number, range: number, harm: number = 0) {
+    Show(worldPos: Vec3, dirX: number, dirY: number, range: number, harm: number = 0, bulletLevel: number = 1) {
         if (!this._isInit) {
             this._isInit = true;
             this.Init();
@@ -54,6 +57,7 @@ export class ZRSJZ_Bullet extends Component {
 
         const angle = Math.atan2(this._dirY, this._dirX) * 180 / Math.PI + this.RotationOffset;
         this.node.setWorldRotationFromEuler(0, 0, angle);
+        this.Skeleton.setAnimation(0, `zd${bulletLevel}`, true);
     }
 
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
@@ -61,13 +65,16 @@ export class ZRSJZ_Bullet extends Component {
 
         console.error(otherCollider.node.name);
         if (otherCollider.group === ZRSJZ_TIER.地形) {
+            this.CreateEffect();
             this.scheduleOnce(this.Recycle);
         } else if (otherCollider.group === ZRSJZ_TIER.玩家 && otherCollider.node.getComponent(ZRSJZ_Player)) {
             otherCollider.node.getComponent(ZRSJZ_Player).BeHit(this._harm);
+            this.CreateEffect();
             this.scheduleOnce(this.Recycle);
             // this.Recycle();
         } else if (otherCollider.group === ZRSJZ_TIER.敌人 && otherCollider.node.getComponent(ZRSJZ_EnemyBase)) {
             otherCollider.node.getComponent(ZRSJZ_EnemyBase).BeHit(this._harm);
+            this.CreateEffect();
             this.scheduleOnce(this.Recycle);
             // this.Recycle();
         }
@@ -98,6 +105,12 @@ export class ZRSJZ_Bullet extends Component {
         if (!this.node.active) return;
         this._isFlying = false;
         ZRSJZ_PoolManager.Instance.PutNode(this.node);
+    }
+
+    async CreateEffect() {
+        const hitEffect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HitEffect");
+        hitEffect.parent = this.node.parent;
+        hitEffect.getComponent(ZRSJZ_Effect).Show(this.node.worldPosition, this._dirX, this._dirY);
     }
 }
 
