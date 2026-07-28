@@ -289,7 +289,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
             nextLabel.node.active = !isMaxLevel;
         }
         if (arrow) arrow.active = !isMaxLevel;
-        if (upgradeButton) upgradeButton.interactable = !isMaxLevel;
+        if (upgradeButton) upgradeButton.interactable = true;
         if (imageSprite) imageSprite.grayscale = level <= 0;
     }
 
@@ -298,7 +298,10 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
 
         const gameData = ZRSJZ_GameData.Instance;
         const level = gameData.GetBoxroomPropLevel(this._selectedPropName);
-        if (level >= 3) return;
+        if (level >= 3) {
+            ZRSJZ_UIManager.Instance.ShowTip("已满级");
+            return;
+        }
 
         const cost = ZRSJZ_BOXROOM_LEVEL_COST[level];
         if (gameData.GetPropCountByName(this._selectedPropName) < cost) {
@@ -338,7 +341,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
 
         this.SetTotalBonusLabel(bonusBottom, "生命加成", "生命");
         this.SetTotalBonusLabel(bonusBottom, "近战伤害加成", "近战伤害");
-        this.SetTotalBonusLabel(bonusBottom, "近战伤害加成-001", "枪械伤害");
+        this.SetTotalBonusLabel(bonusBottom, "枪械伤害加成", "枪械伤害");
     }
 
     private SetTotalBonusLabel(
