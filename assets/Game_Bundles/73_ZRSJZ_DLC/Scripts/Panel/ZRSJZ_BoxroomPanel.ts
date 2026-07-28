@@ -238,13 +238,16 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         const imageSprite = detail.getChildByName("Panel")
             ?.getChildByName("图片")
             ?.getComponent(Sprite);
-        if (imageSprite) imageSprite.spriteFrame = null;
+        if (imageSprite) {
+            imageSprite.spriteFrame = null;
+        }
 
         const spriteFrame = await ZRSJZ_UIManager.Instance.GetPropUI(propName);
         if (!spriteFrame || !isValid(detail) || this._selectedPropName !== propName) return;
 
         if (imageSprite) {
             imageSprite.spriteFrame = spriteFrame;
+            this.ResizeDetailImage(imageSprite.node, propName, spriteFrame.originalSize);
             imageSprite.grayscale = ZRSJZ_GameData.Instance.GetBoxroomPropLevel(propName) <= 0;
         }
     }
@@ -253,6 +256,24 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         const detail = this.node.getChildByName("Panel")?.getChildByName("详情弹板");
         if (detail) detail.active = false;
         this._selectedPropName = "";
+    }
+
+    private ResizeDetailImage(
+        imageNode: Node,
+        propName: string,
+        sourceSize: { width: number, height: number }
+    ): void {
+        const gridType = ZRSJZ_PROP_CONFIG.get(propName)?.GridType;
+        const imageTransform = imageNode.getComponent(UITransform);
+        if (!gridType || !imageTransform) return;
+
+        const [heightUnit, widthUnit] = this.GetGridSize(gridType);
+        const maxWidth = widthUnit * 125;
+        const maxHeight = heightUnit * 125;
+        const sourceWidth = Math.max(1, sourceSize.width);
+        const sourceHeight = Math.max(1, sourceSize.height);
+        const scale = Math.min(maxWidth / sourceWidth, maxHeight / sourceHeight);
+        imageTransform.setContentSize(sourceWidth * scale, sourceHeight * scale);
     }
 
     private RefreshDetail(): void {

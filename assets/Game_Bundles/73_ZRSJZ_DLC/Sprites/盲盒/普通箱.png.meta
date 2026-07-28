@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "c77c6d89-adcf-471f-a5a5-b0cebf63186e",
+  "uuid": "6b60dd96-cb64-45ae-b63a-3feed53cf64e",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "c77c6d89-adcf-471f-a5a5-b0cebf63186e@6c48a",
-      "displayName": "物资箱2开箱",
+      "uuid": "6b60dd96-cb64-45ae-b63a-3feed53cf64e@6c48a",
+      "displayName": "普通箱",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "c77c6d89-adcf-471f-a5a5-b0cebf63186e",
+        "imageUuidOrDatabaseUri": "6b60dd96-cb64-45ae-b63a-3feed53cf64e",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,19 +34,19 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "c77c6d89-adcf-471f-a5a5-b0cebf63186e@f9941",
-      "displayName": "物资箱2开箱",
+      "uuid": "6b60dd96-cb64-45ae-b63a-3feed53cf64e@f9941",
+      "displayName": "普通箱",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": -2.5,
-        "offsetY": -9,
-        "trimX": 14,
-        "trimY": 34,
-        "width": 225,
-        "height": 306,
+        "offsetX": 6.5,
+        "offsetY": -70.5,
+        "trimX": 31,
+        "trimY": 150,
+        "width": 209,
+        "height": 197,
         "rawWidth": 258,
         "rawHeight": 356,
         "borderTop": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -112.5,
-            -153,
+            -104.5,
+            -98.5,
             0,
-            112.5,
-            -153,
+            104.5,
+            -98.5,
             0,
-            -112.5,
-            153,
+            -104.5,
+            98.5,
             0,
-            112.5,
-            153,
+            104.5,
+            98.5,
             0
           ],
           "indexes": [
@@ -82,38 +82,38 @@
             3
           ],
           "uv": [
-            14,
-            322,
-            239,
-            322,
-            14,
-            16,
-            239,
-            16
+            31,
+            206,
+            240,
+            206,
+            31,
+            9,
+            240,
+            9
           ],
           "nuv": [
-            0.05426356589147287,
-            0.0449438202247191,
-            0.9263565891472868,
-            0.0449438202247191,
-            0.05426356589147287,
-            0.9044943820224719,
-            0.9263565891472868,
-            0.9044943820224719
+            0.12015503875968993,
+            0.025280898876404494,
+            0.9302325581395349,
+            0.025280898876404494,
+            0.12015503875968993,
+            0.5786516853932584,
+            0.9302325581395349,
+            0.5786516853932584
           ],
           "minPos": [
-            -112.5,
-            -153,
+            -104.5,
+            -98.5,
             0
           ],
           "maxPos": [
-            112.5,
-            153,
+            104.5,
+            98.5,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "c77c6d89-adcf-471f-a5a5-b0cebf63186e@6c48a",
+        "imageUuidOrDatabaseUri": "6b60dd96-cb64-45ae-b63a-3feed53cf64e@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "c77c6d89-adcf-471f-a5a5-b0cebf63186e@6c48a"
+    "redirect": "6b60dd96-cb64-45ae-b63a-3feed53cf64e@6c48a"
   }
 }

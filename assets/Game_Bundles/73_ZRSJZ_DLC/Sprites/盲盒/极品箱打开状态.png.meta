@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "6b60dd96-cb64-45ae-b63a-3feed53cf64e",
+  "uuid": "849d65f3-a32a-4956-a209-10ce465b8769",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "6b60dd96-cb64-45ae-b63a-3feed53cf64e@6c48a",
-      "displayName": "物资箱7",
+      "uuid": "849d65f3-a32a-4956-a209-10ce465b8769@6c48a",
+      "displayName": "极品箱打开状态",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "6b60dd96-cb64-45ae-b63a-3feed53cf64e",
+        "imageUuidOrDatabaseUri": "849d65f3-a32a-4956-a209-10ce465b8769",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,19 +34,19 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "6b60dd96-cb64-45ae-b63a-3feed53cf64e@f9941",
-      "displayName": "物资箱7",
+      "uuid": "849d65f3-a32a-4956-a209-10ce465b8769@f9941",
+      "displayName": "极品箱打开状态",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": 6.5,
-        "offsetY": -70.5,
-        "trimX": 31,
-        "trimY": 150,
-        "width": 209,
-        "height": 197,
+        "offsetX": -2,
+        "offsetY": -13.5,
+        "trimX": 12,
+        "trimY": 36,
+        "width": 230,
+        "height": 311,
         "rawWidth": 258,
         "rawHeight": 356,
         "borderTop": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -104.5,
-            -98.5,
+            -115,
+            -155.5,
             0,
-            104.5,
-            -98.5,
+            115,
+            -155.5,
             0,
-            -104.5,
-            98.5,
+            -115,
+            155.5,
             0,
-            104.5,
-            98.5,
+            115,
+            155.5,
             0
           ],
           "indexes": [
@@ -82,38 +82,38 @@
             3
           ],
           "uv": [
-            31,
-            206,
-            240,
-            206,
-            31,
+            12,
+            320,
+            242,
+            320,
+            12,
             9,
-            240,
+            242,
             9
           ],
           "nuv": [
-            0.12015503875968993,
+            0.046511627906976744,
             0.025280898876404494,
-            0.9302325581395349,
+            0.937984496124031,
             0.025280898876404494,
-            0.12015503875968993,
-            0.5786516853932584,
-            0.9302325581395349,
-            0.5786516853932584
+            0.046511627906976744,
+            0.898876404494382,
+            0.937984496124031,
+            0.898876404494382
           ],
           "minPos": [
-            -104.5,
-            -98.5,
+            -115,
+            -155.5,
             0
           ],
           "maxPos": [
-            104.5,
-            98.5,
+            115,
+            155.5,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "6b60dd96-cb64-45ae-b63a-3feed53cf64e@6c48a",
+        "imageUuidOrDatabaseUri": "849d65f3-a32a-4956-a209-10ce465b8769@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "6b60dd96-cb64-45ae-b63a-3feed53cf64e@6c48a"
+    "redirect": "849d65f3-a32a-4956-a209-10ce465b8769@6c48a"
   }
 }
