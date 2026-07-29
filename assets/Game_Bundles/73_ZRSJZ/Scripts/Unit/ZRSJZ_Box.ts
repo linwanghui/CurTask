@@ -30,7 +30,6 @@ export class ZRSJZ_Box extends Component {
         this.Icon = this.node.getChildByName('Icon').getComponent(Sprite);
         this.Checked = this.node.getChildByName('Checked').getComponent(Sprite);
         this.State = ZRSJZ_BOX_STATE.IDLE;
-        console.error(this.BoxName);
         ZRSJZ_UIManager.Instance.GetBoxUI(this.BoxName).then((sf: SpriteFrame) => {
             this.IconSF[0] = sf;
             this.Icon.spriteFrame = sf;

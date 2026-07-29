@@ -507,7 +507,7 @@ export enum ZRSJZ_ANI {
     SW = "sw",
 }
 
-//#region 敌人配置
+//#region 普通敌人配置
 export interface ZRSJZ_EnemyConfig {
     /** 最大生命值。 */
     MaxHealth: number;
@@ -585,6 +585,97 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
         WeaponName: "战术匕首",
     }],
 ]);
+
+
+//#region Boss配置
+export interface ZRSJZ_BossSkillConfig {
+    /** 技能名称，也是子类处理技能效果时使用的唯一标识。 */
+    Name: string;
+    /** 目标进入该距离后才允许释放技能。 */
+    Range: number;
+    /** 技能造成的基础伤害。 */
+    DamageRange: number;
+    /** 技能造成的基础伤害。 */
+    Damage: number;
+    /** 两次释放该技能之间的冷却时间，单位为秒。 */
+    Cooldown: number;
+    /** 技能使用的动画名称。 */
+    Animation: string;
+    /** Spine 动画中用于真正结算攻击效果的事件名称。 */
+    TriggerEvent: string;
+    /** 释放技能期间是否可以继续向目标移动。 */
+    CanMoveWhileCasting: boolean;
+}
+
+export interface ZRSJZ_BossConfig {
+    /** Boss 最大生命值。 */
+    MaxHealth: number;
+    /** Boss 发现玩家的距离。 */
+    DetectionRange: number;
+    /** 追击过程中超过该距离后丢失目标。 */
+    LoseRange: number;
+    /** 巡逻半径。 */
+    PatrolRadius: number;
+    /** 巡逻速度。 */
+    PatrolSpeed: number;
+    /** 追击速度。 */
+    ChaseSpeed: number;
+    /** 到达巡逻点后的停留时间。 */
+    PatrolWaitTime: number;
+    /** 判定到达巡逻点的距离。 */
+    PatrolArriveDistance: number;
+    /** 待机动画。 */
+    IdleAnimation: string;
+    /** 移动动画。 */
+    MoveAnimation: string;
+    /** 默认武器名称。 */
+    WeaponName: string;
+    /** 死亡动画。 */
+    DieAnimation: string;
+    /** Boss 普攻，配置结构与技能完全一致。 */
+    NormalAttack: ZRSJZ_BossSkillConfig;
+    /** Boss 可释放的技能列表，按照数组顺序选择已就绪且在范围内的技能。 */
+    Skills: ZRSJZ_BossSkillConfig[];
+}
+
+/** Boss配置统一入口，Boss基类按节点名或 EnemyName 读取。 */
+export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> = new Map([
+    ["Boss1", {
+        MaxHealth: 1000,
+        DetectionRange: 1200,
+        LoseRange: 1800,
+        PatrolRadius: 500,
+        PatrolSpeed: 400,
+        ChaseSpeed: 550,
+        PatrolWaitTime: 1,
+        PatrolArriveDistance: 50,
+        IdleAnimation: "daiji",
+        MoveAnimation: "pao",
+        WeaponName: "突击步枪",
+        DieAnimation: "daodi",
+        NormalAttack: {
+            Name: "普通攻击",
+            Range: 400,
+            DamageRange: 300,
+            Damage: 10,
+            Cooldown: 3,
+            Animation: "pg",
+            TriggerEvent: "gj",
+            CanMoveWhileCasting: false,
+        },
+        Skills: [{
+            Name: "超级陀螺",
+            Range: 400,
+            DamageRange: 500,
+            Damage: 30,
+            Cooldown: 8,
+            Animation: "1",
+            TriggerEvent: "dz",
+            CanMoveWhileCasting: false,
+        }],
+    }],
+]);
+
 
 //#region 寻路配置
 export interface ZRSJZ_PathConfig {

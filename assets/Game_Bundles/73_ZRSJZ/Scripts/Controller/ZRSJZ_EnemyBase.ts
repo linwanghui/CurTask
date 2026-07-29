@@ -79,7 +79,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
     protected onLoad(): void {
         const enemyName = this.EnemyName.trim() || this.node.name;
-        this.EnemyConfig = ZRSJZ_ENEMY_CONFIG.get(enemyName);
+        this.EnemyConfig = this.ResolveEnemyConfig(enemyName);
         if (!this.EnemyConfig) {
             console.error(`[ZRSJZ_EnemyBase] 未找到敌人配置: ${enemyName}`);
             this.enabled = false;
@@ -104,7 +104,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         this.EnemySkeleton.Skeleton.setEventListener((trackEntry, event) => {
             if (typeof event !== "number" && event.data.name) {
-                this.OnAttack(event.data.name);
+                this.OnAnimationEvent(event.data.name);
             }
         });
     }
@@ -294,13 +294,6 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (this.EnemySkeleton) {
             this.EnemySkeleton.HasDirection = false;
         }
-        ZRSJZ_Game.Instance.CreateDieEffect(this.node.worldPosition.clone(), () => {
-            ZRSJZ_PoolManager.Instance.GetNode(`Prefabs/Unit/箱子/${"物资箱1"}`).then((node: Node) => {
-                node.parent = this.node.parent;
-                node.active = true;
-                node.getComponent(ZRSJZ_Box).Show(this.node.worldPosition.clone());
-            })
-        });
         this.OnDeath();
         this.Colliders.forEach(collider => collider.enabled = false);
     }
@@ -323,8 +316,26 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     /** 子类在这里实现真正的攻击，例如生成子弹或造成近战伤害。 */
     protected abstract OnAttack(attack: string): void;
 
+    /** 子类可拦截 Spine 动画事件；默认将事件交给普通攻击处理。 */
+    protected OnAnimationEvent(eventName: string): void {
+        this.OnAttack(eventName);
+    }
+
+    /** 子类可覆写配置来源，例如 Boss 从 ZRSJZ_BOSS_CONFIG 中读取。 */
+    protected ResolveEnemyConfig(enemyName: string): Readonly<ZRSJZ_EnemyConfig> {
+        return ZRSJZ_ENEMY_CONFIG.get(enemyName);
+    }
+
     /** 子类可覆写死亡表现，例如播放动画、掉落物品、回收节点。 */
     protected OnDeath(): void {
+        ZRSJZ_Game.Instance.CreateDieEffect(this.node.worldPosition.clone(), () => {
+            ZRSJZ_PoolManager.Instance.GetNode(`Prefabs/Unit/箱子/${"物资箱1"}`).then((node: Node) => {
+                node.parent = this.node.parent;
+                node.active = true;
+                node.getComponent(ZRSJZ_Box).Show(this.node.worldPosition.clone());
+            })
+        });
+
         this.PlayAnimation(ZRSJZ_ANI.SW, false, () => {
             ZRSJZ_PoolManager.Instance.PutNode(this.node);
         })
@@ -337,6 +348,12 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         this._animationName = animationName;
         this.EnemySkeleton.PlayAni(animationName, loop, cb);
+    }
+
+    /** 强制从头播放动画，即使该动画与当前记录的动画名称相同。 */
+    protected RestartAnimation(animationName: string, loop: boolean = true, cb: Function = null): void {
+        this._animationName = '';
+        this.PlayAnimation(animationName, loop, cb);
     }
 
     private ChangeState(state: ZRSJZ_ENEMY_STATE): void {
@@ -374,14 +391,14 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         }
     }
 
-    private IsTargetAvailable(): boolean {
+    protected IsTargetAvailable(): boolean {
         return !!this.Target && this.Target.isValid && this.Target.activeInHierarchy;
     }
 
     /**
      * 混合导航入口：路线畅通时直接移动，被地形阻挡或卡住时改为跟随 A* 路径。
      */
-    private NavigateTo(
+    protected NavigateTo(
         targetPosition: Readonly<Vec3>,
         speed: number,
         dt: number,
@@ -595,7 +612,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this._pathIndex = 0;
     }
 
-    private ClearNavigation(): void {
+    protected ClearNavigation(): void {
         this.ClearPath();
         this._pathRepathRemaining = 0;
         this._stuckCheckRemaining = 0;
@@ -638,14 +655,14 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.PlayAnimation(animationName, loop, cb);
     }
 
-    private StopMoving(): void {
+    protected StopMoving(): void {
         this._moveVelocity.set(0, 0);
         if (this.RigidBody) {
             this.RigidBody.linearVelocity = this._moveVelocity;
         }
     }
 
-    private UpdateAimDirection(offsetX: number, offsetY: number, distance: number): void {
+    protected UpdateAimDirection(offsetX: number, offsetY: number, distance: number): void {
         if (!this.EnemySkeleton || distance <= 0 || this.EnemyConfig.WeaponName == "战术匕首") {
             return;
         }
