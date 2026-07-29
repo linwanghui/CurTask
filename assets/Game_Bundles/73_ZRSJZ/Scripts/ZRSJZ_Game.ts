@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, instantiate, math, Node, Prefab, Vec3 } from 'cc';
+import { _decorator, Component, EventTouch, find, instantiate, math, Node, Prefab, Sprite, SpriteFrame, UITransform, Vec3, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Controller/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
@@ -6,6 +6,7 @@ import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
+import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -19,6 +20,11 @@ export class ZRSJZ_Game extends Component {
     Camera: ZRSJZ_GameCamera = null;
 
     CurMap: ZRSJZ_Map = null;
+    private _player: Node = null;
+    private _miniMapContent: Node = null;
+    private _miniMapPoint: Node = null;
+    private _miniMapIcon: Sprite = null;
+    private _miniMapPointPosition: Vec3 = new Vec3();
 
     protected onLoad(): void {
         ZRSJZ_Game.Instance = this;
@@ -26,6 +32,11 @@ export class ZRSJZ_Game extends Component {
 
     protected start(): void {
         this.LoadMap();
+        this.InitMiniMap();
+    }
+
+    protected lateUpdate(): void {
+        this.RefreshMiniMap();
     }
 
     LoadMap() {
@@ -44,24 +55,99 @@ export class ZRSJZ_Game extends Component {
             const player = instantiate(prefab);
             player.parent = this.CurMap.Unit;
             player.setWorldPosition(this.CurMap.PlayerPoints[math.randomRangeInt(0, this.CurMap.PlayerPoints.length)].worldPosition.clone());
+            this._player = player;
             this.Camera.Init(player, this.CurMap.Map);
+            this.RefreshMiniMap();
         })
     }
 
-    async CreateDieEffect(worldPos: Vec3) {
-        const effect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/DieEffect");
-        effect.parent = this.CurMap.BulletParent;
-        effect.getComponent(ZRSJZ_Effect_CB).Show(worldPos);
+    async CreateDieEffect(worldPos: Vec3, cb: Function = null) {
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/DieEffect").then((effect: Node) => {
+            effect.parent = this.CurMap.BulletParent;
+            effect.active = true;
+            effect.getComponent(ZRSJZ_Effect_CB).Show(worldPos, cb);
+        });
     }
 
     OnButtonClick(event: EventTouch) {
         switch (event.getCurrentTarget().name) {
             case "小地图":
-                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.地图弹窗);
+                this.OpenMapPanel();
                 break;
         }
     }
 
-}
 
+    private OpenMapPanel(): void {
+        ZRSJZ_UIManager.Instance.ShowPanel(
+            ZRSJZ_PANEL.地图弹窗,
+            0,
+            this._miniMapIcon.spriteFrame,
+        );
+    }
+
+    private InitMiniMap(): void {
+        this._miniMapContent = find("UICanvas/小地图/Mask/地图");
+        this._miniMapPoint = find("UICanvas/小地图/Mask/地图/我的位置");
+        this._miniMapIcon = find("UICanvas/小地图/Mask/地图/我的位置/Icon")?.getComponent(Sprite);
+        console.error(ZRSJZ_GameData.Instance.HaveRole[0]);
+        ZRSJZ_UIManager.Instance.GetHeroUI(ZRSJZ_GameData.Instance.CurSkin[0]).then((sf: SpriteFrame) => this._miniMapIcon.spriteFrame = sf);
+
+        if (!this._miniMapContent || !this._miniMapPoint) {
+            console.warn("[ZRSJZ_Game] 小地图节点结构不完整");
+            return;
+        }
+    }
+
+    /**
+     * 小地图实时跟随：
+     * “我的位置”在地图底图中使用真实比例定位，再反向移动底图，
+     * 从而让玩家标记始终保持在 Mask 中心。
+     */
+    private RefreshMiniMap(): void {
+        if (!this._player?.isValid
+            || !this.CurMap?.Map?.isValid
+            || !this._miniMapContent?.isValid
+            || !this._miniMapPoint?.isValid) {
+            return;
+        }
+
+        const worldMapTransform = this.CurMap.Map.getComponent(UITransform);
+        const miniMapTransform = this._miniMapContent.getComponent(UITransform);
+        if (!worldMapTransform || !miniMapTransform) {
+            return;
+        }
+
+        const worldBounds = worldMapTransform.getBoundingBoxToWorld();
+        if (worldBounds.width <= 0 || worldBounds.height <= 0) {
+            return;
+        }
+
+        const playerPosition = this._player.worldPosition;
+        const normalizedX = Math.max(
+            0,
+            Math.min(1, (playerPosition.x - worldBounds.xMin) / worldBounds.width),
+        );
+        const normalizedY = Math.max(
+            0,
+            Math.min(1, (playerPosition.y - worldBounds.yMin) / worldBounds.height),
+        );
+        const mapSize = miniMapTransform.contentSize;
+        const mapAnchor = miniMapTransform.anchorPoint;
+        this._miniMapPointPosition.set(
+            (normalizedX - mapAnchor.x) * mapSize.width,
+            (normalizedY - mapAnchor.y) * mapSize.height,
+            0,
+        );
+
+        this._miniMapPoint.setPosition(this._miniMapPointPosition);
+        const mapScale = this._miniMapContent.scale;
+        this._miniMapContent.setPosition(
+            -this._miniMapPointPosition.x * mapScale.x,
+            -this._miniMapPointPosition.y * mapScale.y,
+            this._miniMapContent.position.z,
+        );
+    }
+
+}
 

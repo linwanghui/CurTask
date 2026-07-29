@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "c9383b24-475d-4842-8e11-3f8ea4e63ad5",
+  "uuid": "fc03d268-5772-4608-a0cb-719c50de865c",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "c9383b24-475d-4842-8e11-3f8ea4e63ad5@6c48a",
-      "displayName": "m1",
+      "uuid": "fc03d268-5772-4608-a0cb-719c50de865c@6c48a",
+      "displayName": "医疗箱开箱描边",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "c9383b24-475d-4842-8e11-3f8ea4e63ad5",
+        "imageUuidOrDatabaseUri": "fc03d268-5772-4608-a0cb-719c50de865c",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "c9383b24-475d-4842-8e11-3f8ea4e63ad5@f9941",
-      "displayName": "m1",
+      "uuid": "fc03d268-5772-4608-a0cb-719c50de865c@f9941",
+      "displayName": "医疗箱开箱描边",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 92,
-        "height": 90,
-        "rawWidth": 92,
-        "rawHeight": 90,
+        "width": 285,
+        "height": 356,
+        "rawWidth": 285,
+        "rawHeight": 356,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -46,
-            -45,
+            -142.5,
+            -178,
             0,
-            46,
-            -45,
+            142.5,
+            -178,
             0,
-            -46,
-            45,
+            -142.5,
+            178,
             0,
-            46,
-            45,
+            142.5,
+            178,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            90,
-            92,
-            90,
+            356,
+            285,
+            356,
             0,
             0,
-            92,
+            285,
             0
           ],
           "nuv": [
@@ -102,20 +102,20 @@
             1
           ],
           "minPos": [
-            -46,
-            -45,
+            -142.5,
+            -178,
             0
           ],
           "maxPos": [
-            46,
-            45,
+            142.5,
+            178,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "c9383b24-475d-4842-8e11-3f8ea4e63ad5@6c48a",
+        "imageUuidOrDatabaseUri": "fc03d268-5772-4608-a0cb-719c50de865c@6c48a",
         "atlasUuid": "",
-        "trimType": "auto"
+        "trimType": "none"
       },
       "ver": "1.0.12",
       "imported": true,
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "c9383b24-475d-4842-8e11-3f8ea4e63ad5@6c48a"
+    "redirect": "fc03d268-5772-4608-a0cb-719c50de865c@6c48a"
   }
 }

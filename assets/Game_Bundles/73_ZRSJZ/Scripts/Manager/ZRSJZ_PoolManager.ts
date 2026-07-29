@@ -24,7 +24,7 @@ export class ZRSJZ_PoolManager extends Component {
             ZRSJZ_PoolManager._instance.Preload("Prefabs/UI/Tip", 10);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/货币特效", 2);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/RecoverEffect", 2);
-            ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/DieEffect", 2);
+            ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/DieEffect", 5);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/MuzzleEffect", 10);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/HitEffect", 10);
         }
@@ -36,7 +36,7 @@ export class ZRSJZ_PoolManager extends Component {
         const prefab = await this.GetPrefab(path);
         if (!prefab) return null;
         const node = this.GetOrCreateNode(key, prefab);
-        return node;
+        return Promise.resolve(node);
     }
 
     public PutNode(node: Node): void {

@@ -8,7 +8,7 @@ const { ccclass, property } = _decorator;
 @ccclass('ZRSJZ_Joystick_Attack')
 export class ZRSJZ_Joystick_Attack extends Component {
     public static readonly WeaponType: string[] = ["枪", "刀"];
-    public static readonly SlideCD: number = 10;
+    public static readonly SlideCD: number = 3;
     public static readonly LoadingCD: number = 3;
 
     @property(SpriteFrame)

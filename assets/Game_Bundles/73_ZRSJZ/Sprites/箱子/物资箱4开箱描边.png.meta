@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "964c54ba-b67f-4ce0-b058-5e1799e6b7ca",
+  "uuid": "da794dcd-2052-470f-808b-6471f53b5dae",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "964c54ba-b67f-4ce0-b058-5e1799e6b7ca@6c48a",
-      "displayName": "w1",
+      "uuid": "da794dcd-2052-470f-808b-6471f53b5dae@6c48a",
+      "displayName": "物资箱4开箱描边",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "964c54ba-b67f-4ce0-b058-5e1799e6b7ca",
+        "imageUuidOrDatabaseUri": "da794dcd-2052-470f-808b-6471f53b5dae",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "964c54ba-b67f-4ce0-b058-5e1799e6b7ca@f9941",
-      "displayName": "w1",
+      "uuid": "da794dcd-2052-470f-808b-6471f53b5dae@f9941",
+      "displayName": "物资箱4开箱描边",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 85,
-        "height": 76,
-        "rawWidth": 85,
-        "rawHeight": 76,
+        "width": 258,
+        "height": 356,
+        "rawWidth": 258,
+        "rawHeight": 356,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -42.5,
-            -38,
+            -129,
+            -178,
             0,
-            42.5,
-            -38,
+            129,
+            -178,
             0,
-            -42.5,
-            38,
+            -129,
+            178,
             0,
-            42.5,
-            38,
+            129,
+            178,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            76,
-            85,
-            76,
+            356,
+            258,
+            356,
             0,
             0,
-            85,
+            258,
             0
           ],
           "nuv": [
@@ -102,20 +102,20 @@
             1
           ],
           "minPos": [
-            -42.5,
-            -38,
+            -129,
+            -178,
             0
           ],
           "maxPos": [
-            42.5,
-            38,
+            129,
+            178,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "964c54ba-b67f-4ce0-b058-5e1799e6b7ca@6c48a",
+        "imageUuidOrDatabaseUri": "da794dcd-2052-470f-808b-6471f53b5dae@6c48a",
         "atlasUuid": "",
-        "trimType": "auto"
+        "trimType": "none"
       },
       "ver": "1.0.12",
       "imported": true,
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "964c54ba-b67f-4ce0-b058-5e1799e6b7ca@6c48a"
+    "redirect": "da794dcd-2052-470f-808b-6471f53b5dae@6c48a"
   }
 }

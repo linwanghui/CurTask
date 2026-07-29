@@ -17,13 +17,11 @@ export class ZRSJZ_Effect_CB extends Component {
             this._isInit = true;
             this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
         }
-        this.node.active = true;
         this.node.setWorldPosition(worldPos.clone());
         this.Skeleton.setAnimation(0, this.AniName, false);
-        console.error(this.Skeleton.getState());
-        this.Skeleton.setEndListener(() => {
-            ZRSJZ_PoolManager.Instance.PutNode(this.node);
+        this.Skeleton.setCompleteListener(() => {
             cb && cb();
+            ZRSJZ_PoolManager.Instance.PutNode(this.node);
         })
     }
 }

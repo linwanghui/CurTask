@@ -63,19 +63,25 @@ export class ZRSJZ_Bullet extends Component {
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
         contract.disabled = true;
 
-        console.error(otherCollider.node.name);
+        // console.error(otherCollider.node.name);
         if (otherCollider.group === ZRSJZ_TIER.地形) {
             this.CreateEffect();
-            this.scheduleOnce(this.Recycle);
+            this.scheduleOnce(() => {
+                this.Recycle();
+            });
         } else if (otherCollider.group === ZRSJZ_TIER.玩家 && otherCollider.node.getComponent(ZRSJZ_Player)) {
             otherCollider.node.getComponent(ZRSJZ_Player).BeHit(this._harm);
             this.CreateEffect();
-            this.scheduleOnce(this.Recycle);
+            this.scheduleOnce(() => {
+                this.Recycle();
+            });
             // this.Recycle();
         } else if (otherCollider.group === ZRSJZ_TIER.敌人 && otherCollider.node.getComponent(ZRSJZ_EnemyBase)) {
             otherCollider.node.getComponent(ZRSJZ_EnemyBase).BeHit(this._harm);
             this.CreateEffect();
-            this.scheduleOnce(this.Recycle);
+            this.scheduleOnce(() => {
+                this.Recycle();
+            });
             // this.Recycle();
         }
     }

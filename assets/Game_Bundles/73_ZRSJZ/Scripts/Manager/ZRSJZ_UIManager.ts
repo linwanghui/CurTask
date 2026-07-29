@@ -34,6 +34,8 @@ export class ZRSJZ_UIManager extends Component {
     PropParent: Node = null;
     PropGridSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     PropSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
+    HeroIconSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
+    BoxSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     WeaponryTextureMap: Map<string, Texture2D> = new Map<string, Texture2D>();
     InventoryMap: Map<string, Node> = new Map<string, Node>();
 
@@ -93,8 +95,12 @@ export class ZRSJZ_UIManager extends Component {
         ZRSJZ_Tools.LoadSprites("Sprites/格子").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.PropGridSFMap.set(sf.name, sf)));
         //初始化道具UI
         ZRSJZ_Tools.LoadSprites("Sprites/Prop").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.PropSFMap.set(sf.name, sf)));
+        //初始化皮肤Icon
+        ZRSJZ_Tools.LoadSprites("Sprites/小地图/Icon").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.HeroIconSFMap.set(sf.name, sf)));
         //初始化武器UI
-        ZRSJZ_Tools.LoadSprites("Sprites/Weaponry").then(spriteFrames => spriteFrames.forEach(sf => ZRSJZ_UIManager._instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D)));
+        ZRSJZ_Tools.LoadSprites("Sprites/Weaponry").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D)));
+        //初始化箱子
+        ZRSJZ_Tools.LoadSprites("Sprites/箱子").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.BoxSFMap.set(sf.name, sf)));
     }
 
     public static InitDLC() {
@@ -215,6 +221,7 @@ export class ZRSJZ_UIManager extends Component {
         this._panelMap.get(panelName).getComponent(ZRSJZ_Panel).Hide(...args);
     }
 
+    //展示提示
     public async ShowTip(tip: string) {
         const tipNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/Tip")
         tipNode.parent = this.node;
@@ -222,6 +229,19 @@ export class ZRSJZ_UIManager extends Component {
         tipNode.getComponent(ZRSJZ_Tip).Show(tip);
     }
 
+    //展示获取金币特效
+    public async ShowCurrencyEffect() {
+        if (this._curCurrencyUI.length <= 0) {
+            console.error("没有显示的金币框！");
+            return;
+        }
+        const effect: Node = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/货币特效");
+        effect.parent = this.node;
+        effect.active = true;
+        effect.getComponent(ZRSJZ_CurrencyEffect).Show(this._curCurrencyUI[this._curCurrencyUI.length - 1].getWorldPosition().clone())
+    }
+
+    //#region 获取UI
     //获取格子UI
     public GetPropGridUI(propGridName: string): Promise<SpriteFrame> {
         if (this.PropGridSFMap.size == 0) {
@@ -272,6 +292,44 @@ export class ZRSJZ_UIManager extends Component {
         return Promise.resolve(this.WeaponryTextureMap.get(propName));
     }
 
+    //获取玩家Icon
+    public GetHeroUI(heroName: string): Promise<SpriteFrame> {
+        if (this.HeroIconSFMap.has(heroName)) {
+            return Promise.resolve(this.HeroIconSFMap.get(heroName));
+        } else {
+            return new Promise((resolve, reject) => {
+                BundleManager.GetBundle("73_ZRSJZ").load(`Sprites/小地图/Icon/${heroName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
+                    if (err) {
+                        reject(err);
+                        console.error(`加载 ${heroName} 失败`);
+                    } else {
+                        this.HeroIconSFMap.set(sf.name, sf);
+                        resolve && resolve(sf);
+                    }
+                });
+            });
+        }
+    }
+
+    //获取箱子Icon
+    public GetBoxUI(boxName: string): Promise<SpriteFrame> {
+        if (this.BoxSFMap.has(boxName)) {
+            return Promise.resolve(this.BoxSFMap.get(boxName));
+        } else {
+            return new Promise((resolve, reject) => {
+                BundleManager.GetBundle("73_ZRSJZ").load(`Sprites/箱子/${boxName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
+                    if (err) {
+                        reject(err);
+                        console.error(`加载 ${boxName} 失败`);
+                    } else {
+                        this.BoxSFMap.set(sf.name, sf);
+                        resolve && resolve(sf);
+                    }
+                });
+            });
+        }
+    }
+
     //获取仓库
     public GetInventory(inventoryName: string): Promise<Node> {
         if (this.InventoryMap.size === 0) {
@@ -309,16 +367,6 @@ export class ZRSJZ_UIManager extends Component {
         this._curCurrencyUI.splice(this._curCurrencyUI.indexOf(currency), 1);
     }
 
-    public async ShowCurrencyEffect() {
-        if (this._curCurrencyUI.length <= 0) {
-            console.error("没有显示的金币框！");
-            return;
-        }
-        const effect: Node = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/货币特效");
-        effect.parent = this.node;
-        effect.active = true;
-        effect.getComponent(ZRSJZ_CurrencyEffect).Show(this._curCurrencyUI[this._curCurrencyUI.length - 1].getWorldPosition().clone())
-    }
 
 }
 

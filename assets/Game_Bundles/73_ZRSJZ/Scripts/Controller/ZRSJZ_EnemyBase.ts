@@ -11,6 +11,7 @@ import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
 import { ZRSJZ_PathFinder } from './ZRSJZ_PathFinder';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
+import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 
 const { ccclass, property } = _decorator;
 
@@ -293,7 +294,13 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (this.EnemySkeleton) {
             this.EnemySkeleton.HasDirection = false;
         }
-        ZRSJZ_Game.Instance.CreateDieEffect(this.node.worldPosition.clone());
+        ZRSJZ_Game.Instance.CreateDieEffect(this.node.worldPosition.clone(), () => {
+            ZRSJZ_PoolManager.Instance.GetNode(`Prefabs/Unit/箱子/${"物资箱1"}`).then((node: Node) => {
+                node.parent = this.node.parent;
+                node.active = true;
+                node.getComponent(ZRSJZ_Box).Show(this.node.worldPosition.clone());
+            })
+        });
         this.OnDeath();
         this.Colliders.forEach(collider => collider.enabled = false);
     }

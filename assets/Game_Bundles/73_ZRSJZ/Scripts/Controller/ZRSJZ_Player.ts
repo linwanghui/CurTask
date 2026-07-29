@@ -1,6 +1,6 @@
-import { _decorator, Component, director, Node, RigidBody2D, sp, Sprite, v2, Vec3 } from 'cc';
+import { _decorator, CircleCollider2D, Collider2D, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, v2, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_ANI } from '../ZRSJZ_Constant';
+import { ZRSJZ_ANI, ZRSJZ_TIER } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -11,12 +11,14 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_MuzzleEffect } from '../Effect/ZRSJZ_MuzzleEffect';
 import { ZRSJZ_Effect_CB } from '../Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_Effect } from '../Effect/ZRSJZ_Effect';
+import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
 export class ZRSJZ_Player extends Component {
 
     RigidBody: RigidBody2D = null;
+    Collider: CircleCollider2D = null;
     Skeleton: sp.Skeleton = null;
     WeaponType: string = "枪";
 
@@ -38,9 +40,11 @@ export class ZRSJZ_Player extends Component {
     private _aniName: string = "";
     private _isFireing: boolean = false;
     private _isSlide: boolean = false;
+    private _targetBox: ZRSJZ_Box = null;
 
     protected onLoad(): void {
         this.RigidBody = this.getComponent(RigidBody2D);
+        this.Collider = this.getComponent(CircleCollider2D);
         this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
         this.PlayerSkeleton = this.Skeleton.node.getComponent(ZRSJZ_PlayerSkeleton);
         this.HP = this.node.getChildByName("HP").getComponent(ZRSJZ_HP);
@@ -78,6 +82,8 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, this.Reload, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
+        this.Collider.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
+        this.Collider.on(Contact2DType.END_CONTACT, this.EndContact, this)
     }
 
     protected onDisable(): void {
@@ -255,16 +261,36 @@ export class ZRSJZ_Player extends Component {
     }
 
     Slide() {
-        this._moveSpeed += 1000;
+        this._moveSpeed += 1500;
         this._isSlide = true;
-        console.error(1);
         const anis: string[] = this.WeaponType === "枪" ? [ZRSJZ_ANI.HC_Q, ZRSJZ_ANI.Idle_Q] : [ZRSJZ_ANI.HC_D, ZRSJZ_ANI.Idle_D1];
         this.PlayAni(anis[0], false, () => {
-            console.error(2);
             this._isSlide = false;
-            this._moveSpeed -= 1000;
+            this._moveSpeed -= 1500;
             this.PlayAni(anis[1]);
         })
+    }
+
+    BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
+        // if (this._targetBox) return;
+        if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Box) && otherCollider.node?.getComponent(ZRSJZ_Box) != this._targetBox) {
+            if (this._targetBox) {
+                this._targetBox.CheckCancel();
+            }
+            this._targetBox = otherCollider.node?.getComponent(ZRSJZ_Box);
+            this._targetBox.Check();
+        }
+    }
+
+    EndContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
+        if (!this._targetBox) return;
+        if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Box) && otherCollider.node?.getComponent(ZRSJZ_Box) == this._targetBox) {
+            const target = otherCollider.node?.getComponent(ZRSJZ_Box);
+            if (target && target === this._targetBox) {
+                this._targetBox.CheckCancel();
+                this._targetBox = null;
+            }
+        }
     }
 
 }
