@@ -7,6 +7,7 @@ import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
+import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -20,6 +21,7 @@ export class ZRSJZ_Game extends Component {
     Camera: ZRSJZ_GameCamera = null;
 
     CurMap: ZRSJZ_Map = null;
+    CurPlayer: ZRSJZ_Player = null;
     private _player: Node = null;
     private _miniMapContent: Node = null;
     private _miniMapPoint: Node = null;
@@ -55,6 +57,7 @@ export class ZRSJZ_Game extends Component {
             const player = instantiate(prefab);
             player.parent = this.CurMap.Unit;
             player.setWorldPosition(this.CurMap.PlayerPoints[math.randomRangeInt(0, this.CurMap.PlayerPoints.length)].worldPosition.clone());
+            this.CurPlayer = player.getComponent(ZRSJZ_Player);
             this._player = player;
             this.Camera.Init(player, this.CurMap.Map);
             this.RefreshMiniMap();

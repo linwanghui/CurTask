@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "149829b9-7fea-4129-9051-77d6700a382b",
+  "uuid": "130eb99e-2214-455d-8f9d-1019262b169f",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "149829b9-7fea-4129-9051-77d6700a382b@6c48a",
-      "displayName": "JoystickDot",
+      "uuid": "130eb99e-2214-455d-8f9d-1019262b169f@6c48a",
+      "displayName": "激光",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "149829b9-7fea-4129-9051-77d6700a382b",
+        "imageUuidOrDatabaseUri": "130eb99e-2214-455d-8f9d-1019262b169f",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "149829b9-7fea-4129-9051-77d6700a382b@f9941",
-      "displayName": "JoystickDot",
+      "uuid": "130eb99e-2214-455d-8f9d-1019262b169f@f9941",
+      "displayName": "激光",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 270,
-        "height": 270,
-        "rawWidth": 270,
-        "rawHeight": 270,
+        "width": 136,
+        "height": 142,
+        "rawWidth": 136,
+        "rawHeight": 142,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -135,
-            -135,
+            -68,
+            -71,
             0,
-            135,
-            -135,
+            68,
+            -71,
             0,
-            -135,
-            135,
+            -68,
+            71,
             0,
-            135,
-            135,
+            68,
+            71,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            270,
-            270,
-            270,
+            142,
+            136,
+            142,
             0,
             0,
-            270,
+            136,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -135,
-            -135,
+            -68,
+            -71,
             0
           ],
           "maxPos": [
-            135,
-            135,
+            68,
+            71,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "149829b9-7fea-4129-9051-77d6700a382b@6c48a",
+        "imageUuidOrDatabaseUri": "130eb99e-2214-455d-8f9d-1019262b169f@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "149829b9-7fea-4129-9051-77d6700a382b@6c48a"
+    "redirect": "130eb99e-2214-455d-8f9d-1019262b169f@6c48a"
   }
 }

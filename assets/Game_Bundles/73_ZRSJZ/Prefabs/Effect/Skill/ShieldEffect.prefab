@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "LaserEffect",
+    "_name": "ShieldEffect",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "LaserEffect",
+    "_name": "ShieldEffect",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -29,10 +29,13 @@
       },
       {
         "__id__": 10
+      },
+      {
+        "__id__": 12
       }
     ],
     "_prefab": {
-      "__id__": 12
+      "__id__": 14
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -164,11 +167,11 @@
       "a": 255
     },
     "_skeletonData": {
-      "__uuid__": "e55e7586-1b57-46b3-b2ba-85d314ca7610",
+      "__uuid__": "b6b711e0-bdfc-49c2-916a-acdd9c16ac75",
       "__expectedType__": "sp.SkeletonData"
     },
     "defaultSkin": "default",
-    "defaultAnimation": "in",
+    "defaultAnimation": "action",
     "_premultipliedAlpha": true,
     "_timeScale": 1,
     "_preCacheMode": 0,
@@ -239,12 +242,31 @@
     "__prefab": {
       "__id__": 11
     },
-    "AniName": "in",
+    "AniName": "action",
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "a03gPeQT9BR7OO0dtd8TtF"
+  },
+  {
+    "__type__": "fe658y9UHxHzo4KanuoLFF8",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 13
+    },
+    "AniName": "",
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "eb9YD1olVPWqnXNS4KPjwO"
   },
   {
     "__type__": "cc.PrefabInfo",

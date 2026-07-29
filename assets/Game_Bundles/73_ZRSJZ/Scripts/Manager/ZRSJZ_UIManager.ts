@@ -235,7 +235,7 @@ export class ZRSJZ_UIManager extends Component {
             console.error("没有显示的金币框！");
             return;
         }
-        const effect: Node = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/货币特效");
+        const effect: Node = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/货币特效");
         effect.parent = this.node;
         effect.active = true;
         effect.getComponent(ZRSJZ_CurrencyEffect).Show(this._curCurrencyUI[this._curCurrencyUI.length - 1].getWorldPosition().clone())

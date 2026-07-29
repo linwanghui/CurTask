@@ -550,8 +550,8 @@ export interface ZRSJZ_EnemyConfig {
 export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>> = new Map([
     ["持枪小怪", {
         MaxHealth: 100,
-        DetectionRange: 1000,
-        LoseRange: 1500,
+        DetectionRange: 1500,
+        LoseRange: 2000,
         PatrolRadius: 500,
         PatrolSpeed: 500,
         ChaseSpeed: 600,
@@ -568,8 +568,8 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
     }],
     ["持刀小怪", {
         MaxHealth: 100,
-        DetectionRange: 1000,
-        LoseRange: 1500,
+        DetectionRange: 1500,
+        LoseRange: 2000,
         PatrolRadius: 500,
         PatrolSpeed: 500,
         ChaseSpeed: 600,
@@ -632,6 +632,8 @@ export interface ZRSJZ_BossConfig {
     WeaponName: string;
     /** 死亡动画。 */
     DieAnimation: string;
+    /** 脱离战斗后每秒恢复的最大生命值比例，0.02 表示每秒恢复 2%。 */
+    OutOfCombatRegenPercentPerSecond: number;
     /** Boss 普攻，配置结构与技能完全一致。 */
     NormalAttack: ZRSJZ_BossSkillConfig;
     /** Boss 可释放的技能列表，按照数组顺序选择已就绪且在范围内的技能。 */
@@ -642,8 +644,8 @@ export interface ZRSJZ_BossConfig {
 export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> = new Map([
     ["Boss1", {
         MaxHealth: 1000,
-        DetectionRange: 1200,
-        LoseRange: 1800,
+        DetectionRange: 2000,
+        LoseRange: 2500,
         PatrolRadius: 500,
         PatrolSpeed: 400,
         ChaseSpeed: 550,
@@ -653,6 +655,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         MoveAnimation: "pao",
         WeaponName: "突击步枪",
         DieAnimation: "daodi",
+        OutOfCombatRegenPercentPerSecond: 0.1,
         NormalAttack: {
             Name: "普通攻击",
             Range: 400,

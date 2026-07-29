@@ -10,8 +10,8 @@ import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_MuzzleEffect } from '../Effect/ZRSJZ_MuzzleEffect';
 import { ZRSJZ_Effect_CB } from '../Effect/ZRSJZ_Effect_CB';
-import { ZRSJZ_Effect } from '../Effect/ZRSJZ_Effect';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
+import { ZRSJZ_Skill } from '../Skill/ZRSJZ_Skill';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -20,7 +20,7 @@ export class ZRSJZ_Player extends Component {
     RigidBody: RigidBody2D = null;
     Collider: CircleCollider2D = null;
     Skeleton: sp.Skeleton = null;
-    WeaponType: string = "枪";
+    WeaponType: string = "";
 
     PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
     HP: ZRSJZ_HP = null;
@@ -29,7 +29,7 @@ export class ZRSJZ_Player extends Component {
     CurHP: number = 100;
 
     TargetEnemy: Node = null;
-    TargetRange: number = 1000;
+    TargetRange: number = 2000;
     Reloading: Node = null;
     Loading: Sprite = null;
 
@@ -41,6 +41,11 @@ export class ZRSJZ_Player extends Component {
     private _isFireing: boolean = false;
     private _isSlide: boolean = false;
     private _targetBox: ZRSJZ_Box = null;
+    private _skilling: boolean = false;
+
+    public get IsLockEnemy(): boolean {
+        return this.TargetEnemy != null;
+    }
 
     protected onLoad(): void {
         this.RigidBody = this.getComponent(RigidBody2D);
@@ -62,13 +67,8 @@ export class ZRSJZ_Player extends Component {
         }
 
         this.Skeleton.setEventListener((trackEntry, event) => {
-
             if (typeof event !== "number" && (event.data.name === "kq" || event.data.name === "gj_jjq") && this._isFireing && this.WeaponType === "枪") {
                 void this.Fire();
-            } else if (typeof event !== "number" && event.data.name === "dao") {
-
-            } else if (typeof event !== "number" && event.data.name === "hui") {
-
             }
         });
 
@@ -82,6 +82,7 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, this.Reload, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SKILL, this.Skill, this);
         this.Collider.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.on(Contact2DType.END_CONTACT, this.EndContact, this)
     }
@@ -92,9 +93,16 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, this.Reload, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SKILL, this.Skill, this);
+        this.Collider.off(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
+        this.Collider.off(Contact2DType.END_CONTACT, this.EndContact, this)
     }
 
     protected update(dt: number): void {
+        if (this._skilling) {
+            this.RigidBody.linearVelocity = v2(0, 0);
+            return;
+        }
         this.FindTarget();
         this.AniSwitch();
         if (this._isSlide) {
@@ -106,7 +114,43 @@ export class ZRSJZ_Player extends Component {
         this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed * this._moveRadius, this._moveY * dt * this._moveSpeed * this._moveRadius);
     }
 
+    Skill(skillName: string, dirX?: number, dirY?: number, radius?: number) {
+        if (this._isSlide) return;
+        switch (skillName) {
+            case "激光":
+                this._skilling = true;
+                const isKnife = this.PlayerSkeleton.IsKnife;
+                if (isKnife) {
+                    this.PlayerSkeleton.IsKnife = false;
+                    const weaponName: string = ZRSJZ_GameData.Instance.WeaponryID[0] ? ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name : "突击步枪";
+                    this.PlayerSkeleton.ShowEquipment(weaponName);
+                }
+                this.PlayAni(ZRSJZ_ANI.Idle_Q);
+                ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/LaserEffect").then((laser: Node) => {
+                    laser.parent = this.node.parent.parent;
+                    laser.active = true;
+                    laser.getComponent(ZRSJZ_Skill).Show(this.getMuzzlePos(), this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, () => {
+                        if (isKnife) {
+                            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
+                            this.PlayAni(ZRSJZ_ANI.Idle_D1);
+                            this.PlayerSkeleton.IsKnife = true;
+                        }
+                        this._skilling = false;
+                    })
+                }).catch((error) => {
+                    this._skilling = false;
+                    console.error('[ZRSJZ_Player] 技能特效加载失败:', error);
+                })
+                break;
+            case "轰炸":
+                break;
+            case "护盾":
+                break;
+        }
+    }
+
     Move(x: number, y: number, radius: number) {
+        if (this._skilling) return;
         this._moveX = x;
         this._moveY = y;
         this._moveRadius = 1;
@@ -116,7 +160,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     Attack(fireing: boolean) {
-        if (this._isSlide) return;
+        if (this._isSlide || this._skilling) return;
         if (!fireing) {
             this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
             if (this._isFireing) {
@@ -182,20 +226,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     async Fire() {
-        const qkBone = this.PlayerSkeleton?.QKBone;
-        if (!qkBone) {
-            console.warn("[ZRSJZ_Player] 找不到枪口骨骼 kaihuo/texiao");
-            return;
-        }
-        // Bone.worldX/worldY 是 Spine 节点空间坐标。
-        // 再经过 Spine 节点的世界矩阵，得到 Cocos 世界坐标。
-        const boneLocalPos = new Vec3(qkBone.worldX, qkBone.worldY, 0);
-        const muzzleWorldPos = new Vec3();
-        Vec3.transformMat4(
-            muzzleWorldPos,
-            boneLocalPos,
-            this.PlayerSkeleton.node.worldMatrix,
-        );
+        const muzzleWorldPos = this.getMuzzlePos();
 
         const muzzleEffect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect");
         muzzleEffect.parent = this.node;
@@ -261,6 +292,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     Slide() {
+        if (this._skilling) return;
         this._moveSpeed += 1500;
         this._isSlide = true;
         const anis: string[] = this.WeaponType === "枪" ? [ZRSJZ_ANI.HC_Q, ZRSJZ_ANI.Idle_Q] : [ZRSJZ_ANI.HC_D, ZRSJZ_ANI.Idle_D1];
@@ -291,6 +323,24 @@ export class ZRSJZ_Player extends Component {
                 this._targetBox = null;
             }
         }
+    }
+
+    private getMuzzlePos() {
+        const qkBone = this.PlayerSkeleton?.QKBone;
+        if (!qkBone) {
+            console.warn("[ZRSJZ_Player] 找不到枪口骨骼 kaihuo/texiao");
+            return;
+        }
+        // Bone.worldX/worldY 是 Spine 节点空间坐标。
+        // 再经过 Spine 节点的世界矩阵，得到 Cocos 世界坐标。
+        const boneLocalPos = new Vec3(qkBone.worldX, qkBone.worldY, 0);
+        const muzzleWorldPos = new Vec3();
+        Vec3.transformMat4(
+            muzzleWorldPos,
+            boneLocalPos,
+            this.PlayerSkeleton.node.worldMatrix,
+        );
+        return muzzleWorldPos;
     }
 
 }

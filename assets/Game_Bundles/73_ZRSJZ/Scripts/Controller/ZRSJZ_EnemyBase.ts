@@ -310,6 +310,24 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         }
     }
 
+    /**
+     * 安全恢复生命值并刷新血条。
+     * 返回本次实际恢复的生命值，且不会超过配置中的最大生命值。
+     */
+    protected RecoverHealth(amount: number): number {
+        if (this.IsDead || amount <= 0) {
+            return 0;
+        }
+
+        const oldHealth = this._health;
+        this._health = Math.min(this.EnemyConfig.MaxHealth, this._health + amount);
+        const recovered = this._health - oldHealth;
+        if (recovered > 0) {
+            this.HP?.Show(this._health);
+        }
+        return recovered;
+    }
+
     /** 子类返回要追踪的目标。 */
     protected abstract FindTarget(): Node;
 
@@ -361,8 +379,15 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             return;
         }
 
+        const previousState = this._state;
         this._state = state;
         if (state === ZRSJZ_ENEMY_STATE.PATROL) {
+            // 从追击或攻击状态脱离战斗时，以当前位置作为新的巡逻中心，
+            // 避免敌人重新返回出生点附近。
+            if (previousState !== ZRSJZ_ENEMY_STATE.PATROL) {
+                this._patrolCenter.set(this.node.worldPosition);
+            }
+
             this.ClearNavigation();
             this._patrolWaitRemaining = 0;
             if (this.EnemySkeleton) {

@@ -27,6 +27,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     private _activeNormalAttack: Readonly<ZRSJZ_BossSkillConfig> = null;
     private _activeAttackTriggered: boolean = false;
     private _actionSerial: number = 0;
+    private _outOfCombatRegenElapsed: number = 0;
 
     public get IsCastingSkill(): boolean {
         return this._activeSkill !== null;
@@ -87,6 +88,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         }
 
         this.UpdateCooldowns(dt);
+        this.UpdateOutOfCombatRegen(dt);
 
         // 一个攻击动作播放完毕前，不允许开始其他动作。
         if (this._activeSkill) {
@@ -139,6 +141,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
 
     protected onDisable(): void {
         this.CancelActiveAttack();
+        this._outOfCombatRegenElapsed = 0;
         super.onDisable();
     }
 
@@ -162,6 +165,39 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         for (let index = 0; index < this._skillCooldowns.length; index++) {
             this._skillCooldowns[index] = Math.max(0, this._skillCooldowns[index] - dt);
         }
+    }
+
+    /** 脱离战斗且没有正在播放攻击动作时，每满一秒恢复配置比例的最大生命值。 */
+    private UpdateOutOfCombatRegen(dt: number): void {
+        if (
+            this.IsTargetAvailable()
+            || this._activeSkill
+            || this._activeNormalAttack
+            || this.Health >= this.BossConfig.MaxHealth
+        ) {
+            this._outOfCombatRegenElapsed = 0;
+            return;
+        }
+
+        const regenPercent = Math.max(
+            0,
+            this.BossConfig.OutOfCombatRegenPercentPerSecond,
+        );
+        if (regenPercent <= 0) {
+            this._outOfCombatRegenElapsed = 0;
+            return;
+        }
+
+        this._outOfCombatRegenElapsed += dt;
+        const elapsedSeconds = Math.floor(this._outOfCombatRegenElapsed);
+        if (elapsedSeconds < 1) {
+            return;
+        }
+
+        this._outOfCombatRegenElapsed -= elapsedSeconds;
+        this.RecoverHealth(
+            this.BossConfig.MaxHealth * regenPercent * elapsedSeconds,
+        );
     }
 
     private TryStartSkill(): boolean {

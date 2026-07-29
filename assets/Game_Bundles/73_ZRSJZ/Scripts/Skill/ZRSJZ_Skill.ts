@@ -2,21 +2,35 @@ import { _decorator, Component, Node, sp, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 const { ccclass, property } = _decorator;
 
-@ccclass('ZRSJZ_Effect')
-export class ZRSJZ_Effect extends Component {
+@ccclass('ZRSJZ_Skill')
+export class ZRSJZ_Skill extends Component {
     @property({ displayName: "动画名称" })
     AniName: string = "";
 
     Skeleton: sp.Skeleton = null;
 
-    private _isInit: boolean = false;
+    IsInit: boolean = false;
 
     private _dirX: number = 0;
     private _dirY: number = 0;
-    Show(worldPos: Vec3, dirX: number, dirY: number, cb: Function = null) {
-        if (!this._isInit) {
-            this._isInit = true;
-            this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
+
+    Init() {
+        this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
+        this.Skeleton.setEventListener((trackEntry, event) => {
+            if (typeof event !== "number") {
+                switch (event.data.name) {
+                    case "gj":
+                        this.Attack();
+                        break;
+                }
+            }
+        });
+    }
+
+    Show(worldPos: Vec3, dirX?: number, dirY?: number, cb: Function = null) {
+        if (!this.IsInit) {
+            this.IsInit = true;
+            this.Init();
         }
         this.node.active = true;
         this.node.setWorldPosition(worldPos.clone());
@@ -35,15 +49,15 @@ export class ZRSJZ_Effect extends Component {
 
         this.Skeleton.setCompleteListener(() => {
             cb && cb();
-            this.AniEnd();
+            ZRSJZ_PoolManager.Instance.PutNode(this.node);
         })
 
         const angle = Math.atan2(this._dirY, this._dirX) * 180 / Math.PI;
         this.node.setWorldRotationFromEuler(0, 0, angle);
     }
 
-    AniEnd() {
-        ZRSJZ_PoolManager.Instance.PutNode(this.node);
+    Attack() {
+
     }
 }
 

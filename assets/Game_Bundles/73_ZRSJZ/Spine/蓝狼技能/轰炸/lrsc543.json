@@ -1,5 +1,5 @@
 {
-"skeleton": { "hash": "SD8VYZzxTm+B7k0VoWXdECba0wo", "spine": "3.8.75", "images": "./images/", "audio": "G:/游戏素材收集/军团战棋/动作/spine/spell/magic/steam/burningshell" },
+"skeleton": { "hash": "NdS/LxPgA1YlzxVCTgKv3RjgbwM", "spine": "3.8.75", "images": "./images/", "audio": "G:/游戏素材收集/军团战棋/动作/spine/spell/magic/steam/burningshell" },
 "bones": [
 	{ "name": "root" },
 	{ "name": "11zha", "parent": "root", "x": 184.92, "y": -105.75 },
@@ -107,30 +107,12 @@
 		}
 	}
 ],
+"events": {
+	"gj": {}
+},
 "animations": {
 	"eff": {
 		"slots": {
-			"lizi0005": {
-				"attachment": [
-					{ "time": 0.4, "name": "lizi0001" },
-					{ "time": 0.4667, "name": "lizi0003" },
-					{ "time": 0.5333, "name": "lizi0005" },
-					{ "time": 0.6, "name": "lizi0007" },
-					{ "time": 0.6667, "name": "lizi0009" },
-					{ "time": 0.7333, "name": "lizi0011" },
-					{ "time": 0.8, "name": "lizi0013" },
-					{ "time": 0.8667, "name": "lizi0015" },
-					{ "time": 0.9333, "name": "lizi0017" },
-					{ "time": 1, "name": "lizi0019" },
-					{ "time": 1.0667, "name": null }
-				]
-			},
-			"zhadan": {
-				"attachment": [
-					{ "name": "zhadan" },
-					{ "time": 0.3, "name": null }
-				]
-			},
 			"lizi5": {
 				"attachment": [
 					{ "time": 0.4, "name": "lizi0001" },
@@ -144,37 +126,6 @@
 					{ "time": 0.9333, "name": "lizi0017" },
 					{ "time": 1, "name": "lizi0019" },
 					{ "time": 1.0667, "name": null }
-				]
-			},
-			"quanquan0001": {
-				"attachment": [
-					{ "time": 0.2667, "name": "quanquan0001" },
-					{ "time": 0.3667, "name": "quanquan0004" },
-					{ "time": 0.4667, "name": "quanquan0007" },
-					{ "time": 0.5667, "name": "quanquan0010" },
-					{ "time": 0.6667, "name": "quanquan0013" },
-					{ "time": 0.7667, "name": "quanquan0016" },
-					{ "time": 0.8667, "name": null }
-				]
-			},
-			"wu0001": {
-				"attachment": [
-					{ "time": 0.5, "name": "wu0001" },
-					{ "time": 0.6, "name": "wu0004" },
-					{ "time": 0.7, "name": "wu0007" },
-					{ "time": 0.7667, "name": "wu0009" },
-					{ "time": 0.8667, "name": "wu0012" },
-					{ "time": 0.9667, "name": "wu0015" },
-					{ "time": 1.0667, "name": "wu0018" },
-					{ "time": 1.1667, "name": "wu0021" },
-					{ "time": 1.2667, "name": "wu0024" },
-					{ "time": 1.3667, "name": null }
-				]
-			},
-			"guang": {
-				"attachment": [
-					{ "time": 0.3, "name": "guang" },
-					{ "time": 0.9333, "name": null }
 				]
 			},
 			"huo0001": {
@@ -193,7 +144,7 @@
 					{ "time": 1.4, "name": null }
 				]
 			},
-			"lizi6": {
+			"lizi0005": {
 				"attachment": [
 					{ "time": 0.4, "name": "lizi0001" },
 					{ "time": 0.4667, "name": "lizi0003" },
@@ -208,10 +159,62 @@
 					{ "time": 1.0667, "name": null }
 				]
 			},
+			"wu0001": {
+				"attachment": [
+					{ "time": 0.5, "name": "wu0001" },
+					{ "time": 0.6, "name": "wu0004" },
+					{ "time": 0.7, "name": "wu0007" },
+					{ "time": 0.7667, "name": "wu0009" },
+					{ "time": 0.8667, "name": "wu0012" },
+					{ "time": 0.9667, "name": "wu0015" },
+					{ "time": 1.0667, "name": "wu0018" },
+					{ "time": 1.1667, "name": "wu0021" },
+					{ "time": 1.2667, "name": "wu0024" },
+					{ "time": 1.3667, "name": null }
+				]
+			},
+			"zhadan": {
+				"attachment": [
+					{ "name": "zhadan" },
+					{ "time": 0.3, "name": null }
+				]
+			},
 			"11zha": {
 				"attachment": [
 					{ "time": 0.3, "name": "11zha" },
 					{ "time": 0.4, "name": null }
+				]
+			},
+			"quanquan0001": {
+				"attachment": [
+					{ "time": 0.2667, "name": "quanquan0001" },
+					{ "time": 0.3667, "name": "quanquan0004" },
+					{ "time": 0.4667, "name": "quanquan0007" },
+					{ "time": 0.5667, "name": "quanquan0010" },
+					{ "time": 0.6667, "name": "quanquan0013" },
+					{ "time": 0.7667, "name": "quanquan0016" },
+					{ "time": 0.8667, "name": null }
+				]
+			},
+			"guang": {
+				"attachment": [
+					{ "time": 0.3, "name": "guang" },
+					{ "time": 0.9333, "name": null }
+				]
+			},
+			"lizi6": {
+				"attachment": [
+					{ "time": 0.4, "name": "lizi0001" },
+					{ "time": 0.4667, "name": "lizi0003" },
+					{ "time": 0.5333, "name": "lizi0005" },
+					{ "time": 0.6, "name": "lizi0007" },
+					{ "time": 0.6667, "name": "lizi0009" },
+					{ "time": 0.7333, "name": "lizi0011" },
+					{ "time": 0.8, "name": "lizi0013" },
+					{ "time": 0.8667, "name": "lizi0015" },
+					{ "time": 0.9333, "name": "lizi0017" },
+					{ "time": 1, "name": "lizi0019" },
+					{ "time": 1.0667, "name": null }
 				]
 			}
 		},
@@ -299,7 +302,10 @@
 					{ "time": 0.4, "x": 0.566, "y": 0.566 }
 				]
 			}
-		}
+		},
+		"events": [
+			{ "time": 0.3, "name": "gj" }
+		]
 	}
 }
 }
