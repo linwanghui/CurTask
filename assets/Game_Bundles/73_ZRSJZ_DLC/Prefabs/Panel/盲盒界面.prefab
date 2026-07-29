@@ -590,6 +590,8 @@
       "__id__": 0
     },
     "fileId": "26VZH2kwNB2YuCSmBPyfIq",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -1422,7 +1424,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 98.80497741699219,
+      "width": 91.45497131347656,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -1458,7 +1460,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "200万",
+    "_string": "100万",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 35,
@@ -2062,7 +2064,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100.344970703125,
+      "width": 98.48997497558594,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -2098,7 +2100,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "800万",
+    "_string": "300万",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 35,
@@ -2704,7 +2706,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 120.43496704101562,
+      "width": 120.60995483398438,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -2740,7 +2742,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "2000万",
+    "_string": "5000万",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 35,
@@ -4514,7 +4516,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": 2.69,
       "z": 0
     },
     "_lrot": {
@@ -4554,8 +4556,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 120,
-      "height": 50.4
+      "width": 394.337,
+      "height": 88.054
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -4597,8 +4599,8 @@
     "_fontSize": 60,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
-    "_overflow": 0,
-    "_enableWrapText": true,
+    "_overflow": 2,
+    "_enableWrapText": false,
     "_font": {
       "__uuid__": "7dab8514-b7c5-474c-a721-598a51503397",
       "__expectedType__": "cc.TTFFont"
