@@ -22,6 +22,7 @@ export class ZRSJZ_Box extends Component {
     LootProps: string[] = [];
 
     private _isInit: boolean = false;
+    private _nextLootIndex: number = 0;
     private _boxConfig: Readonly<ZRSJZ_BoxConfig> = null;
     private _mapProp: readonly (readonly string[])[] = [];
 
@@ -44,6 +45,7 @@ export class ZRSJZ_Box extends Component {
         this._mapProp = mapProp?.map(props => [...props]) ?? [];
         this.BoxName = config.BoxName;
         this.State = ZRSJZ_BOX_STATE.IDLE;
+        this._nextLootIndex = 0;
         this.LootProps = this.GenerateLootProps();
         this._isInit = false;
         this.Init();
@@ -90,18 +92,31 @@ export class ZRSJZ_Box extends Component {
         this.Checked.node.active = false;
     }
 
-    Open() {
+    Open(): boolean {
         if (this.State === ZRSJZ_BOX_STATE.OPENED) {
-            return;
+            return false;
         }
         this.State = ZRSJZ_BOX_STATE.OPENED;
         this.Icon.spriteFrame = this.IconSF[this.State];
         this.Checked.spriteFrame = this.CheckedSF[this.State];
+        return true;
     }
 
     /** 返回本次箱子按地图配置生成的物品列表。 */
     GetLootProps(): readonly string[] {
         return this.LootProps;
+    }
+
+    /** 逐件取出尚未领取的物品，关闭弹窗后可从当前位置继续搜索。 */
+    TakeNextLootProp(): string {
+        if (this._nextLootIndex >= this.LootProps.length) {
+            return null;
+        }
+        return this.LootProps[this._nextLootIndex++];
+    }
+
+    HasUnclaimedLoot(): boolean {
+        return this._nextLootIndex < this.LootProps.length;
     }
 
     private GenerateLootProps(): string[] {
@@ -144,5 +159,3 @@ export class ZRSJZ_Box extends Component {
         return loot;
     }
 }
-
-

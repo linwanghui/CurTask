@@ -171,7 +171,10 @@ export class ZRSJZ_GameData {
 
     public ReloadPropData() {
         for (const key in this.PropData) {
-            if (this.PropData[key].CurInventory === ZRSJZ_INVENTORY.背包) {
+            if (
+                this.PropData[key].CurInventory === ZRSJZ_INVENTORY.背包
+                || this.PropData[key].CurInventory === ZRSJZ_INVENTORY.物资
+            ) {
                 delete this.PropData[key];
             }
         }

@@ -433,6 +433,7 @@ export enum ZRSJZ_INVENTORY {
     武器_背包 = "武器_背包",
     武器_刀 = "武器_刀",
     背包 = "背包",
+    物资 = "物资",
 }
 
 export const ZRSJZ_INVENTORY_CONFIG: Map<ZRSJZ_INVENTORY, { Row: number, Col: number, IsDilatation: boolean }> = new Map([
@@ -450,6 +451,7 @@ export const ZRSJZ_INVENTORY_CONFIG: Map<ZRSJZ_INVENTORY, { Row: number, Col: nu
     [ZRSJZ_INVENTORY.武器_背包, { Row: 1, Col: 1, IsDilatation: false }],
     [ZRSJZ_INVENTORY.武器_刀, { Row: 1, Col: 1, IsDilatation: false }],
     [ZRSJZ_INVENTORY.背包, { Row: 2, Col: 4, IsDilatation: false }],
+    [ZRSJZ_INVENTORY.物资, { Row: 4, Col: 6, IsDilatation: true }],
 ])
 
 export const ZRSJZ_SHOP_CONFIG: Map<string, string[]> = new Map([
