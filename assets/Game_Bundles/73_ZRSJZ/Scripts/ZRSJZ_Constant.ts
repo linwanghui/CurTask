@@ -13,6 +13,7 @@ export enum ZRSJZ_PANEL {
     作弊界面 = "73_ZRSJZ/Prefabs/Panel/作弊界面",
     道具弹窗 = "73_ZRSJZ/Prefabs/Panel/道具弹窗",
     背包弹窗 = "73_ZRSJZ/Prefabs/Panel/背包弹窗",
+    物资弹窗 = "73_ZRSJZ/Prefabs/Panel/物资弹窗",
     地图弹窗 = "73_ZRSJZ/Prefabs/Panel/地图弹窗",
     暂停界面 = "73_ZRSJZ/Prefabs/Panel/暂停界面",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
@@ -824,7 +825,7 @@ export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, {
                     Probability: [90, 80, 70, 50, 20, 5]
                 }
             }],
-            ["喷火兵", {
+            ["盾牌兵", {
                 HP: 200,
                 Harm: 10,
                 Box: {
@@ -849,12 +850,12 @@ export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, {
         ]),
         MapProp: [
             //白色/绿色/蓝色/紫色/金色/红色
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
+            Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.白色).map(prop => prop.Name),
+            Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.绿色).map(prop => prop.Name),
+            Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.蓝色).map(prop => prop.Name),
+            Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.紫色).map(prop => prop.Name),
+            ["万金泪冠", "高速阵列",],
+            ["金玫瑰"],
         ]
     }]
 ])

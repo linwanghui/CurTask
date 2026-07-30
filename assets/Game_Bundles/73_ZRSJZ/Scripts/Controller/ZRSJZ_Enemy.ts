@@ -75,13 +75,14 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
             this.AttackX,
             this.AttackY,
             1000,
+            this.AttackDamage,
         );
     }
 
     Knife(range: number) {
         if (!this.Target || this.IsDead) return;
         if (Vec3.distance(this.node.worldPosition, this.Target.worldPosition) <= range) {
-            this.Target.getComponent(ZRSJZ_Player)?.BeHit(10);
+            this.Target.getComponent(ZRSJZ_Player)?.BeHit(this.AttackDamage);
         }
     }
 }

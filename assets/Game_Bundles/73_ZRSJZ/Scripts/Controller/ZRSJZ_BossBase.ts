@@ -1,14 +1,15 @@
-import { _decorator, Node, Vec2, Vec3 } from 'cc';
+import { _decorator, Vec2, Vec3 } from 'cc';
 import {
     ZRSJZ_BOSS_CONFIG,
     ZRSJZ_BossConfig,
     ZRSJZ_BossSkillConfig,
     ZRSJZ_EnemyConfig,
+    ZRSJZ_MAP_CONFIG,
 } from '../ZRSJZ_Constant';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
-import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
+import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 
 const { ccclass } = _decorator;
 
@@ -20,6 +21,7 @@ const { ccclass } = _decorator;
 @ccclass('ZRSJZ_BossBase')
 export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     protected BossConfig: Readonly<ZRSJZ_BossConfig> = null;
+    protected DamageMultiplier: number = 1;
 
     private _skillCooldowns: number[] = [];
     private _normalAttackCooldown: number = 0;
@@ -67,6 +69,30 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             StandingAttackAnimation: [normalAttack.Animation],
             WeaponName: config.WeaponName,
         };
+    }
+
+    /** 使用当前地图配置覆盖 Boss 血量、伤害倍率和掉落箱。 */
+    protected ApplyMapConfig(enemyName: string): void {
+        const mapName = ZRSJZ_GameData.Instance.CurMap;
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(mapName);
+        const bossConfig = mapConfig?.MapBoss.get(enemyName);
+        if (!mapConfig || !bossConfig) {
+            console.warn(`[ZRSJZ_BossBase] 地图 ${mapName} 未配置 Boss: ${enemyName}`);
+            return;
+        }
+
+        const maxHealth = Math.max(1, bossConfig.HP);
+        this.BossConfig = {
+            ...this.BossConfig,
+            MaxHealth: maxHealth,
+        };
+        this.EnemyConfig = {
+            ...this.EnemyConfig,
+            MaxHealth: maxHealth,
+        };
+        this.DamageMultiplier = Math.max(0, bossConfig.HarmMultiple);
+        this.DropBoxConfig = bossConfig.Box;
+        this.MapProp = mapConfig.MapProp;
     }
 
     protected onLoad(): void {
@@ -177,7 +203,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             this.IsTargetAvailable()
             || this._activeSkill
             || this._activeNormalAttack
-            || this.Health >= this.BossConfig.MaxHealth
+            || this.Health >= this.EnemyConfig.MaxHealth
         ) {
             this._outOfCombatRegenElapsed = 0;
             return;
@@ -200,7 +226,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
 
         this._outOfCombatRegenElapsed -= elapsedSeconds;
         this.RecoverHealth(
-            this.BossConfig.MaxHealth * regenPercent * elapsedSeconds,
+            this.EnemyConfig.MaxHealth * regenPercent * elapsedSeconds,
         );
     }
 
@@ -374,13 +400,12 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     }
 
     protected OnDeath(): void {
-        ZRSJZ_Game.Instance.CreateDieEffect(this.node.worldPosition.clone(), () => {
-            ZRSJZ_PoolManager.Instance.GetNode(`Prefabs/Unit/箱子/${"物资箱3"}`).then((node: Node) => {
-                node.parent = this.node.parent;
-                node.active = true;
-                node.getComponent(ZRSJZ_Box).Show(this.node.worldPosition.clone());
+        const deathPosition = this.node.worldPosition.clone();
+        const dropParent = this.node.parent;
+        ZRSJZ_Game.Instance.CreateDieEffect(deathPosition, () => {
+            this.SpawnDropBox(deathPosition, dropParent).finally(() => {
                 ZRSJZ_PoolManager.Instance.PutNode(this.node);
-            })
+            });
         });
 
         this.PlayAnimation(this.BossConfig.DieAnimation, false);

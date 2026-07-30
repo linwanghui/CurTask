@@ -346,6 +346,7 @@ export class ZRSJZ_Player extends Component {
             }
             this._targetBox = otherCollider.node?.getComponent(ZRSJZ_Box);
             this._targetBox.Check();
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox);
         }
     }
 
@@ -356,6 +357,7 @@ export class ZRSJZ_Player extends Component {
             if (target && target === this._targetBox) {
                 this._targetBox.CheckCancel();
                 this._targetBox = null;
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox);
             }
         }
     }

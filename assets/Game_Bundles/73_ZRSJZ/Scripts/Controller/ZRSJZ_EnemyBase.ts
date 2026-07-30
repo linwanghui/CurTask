@@ -1,11 +1,20 @@
 import { _decorator, Collider2D, Component, Node, RigidBody2D, Vec2, Vec3 } from 'cc';
-import { ZRSJZ_ANI, ZRSJZ_ENEMY_CONFIG, ZRSJZ_EnemyConfig, ZRSJZ_PATH_CONFIG, ZRSJZ_TIER, } from '../ZRSJZ_Constant';
+import {
+    ZRSJZ_ANI,
+    ZRSJZ_BoxConfig,
+    ZRSJZ_ENEMY_CONFIG,
+    ZRSJZ_EnemyConfig,
+    ZRSJZ_MAP_CONFIG,
+    ZRSJZ_PATH_CONFIG,
+    ZRSJZ_TIER,
+} from '../ZRSJZ_Constant';
 import { ZRSJZ_EnemySkeleton } from './ZRSJZ_EnemySkeleton';
 import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
 import { ZRSJZ_PathFinder } from './ZRSJZ_PathFinder';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
+import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 
 const { ccclass, property } = _decorator;
 
@@ -35,6 +44,9 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     protected Colliders: Collider2D[] = [];
     protected EnemySkeleton: ZRSJZ_EnemySkeleton = null;
     protected EnemyConfig: Readonly<ZRSJZ_EnemyConfig> = null;
+    protected AttackDamage: number = 10;
+    protected DropBoxConfig: Readonly<ZRSJZ_BoxConfig> = null;
+    protected MapProp: readonly (readonly string[])[] = [];
 
     protected AttackX: number = 0;
     protected AttackY: number = 0;
@@ -79,6 +91,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             this.enabled = false;
             return;
         }
+        this.ApplyMapConfig(enemyName);
 
         this.HP = this.getComponentInChildren(ZRSJZ_HP);
         this.RigidBody = this.getComponent(RigidBody2D);
@@ -342,19 +355,70 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         return ZRSJZ_ENEMY_CONFIG.get(enemyName);
     }
 
+    /** 使用当前地图配置覆盖普通敌人的血量、伤害和掉落箱。 */
+    protected ApplyMapConfig(enemyName: string): void {
+        const mapName = ZRSJZ_GameData.Instance.CurMap;
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(mapName);
+        const enemyConfig = mapConfig?.MapEnemy.get(enemyName);
+        if (!mapConfig || !enemyConfig) {
+            console.warn(`[ZRSJZ_EnemyBase] 地图 ${mapName} 未配置敌人: ${enemyName}`);
+            return;
+        }
+
+        this.EnemyConfig = {
+            ...this.EnemyConfig,
+            MaxHealth: Math.max(1, enemyConfig.HP),
+        };
+        this.AttackDamage = Math.max(0, enemyConfig.Harm);
+        this.DropBoxConfig = enemyConfig.Box;
+        this.MapProp = mapConfig.MapProp;
+    }
+
     /** 子类可覆写死亡表现，例如播放动画、掉落物品、回收节点。 */
     protected OnDeath(): void {
-        ZRSJZ_Game.Instance.CreateDieEffect(this.node.worldPosition.clone(), () => {
-            ZRSJZ_PoolManager.Instance.GetNode(`Prefabs/Unit/箱子/${"物资箱1"}`).then((node: Node) => {
-                node.parent = this.node.parent;
-                node.active = true;
-                node.getComponent(ZRSJZ_Box).Show(this.node.worldPosition.clone());
-            })
+        const deathPosition = this.node.worldPosition.clone();
+        const dropParent = this.node.parent;
+        ZRSJZ_Game.Instance.CreateDieEffect(deathPosition, () => {
+            this.SpawnDropBox(deathPosition, dropParent);
         });
 
         this.PlayAnimation(ZRSJZ_ANI.SW, false, () => {
             ZRSJZ_PoolManager.Instance.PutNode(this.node);
         })
+    }
+
+    /** 按地图配置生成箱子，并把数量、品质概率和地图物品池传入箱子。 */
+    protected async SpawnDropBox(worldPos: Vec3, parent: Node): Promise<void> {
+        const config = this.DropBoxConfig;
+        if (!config?.BoxName) {
+            return;
+        }
+
+        let node: Node = null;
+        try {
+            node = await ZRSJZ_PoolManager.Instance.GetNode(
+                `Prefabs/Unit/箱子/${config.BoxName}`,
+            );
+        } catch (error) {
+            console.error(`[ZRSJZ_EnemyBase] 加载掉落箱失败: ${config.BoxName}`, error);
+            return;
+        }
+        if (!node) {
+            return;
+        }
+
+        const box = node.getComponent(ZRSJZ_Box);
+        if (!box) {
+            console.error(`[ZRSJZ_EnemyBase] 箱子预制体缺少 ZRSJZ_Box: ${config.BoxName}`);
+            ZRSJZ_PoolManager.Instance.PutNode(node);
+            return;
+        }
+
+        node.active = false;
+        node.parent = parent?.isValid ? parent : ZRSJZ_Game.Instance.CurMap?.Unit;
+        box.Configure(config, this.MapProp);
+        node.active = true;
+        box.Show(worldPos);
     }
 
     protected PlayAnimation(animationName: string, loop: boolean = true, cb: Function = null): void {

@@ -63,7 +63,7 @@ export class ZRSJZ_Boss extends ZRSJZ_BossBase {
         for (const player of players) {
             if (!player.node.activeInHierarchy) continue;
             if (Vec3.distance(startPos, player.node.worldPosition) <= damageRange) {
-                player.BeHit(damage);
+                player.BeHit(damage * this.DamageMultiplier);
             }
         }
     }

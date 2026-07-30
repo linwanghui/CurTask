@@ -5,7 +5,7 @@ import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
+import { ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 const { ccclass, property } = _decorator;
@@ -45,8 +45,13 @@ export class ZRSJZ_Game extends Component {
     }
 
     LoadMap() {
-        const map = "城镇";
-        ZRSJZ_Tools.LoadPrefab("Prefabs/Map/" + map).then((prefab: Prefab) => {
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
+        if (!mapConfig) {
+            console.error(`[ZRSJZ_Game] 未找到地图配置: ${ZRSJZ_GameData.Instance.CurMap}`);
+            return;
+        }
+
+        ZRSJZ_Tools.LoadPrefab("Prefabs/Map/" + mapConfig.MapName).then((prefab: Prefab) => {
             const map = instantiate(prefab);
             map.parent = this.MapParent;
             this.CurMap = map.getComponent(ZRSJZ_Map);
@@ -160,4 +165,3 @@ export class ZRSJZ_Game extends Component {
     }
 
 }
-

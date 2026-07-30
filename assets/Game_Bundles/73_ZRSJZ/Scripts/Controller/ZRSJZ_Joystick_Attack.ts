@@ -5,6 +5,7 @@ import { ZRSJZ_PANEL, ZRSJZ_ROLE_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
+import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Joystick_Attack')
@@ -19,6 +20,9 @@ export class ZRSJZ_Joystick_Attack extends Component {
     @property(SpriteFrame)
     SwitchSFs: SpriteFrame[] = [];
 
+    private _searchButton: Node = null;
+    private _targetBox: ZRSJZ_Box = null;
+
     private _attackSprite: Sprite = null;
     private _attackTouch: Touch = null;
     private _switchSprite: Sprite = null;
@@ -30,6 +34,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     private _reloadingCD: number = 0;
 
     start() {
+        this._searchButton = this.node.getChildByName('Search');
         this._attackSprite = this.node.getChildByName('Attack').getComponent(Sprite);
         this._switchSprite = this.node.getChildByName('Switch').getComponent(Sprite);
         this._slideSprite = this.node.getChildByPath('Slide/CD').getComponent(Sprite);
@@ -43,6 +48,10 @@ export class ZRSJZ_Joystick_Attack extends Component {
         this._curWeaponIndex = ZRSJZ_GameData.Instance.WeaponryID[0] ? 0 : 1;
         this.SwitchWeapon();
         this.LoadSkillButton();
+    }
+
+    protected onEnable(): void {
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
     }
 
     protected update(dt: number): void {
@@ -152,7 +161,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //搜索
     Search() {
-        console.error("搜索");
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.物资弹窗, this._targetBox);
     }
 
     //加载技能按钮
@@ -163,6 +172,10 @@ export class ZRSJZ_Joystick_Attack extends Component {
         })
     }
 
+    ShowSearch(box: ZRSJZ_Box) {
+        this._targetBox = box;
+        this._searchButton.active = box != null;
+    }
 }
 
 
