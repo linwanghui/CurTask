@@ -1,11 +1,5 @@
 import { _decorator, Collider2D, Component, Node, RigidBody2D, Vec2, Vec3 } from 'cc';
-import {
-    ZRSJZ_ANI,
-    ZRSJZ_ENEMY_CONFIG,
-    ZRSJZ_EnemyConfig,
-    ZRSJZ_PATH_CONFIG,
-    ZRSJZ_TIER,
-} from '../ZRSJZ_Constant';
+import { ZRSJZ_ANI, ZRSJZ_ENEMY_CONFIG, ZRSJZ_EnemyConfig, ZRSJZ_PATH_CONFIG, ZRSJZ_TIER, } from '../ZRSJZ_Constant';
 import { ZRSJZ_EnemySkeleton } from './ZRSJZ_EnemySkeleton';
 import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
 import { ZRSJZ_PathFinder } from './ZRSJZ_PathFinder';
@@ -110,6 +104,10 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected update(dt: number): void {
+        if (ZRSJZ_Game.Instance.GamePaused) {
+            this.RigidBody.linearVelocity = Vec2.ZERO;
+            return;
+        }
         if (this.IsDead) {
             return;
         }

@@ -127,6 +127,8 @@ export class ZRSJZ_Skill_Button extends Component {
         if (this.IsNeedLock && !ZRSJZ_Game.Instance.CurPlayer.IsLockEnemy) {
             ZRSJZ_UIManager.Instance.ShowTip("请先锁定目标！");
             return;
+        } else if (!ZRSJZ_Game.Instance.CurPlayer.IsSkill) {
+            return;
         }
         if (!this.IsReady || this._touchID !== -1) {
             return;

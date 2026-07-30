@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "持刀小怪",
+    "_name": "喷火兵",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "持刀小怪",
+    "_name": "喷火兵",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -182,7 +182,7 @@
       "__uuid__": "ef59739f-7e57-40bf-b316-e0d3450aa237",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "xb/XB1",
+    "defaultSkin": "xb/ph",
     "defaultAnimation": "",
     "_premultipliedAlpha": true,
     "_timeScale": 1,
@@ -261,7 +261,7 @@
   },
   {
     "__type__": "cc.PrefabInstance",
-    "fileId": "b2HSKTmyxP+b9vr+6MPJyD",
+    "fileId": "f028YbccNEAaKV0dd/kfWQ",
     "prefabRootNode": {
       "__id__": 1
     },
@@ -660,7 +660,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "d1GsGQ4UVIxau8/Ix521zM"
+    "fileId": "6dLaIOZGxCy5BXEx6wfVik"
   },
   {
     "__type__": "3d73e1t9m1Ad4pssLAaQlqh",
@@ -674,7 +674,8 @@
     "__prefab": {
       "__id__": 42
     },
-    "EnemyName": "持刀小怪",
+    "EnemyName": "喷火兵",
+    "BoneName": "ph",
     "_id": ""
   },
   {

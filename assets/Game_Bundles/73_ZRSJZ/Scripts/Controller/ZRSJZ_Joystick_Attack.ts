@@ -1,8 +1,10 @@
 import { _decorator, Component, EventKeyboard, EventTouch, Touch, Input, input, KeyCode, Node, UITransform, Vec2, Vec3, SpriteFrame, Sprite } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_PANEL, ZRSJZ_ROLE_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_Game } from '../ZRSJZ_Game';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Joystick_Attack')
@@ -40,6 +42,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
         this._curWeaponIndex = ZRSJZ_GameData.Instance.WeaponryID[0] ? 0 : 1;
         this.SwitchWeapon();
+        this.LoadSkillButton();
     }
 
     protected update(dt: number): void {
@@ -123,11 +126,11 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //滑铲
     Slide() {
+        if (this._slideCD > 0 || !ZRSJZ_Game.Instance.CurPlayer.IsSlide) return;
         if (this._attackTouch != null) {
             this._attackTouch = null;
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
         }
-        if (this._slideCD > 0) return;
         this._slideCD = ZRSJZ_Joystick_Attack.SlideCD;
         this._slideSprite.node.active = true;
         this._slideSprite.fillRange = 1;
@@ -136,11 +139,11 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //换弹
     Reload() {
+        if (this._reloadingCD > 0) return;
         if (this._attackTouch != null) {
             this._attackTouch = null;
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
         }
-        if (this._reloadingCD > 0) return;
         this._reloadingCD = ZRSJZ_Joystick_Attack.LoadingCD;
         // this._reloading.active = true;
         // this._reloadingSprite.fillRange = 0;
@@ -150,6 +153,14 @@ export class ZRSJZ_Joystick_Attack extends Component {
     //搜索
     Search() {
         console.error("搜索");
+    }
+
+    //加载技能按钮
+    LoadSkillButton() {
+        ZRSJZ_PoolManager.Instance.GetNode(ZRSJZ_ROLE_CONFIG.get(ZRSJZ_GameData.Instance.CurRole[0]).SkillPath).then((skillButton: Node) => {
+            skillButton.parent = this.node;
+            skillButton.active = true;
+        })
     }
 
 }

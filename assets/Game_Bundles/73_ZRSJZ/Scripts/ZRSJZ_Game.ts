@@ -22,6 +22,9 @@ export class ZRSJZ_Game extends Component {
 
     CurMap: ZRSJZ_Map = null;
     CurPlayer: ZRSJZ_Player = null;
+
+    GamePaused: boolean = false;
+
     private _player: Node = null;
     private _miniMapContent: Node = null;
     private _miniMapPoint: Node = null;
@@ -76,6 +79,10 @@ export class ZRSJZ_Game extends Component {
         switch (event.getCurrentTarget().name) {
             case "小地图":
                 this.OpenMapPanel();
+                break;
+            case "设置":
+                this.GamePaused = true;
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.暂停界面);
                 break;
         }
     }

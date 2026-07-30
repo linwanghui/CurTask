@@ -9,17 +9,13 @@ export class ZRSJZ_Prepare extends Component {
 
     CardBag: Node = null;
     Ammo: Node = null;
-    ProtectorCaseTitle: Node = null;
-    ProtectorCase: Node = null;
 
     ScrollView: ScrollView = null;
 
     protected onLoad(): void {
         this.CardBag = this.node.getChildByPath("Mask/Content/卡包");
         this.Ammo = this.node.getChildByPath("Mask/Content/弹药");
-        this.ProtectorCaseTitle = this.node.getChildByPath("Mask/Content/安全箱title");
-        this.ProtectorCase = this.node.getChildByPath("Mask/Content/安全箱");
-        this.ScrollView = this.getComponent(ScrollView);
+        this.ScrollView = this.node.getChildByName("保险")?.getComponent(ScrollView);
     }
 
     protected onEnable(): void {
@@ -39,17 +35,15 @@ export class ZRSJZ_Prepare extends Component {
         ammo.active = true;
         ammo.parent = this.Ammo;
 
-        this.ProtectorCaseTitle.active = isShowProtectorCase;
-        this.ProtectorCase.active = isShowProtectorCase;
         if (isShowProtectorCase) {
             const protectorCase = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.保险箱);
             protectorCase.active = true;
-            protectorCase.parent = this.ProtectorCase;
+            protectorCase.parent = this.node.getChildByPath("保险/Mask/安全箱");
         }
     }
 
     PropMove(move: boolean) {
-        this.ScrollView.enabled = move;
+        if (this.ScrollView) this.ScrollView.enabled = move;
     }
 
 }

@@ -18,6 +18,8 @@ export class ZRSJZ_Skill extends Component {
         this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
         this.Skeleton.setEventListener((trackEntry, event) => {
             if (typeof event !== "number") {
+                console.error(event.data.name);
+
                 switch (event.data.name) {
                     case "gj":
                         this.Attack();

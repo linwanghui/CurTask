@@ -14,6 +14,7 @@ export enum ZRSJZ_PANEL {
     道具弹窗 = "73_ZRSJZ/Prefabs/Panel/道具弹窗",
     背包弹窗 = "73_ZRSJZ/Prefabs/Panel/背包弹窗",
     地图弹窗 = "73_ZRSJZ/Prefabs/Panel/地图弹窗",
+    暂停界面 = "73_ZRSJZ/Prefabs/Panel/暂停界面",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -464,10 +465,11 @@ export const ZRSJZ_SHOP_CONFIG: Map<string, string[]> = new Map([
 export const ZRSJZ_ROLE_CONFIG: Map<string, {
     Name: string,
     Skin: string[],
+    SkillPath: string,
 }> = new Map([
-    ["洛克", { Name: "洛克", Skin: ["洛克", "洛克2"] }],
-    ["安娜", { Name: "安娜", Skin: ["安娜", "安娜2"] }],
-    ["小美", { Name: "小美", Skin: ["小美", "小美2"] }],
+    ["洛克", { Name: "洛克", Skin: ["洛克", "洛克2"], SkillPath: "Prefabs/Controller/Bomb" }],
+    ["安娜", { Name: "安娜", Skin: ["安娜", "安娜2"], SkillPath: "Prefabs/Controller/Laser" }],
+    ["小美", { Name: "小美", Skin: ["小美", "小美2"], SkillPath: "Prefabs/Controller/Shield" }],
 ])
 
 export const ZRSJZ_SKIN_CONFIG: Map<string, {
@@ -548,7 +550,7 @@ export interface ZRSJZ_EnemyConfig {
  * ZRSJZ_EnemyBase 只按 EnemyName（未填写时使用节点名）读取这里的配置。
  */
 export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>> = new Map([
-    ["持枪小怪", {
+    ["持枪小兵", {
         MaxHealth: 100,
         DetectionRange: 1500,
         LoseRange: 2000,
@@ -566,7 +568,7 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
         StandingAttackAnimation: [ZRSJZ_ANI.Attack_Idle_Q],
         WeaponName: "突击步枪",
     }],
-    ["持刀小怪", {
+    ["持刀小兵", {
         MaxHealth: 100,
         DetectionRange: 1500,
         LoseRange: 2000,
@@ -583,6 +585,42 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
         MovingAttackAnimation: [ZRSJZ_ANI.Attack_Move_D2, ZRSJZ_ANI.Attack_Move_D3],
         StandingAttackAnimation: [ZRSJZ_ANI.Attack_Idle_D2, ZRSJZ_ANI.Attack_Idle_D3],
         WeaponName: "战术匕首",
+    }],
+    ["喷火兵", {
+        MaxHealth: 100,
+        DetectionRange: 1500,
+        LoseRange: 2000,
+        PatrolRadius: 500,
+        PatrolSpeed: 500,
+        ChaseSpeed: 600,
+        PatrolWaitTime: 1,
+        PatrolArriveDistance: 50,
+        MovingAttackRange: 800,
+        StandingAttackRange: 300,
+        AttackInterval: 1,
+        IdleAnimation: ZRSJZ_ANI.Idle_Q,
+        MoveAnimation: ZRSJZ_ANI.Walk_Q,
+        MovingAttackAnimation: ["gj_ph2"],
+        StandingAttackAnimation: ["gj_ph"],
+        WeaponName: "喷火枪",
+    }],
+    ["盾牌兵", {
+        MaxHealth: 100,
+        DetectionRange: 1500,
+        LoseRange: 2000,
+        PatrolRadius: 500,
+        PatrolSpeed: 500,
+        ChaseSpeed: 600,
+        PatrolWaitTime: 1,
+        PatrolArriveDistance: 50,
+        MovingAttackRange: 800,
+        StandingAttackRange: 300,
+        AttackInterval: 1,
+        IdleAnimation: ZRSJZ_ANI.Idle_Q,
+        MoveAnimation: ZRSJZ_ANI.Walk_Q,
+        MovingAttackAnimation: [ZRSJZ_ANI.Attack_Move_Q],
+        StandingAttackAnimation: [ZRSJZ_ANI.Attack_Idle_Q],
+        WeaponName: "盾牌兵武器",
     }],
 ]);
 

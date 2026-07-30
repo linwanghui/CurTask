@@ -41,10 +41,21 @@ export class ZRSJZ_Player extends Component {
     private _isFireing: boolean = false;
     private _isSlide: boolean = false;
     private _targetBox: ZRSJZ_Box = null;
-    private _skilling: boolean = false;
+    private _isStop: boolean = false;
+    private _shielding: boolean = false;
 
+    //是否锁定敌人
     public get IsLockEnemy(): boolean {
         return this.TargetEnemy != null;
+    }
+    //是否能滑动
+    public get IsSlide(): boolean {
+        return !this._isStop;
+    }
+
+    //是否能释放技能
+    public get IsSkill(): boolean {
+        return !this._isSlide;
     }
 
     protected onLoad(): void {
@@ -99,7 +110,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected update(dt: number): void {
-        if (this._skilling) {
+        if (ZRSJZ_Game.Instance.GamePaused || this._isStop) {
             this.RigidBody.linearVelocity = v2(0, 0);
             return;
         }
@@ -118,7 +129,7 @@ export class ZRSJZ_Player extends Component {
         if (this._isSlide) return;
         switch (skillName) {
             case "激光":
-                this._skilling = true;
+                this._isStop = true;
                 const isKnife = this.PlayerSkeleton.IsKnife;
                 if (isKnife) {
                     this.PlayerSkeleton.IsKnife = false;
@@ -135,22 +146,46 @@ export class ZRSJZ_Player extends Component {
                             this.PlayAni(ZRSJZ_ANI.Idle_D1);
                             this.PlayerSkeleton.IsKnife = true;
                         }
-                        this._skilling = false;
+                        this._isStop = false;
                     })
                 }).catch((error) => {
-                    this._skilling = false;
+                    this._isStop = false;
                     console.error('[ZRSJZ_Player] 技能特效加载失败:', error);
                 })
                 break;
             case "轰炸":
+                const cb: Function = () => {
+                    ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/BombEffect").then((bomb: Node) => {
+                        if (!this.IsLockEnemy) {
+                            this.unschedule(cb);
+                            return;
+                        }
+                        bomb.parent = this.node.parent.parent;
+                        bomb.active = true;
+                        bomb.getComponent(ZRSJZ_Skill).Show(this.TargetEnemy.worldPosition.clone());
+                    })
+                }
+                cb();
+                this.schedule(cb, 1, 2, 0);
                 break;
             case "护盾":
+                this._shielding = true;
+                ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/ShieldEffect").then((laser: Node) => {
+                    laser.parent = this.node;
+                    laser.active = true;
+                    laser.getComponent(ZRSJZ_Skill).Show(this.node.worldPosition.clone(), 0, 0, () => {
+                        this._shielding = false;
+                    })
+                }).catch((error) => {
+                    this._isStop = false;
+                    console.error('[ZRSJZ_Player] 技能特效加载失败:', error);
+                })
                 break;
         }
     }
 
     Move(x: number, y: number, radius: number) {
-        if (this._skilling) return;
+        if (this._isStop) return;
         this._moveX = x;
         this._moveY = y;
         this._moveRadius = 1;
@@ -160,7 +195,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     Attack(fireing: boolean) {
-        if (this._isSlide || this._skilling) return;
+        if (this._isSlide || this._isStop) return;
         if (!fireing) {
             this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
             if (this._isFireing) {
@@ -259,7 +294,7 @@ export class ZRSJZ_Player extends Component {
 
 
     protected FindTarget() {
-        if (this.TargetEnemy && !this.TargetEnemy.getComponent(ZRSJZ_EnemyBase).IsDead && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= this.TargetRange) {
+        if (this.TargetEnemy && !this.TargetEnemy.getComponent(ZRSJZ_EnemyBase).IsDead && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= 500) {
             return;
         }
 
@@ -292,7 +327,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     Slide() {
-        if (this._skilling) return;
+        if (this._isStop) return;
         this._moveSpeed += 1500;
         this._isSlide = true;
         const anis: string[] = this.WeaponType === "枪" ? [ZRSJZ_ANI.HC_Q, ZRSJZ_ANI.Idle_Q] : [ZRSJZ_ANI.HC_D, ZRSJZ_ANI.Idle_D1];

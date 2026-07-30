@@ -17,7 +17,7 @@ export class ZRSJZ_Shield extends ZRSJZ_Skill {
         this.scheduleOnce(() => {
             cb && cb();
             ZRSJZ_PoolManager.Instance.PutNode(this.node);
-        })
+        }, 6);
     }
 
 }

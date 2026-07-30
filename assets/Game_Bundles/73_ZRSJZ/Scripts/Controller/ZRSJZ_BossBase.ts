@@ -1,4 +1,4 @@
-import { _decorator, Node, Vec3 } from 'cc';
+import { _decorator, Node, Vec2, Vec3 } from 'cc';
 import {
     ZRSJZ_BOSS_CONFIG,
     ZRSJZ_BossConfig,
@@ -83,6 +83,10 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     }
 
     protected update(dt: number): void {
+        if (ZRSJZ_Game.Instance.GamePaused) {
+            this.RigidBody.linearVelocity = Vec2.ZERO;
+            return;
+        }
         if (this.IsDead || !this.BossConfig) {
             return;
         }

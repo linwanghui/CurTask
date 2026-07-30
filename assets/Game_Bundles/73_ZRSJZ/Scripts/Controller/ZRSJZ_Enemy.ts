@@ -5,10 +5,14 @@ import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 
-const { ccclass } = _decorator;
+const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Enemy')
 export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
+
+    @property({ displayName: "武器枪口名称" })
+    BoneName: string = "";
+
     protected start(): void {
         super.start();
         this.EnemySkeleton?.ShowEquipment(this.EnemyConfig.WeaponName);
@@ -46,7 +50,7 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
      */
     protected async Fire(): Promise<void> {
         // TODO: 接入敌人子弹预制体和伤害逻辑。
-        const qkBone = this.EnemySkeleton?.Skeleton.findBone("步枪枪口");
+        const qkBone = this.EnemySkeleton?.Skeleton.findBone(this.BoneName);
         if (!qkBone) {
             console.warn("[ZRSJZ_Player] 找不到枪口骨骼 kaihuo/texiao");
             return;
