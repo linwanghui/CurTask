@@ -283,6 +283,29 @@ export class ZRSJZ_GameData {
         return baseValue * this.GetBoxroomAttributeBonusRate(attributeName);
     }
 
+    //盲盒数据
+    public MysteryBoxTotalCost: number = 0;
+    public MysteryBoxTotalValue: number = 0;
+    public MysteryBoxOpenCount: number = 0;
+    public MysteryBoxRedCount: number = 0;
+
+    public RecordMysteryBoxOpen(cost: number, value: number, redCount: number): void {
+        this.MysteryBoxTotalCost = Math.max(
+            0,
+            Math.floor((this.MysteryBoxTotalCost ?? 0) + Math.max(0, cost))
+        );
+        this.MysteryBoxTotalValue = Math.max(
+            0,
+            Math.floor((this.MysteryBoxTotalValue ?? 0) + Math.max(0, value))
+        );
+        this.MysteryBoxOpenCount = Math.max(0, Math.floor((this.MysteryBoxOpenCount ?? 0) + 1));
+        this.MysteryBoxRedCount = Math.max(
+            0,
+            Math.floor((this.MysteryBoxRedCount ?? 0) + Math.max(0, redCount))
+        );
+        ZRSJZ_GameData.SaveData();
+    }
+
 
     //DLC存档数据
     public BNS_Property: { 木材: number, 矿石: number, 食物: number, 宝石: number, 电力: number, 繁荣度: number } =
