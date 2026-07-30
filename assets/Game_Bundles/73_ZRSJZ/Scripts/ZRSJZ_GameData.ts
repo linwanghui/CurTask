@@ -34,6 +34,7 @@ export class ZRSJZ_GameData {
         const propId = this.AddPropByName("战术匕首");
         this.WeaponryID[4] = propId;
         this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_刀, 1, 0, 0);
+        this.CurMap = "城镇_初级";
     }
 
     public MusicMute: boolean = false;//音乐静音
@@ -50,7 +51,7 @@ export class ZRSJZ_GameData {
     public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
     // public GameTempID: string[] = [];//战斗时的临时ID
 
-
+    public CurMap: string = "城镇_初级";
     ChangeGold(gold: number) {
         this.Gold += gold;
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);

@@ -764,3 +764,97 @@ export const ZRSJZ_PATH_CONFIG: Readonly<ZRSJZ_PathConfig> = {
     MaxSearchNodes: 4000,
     FallbackAvoidanceDistance: 120,
 };
+//#region 地图配置
+
+//掉落物资箱配置
+export interface ZRSJZ_BoxConfig {
+    BoxName: string;
+    MinPropCount: number;
+    MaxPropCount: number;
+    Probability: number[];//各个品质的概率--白色/绿色/蓝色/紫色/金色/红色
+}
+//地图中敌人配置
+export interface ZRSJZ_MapEnemyConfig {
+    HP: number;
+    Harm: number;
+    Box: ZRSJZ_BoxConfig;
+}
+export interface ZRSJZ_MapBossConfig {
+    HP: number;
+    HarmMultiple: number;
+    Box: ZRSJZ_BoxConfig;
+}
+
+export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, {
+    MapName: string;
+    MapEnemy: Map<string, ZRSJZ_MapEnemyConfig>
+    MapBoss: Map<string, ZRSJZ_MapBossConfig>
+    MapProp: string[][]
+}> = new Map([
+    ["城镇_初级", {
+        MapName: "城镇",
+        MapEnemy: new Map([
+            ["持枪小兵", {
+                HP: 100,
+                Harm: 10,
+                Box: {
+                    BoxName: "物资箱1",
+                    MinPropCount: 3,
+                    MaxPropCount: 6,
+                    Probability: [90, 80, 60, 30, 20, 5]
+                }
+            }],
+            ["持刀小兵", {
+                HP: 100,
+                Harm: 10,
+                Box: {
+                    BoxName: "物资箱1",
+                    MinPropCount: 3,
+                    MaxPropCount: 6,
+                    Probability: [90, 80, 60, 30, 20, 5]
+                }
+            }],
+            ["喷火兵", {
+                HP: 100,
+                Harm: 20,
+                Box: {
+                    BoxName: "物资箱3",
+                    MinPropCount: 3,
+                    MaxPropCount: 6,
+                    Probability: [90, 80, 70, 50, 20, 5]
+                }
+            }],
+            ["喷火兵", {
+                HP: 200,
+                Harm: 10,
+                Box: {
+                    BoxName: "物资箱3",
+                    MinPropCount: 3,
+                    MaxPropCount: 6,
+                    Probability: [90, 80, 70, 50, 20, 5]
+                }
+            }],
+        ]),
+        MapBoss: new Map([
+            ["Boss1", {
+                HP: 1200,
+                HarmMultiple: 1,
+                Box: {
+                    BoxName: "物资箱4",
+                    MinPropCount: 5,
+                    MaxPropCount: 8,
+                    Probability: [50, 50, 50, 50, 20, 5]
+                }
+            }],
+        ]),
+        MapProp: [
+            //白色/绿色/蓝色/紫色/金色/红色
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+        ]
+    }]
+])
