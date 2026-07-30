@@ -5,6 +5,7 @@ import {
     Node,
     Sprite,
     SpriteFrame,
+    sp,
     tween,
     Tween,
     UITransform,
@@ -19,13 +20,16 @@ import {
     ZRSJZ_MYSTERY_BOX_ITEM_POP_DURATION,
     ZRSJZ_MYSTERY_BOX_ITEM_POP_SCALE,
     ZRSJZ_MYSTERY_BOX_SEARCH_RADIUS,
-    ZRSJZ_MYSTERY_BOX_SEARCH_ROUND_DURATION
+    ZRSJZ_MYSTERY_BOX_SEARCH_ROUND_DURATION,
+    ZRSJZ_MYSTERY_BOX_SPINE_EFFECT_ANI_NAME,
+    ZRSJZ_MYSTERY_BOX_SPINE_EFFECT_SCALE
 } from './ZRSJZ_MysteryBoxConstant';
 const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_MysteryBoxSmallBox')
 export class ZRSJZ_MysteryBoxSmallBox extends Component {
     private _propName: string = "";
+    private _quality: ZRSJZ_PROP_QUALITY = null;
 
     public async Init(
         propName: string,
@@ -36,9 +40,11 @@ export class ZRSJZ_MysteryBoxSmallBox extends Component {
         coverSpriteFrame: SpriteFrame
     ): Promise<void> {
         this._propName = propName;
+        this._quality = quality;
         const displayWidth = Math.max(1, width * 0.97);
         const displayHeight = Math.max(1, height * 0.97);
         this.Resize(displayWidth, displayHeight);
+        this.ResizeSpineEffect(displayWidth, displayHeight);
 
         const cover = this.node.getChildByName("遮挡");
         if (cover) {
@@ -127,6 +133,7 @@ export class ZRSJZ_MysteryBoxSmallBox extends Component {
 
         Tween.stopAllByTarget(propNode);
         propNode.setScale(Vec3.ZERO);
+        this.PlayQualitySpineEffect();
 
         const popScale = new Vec3(
             ZRSJZ_MYSTERY_BOX_ITEM_POP_SCALE,
@@ -148,6 +155,45 @@ export class ZRSJZ_MysteryBoxSmallBox extends Component {
                 .call(() => resolve())
                 .start();
         });
+    }
+
+    private ResizeSpineEffect(width: number, height: number): void {
+        const effectNode = this.node.getChildByName("特效");
+        if (!effectNode) return;
+
+        effectNode.active = false;
+        const effectSize = effectNode.getComponent(UITransform);
+        const sourceWidth = Math.max(1, effectSize?.width ?? 132);
+        const sourceHeight = Math.max(1, effectSize?.height ?? 132);
+        effectNode.setScale(
+            width / sourceWidth * ZRSJZ_MYSTERY_BOX_SPINE_EFFECT_SCALE,
+            height / sourceHeight * ZRSJZ_MYSTERY_BOX_SPINE_EFFECT_SCALE,
+            1
+        );
+    }
+
+    private PlayQualitySpineEffect(): void {
+        if (
+            this._quality !== ZRSJZ_PROP_QUALITY.金色
+            && this._quality !== ZRSJZ_PROP_QUALITY.红色
+        ) {
+            return;
+        }
+
+        const effectNode = this.node.getChildByName("特效");
+        const skeleton = effectNode?.getComponent(sp.Skeleton);
+        if (!effectNode || !skeleton) return;
+
+        effectNode.active = true;
+        skeleton.setCompleteListener(() => {
+            effectNode.active = false;
+            skeleton.setCompleteListener(() => {});
+        });
+        skeleton.setAnimation(
+            0,
+            ZRSJZ_MYSTERY_BOX_SPINE_EFFECT_ANI_NAME,
+            false
+        );
     }
 
     private Resize(width: number, height: number): void {

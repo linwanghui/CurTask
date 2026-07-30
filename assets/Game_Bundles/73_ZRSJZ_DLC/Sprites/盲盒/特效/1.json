@@ -1,0 +1,355 @@
+{
+"skeleton": { "hash": "R4oVP5NWdSJtr4P/36/S3OgoTl4", "spine": "3.8.75", "images": "./images/", "audio": "D:/2026/2d/三角洲（卡通真人版）/盲盒出宝/开箱特效动画" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "框", "parent": "root", "length": 200 },
+	{ "name": "底", "parent": "root", "length": 100, "rotation": 90 },
+	{ "name": "粒子", "parent": "root", "x": 14.62, "y": 18.43, "scaleX": 0.703, "scaleY": 0.703 },
+	{ "name": "框2", "parent": "root", "length": 200 },
+	{ "name": "框3", "parent": "root", "length": 200 },
+	{ "name": "粒子2", "parent": "root", "x": -16.79, "y": 20.13 },
+	{ "name": "粒子3", "parent": "root", "x": -14.25, "y": -7.89, "scaleX": 0.7603, "scaleY": 0.7603 },
+	{ "name": "粒子4", "parent": "root", "x": 14.62, "y": -21.47, "scaleX": 0.9134, "scaleY": 0.9134 },
+	{ "name": "粒子5", "parent": "root", "x": 32.45, "y": -12.13, "scaleX": 1.1083, "scaleY": 1.1083 },
+	{ "name": "粒子6", "parent": "root", "x": -14.25, "y": -29.96 },
+	{ "name": "粒子7", "parent": "root", "x": 40.94, "y": 17.58, "scaleX": 0.8092, "scaleY": 0.8092 },
+	{ "name": "粒子8", "parent": "root", "x": 1.04, "y": 38.81 },
+	{ "name": "粒子9", "parent": "root", "x": -43.96, "y": 8.24, "scaleX": 0.8002, "scaleY": 0.8002 },
+	{ "name": "粒子10", "parent": "root", "x": 15.47, "y": -47.79 },
+	{ "name": "粒子11", "parent": "root", "x": -48.21, "y": -28.26, "scaleX": 1.1681, "scaleY": 1.1681 },
+	{ "name": "粒子12", "parent": "root", "x": -28.68, "y": 45.6, "scaleX": 1.031, "scaleY": 1.031 },
+	{ "name": "粒子13", "parent": "root", "x": 41.79, "y": 45.6, "scaleX": 1.1805, "scaleY": 1.1805 }
+],
+"slots": [
+	{ "name": "2x2", "bone": "root" },
+	{ "name": "di", "bone": "底" },
+	{ "name": "框", "bone": "框" },
+	{ "name": "框2", "bone": "框2" },
+	{ "name": "框3", "bone": "框3" },
+	{ "name": "粒子", "bone": "粒子" },
+	{ "name": "粒子2", "bone": "粒子2" },
+	{ "name": "粒子3", "bone": "粒子3" },
+	{ "name": "粒子12", "bone": "粒子12" },
+	{ "name": "粒子13", "bone": "粒子13" },
+	{ "name": "粒子4", "bone": "粒子4" },
+	{ "name": "粒子5", "bone": "粒子5" },
+	{ "name": "粒子6", "bone": "粒子6" },
+	{ "name": "粒子7", "bone": "粒子7" },
+	{ "name": "粒子8", "bone": "粒子8" },
+	{ "name": "粒子9", "bone": "粒子9" },
+	{ "name": "粒子10", "bone": "粒子10" },
+	{ "name": "粒子11", "bone": "粒子11" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"di": {
+				"底": { "x": 0.5, "y": -0.5, "rotation": -90, "width": 269, "height": 269 }
+			},
+			"框": {
+				"框": { "width": 271, "height": 271 }
+			},
+			"框2": {
+				"框": { "width": 271, "height": 271 }
+			},
+			"粒子10": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子11": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子12": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子13": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"2x2": {
+				"2x2": { "width": 271, "height": 271 }
+			},
+			"框3": {
+				"框": { "width": 271, "height": 271 }
+			},
+			"粒子2": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子3": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子4": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子5": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子6": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子7": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子8": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子9": {
+				"粒子": { "width": 17, "height": 17 }
+			},
+			"粒子": {
+				"粒子": { "width": 17, "height": 17 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {
+		"slots": {
+			"框": {
+				"attachment": [
+					{ "time": 0.0333, "name": "框" }
+				]
+			},
+			"粒子12": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子13": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子7": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子2": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子6": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子5": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子10": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子8": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"di": {
+				"attachment": [
+					{ "time": 0.1333, "name": "底" },
+					{ "time": 0.2667, "name": null }
+				]
+			},
+			"框2": {
+				"color": [
+					{ "time": 0.1333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.3333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "框" }
+				]
+			},
+			"粒子11": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子3": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"框3": {
+				"color": [
+					{ "time": 0.2667, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.4667, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.2667, "name": "框" }
+				]
+			},
+			"粒子": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子4": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			},
+			"粒子9": {
+				"color": [
+					{ "time": 0.2333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "粒子" }
+				]
+			}
+		},
+		"bones": {
+			"框": {
+				"scale": [
+					{ "time": 0.0333, "x": 1.196, "y": 1.196, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.1667 }
+				]
+			},
+			"框2": {
+				"scale": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.3333, "x": 1.16, "y": 1.16 }
+				]
+			},
+			"框3": {
+				"scale": [
+					{ "time": 0.2667, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.4667, "x": 1.16, "y": 1.16 }
+				]
+			},
+			"粒子": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": 61.54, "y": 102.21 }
+				]
+			},
+			"粒子2": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": -51.38, "y": 99.66 }
+				]
+			},
+			"粒子3": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": -104.86, "y": -3.07 }
+				]
+			},
+			"粒子4": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": 98.05, "y": 53.82 }
+				]
+			},
+			"粒子5": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": 69.18, "y": -54.85 }
+				]
+			},
+			"粒子6": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": -38.64, "y": -83.72 }
+				]
+			},
+			"粒子7": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": 70.88, "y": 69.95 }
+				]
+			},
+			"粒子8": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": -1.28, "y": 94.57 }
+				]
+			},
+			"粒子9": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.266, "c2": 0.48, "c3": 0.63, "c4": 0.79 },
+					{ "time": 0.3, "x": -86.97, "y": -1.85, "curve": 0.371, "c2": 0.75, "c3": 0.749 },
+					{ "time": 0.5, "x": -64.11, "y": 72.5 }
+				]
+			},
+			"粒子10": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": 46.26, "y": -68.44 }
+				]
+			},
+			"粒子11": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": -64.96, "y": -60.8 }
+				]
+			},
+			"粒子12": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": -104.86, "y": -3.07 }
+				]
+			},
+			"粒子13": {
+				"translate": [
+					{ "time": 0.1333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "x": 77.67, "y": 74.19 }
+				]
+			}
+		}
+	}
+}
+}
