@@ -1,4 +1,4 @@
-import { _decorator, Component, EventKeyboard, EventTouch, Touch, Input, input, KeyCode, Node, UITransform, Vec2, Vec3, SpriteFrame, Sprite } from 'cc';
+import { _decorator, Component, EventKeyboard, EventTouch, Touch, Input, input, KeyCode, Node, UITransform, Vec2, Vec3, SpriteFrame, Sprite, Label } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL, ZRSJZ_ROLE_CONFIG } from '../ZRSJZ_Constant';
@@ -29,17 +29,17 @@ export class ZRSJZ_Joystick_Attack extends Component {
     private _curWeaponIndex: number = 0;
     private _slideSprite: Sprite = null;
     private _slideCD: number = 0;
-    private _reloading: Node = null;
-    private _reloadingSprite: Sprite = null;
     private _reloadingCD: number = 0;
+    private _switchButton: Node = null;
+    private _bulletCount: Label = null;
 
     start() {
         this._searchButton = this.node.getChildByName('Search');
         this._attackSprite = this.node.getChildByName('Attack').getComponent(Sprite);
         this._switchSprite = this.node.getChildByName('Switch').getComponent(Sprite);
         this._slideSprite = this.node.getChildByPath('Slide/CD').getComponent(Sprite);
-        this._reloading = this.node.getChildByName('Reloading');
-        this._reloadingSprite = this.node.getChildByPath('Reloading/Loading').getComponent(Sprite);
+        this._switchButton = this.node.getChildByPath("Reload");
+        this._bulletCount = this.node.getChildByPath("Reload/Count").getComponent(Label);
 
         this._attackSprite.node.on(Node.EventType.TOUCH_START, this.OnTouchStart_Attack, this);
         this._attackSprite.node.on(Node.EventType.TOUCH_END, this.OnTouchEnd_Attack, this);
@@ -55,6 +55,12 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     protected update(dt: number): void {
+        const player = ZRSJZ_Game.Instance?.CurPlayer;
+        if (this._bulletCount && player) {
+            this._bulletCount.string =
+                `${player.MagazineAmmoCount}/${player.WarehouseAmmoCount}`;
+        }
+
         if (this._slideCD > 0) {
             this._slideCD -= dt;
             if (this._slideCD <= 0) {
@@ -68,16 +74,29 @@ export class ZRSJZ_Joystick_Attack extends Component {
             this._reloadingCD -= dt;
             if (this._reloadingCD <= 0) {
                 this._reloadingCD = 0;
-                this._reloading.active = false;
             }
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, (ZRSJZ_Joystick_Attack.LoadingCD - this._reloadingCD) / ZRSJZ_Joystick_Attack.LoadingCD);
-            // this._reloadingSprite.fillRange = (ZRSJZ_Joystick_Attack.LoadingCD - this._reloadingCD) / ZRSJZ_Joystick_Attack.LoadingCD;
+            const reloadProgress = (ZRSJZ_Joystick_Attack.LoadingCD - this._reloadingCD)
+                / ZRSJZ_Joystick_Attack.LoadingCD;
+            ZRSJZ_EventManager.Emit(
+                ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD,
+                reloadProgress,
+            );
         }
     }
 
     //#region 射击
     OnTouchStart_Attack(event: EventTouch) {
         if (this._reloadingCD > 0) return;
+        const player = ZRSJZ_Game.Instance?.CurPlayer;
+        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && player?.WeaponType === "枪" && player.MagazineAmmoCount <= 0) {
+            if (player.WarehouseAmmoCount > 0) {
+                this.Reload();
+            } else {
+                ZRSJZ_UIManager.Instance.ShowTip("没有子弹");
+            }
+            return;
+        }
+
         let touches = event.getTouches();
         for (let i = 0; i < touches.length; ++i) {
             let touch = touches[i];
@@ -122,7 +141,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     SwitchWeapon() {
         if (this._reloadingCD > 0) {
             this._reloadingCD = 0;
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 1);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 1, true);
         }
         if (this._attackTouch != null) {
             this._attackTouch = null;
@@ -131,6 +150,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
         this._switchSprite.spriteFrame = this.SwitchSFs[this._curWeaponIndex % 2];
         this._attackSprite.spriteFrame = this.AttackSFs[this._curWeaponIndex % 2];
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, ZRSJZ_Joystick_Attack.WeaponType[this._curWeaponIndex % 2]);
+        this._switchButton.active = this._curWeaponIndex % 2 == 0;
     }
 
     //滑铲
@@ -148,14 +168,12 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //换弹
     Reload() {
-        if (this._reloadingCD > 0) return;
+        if (this._reloadingCD > 0 || !ZRSJZ_Game.Instance.CurPlayer?.CanReload()) return;
         if (this._attackTouch != null) {
             this._attackTouch = null;
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
         }
         this._reloadingCD = ZRSJZ_Joystick_Attack.LoadingCD;
-        // this._reloading.active = true;
-        // this._reloadingSprite.fillRange = 0;
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 0);
     }
 

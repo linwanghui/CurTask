@@ -32,6 +32,8 @@ export class ZRSJZ_SearchPropEffect extends Component {
     private _searchIcon: Node = null;
     private _qualityEffect: Node = null;
     private _target: Node = null;
+    private _targetIcon: Node = null;
+    private readonly _targetIconScale: Vec3 = new Vec3();
     private _playVersion: number = 0;
     private readonly _pendingFinishes: Set<() => void> = new Set();
 
@@ -60,6 +62,10 @@ export class ZRSJZ_SearchPropEffect extends Component {
         if (!target?.isValid) {
             return;
         }
+        this._targetIcon = target.getChildByName("Icon");
+        if (this._targetIcon?.isValid) {
+            this._targetIconScale.set(this._targetIcon.scale);
+        }
 
         const propConfig = ZRSJZ_PROP_CONFIG.get(propName);
         const quality = propConfig?.Quality ?? ZRSJZ_PROP_QUALITY.白色;
@@ -71,7 +77,6 @@ export class ZRSJZ_SearchPropEffect extends Component {
 
         const targetOpacity = target.getComponent(UIOpacity) ?? target.addComponent(UIOpacity);
         targetOpacity.opacity = 0;
-        target.setScale(Vec3.ONE);
 
         const [coverSprite, searchSprite, skeletonData] = await Promise.all([
             this.LoadSprite(`Sprites/开箱/${gridName}/spriteFrame`),
@@ -106,11 +111,12 @@ export class ZRSJZ_SearchPropEffect extends Component {
         ZRSJZ_AudioManager.Instance?.PlaySound("开宝箱");
         targetOpacity.opacity = 255;
         await Promise.all([
-            this.PlayTargetPop(target),
+            this.PlayTargetPop(),
             this.PlayQualityEffect(quality),
         ]);
         if (version === this._playVersion) {
             this._target = null;
+            this._targetIcon = null;
         }
     }
 
@@ -218,13 +224,18 @@ export class ZRSJZ_SearchPropEffect extends Component {
         });
     }
 
-    private PlayTargetPop(target: Node): Promise<void> {
-        const popScale = new Vec3(1.16, 1.16, 1);
+    private PlayTargetPop(): Promise<void> {
+        const target = this._targetIcon;
+        if (!target?.isValid) {
+            return Promise.resolve();
+        }
+        const popScale = this._targetIconScale.clone().multiplyScalar(1.16);
+        popScale.z = this._targetIconScale.z;
         target.setScale(Vec3.ZERO);
         return this.CreateTrackedPromise(finish => {
             tween(target)
                 .to(0.14, { scale: popScale }, { easing: "backOut" })
-                .to(0.08, { scale: Vec3.ONE }, { easing: "quadOut" })
+                .to(0.08, { scale: this._targetIconScale }, { easing: "quadOut" })
                 .call(finish)
                 .start();
         });
@@ -314,7 +325,7 @@ export class ZRSJZ_SearchPropEffect extends Component {
 
     private StopTweens(): void {
         if (this._searchIcon) Tween.stopAllByTarget(this._searchIcon);
-        if (this._target) Tween.stopAllByTarget(this._target);
+        if (this._targetIcon) Tween.stopAllByTarget(this._targetIcon);
         const skeleton = this._qualityEffect?.getComponent(sp.Skeleton);
         if (skeleton) {
             skeleton.setCompleteListener(() => { });
@@ -356,7 +367,10 @@ export class ZRSJZ_SearchPropEffect extends Component {
         }
         const opacity = this._target.getComponent(UIOpacity);
         if (opacity) opacity.opacity = 255;
-        this._target.setScale(Vec3.ONE);
+        if (this._targetIcon?.isValid) {
+            this._targetIcon.setScale(this._targetIconScale);
+        }
         this._target = null;
+        this._targetIcon = null;
     }
 }

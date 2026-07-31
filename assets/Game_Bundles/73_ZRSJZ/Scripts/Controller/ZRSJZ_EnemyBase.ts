@@ -15,6 +15,7 @@ import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
 
 const { ccclass, property } = _decorator;
 
@@ -288,6 +289,11 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             this._health = 0;
             this.Die();
         }
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
+            effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+            effect.active = true;
+            effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), harm);
+        })
         this.HP.Show(this._health);
     }
 

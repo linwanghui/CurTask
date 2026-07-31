@@ -369,9 +369,9 @@ export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new M
     ["五级包", { "背包等级": 5, "容量": 16 * 4, }],
     ["六级包", { "背包等级": 6, "容量": 20 * 4, }],
     //枪
-    ["突击步枪", { "伤害": 30, "射程": 500, "射速": 700, "弹夹": 30 }],
-    ["散弹枪", { "伤害": 35, "射程": 500, "射速": 300, "弹夹": 6 }],
-    ["ssv狙击枪", { "伤害": 200, "射程": 900, "射速": 100, "弹夹": 5 }],
+    ["突击步枪", { "伤害": 30, "射程": 1200, "射速": 700, "弹夹": 30 }],
+    ["散弹枪", { "伤害": 35, "射程": 1200, "射速": 300, "弹夹": 6 }],
+    ["ssv狙击枪", { "伤害": 200, "射程": 2000, "射速": 100, "弹夹": 5 }],
     //刀
     ["战术匕首", { "伤害": 65 }],
     ["刺厌", { "伤害": 85 }],
@@ -386,7 +386,7 @@ export const ZRSJZ_PROP_PROPERTY_MAX: Map<string, number> = new Map([
     ["护甲等级", 6],
     ["减伤", 50],
     ["伤害", 200],
-    ["射程", 800],
+    ["射程", 2300],
     ["射速", 800],
     ["弹夹", 35],
 ])
@@ -796,6 +796,7 @@ export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, {
     MapName: string;
     MapEnemy: Map<string, ZRSJZ_MapEnemyConfig>
     MapBoss: Map<string, ZRSJZ_MapBossConfig>
+    MapBox: Map<string, ZRSJZ_BoxConfig>
     MapProp: string[][]
 }> = new Map([
     ["城镇_初级", {
@@ -852,6 +853,39 @@ export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, {
                     MaxPropCount: 8,
                     Probability: [50, 50, 50, 50, 20, 5]
                 }
+            }],
+        ]),
+        MapBox: new Map([
+            ["军备箱", {
+                BoxName: "军备箱",
+                MinPropCount: 5,
+                MaxPropCount: 8,
+                Probability: [80, 80, 80, 70, 30, 5]
+            }],
+            ["小木箱", {
+                BoxName: "小木箱",
+                MinPropCount: 3,
+                MaxPropCount: 5,
+                Probability: [100, 100, 60, 30, 20, 5]
+            }],
+            ["小纸箱", {
+                BoxName: "小纸箱",
+                MinPropCount: 2,
+                MaxPropCount: 4,
+                Probability: [150, 100, 60, 30, 20, 5]
+            }],
+
+            ["木箱", {
+                BoxName: "木箱",
+                MinPropCount: 5,
+                MaxPropCount: 8,
+                Probability: [90, 80, 60, 30, 20, 5]
+            }],
+            ["柜子", {
+                BoxName: "柜子",
+                MinPropCount: 5,
+                MaxPropCount: 8,
+                Probability: [90, 80, 60, 30, 20, 5]
             }],
         ]),
         MapProp: [

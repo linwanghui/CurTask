@@ -3,6 +3,7 @@ import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_Game } from '../ZRSJZ_Game';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_CheatingPanel')
@@ -18,6 +19,9 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
                 break;
             case "所有子弹加20":
                 ZRSJZ_GameData.Instance.AddAllAmmo(20);
+                break;
+            case "无限火力":
+                ZRSJZ_Game.Instance.UnlimitedFirepower = true;
                 break;
         }
     }

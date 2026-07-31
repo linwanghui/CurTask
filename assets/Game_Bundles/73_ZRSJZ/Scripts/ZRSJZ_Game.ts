@@ -24,6 +24,7 @@ export class ZRSJZ_Game extends Component {
     CurPlayer: ZRSJZ_Player = null;
 
     GamePaused: boolean = false;
+    UnlimitedFirepower: boolean = false;
 
     private _player: Node = null;
     private _miniMapContent: Node = null;
