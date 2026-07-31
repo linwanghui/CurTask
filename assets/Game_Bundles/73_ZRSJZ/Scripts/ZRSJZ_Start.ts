@@ -14,9 +14,11 @@ export class ZRSJZ_Start extends Component {
     Canvas: Node = null;
     protected start(): void {
         ZRSJZ_UIManager.Instance;
+        ZRSJZ_AudioManager.Instance.PlayMusic("BGM0");
     }
 
     OnButtonClick(event: EventTouch) {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "商店":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.商店界面);

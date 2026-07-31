@@ -92,7 +92,6 @@ export class ZRSJZ_SearchPropEffect extends Component {
         this._cover.active = true;
         this._searchIcon.active = true;
         this._qualityEffect.active = false;
-        ZRSJZ_AudioManager.Instance?.PlaySound("开宝箱");
 
         const duration = this.GetRevealDuration(quality, baseDuration);
         await this.PlaySearchCircle(duration, width, height);
@@ -101,6 +100,10 @@ export class ZRSJZ_SearchPropEffect extends Component {
         }
 
         this._cover.active = false;
+        // 搜索完成、真实道具刚出现时再播放音效；若退出界面导致搜索取消，
+        // 上方的版本检查会直接返回，不会在返回主页时误播。
+        console.error(111111111111111111111);
+        ZRSJZ_AudioManager.Instance?.PlaySound("开宝箱");
         targetOpacity.opacity = 255;
         await Promise.all([
             this.PlayTargetPop(target),
@@ -125,9 +128,9 @@ export class ZRSJZ_SearchPropEffect extends Component {
         const [height, width] = gridType.split("_").map(Number);
         this.Resize(
             width * ZRSJZ_GRID_SIZE
-                + Math.max(0, width - 1) * ZRSJZ_GRID_INTERVAL,
+            + Math.max(0, width - 1) * ZRSJZ_GRID_INTERVAL,
             height * ZRSJZ_GRID_SIZE
-                + Math.max(0, height - 1) * ZRSJZ_GRID_INTERVAL,
+            + Math.max(0, height - 1) * ZRSJZ_GRID_INTERVAL,
         );
 
         const coverSprite = await this.LoadSprite(
@@ -243,7 +246,7 @@ export class ZRSJZ_SearchPropEffect extends Component {
         this._qualityEffect.active = true;
         return this.CreateTrackedPromise(finish => {
             skeleton.setCompleteListener(() => {
-                skeleton.setCompleteListener(() => {});
+                skeleton.setCompleteListener(() => { });
                 this._qualityEffect.active = false;
                 finish();
             });
@@ -314,7 +317,7 @@ export class ZRSJZ_SearchPropEffect extends Component {
         if (this._target) Tween.stopAllByTarget(this._target);
         const skeleton = this._qualityEffect?.getComponent(sp.Skeleton);
         if (skeleton) {
-            skeleton.setCompleteListener(() => {});
+            skeleton.setCompleteListener(() => { });
             skeleton.clearTracks();
         }
         if (this._qualityEffect) {

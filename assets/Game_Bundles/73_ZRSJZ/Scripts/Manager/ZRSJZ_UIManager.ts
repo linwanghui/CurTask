@@ -42,6 +42,7 @@ export class ZRSJZ_UIManager extends Component {
     private _panelNode: Node = null;
     private _panelMap: Map<string, Node> = new Map<string, Node>();
     private _curPanel: string[] = [];
+    private _finishGameInventoryPromise: Promise<void> = null;
 
     //#region 初始化
     public static Init() {
@@ -348,6 +349,90 @@ export class ZRSJZ_UIManager extends Component {
             return null;
         }
         return Promise.resolve(this.InventoryMap.get(inventoryName));
+    }
+
+    /**
+     * 游戏结束时结算局内库存：
+     * 1. 背包和保险箱中的道具按类型转入对应仓库；
+     * 2. 仍留在物资箱中的道具直接销毁；
+     * 3. 注销并销毁 InventoryMap 中所有箱子库存节点。
+     */
+    public FinishGameInventory(): Promise<void> {
+        if (this._finishGameInventoryPromise) {
+            return this._finishGameInventoryPromise;
+        }
+
+        this._finishGameInventoryPromise = this.DoFinishGameInventory()
+            .finally(() => {
+                this._finishGameInventoryPromise = null;
+            });
+        return this._finishGameInventoryPromise;
+    }
+
+    private async DoFinishGameInventory(): Promise<void> {
+        const affectedPropIDs = new Set<string>();
+
+        for (const propID in ZRSJZ_GameData.Instance.PropData) {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+
+            if (propData.CurInventory === ZRSJZ_INVENTORY.物资) {
+                affectedPropIDs.add(propID);
+                delete ZRSJZ_GameData.Instance.PropData[propID];
+                continue;
+            }
+
+            if (
+                propData.CurInventory !== ZRSJZ_INVENTORY.背包
+                && propData.CurInventory !== ZRSJZ_INVENTORY.保险箱
+            ) {
+                continue;
+            }
+
+            const warehouse = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
+            if (!warehouse) {
+                console.warn(`[ZRSJZ_UIManager] 道具无法转入仓库: ${propData.Name}`);
+                continue;
+            }
+
+            affectedPropIDs.add(propID);
+            propData.CurInventory = warehouse;
+            propData.SourceBoxID = "";
+            propData.IsSearchLocked = false;
+            propData.GridData?.forEach(gridData => {
+                gridData.GridX = -1;
+                gridData.GridY = -1;
+            });
+        }
+
+        // 先保存最终数据，避免后续 UI 节点异步清理失败时丢失结算结果。
+        ZRSJZ_GameData.SaveData();
+
+        const inventoryEntries = Array.from(this.InventoryMap.entries());
+        for (const [inventoryKey, inventoryNode] of inventoryEntries) {
+            if (!inventoryKey.startsWith("箱子物资_")) {
+                continue;
+            }
+
+            this.InventoryMap.delete(inventoryKey);
+            if (inventoryNode?.isValid) {
+                inventoryNode.destroy();
+            }
+        }
+
+        // 清除背包、保险箱等现有库存节点中的旧格子映射。
+        const inventoryNodes = Array.from(this.InventoryMap.values());
+        for (const inventoryNode of inventoryNodes) {
+            const inventory = inventoryNode?.getComponent(ZRSJZ_Inventory);
+            if (!inventory) {
+                continue;
+            }
+
+            for (const propID of affectedPropIDs) {
+                if (inventory.Grids.some(row => row.includes(propID))) {
+                    await inventory.RemoveProp(propID);
+                }
+            }
+        }
     }
 
     //重新初始化背包

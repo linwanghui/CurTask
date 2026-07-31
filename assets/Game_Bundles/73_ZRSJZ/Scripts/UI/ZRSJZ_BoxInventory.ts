@@ -18,6 +18,11 @@ const { ccclass } = _decorator;
 export class ZRSJZ_BoxInventory extends ZRSJZ_Inventory {
     public BoxID: string = "";
 
+    /** 物资仓库和背包一样，可以存放任意类型的道具。 */
+    public IsAdaptive(_id: string): boolean {
+        return true;
+    }
+
     public static async Create(boxID: string): Promise<ZRSJZ_BoxInventory> {
         const prefab = await ZRSJZ_Tools.LoadPrefab("Prefabs/UI/Inventory/Inventory");
         const node = instantiate(prefab);

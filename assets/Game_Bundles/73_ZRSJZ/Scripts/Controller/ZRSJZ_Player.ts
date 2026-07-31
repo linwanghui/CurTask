@@ -43,6 +43,7 @@ export class ZRSJZ_Player extends Component {
     private _targetBox: ZRSJZ_Box = null;
     private _isStop: boolean = false;
     private _shielding: boolean = false;
+    private _knifeCount: number = 0;
 
     //是否锁定敌人
     public get IsLockEnemy(): boolean {
@@ -125,6 +126,7 @@ export class ZRSJZ_Player extends Component {
         this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed * this._moveRadius, this._moveY * dt * this._moveSpeed * this._moveRadius);
     }
 
+    //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number) {
         if (this._isSlide) return;
         switch (skillName) {
@@ -184,6 +186,7 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
+    //#region 移动
     Move(x: number, y: number, radius: number) {
         if (this._isStop) return;
         this._moveX = x;
@@ -193,7 +196,7 @@ export class ZRSJZ_Player extends Component {
             this.PlayerSkeleton.SetPlayerDir(x / Math.abs(x))
         }
     }
-
+    //#region 攻击
     Attack(fireing: boolean) {
         if (this._isSlide || this._isStop) return;
         if (!fireing) {
@@ -204,60 +207,13 @@ export class ZRSJZ_Player extends Component {
             return;
         }
         if (this.WeaponType === "枪") {
-            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q) : this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
+            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(this.PlayerSkeleton.GunType === "步枪" ? ZRSJZ_ANI.Attack_Idle_Q : ZRSJZ_ANI.Attack_Idle_Q2) : this.PlayAni(this.PlayerSkeleton.GunType === "步枪" ? ZRSJZ_ANI.Attack_Move_Q : ZRSJZ_ANI.Attack_Move_Q2);
             if (!this._isFireing) {
                 this._isFireing = true;
             }
         } else {
-            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
+            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Idle_D2 : ZRSJZ_ANI.Attack_Idle_D3) : this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Move_D2 : ZRSJZ_ANI.Attack_Move_D3);
         }
-    }
-
-    PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
-        if (aniName == this._aniName) return;
-        this._aniName = aniName;
-        this.PlayerSkeleton.PlayAni(aniName, loop, cb);
-    }
-
-    //动画切换
-    AniSwitch() {
-        if (this._moveX == 0 && this._moveY == 0) {
-            if (this._aniName == ZRSJZ_ANI.Walk_D) {
-                this.PlayAni(ZRSJZ_ANI.Idle_D1);
-            } else if (this._aniName == ZRSJZ_ANI.Walk_Q) {
-                this.PlayAni(ZRSJZ_ANI.Idle_Q);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D3) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D3);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_Q) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q);
-            }
-        } else if (this._moveX != 0 || this._moveY != 0) {
-            if (this._aniName == ZRSJZ_ANI.Idle_D1 || this._aniName == ZRSJZ_ANI.Idle_D2) {
-                this.PlayAni(ZRSJZ_ANI.Walk_D);
-            } else if (this._aniName == ZRSJZ_ANI.Idle_Q) {
-                this.PlayAni(ZRSJZ_ANI.Walk_Q);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D3) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_D3);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_Q) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
-            }
-        }
-    }
-
-    SwitchWeapon(weaponType: string) {
-        this.WeaponType = weaponType;
-        if (this.WeaponType === "枪") {
-            this.PlayAni(ZRSJZ_ANI.Idle_Q);
-            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name);
-        } else if (this.WeaponType === "刀") {
-            this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
-            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
-        }
-        this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
     }
 
     async Fire() {
@@ -280,6 +236,61 @@ export class ZRSJZ_Player extends Component {
 
     }
 
+    //#region 动画
+    PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
+        if (aniName == this._aniName) return;
+        this._aniName = aniName;
+        this.PlayerSkeleton.PlayAni(aniName, loop, cb);
+    }
+
+    //动画切换
+    AniSwitch() {
+        if (this._moveX == 0 && this._moveY == 0) {
+            if (this._aniName == ZRSJZ_ANI.Walk_D) {
+                this.PlayAni(ZRSJZ_ANI.Idle_D1);
+            } else if (this._aniName == ZRSJZ_ANI.Walk_Q) {
+                this.PlayAni(ZRSJZ_ANI.Idle_Q);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D2) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D3) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D3);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_Q) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_Q2) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q2);
+            }
+        } else if (this._moveX != 0 || this._moveY != 0) {
+            if (this._aniName == ZRSJZ_ANI.Idle_D1 || this._aniName == ZRSJZ_ANI.Idle_D2) {
+                this.PlayAni(ZRSJZ_ANI.Walk_D);
+            } else if (this._aniName == ZRSJZ_ANI.Idle_Q) {
+                this.PlayAni(ZRSJZ_ANI.Walk_Q);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D2) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D3) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Move_D3);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_Q) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_Q2) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Move_Q2);
+            }
+        }
+    }
+
+    //#region 武器切换
+    SwitchWeapon(weaponType: string) {
+        this.WeaponType = weaponType;
+        if (this.WeaponType === "枪") {
+            this.PlayAni(ZRSJZ_ANI.Idle_Q);
+            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name);
+        } else if (this.WeaponType === "刀") {
+            this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
+            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
+        }
+        this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
+    }
+
+
+    //#region 血量恢复
     async Recover(hp: number) {
         this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
         this.HP.Show(this.CurHP);
@@ -293,6 +304,7 @@ export class ZRSJZ_Player extends Component {
 
 
 
+    //#region 寻找敌人
     protected FindTarget() {
         if (this.TargetEnemy && !this.TargetEnemy.getComponent(ZRSJZ_EnemyBase).IsDead && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= 500) {
             return;
@@ -312,7 +324,7 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
-    //受到打击
+    //#region 受到打击
     BeHit(harm: number) {
         this.CurHP -= harm;
         if (this.CurHP <= 0) {
@@ -321,11 +333,13 @@ export class ZRSJZ_Player extends Component {
         this.HP.Show(this.CurHP);
     }
 
+    //#region 换弹
     Reload(fill: number) {
         this.Reloading.active = fill < 1;
         this.Loading.fillRange = fill;
     }
 
+    //#region 滑动
     Slide() {
         if (this._isStop) return;
         this._moveSpeed += 1500;
@@ -338,6 +352,7 @@ export class ZRSJZ_Player extends Component {
         })
     }
 
+    //#region 碰撞检测
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
         // if (this._targetBox) return;
         if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Box) && otherCollider.node?.getComponent(ZRSJZ_Box) != this._targetBox) {
@@ -362,6 +377,7 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
+    //#region 获取枪口位置
     private getMuzzlePos() {
         const qkBone = this.PlayerSkeleton?.QKBone;
         if (!qkBone) {

@@ -170,6 +170,9 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             goods.ShowPropItem()
                 .then(async () => {
                     this.RefreshGoodsContentSize(goods.node);
+                    // ShowPropItem 扩容时会在末尾新建空白格子，需把尚未搜索的
+                    // 占位图重新提到最上层，避免被这些空白格子覆盖。
+                    this.BringSearchPlaceholdersToFront();
                     const propNode = goods.node.children.find(child =>
                         child.getComponent(ZRSJZ_PropGrid)?.PropID === propID
                     );
@@ -280,6 +283,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             ?? propNode.addComponent(UIOpacity);
         propOpacity.opacity = 0;
         let effectNode: Node = null;
+
         try {
             effectNode = await ZRSJZ_PoolManager.Instance.GetNode(
                 "Prefabs/Effect/SearchPropEffect",
@@ -291,8 +295,9 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
             effectNode.parent = propNode.parent;
             effectNode.setPosition(propNode.position);
-            effectNode.setSiblingIndex(propNode.getSiblingIndex() + 1);
             effectNode.active = true;
+            this.BringSearchPlaceholdersToFront();
+            effectNode.setSiblingIndex(effectNode.parent.children.length - 1);
             this.ReleaseSearchPlaceholder(placeholder);
             placeholder = null;
             const effect = effectNode.getComponent(ZRSJZ_SearchPropEffect);
@@ -404,6 +409,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                 return;
             }
             this._searchPlaceholders.push(placeholder);
+            placeholder.setSiblingIndex(placeholder.parent.children.length - 1);
         }
 
         const goodsTransform = goods.node.getComponent(UITransform);
@@ -416,6 +422,14 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     private ClearSearchPlaceholders(): void {
         const placeholders = this._searchPlaceholders.splice(0);
         placeholders.forEach(node => this.ReleaseSearchPlaceholder(node));
+    }
+
+    private BringSearchPlaceholdersToFront(): void {
+        for (const placeholder of this._searchPlaceholders) {
+            if (placeholder?.isValid && placeholder.parent) {
+                placeholder.setSiblingIndex(placeholder.parent.children.length - 1);
+            }
+        }
     }
 
     private ReleaseSearchPlaceholder(node: Node): void {
