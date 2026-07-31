@@ -130,6 +130,7 @@ export class ZRSJZ_PropGrid extends Component {
         }
         this.PropData = ZRSJZ_GameData.Instance.PropData[propID];
         if (!this.PropData) return;
+        this.ApplySearchLockedState();
         const propName = this.PropData.Name;
         this.PropName = propName;
         if (!ZRSJZ_PROP_CONFIG.has(propName)) {
@@ -187,7 +188,7 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     OnTouchStart(event: EventTouch) {
-        if (this.PropID == "") return;
+        if (this.PropID == "" || this.IsSearchLocked()) return;
         if (this._touchID == -1) {
             this._touchID = event.getID();
             if (this._isSelling) return;
@@ -201,7 +202,7 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     OnTouchMove(event: EventTouch) {
-        if (this.PropID == "" || this._isSelling) return;
+        if (this.PropID == "" || this._isSelling || this.IsSearchLocked()) return;
         if (event.getID() == this._touchID) {
             if (!this._isMove && this._dragAxis === 0) {
                 const location = event.getUILocation();
@@ -244,7 +245,7 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     OnTouchEnd(event: EventTouch) {
-        if (this.PropID == "") return;
+        if (this.PropID == "" || this.IsSearchLocked()) return;
         if (event.getID() == this._touchID) {
             this._touchID = -1;
             if (this._isMove) {
@@ -266,7 +267,7 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     OnTouchCancel(event: EventTouch) {
-        if (this.PropID == "") return;
+        if (this.PropID == "" || this.IsSearchLocked()) return;
         if (event.getID() == this._touchID) {
             this._touchID = -1;
             if (this._isMove) {
@@ -282,7 +283,11 @@ export class ZRSJZ_PropGrid extends Component {
 
     async PropMove() {
         // dragAxis=0 为长按触发，dragAxis=1 为横向滑动触发。
-        if (this._isCreatingMove || this._dragAxis === 2) return;
+        if (
+            this._isCreatingMove
+            || this._dragAxis === 2
+            || this.IsSearchLocked()
+        ) return;
 
         this._isCreatingMove = true;
         const touchID = this._touchID;
@@ -290,7 +295,11 @@ export class ZRSJZ_PropGrid extends Component {
         this._isCreatingMove = false;
 
         // 获取对象池节点期间触摸可能已经结束或改为无效状态。
-        if (this._touchID !== touchID || this._dragAxis === 2) {
+        if (
+            this._touchID !== touchID
+            || this._dragAxis === 2
+            || this.IsSearchLocked()
+        ) {
             ZRSJZ_PoolManager.Instance.PutNode(propSFNode);
             return;
         }
@@ -303,6 +312,28 @@ export class ZRSJZ_PropGrid extends Component {
         this._propSFNode.setWorldPosition(this.node.worldPosition.clone());
         this._propSFNode.getComponent(ZRSJZ_PropSF).Init(this.PropID, this._propGridSF, this._propSF);
         this.UIOpacity.opacity = 100;
+    }
+
+    public SetSearchLocked(locked: boolean): void {
+        if (this.PropData) {
+            this.PropData.IsSearchLocked = locked;
+        }
+        this.ApplySearchLockedState();
+    }
+
+    private IsSearchLocked(): boolean {
+        return this.PropData?.IsSearchLocked === true;
+    }
+
+    private ApplySearchLockedState(): void {
+        if (!this.UIOpacity) {
+            return;
+        }
+        this.UIOpacity.opacity = this.IsSearchLocked() ? 0 : 255;
+        if (this.IsSearchLocked()) {
+            this._touchID = -1;
+            this._dragAxis = 0;
+        }
     }
 
     async ChangePosByGrid(id: string, inventory: ZRSJZ_INVENTORY, gridX: number, gridY: number, isRemove: boolean = false) {

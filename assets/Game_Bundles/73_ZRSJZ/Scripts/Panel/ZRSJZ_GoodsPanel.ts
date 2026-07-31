@@ -6,6 +6,7 @@ import {
     Mask,
     Node,
     ScrollView,
+    UIOpacity,
     UITransform,
 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
@@ -16,12 +17,17 @@ import {
     ZRSJZ_GRID_INTERVAL,
     ZRSJZ_GRID_SIZE,
     ZRSJZ_INVENTORY,
+    ZRSJZ_INVENTORY_CONFIG,
     ZRSJZ_PANEL,
     ZRSJZ_PROP_CONFIG,
 } from '../ZRSJZ_Constant';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
+import { ZRSJZ_BoxInventory } from '../UI/ZRSJZ_BoxInventory';
+import { ZRSJZ_PropGrid } from '../UI/ZRSJZ_PropGrid';
+import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_SearchPropEffect } from '../Effect/ZRSJZ_SearchPropEffect';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_GoodsPanel')
@@ -36,7 +42,11 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     public GoodsScrollView: ScrollView = null;
 
     private _revealSerial: number = 0;
+    private _arrayInventorySerial: number = 0;
     private _revealCallback: () => void = null;
+    private _activeGoodsInventory: ZRSJZ_BoxInventory = null;
+    private _arrayGoodsInventory: ZRSJZ_BoxInventory = null;
+    private readonly _searchPlaceholders: Array<Node | null> = [];
 
     protected onLoad(): void {
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
@@ -53,6 +63,9 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
     protected onDisable(): void {
         this.CancelReveal();
+        if (this._activeGoodsInventory?.node?.isValid) {
+            this._activeGoodsInventory.node.active = false;
+        }
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
     }
 
@@ -100,13 +113,21 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         box: ZRSJZ_Box = null,
     ): Promise<void> {
         this.CancelReveal();
+
+        const serial = this._revealSerial;
+        const goods = await this.ShowGoods(box);
+        if (serial !== this._revealSerial || !this.node.activeInHierarchy || !goods) {
+            return;
+        }
         if (propNames.length === 0 && !box?.HasUnclaimedLoot()) {
             return;
         }
 
-        const serial = this._revealSerial;
-        const goods = await this.ShowGoods();
-        if (serial !== this._revealSerial || !this.node.activeInHierarchy || !goods) {
+        const pendingProps = box
+            ? Array.from(box.GetUnclaimedLootProps())
+            : propNames.slice();
+        await this.ShowSearchPlaceholders(goods, pendingProps, serial);
+        if (serial !== this._revealSerial || !this.node.activeInHierarchy) {
             return;
         }
 
@@ -124,15 +145,19 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             if (!propName) {
                 return;
             }
+            const placeholder = this._searchPlaceholders.shift() ?? null;
             if (!ZRSJZ_PROP_CONFIG.has(propName)) {
                 console.warn(`[ZRSJZ_GoodsPanel] 未找到道具配置: ${propName}`);
+                this.ReleaseSearchPlaceholder(placeholder);
                 if (box?.HasUnclaimedLoot() || index < propNames.length) {
-                    this.ScheduleNextReveal(revealNext, interval);
+                    this.ScheduleNextReveal(revealNext, 0.05);
                 }
                 return;
             }
 
             const propID = ZRSJZ_GameData.Instance.AddPropByName(propName);
+            ZRSJZ_GameData.Instance.PropData[propID].SourceBoxID = goods.BoxID;
+            ZRSJZ_GameData.Instance.PropData[propID].IsSearchLocked = true;
             ZRSJZ_GameData.Instance.MovePropToInventory(
                 propID,
                 ZRSJZ_INVENTORY.物资,
@@ -143,10 +168,34 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             ZRSJZ_GameData.SaveData();
 
             goods.ShowPropItem()
-                .then(() => {
+                .then(async () => {
                     this.RefreshGoodsContentSize(goods.node);
+                    const propNode = goods.node.children.find(child =>
+                        child.getComponent(ZRSJZ_PropGrid)?.PropID === propID
+                    );
+                    if (propNode) {
+                        const propGrid = propNode.getComponent(ZRSJZ_PropGrid);
+                        propGrid.SetSearchLocked(true);
+                        await this.PlaySearchEffect(
+                            propNode,
+                            propName,
+                            interval,
+                            placeholder,
+                        );
+                        propGrid.SetSearchLocked(false);
+                        ZRSJZ_GameData.SaveData();
+                    } else {
+                        ZRSJZ_GameData.Instance.PropData[propID].IsSearchLocked = false;
+                        ZRSJZ_GameData.SaveData();
+                        this.ReleaseSearchPlaceholder(placeholder);
+                    }
                 })
                 .catch(error => {
+                    const propData = ZRSJZ_GameData.Instance.PropData[propID];
+                    if (propData) {
+                        propData.IsSearchLocked = false;
+                        ZRSJZ_GameData.SaveData();
+                    }
                     console.error(`[ZRSJZ_GoodsPanel] 显示搜索道具失败: ${propName}`, error);
                 })
                 .finally(() => {
@@ -155,12 +204,12 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                         && this.node.activeInHierarchy
                         && (box?.HasUnclaimedLoot() || index < propNames.length)
                     ) {
-                        this.ScheduleNextReveal(revealNext, interval);
+                        this.ScheduleNextReveal(revealNext, 0.05);
                     }
                 });
         };
 
-        this.ScheduleNextReveal(revealNext, interval);
+        this.ScheduleNextReveal(revealNext, 0.05);
     }
 
     private ScheduleNextReveal(callback: () => void, interval: number): void {
@@ -170,19 +219,40 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
     private CancelReveal(): void {
         this._revealSerial++;
+        this.ClearSearchPlaceholders();
         if (this._revealCallback) {
             this.unschedule(this._revealCallback);
             this._revealCallback = null;
         }
     }
 
-    private async ShowGoods(): Promise<ZRSJZ_Inventory> {
-        const goods = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.物资);
+    private async ShowGoods(box: ZRSJZ_Box): Promise<ZRSJZ_BoxInventory> {
+        let inventory: ZRSJZ_BoxInventory;
+        if (box) {
+            inventory = await box.GetBoxInventory();
+        } else {
+            this._arrayGoodsInventory?.Dispose();
+            this._arrayGoodsInventory = await ZRSJZ_BoxInventory.Create(
+                `GoodsPanel_Array_${++this._arrayInventorySerial}`,
+            );
+            inventory = this._arrayGoodsInventory;
+        }
+
+        if (
+            this._activeGoodsInventory
+            && this._activeGoodsInventory !== inventory
+            && this._activeGoodsInventory.node?.isValid
+        ) {
+            this._activeGoodsInventory.node.active = false;
+        }
+        this._activeGoodsInventory = inventory;
+
+        const goods = inventory.node;
         goods.parent = this.GoodsContent;
         goods.setPosition(0, 0, 0);
         goods.active = true;
+        await inventory.ShowPropItem();
 
-        const inventory = goods.getComponent(ZRSJZ_Inventory);
         const transform = goods.getComponent(UITransform);
         const contentTransform = this.GoodsContent.getComponent(UITransform);
         if (transform && contentTransform) {
@@ -197,6 +267,160 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         const contentTransform = this.GoodsContent?.getComponent(UITransform);
         if (goodsTransform && contentTransform) {
             contentTransform.height = Math.max(866, goodsTransform.height);
+        }
+    }
+
+    private async PlaySearchEffect(
+        propNode: Node,
+        propName: string,
+        duration: number,
+        placeholder: Node = null,
+    ): Promise<void> {
+        const propOpacity = propNode.getComponent(UIOpacity)
+            ?? propNode.addComponent(UIOpacity);
+        propOpacity.opacity = 0;
+        let effectNode: Node = null;
+        try {
+            effectNode = await ZRSJZ_PoolManager.Instance.GetNode(
+                "Prefabs/Effect/SearchPropEffect",
+            );
+            if (!effectNode || !propNode?.isValid) {
+                propOpacity.opacity = 255;
+                return;
+            }
+
+            effectNode.parent = propNode.parent;
+            effectNode.setPosition(propNode.position);
+            effectNode.setSiblingIndex(propNode.getSiblingIndex() + 1);
+            effectNode.active = true;
+            this.ReleaseSearchPlaceholder(placeholder);
+            placeholder = null;
+            const effect = effectNode.getComponent(ZRSJZ_SearchPropEffect);
+            if (!effect) {
+                propOpacity.opacity = 255;
+                return;
+            }
+            await effect.Play(propNode, propName, duration);
+        } catch (error) {
+            if (propNode?.isValid) {
+                propOpacity.opacity = 255;
+            }
+            throw error;
+        } finally {
+            this.ReleaseSearchPlaceholder(placeholder);
+            if (effectNode?.isValid) {
+                ZRSJZ_PoolManager.Instance.PutNode(effectNode);
+            }
+        }
+    }
+
+    /**
+     * 按库存相同的从左到右、从上到下规则，预先摆放尚未揭示的开箱图片。
+     * 这些节点只负责显示，不写入游戏数据，也不会占用真实库存格。
+     */
+    private async ShowSearchPlaceholders(
+        goods: ZRSJZ_BoxInventory,
+        propNames: readonly string[],
+        serial: number,
+    ): Promise<void> {
+        this.ClearSearchPlaceholders();
+        const grids = goods.Grids.map(row => row.slice());
+        const colCount = goods.InventoryConfig.Col;
+        const step = ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL;
+        const emptyRow = (): string[] => Array(colCount).fill("");
+
+        for (let index = 0; index < propNames.length; index++) {
+            if (serial !== this._revealSerial || !this.node.activeInHierarchy) {
+                return;
+            }
+
+            const propName = propNames[index];
+            const gridType = ZRSJZ_PROP_CONFIG.get(propName)?.GridType;
+            if (!gridType) {
+                this._searchPlaceholders.push(null);
+                continue;
+            }
+            const [height, width] = gridType.split("_").map(Number);
+            let gridX = -1;
+            let gridY = -1;
+
+            while (gridY < 0) {
+                for (let y = 0; y < grids.length && gridY < 0; y++) {
+                    for (let x = 0; x <= colCount - width; x++) {
+                        let canPlace = true;
+                        for (let row = y; row < y + height && canPlace; row++) {
+                            if (!grids[row]) {
+                                canPlace = false;
+                                break;
+                            }
+                            for (let col = x; col < x + width; col++) {
+                                if (grids[row][col] !== "") {
+                                    canPlace = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (canPlace) {
+                            gridX = x;
+                            gridY = y;
+                            break;
+                        }
+                    }
+                }
+                if (gridY < 0) {
+                    grids.push(emptyRow());
+                }
+            }
+
+            while (grids.length < gridY + height + 3) {
+                grids.push(emptyRow());
+            }
+            for (let row = gridY; row < gridY + height; row++) {
+                for (let col = gridX; col < gridX + width; col++) {
+                    grids[row][col] = `search_${index}`;
+                }
+            }
+
+            const placeholder = await ZRSJZ_PoolManager.Instance.GetNode(
+                "Prefabs/Effect/SearchPropEffect",
+            );
+            if (
+                !placeholder
+                || serial !== this._revealSerial
+                || !goods.node?.isValid
+            ) {
+                this.ReleaseSearchPlaceholder(placeholder);
+                return;
+            }
+
+            placeholder.parent = goods.node;
+            placeholder.setPosition(gridX * step, -gridY * step, 0);
+            placeholder.active = true;
+            await placeholder
+                .getComponent(ZRSJZ_SearchPropEffect)
+                ?.ShowPlaceholder(propName);
+            if (serial !== this._revealSerial) {
+                this.ReleaseSearchPlaceholder(placeholder);
+                return;
+            }
+            this._searchPlaceholders.push(placeholder);
+        }
+
+        const goodsTransform = goods.node.getComponent(UITransform);
+        if (goodsTransform) {
+            goodsTransform.height = Math.max(goodsTransform.height, grids.length * step);
+            this.RefreshGoodsContentSize(goods.node);
+        }
+    }
+
+    private ClearSearchPlaceholders(): void {
+        const placeholders = this._searchPlaceholders.splice(0);
+        placeholders.forEach(node => this.ReleaseSearchPlaceholder(node));
+    }
+
+    private ReleaseSearchPlaceholder(node: Node): void {
+        if (node?.isValid) {
+            ZRSJZ_PoolManager.Instance.PutNode(node);
         }
     }
 
@@ -243,16 +467,16 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         content.setPosition(-276, 433, 0);
         const contentTransform = content.addComponent(UITransform);
         contentTransform.setAnchorPoint(0, 1);
+        const goodsColumns = ZRSJZ_INVENTORY_CONFIG.get(ZRSJZ_INVENTORY.物资).Col;
         contentTransform.setContentSize(
-            4 * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL),
+            goodsColumns * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL),
             866,
         );
 
         this.GoodsScrollView = goodsRoot.addComponent(ScrollView);
         this.GoodsScrollView.content = content;
-        this.GoodsScrollView.horizontal = false;
+        this.GoodsScrollView.horizontal = goodsColumns > 4;
         this.GoodsScrollView.vertical = true;
         return content;
     }
 }
-

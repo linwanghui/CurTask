@@ -403,6 +403,10 @@ export class ZRSJZ_PropData {
     public Name: string;//道具名称
     public PropType: string;//道具分类
     public CurInventory: ZRSJZ_INVENTORY;
+    /** 道具仍在箱子中时，记录所属箱子的唯一 ID。 */
+    public SourceBoxID: string = "";
+    /** 搜索动画尚未完成时禁止显示和拖动；普通道具默认为 false。 */
+    public IsSearchLocked: boolean = false;
     public UnitPrice: number;//单价
     public MaxCount: number;//最大堆叠数
     public CurCount: number;//当前堆叠数

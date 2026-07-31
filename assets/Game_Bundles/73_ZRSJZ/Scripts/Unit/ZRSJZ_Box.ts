@@ -1,6 +1,8 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, tween, v3, Vec3 } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_BoxConfig } from '../ZRSJZ_Constant';
+import { ZRSJZ_BoxConfig, ZRSJZ_INVENTORY } from '../ZRSJZ_Constant';
+import { ZRSJZ_BoxInventory } from '../UI/ZRSJZ_BoxInventory';
+import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 const { ccclass, property } = _decorator;
 
 enum ZRSJZ_BOX_STATE {
@@ -10,6 +12,8 @@ enum ZRSJZ_BOX_STATE {
 
 @ccclass('ZRSJZ_Box')
 export class ZRSJZ_Box extends Component {
+    private static _inventorySerial: number = 0;
+
     @property
     BoxName: string = '';
 
@@ -23,11 +27,21 @@ export class ZRSJZ_Box extends Component {
 
     private _isInit: boolean = false;
     private _nextLootIndex: number = 0;
+    private _inventoryID: string = "";
+    private _boxInventory: ZRSJZ_BoxInventory = null;
     private _boxConfig: Readonly<ZRSJZ_BoxConfig> = null;
     private _mapProp: readonly (readonly string[])[] = [];
 
     protected start(): void {
         this.Init();
+    }
+
+    protected onDestroy(): void {
+        this.DisposeInventory();
+    }
+
+    public get InventoryID(): string {
+        return this._inventoryID;
     }
 
     /**
@@ -38,6 +52,7 @@ export class ZRSJZ_Box extends Component {
         config: Readonly<ZRSJZ_BoxConfig>,
         mapProp: readonly (readonly string[])[],
     ): void {
+        this.DisposeInventory();
         this._boxConfig = {
             ...config,
             Probability: [...config.Probability],
@@ -46,6 +61,7 @@ export class ZRSJZ_Box extends Component {
         this.BoxName = config.BoxName;
         this.State = ZRSJZ_BOX_STATE.IDLE;
         this._nextLootIndex = 0;
+        this._inventoryID = `${this.node.uuid}_${++ZRSJZ_Box._inventorySerial}`;
         this.LootProps = this.GenerateLootProps();
         this._isInit = false;
         this.Init();
@@ -107,6 +123,11 @@ export class ZRSJZ_Box extends Component {
         return this.LootProps;
     }
 
+    /** 返回当前仍未搜索到的物品，用于提前显示开箱占位图。 */
+    GetUnclaimedLootProps(): readonly string[] {
+        return this.LootProps.slice(this._nextLootIndex);
+    }
+
     /** 逐件取出尚未领取的物品，关闭弹窗后可从当前位置继续搜索。 */
     TakeNextLootProp(): string {
         if (this._nextLootIndex >= this.LootProps.length) {
@@ -117,6 +138,40 @@ export class ZRSJZ_Box extends Component {
 
     HasUnclaimedLoot(): boolean {
         return this._nextLootIndex < this.LootProps.length;
+    }
+
+    /** 延迟创建本箱子独享的库存节点。 */
+    async GetBoxInventory(): Promise<ZRSJZ_BoxInventory> {
+        if (this._boxInventory?.node?.isValid) {
+            return this._boxInventory;
+        }
+
+        this._boxInventory = await ZRSJZ_BoxInventory.Create(this._inventoryID);
+        return this._boxInventory;
+    }
+
+    private DisposeInventory(): void {
+        if (!this._inventoryID) {
+            return;
+        }
+
+        this._boxInventory?.Dispose();
+        this._boxInventory = null;
+
+        let changed = false;
+        for (const propID in ZRSJZ_GameData.Instance.PropData) {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            if (
+                propData.CurInventory === ZRSJZ_INVENTORY.物资
+                && propData.SourceBoxID === this._inventoryID
+            ) {
+                delete ZRSJZ_GameData.Instance.PropData[propID];
+                changed = true;
+            }
+        }
+        if (changed) {
+            ZRSJZ_GameData.SaveData();
+        }
     }
 
     private GenerateLootProps(): string[] {

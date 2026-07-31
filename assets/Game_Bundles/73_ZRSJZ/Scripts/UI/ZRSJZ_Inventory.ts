@@ -45,7 +45,7 @@ export class ZRSJZ_Inventory extends Component {
 
         for (let key in ZRSJZ_GameData.Instance.PropData) {
             const propData = ZRSJZ_GameData.Instance.PropData[key];
-            if ((inventoryType == ZRSJZ_INVENTORY.仓库_全部 && this.checkIsInWarhouse(propData.CurInventory)) || propData.CurInventory == inventoryType) {
+            if (this.BelongsToInventory(propData, inventoryType)) {
                 if (propData.GridData[gridIndex].GridX == -1) {
                     this._newAddPropID.push(propData.InstanceID);
                 } else {
@@ -96,8 +96,10 @@ export class ZRSJZ_Inventory extends Component {
             // 查找游戏过程中新增、但还没有放入当前仓库的道具。
             for (const propID in ZRSJZ_GameData.Instance.PropData) {
                 const propData = ZRSJZ_GameData.Instance.PropData[propID];
-                const belongsToInventory = (this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 && this.checkIsInWarhouse(propData.CurInventory))
-                    || propData.CurInventory === this.InventoryType;
+                const belongsToInventory = this.BelongsToInventory(
+                    propData,
+                    this.InventoryType,
+                );
                 if (belongsToInventory && propData.GridData[gridIndex]?.GridX === -1) {
                     newPropIDs.push(propID);
                 }
@@ -169,6 +171,17 @@ export class ZRSJZ_Inventory extends Component {
         } finally {
             this._isShowingPropItem = false;
         }
+    }
+
+    /** 子类可覆写库存归属规则，例如箱子库存按 SourceBoxID 隔离。 */
+    protected BelongsToInventory(
+        propData: { CurInventory: ZRSJZ_INVENTORY },
+        inventoryType: ZRSJZ_INVENTORY,
+    ): boolean {
+        return (
+            inventoryType === ZRSJZ_INVENTORY.仓库_全部
+            && this.checkIsInWarhouse(propData.CurInventory)
+        ) || propData.CurInventory === inventoryType;
     }
 
     private async SyncEmptyGridNodes() {

@@ -27,6 +27,7 @@ export class ZRSJZ_PoolManager extends Component {
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/DieEffect", 5);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/MuzzleEffect", 10);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/HitEffect", 10);
+            ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/SearchPropEffect", 2);
         }
         return ZRSJZ_PoolManager._instance;
     }

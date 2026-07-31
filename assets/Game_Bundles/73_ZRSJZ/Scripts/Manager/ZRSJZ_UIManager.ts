@@ -122,7 +122,10 @@ export class ZRSJZ_UIManager extends Component {
         ]
         ZRSJZ_Tools.LoadPrefab("Prefabs/UI/Inventory/Inventory").then((perfab: Prefab) => {
             for (let key in ZRSJZ_INVENTORY) {
-                if (weaponry.includes(ZRSJZ_INVENTORY[key])) continue;
+                if (
+                    weaponry.includes(ZRSJZ_INVENTORY[key])
+                    || ZRSJZ_INVENTORY[key] === ZRSJZ_INVENTORY.物资
+                ) continue;
                 const inventory: Node = instantiate(perfab);
                 let inventoryComponent: ZRSJZ_Inventory;
                 if (ZRSJZ_INVENTORY[key] === ZRSJZ_INVENTORY.弹药) {
