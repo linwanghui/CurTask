@@ -41,6 +41,14 @@ export class ZRSJZ_Game extends Component {
         this.InitMiniMap();
     }
 
+    protected onEnable(): void {
+        ZRSJZ_UIManager.IsBattle = true;
+    }
+
+    protected onDisable(): void {
+        ZRSJZ_UIManager.IsBattle = false;
+    }
+
     protected lateUpdate(): void {
         this.RefreshMiniMap();
     }

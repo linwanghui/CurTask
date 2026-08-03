@@ -99,7 +99,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             this.LoadBtn.active = false;
             this.UnloadBtn.active = false;
             this.ReplaceBtn.active = false;
-            this.SellBtn.active = true;
+            this.SellBtn.active = !ZRSJZ_UIManager.IsBattle;
         } else {
             if (propData.CurInventory == ZRSJZ_INVENTORY.武器_刀) {
                 this.LoadBtn.active = false;
@@ -113,7 +113,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 const isHaveWeapon = ZRSJZ_GameData.Instance.WeaponryID[weaponIndex] != "";
                 this.LoadBtn.active = !isLoading && !isHaveWeapon;
                 this.ReplaceBtn.active = !isLoading && isHaveWeapon;
-                this.SellBtn.active = true;
+                this.SellBtn.active = !ZRSJZ_UIManager.IsBattle;
             }
         }
 

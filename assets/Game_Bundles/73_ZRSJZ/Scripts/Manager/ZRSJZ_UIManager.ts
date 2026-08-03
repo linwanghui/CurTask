@@ -19,6 +19,7 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_UIManager extends Component {
     public static ZRSJZ_DLC: boolean = false;
     public static Dragging: boolean = false;//是否正在拖动道具
+    public static IsBattle: boolean = false;//是否正在战斗界面
 
     private static _instance: ZRSJZ_UIManager = null;
     public static get Instance(): ZRSJZ_UIManager {
