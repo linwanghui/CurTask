@@ -1,0 +1,72 @@
+import { _decorator, Component, director, Node, Vec3 } from 'cc';
+import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
+import { ZRSJZ_Player } from './ZRSJZ_Player';
+import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_Skill } from '../Skill/ZRSJZ_Skill';
+const { ccclass, property } = _decorator;
+
+@ccclass('ZRSJZ_Enemy_Firebat')
+export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
+
+    @property({ displayName: "武器枪口名称" })
+    BoneName: string = "";
+
+    protected start(): void {
+        super.start();
+        this.EnemySkeleton?.ShowEquipment(this.EnemyConfig.WeaponName);
+    }
+
+    protected FindTarget(): Node {
+        const players = director.getScene()?.getComponentsInChildren(ZRSJZ_Player) ?? [];
+        const currentPosition = this.node.worldPosition;
+
+        players.sort((a, b) => (
+            Vec3.distance(a.node.worldPosition, currentPosition)
+            - Vec3.distance(b.node.worldPosition, currentPosition)
+        ));
+        return players[0]?.node ?? null;
+    }
+
+    protected OnAttack(attack: string): void {
+        console.error(attack);
+
+        switch (attack) {
+            case "kq":
+            case "gj_jjq":
+                this.Fire();
+                break;
+        }
+    }
+
+    /**
+     * 默认敌人的射击入口。
+     * 后续可在此接入对象池生成 EnemyBullet，或由具体敌人子类覆写 OnAttack。
+     */
+    protected Fire(): Promise<void> {
+        // TODO: 接入敌人子弹预制体和伤害逻辑。
+        const qkBone = this.EnemySkeleton?.Skeleton.findBone(this.BoneName);
+        if (!qkBone) {
+            console.warn("[ZRSJZ_Player] 找不到枪口骨骼 kaihuo/texiao");
+            return;
+        }
+
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/FlamethrowerEffect").then((flame: Node) => {
+            flame.parent = this.node;
+            flame.active = true;
+            // Bone.worldX/worldY 是 Spine 节点空间坐标。
+            // 再经过 Spine 节点的世界矩阵，得到 Cocos 世界坐标。
+            const boneLocalPos = new Vec3(qkBone.worldX, qkBone.worldY, 0);
+            const muzzleWorldPos = new Vec3();
+            Vec3.transformMat4(
+                muzzleWorldPos,
+                boneLocalPos,
+                this.EnemySkeleton.node.worldMatrix,
+            );
+
+            flame.getComponent(ZRSJZ_Skill).Show(muzzleWorldPos, this.AttackX, this.AttackY, 20)
+        });
+    }
+
+}
+
+

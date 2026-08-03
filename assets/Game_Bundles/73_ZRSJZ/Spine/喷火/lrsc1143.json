@@ -1,16 +1,16 @@
 {
 "skeleton": {
-	"hash": "HH7043ruZUOlAEp3OPJqXaJulGE",
+	"hash": "p0DWwdy3bMQ25PxRbRzIQt5CIjI",
 	"spine": "3.8.75",
-	"x": -234.05,
-	"y": -93.9,
-	"width": 504.18,
-	"height": 1184.1,
+	"x": -93.9,
+	"y": -270.13,
+	"width": 1184.1,
+	"height": 504.18,
 	"images": "./images/",
 	"audio": "G:/游戏素材收集/英灵召唤师/effect/skilleffect/eff35lieyanchongji"
 },
 "bones": [
-	{ "name": "root" },
+	{ "name": "root", "rotation": -90 },
 	{ "name": "bone", "parent": "root", "y": -74.41, "scaleX": 1.1, "scaleY": 1.1 },
 	{ "name": "hei", "parent": "root", "length": 300.21, "rotation": 33.48, "x": 2.5, "y": 1.01 },
 	{ "name": "lit0", "parent": "root", "length": 233.67, "rotation": 35.91, "x": 1.77, "y": 65.5 },

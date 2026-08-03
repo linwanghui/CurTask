@@ -28,11 +28,12 @@ export class ZRSJZ_Bomb extends ZRSJZ_Skill {
         });
     }
 
-    Show(worldPos: Vec3, dirX?: number, dirY?: number, cb: Function = null) {
+    Show(worldPos: Vec3, dirX?: number, dirY?: number, harm: number = 10, cb: Function = null) {
         if (!this.IsInit) {
             this.IsInit = true;
             this.Init();
         }
+        this.Harm = harm;
         this.BombSkeleton.node.active = false;
         this.Skeleton.node.active = true;
         this.node.active = true;

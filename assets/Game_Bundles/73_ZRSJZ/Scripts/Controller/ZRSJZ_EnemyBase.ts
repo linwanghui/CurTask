@@ -315,18 +315,6 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.Colliders.forEach(collider => collider.enabled = false);
     }
 
-    /** 统一受伤入口，生命值降至 0 时自动调用 Die。 */
-    public TakeDamage(damage: number): void {
-        if (this.IsDead || damage <= 0) {
-            return;
-        }
-
-        this._health = Math.max(0, this._health - damage);
-        if (this._health === 0) {
-            this.Die();
-        }
-    }
-
     /**
      * 安全恢复生命值并刷新血条。
      * 返回本次实际恢复的生命值，且不会超过配置中的最大生命值。

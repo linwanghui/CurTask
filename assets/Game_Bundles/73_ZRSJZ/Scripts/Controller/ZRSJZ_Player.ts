@@ -178,7 +178,7 @@ export class ZRSJZ_Player extends Component {
                 ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/LaserEffect").then((laser: Node) => {
                     laser.parent = this.node.parent.parent;
                     laser.active = true;
-                    laser.getComponent(ZRSJZ_Skill).Show(this.getMuzzlePos(), this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, () => {
+                    laser.getComponent(ZRSJZ_Skill).Show(this.getMuzzlePos(), this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, 20, () => {
                         if (isKnife) {
                             this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
                             this.PlayAni(ZRSJZ_ANI.Idle_D1);
@@ -200,7 +200,7 @@ export class ZRSJZ_Player extends Component {
                         }
                         bomb.parent = this.node.parent.parent;
                         bomb.active = true;
-                        bomb.getComponent(ZRSJZ_Skill).Show(this.TargetEnemy.worldPosition.clone());
+                        bomb.getComponent(ZRSJZ_Skill).Show(this.TargetEnemy.worldPosition.clone(), 0, 0, 20);
                     })
                 }
                 cb();
@@ -211,7 +211,7 @@ export class ZRSJZ_Player extends Component {
                 ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/ShieldEffect").then((laser: Node) => {
                     laser.parent = this.node;
                     laser.active = true;
-                    laser.getComponent(ZRSJZ_Skill).Show(this.node.worldPosition.clone(), 0, 0, () => {
+                    laser.getComponent(ZRSJZ_Skill).Show(this.node.worldPosition.clone(), 0, 0, 0, () => {
                         this._shielding = false;
                     })
                 }).catch((error) => {

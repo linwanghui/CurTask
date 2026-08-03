@@ -604,7 +604,7 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
         PatrolArriveDistance: 50,
         MovingAttackRange: 800,
         StandingAttackRange: 300,
-        AttackInterval: 1,
+        AttackInterval: 5,
         IdleAnimation: ZRSJZ_ANI.Idle_Q,
         MoveAnimation: ZRSJZ_ANI.Walk_Q,
         MovingAttackAnimation: ["gj_ph2"],
