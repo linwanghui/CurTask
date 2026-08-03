@@ -607,7 +607,7 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
         AttackInterval: 5,
         IdleAnimation: ZRSJZ_ANI.Idle_Q,
         MoveAnimation: ZRSJZ_ANI.Walk_Q,
-        MovingAttackAnimation: ["gj_ph2"],
+        MovingAttackAnimation: ["gj_ph"],
         StandingAttackAnimation: ["gj_ph"],
         WeaponName: "喷火枪",
     }],
