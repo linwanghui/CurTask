@@ -7,13 +7,19 @@ const { ccclass, property } = _decorator;
 @ccclass('WZSJZ_GameData')
 export class WZSJZ_GameData extends Component {
     private static _instance: WZSJZ_GameData = null;
+    private static _saveScheduled: boolean = false;
     public static get Instance(): WZSJZ_GameData {
         if (!this._instance) {
             this.ReadDate();
-            director.addPersistRootNode(WZSJZ_GameData._instance.node);
+        }
+        if (this._instance.node && !this._instance.node.parent) {
+            director.addPersistRootNode(this._instance.node);
+        }
+        if (!this._saveScheduled && this._instance.node) {
+            this._saveScheduled = true;
             this._instance.schedule(() => {
                 WZSJZ_GameData.DateSave();
-            }, 5)
+            }, 5);
         }
         return this._instance;
     }
@@ -31,23 +37,30 @@ export class WZSJZ_GameData extends Component {
 
 
 
-    public GameData: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];//
+    public GameData: number[] = [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];//0.钥匙数量
     public TimeDate: number[] = [2023, 11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];//0年1月2日3是否可以签到
 
     public static DateSave() {
-        let json = JSON.stringify(WZSJZ_GameData.Instance);
+        const data = WZSJZ_GameData.Instance;
+        const json = JSON.stringify({
+            versions: data.versions,
+            Money: data.Money,
+            GameData: data.GameData,
+            TimeDate: data.TimeDate,
+        });
         sys.localStorage.setItem("WZSJZ_DATA", json);
         console.log("游戏存档");
     }
     public static ReadDate() {
-        let name = sys.localStorage.getItem("SJZXD_DATAV1.1");
+        let name = sys.localStorage.getItem("WZSJZ_DATA");
+        const dataNode = new Node("WZSJZ_GameData");
+        WZSJZ_GameData._instance = dataNode.addComponent(WZSJZ_GameData);
         if (name != "" && name != null) {
             console.log("读取存档");
-            WZSJZ_GameData._instance = Object.assign(new WZSJZ_GameData(), JSON.parse(name));
+            Object.assign(WZSJZ_GameData._instance, JSON.parse(name));
             WZSJZ_GameData.Instance.DataUp();//判断存档版本升级
         } else {
             console.log("新建存档");
-            WZSJZ_GameData._instance = new WZSJZ_GameData();
         }
         //新一天判断
         var nowdate = new Date();

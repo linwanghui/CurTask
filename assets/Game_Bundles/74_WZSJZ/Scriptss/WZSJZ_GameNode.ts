@@ -74,6 +74,11 @@ export class WZSJZ_GameNode extends Component {
             ?.ProductionPerSecond || 0;
     }
 
+    public GetMaxHealth(): number {
+        return WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level)
+            ?.MaxHealth || 0;
+    }
+
     public SetUpgradeHint(active: boolean): void {
         const hint = this.node.getChildByName("可升级提示");
         if (hint) {
@@ -108,7 +113,10 @@ export class WZSJZ_GameNode extends Component {
 
     private OnTouchStart(event: EventTouch): void {
         const manager = WZSJZ_GameManager.Instance;
-        if (!manager || !this.CurrentCell || !this.CurrentCell.IsUnlocked) {
+        if (!manager
+            || !this.CurrentCell
+            || !this.CurrentCell.IsUnlocked
+            || !manager.CanBeginDrag(this)) {
             return;
         }
 
