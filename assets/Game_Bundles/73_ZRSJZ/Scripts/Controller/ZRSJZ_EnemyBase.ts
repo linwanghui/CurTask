@@ -1,4 +1,4 @@
-import { _decorator, Collider2D, Component, Node, RigidBody2D, Vec2, Vec3 } from 'cc';
+import { _decorator, Collider2D, Color, Component, Node, RigidBody2D, tween, Tween, v3, Vec2, Vec3 } from 'cc';
 import {
     ZRSJZ_ANI,
     ZRSJZ_BoxConfig,
@@ -288,6 +288,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (this._health <= 0) {
             this._health = 0;
             this.Die();
+        } else {
+            this.beHitEffect();
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
             effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
@@ -783,5 +785,21 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         this._attackCooldown = Math.max(0, this.EnemyConfig.AttackInterval);
         // this.OnAttack();
+    }
+
+    private beHitEffect() {
+        this.unschedule(this.changeColor);
+        this.EnemySkeleton.Skeleton.color = new Color(255, 0, 0, 255);
+        this.scheduleOnce(this.changeColor, 0.04);
+        Tween.stopAllByTarget(this.EnemySkeleton.node);
+        tween(this.EnemySkeleton.node)
+            .to(0.013, { eulerAngles: v3(0, 0, 5) }, { easing: 'sineInOut' })
+            .to(0.013, { eulerAngles: v3(0, 0, -5) }, { easing: 'sineInOut' })
+            .to(0.013, { eulerAngles: v3(0, 0, 0) }, { easing: 'sineInOut' })
+            .start();
+    }
+
+    private changeColor() {
+        this.EnemySkeleton.Skeleton.color = new Color(255, 255, 255, 255);
     }
 }

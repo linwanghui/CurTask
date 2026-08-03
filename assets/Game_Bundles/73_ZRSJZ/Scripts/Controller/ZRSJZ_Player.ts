@@ -1,4 +1,4 @@
-import { _decorator, CircleCollider2D, Collider2D, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, v2, Vec3 } from 'cc';
+import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, tween, Tween, v2, v3, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
@@ -451,6 +451,8 @@ export class ZRSJZ_Player extends Component {
         this.CurHP -= harm;
         if (this.CurHP <= 0) {
             console.error("玩家死亡");
+        } else {
+            this.beHitEffect();
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
             effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
@@ -458,6 +460,22 @@ export class ZRSJZ_Player extends Component {
             effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), harm);
         })
         this.HP.Show(this.CurHP);
+    }
+
+    private beHitEffect() {
+        this.unschedule(this.changeColor);
+        this.PlayerSkeleton.Skeleton.color = new Color(255, 0, 0, 255);
+        this.scheduleOnce(this.changeColor, 0.04);
+        Tween.stopAllByTarget(this.PlayerSkeleton.node);
+        tween(this.PlayerSkeleton.node)
+            .to(0.013, { eulerAngles: v3(0, 0, 5) }, { easing: 'sineInOut' })
+            .to(0.013, { eulerAngles: v3(0, 0, -5) }, { easing: 'sineInOut' })
+            .to(0.013, { eulerAngles: v3(0, 0, 0) }, { easing: 'sineInOut' })
+            .start();
+    }
+
+    private changeColor() {
+        this.PlayerSkeleton.Skeleton.color = new Color(255, 255, 255, 255);
     }
 
     //#region 换弹

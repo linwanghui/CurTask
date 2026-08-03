@@ -188,7 +188,7 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     OnTouchStart(event: EventTouch) {
-        if (this.PropID == "" || this.IsSearchLocked()) return;
+        if (ZRSJZ_UIManager.Dragging || this.PropID == "" || this.IsSearchLocked()) return;
         if (this._touchID == -1) {
             this._touchID = event.getID();
             if (this._isSelling) return;

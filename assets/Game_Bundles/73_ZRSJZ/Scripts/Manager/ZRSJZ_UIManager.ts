@@ -18,6 +18,7 @@ const { ccclass, property } = _decorator;
 @ccclass('ZRSJZ_UIManager')
 export class ZRSJZ_UIManager extends Component {
     public static ZRSJZ_DLC: boolean = false;
+    public static Dragging: boolean = false;//是否正在拖动道具
 
     private static _instance: ZRSJZ_UIManager = null;
     public static get Instance(): ZRSJZ_UIManager {
