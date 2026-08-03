@@ -59,9 +59,7 @@ export class WZSJZ_GameData extends Component {
             WZSJZ_GameData._instance.TimeDate[1] = month;
             WZSJZ_GameData._instance.TimeDate[2] = date;
             WZSJZ_GameData._instance.TimeDate[3] = 1;
-
         }
-
     }
 
     //存档版本升级
