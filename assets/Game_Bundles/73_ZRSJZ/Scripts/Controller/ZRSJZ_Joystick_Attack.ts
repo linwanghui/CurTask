@@ -120,6 +120,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "Switch":
                 this._curWeaponIndex++;

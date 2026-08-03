@@ -69,6 +69,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
 
     //#region 按钮点击事件
     OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "Close":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.仓库界面);

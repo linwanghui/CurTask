@@ -9,6 +9,7 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_PausePanel extends ZRSJZ_Panel {
 
     public OnButtonClick(event: EventTouch): void {
+        if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "继续游戏":
             case "Mask":

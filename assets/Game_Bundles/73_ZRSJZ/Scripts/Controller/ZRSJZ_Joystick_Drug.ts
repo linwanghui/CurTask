@@ -7,6 +7,7 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_Joystick_Drug extends Component {
 
     OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "背包":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.背包弹窗);

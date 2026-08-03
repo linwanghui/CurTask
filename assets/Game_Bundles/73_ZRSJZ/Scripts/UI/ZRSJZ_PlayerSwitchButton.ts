@@ -1,6 +1,7 @@
 import { _decorator, Component, EventTouch, find, Node, tween, Tween, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PlayerSwitchButton')
@@ -23,6 +24,7 @@ export class ZRSJZ_PlayerSwitchButton extends Component {
     }
 
     OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_UIManager.Dragging) return;
         const buttonName = event.getCurrentTarget().name;
         if (buttonName == ZRSJZ_PlayerSwitchButton.CurPlayer) return;
         ZRSJZ_PlayerSwitchButton.CurPlayer = buttonName;

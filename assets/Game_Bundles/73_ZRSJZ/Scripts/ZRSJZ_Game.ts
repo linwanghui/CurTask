@@ -83,6 +83,7 @@ export class ZRSJZ_Game extends Component {
     }
 
     OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "小地图":
                 this.OpenMapPanel();

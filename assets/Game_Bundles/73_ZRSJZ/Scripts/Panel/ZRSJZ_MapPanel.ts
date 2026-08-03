@@ -46,6 +46,7 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
     }
 
     public OnButtonClick(event: EventTouch): void {
+        if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "关闭":
             case "Mask":
@@ -112,5 +113,4 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         this.ShowPoint(player.node.worldPosition.x, player.node.worldPosition.y);
     }
 }
-
 

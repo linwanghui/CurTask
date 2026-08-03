@@ -63,6 +63,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     }
 
     OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "Close":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.角色界面);

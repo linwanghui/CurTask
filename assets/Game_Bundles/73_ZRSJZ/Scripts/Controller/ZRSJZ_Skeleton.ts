@@ -41,31 +41,38 @@ export class ZRSJZ_Skeleton extends Component {
         //枪的穿戴
         let isWeaponry = false;
         for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
-            const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);
-            if (flag) {
+            if (ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName)) {
                 isWeaponry = true;
-                if (isEquipment) {
-                    const texture = await ZRSJZ_UIManager.Instance.GetWeaponryUI(equipmentName);
-                    if (!texture) {
-                        console.error(`武器纹理不存在: ${equipmentName}`);
-                        return;
-                    }
-                    this.Skeleton.findSlot('dao').setAttachment(null);
-                    this.Skeleton.setAttachment(key, key);
-                    this.Skeleton.setSlotTexture(key, texture, true);
-                    this.PlayAni(ZRSJZ_ANI.Idle_Q);
-                } else {
-                    this.Skeleton.findSlot(key)?.setAttachment(null);
-                    this.Skeleton.setAttachment('dao', ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
-                    this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
-                        this.PlayAni(ZRSJZ_ANI.Idle_D1);
-                    })
-                }
-            } else {
-                this.Skeleton.findSlot(key)?.setAttachment(null);
             }
         }
-        if (isWeaponry) return;
+        if (isWeaponry) {
+            for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
+                const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);
+                if (flag) {
+                    isWeaponry = true;
+                    if (isEquipment) {
+                        const texture = await ZRSJZ_UIManager.Instance.GetWeaponryUI(equipmentName);
+                        if (!texture) {
+                            console.error(`武器纹理不存在: ${equipmentName}`);
+                            return;
+                        }
+                        this.Skeleton.findSlot('dao').setAttachment(null);
+                        this.Skeleton.setAttachment(key, key);
+                        this.Skeleton.setSlotTexture(key, texture, true);
+                        this.PlayAni(ZRSJZ_ANI.Idle_Q);
+                    } else {
+                        this.Skeleton.findSlot(key)?.setAttachment(null);
+                        this.Skeleton.setAttachment('dao', ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
+                        this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
+                            this.PlayAni(ZRSJZ_ANI.Idle_D1);
+                        })
+                    }
+                } else {
+                    this.Skeleton.findSlot(key)?.setAttachment(null);
+                }
+            }
+            return;
+        }
 
 
         const skeleton = this.Skeleton._skeleton;

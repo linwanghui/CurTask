@@ -85,6 +85,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     }
 
     OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.物资弹窗);

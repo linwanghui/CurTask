@@ -20,12 +20,15 @@ export class ZRSJZ_Panel extends Component {
     }
 
     Hide(...args: any[]) {
+        const Mask: Node | null = find("Panel/Mask", this.node);
+        if (Mask) Mask.active = true;
         Tween.stopAllByTarget(this.PanelUIOpacity);
         tween(this.PanelUIOpacity)
             .to(0.3, { opacity: 0 }, { easing: 'circOut' })
             .call(() => {
                 if (args.length > 0) args[0]();
                 this.node.active = false;
+                if (Mask) Mask.active = false;
             })
             .start();
     }

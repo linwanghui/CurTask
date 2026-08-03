@@ -128,6 +128,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
     }
 
     async OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 this.ClosePanel();
@@ -240,5 +241,4 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
     }
 
 }
-
 

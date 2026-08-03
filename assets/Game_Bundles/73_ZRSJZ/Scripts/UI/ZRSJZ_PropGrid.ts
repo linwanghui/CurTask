@@ -71,6 +71,10 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     protected onDisable(): void {
+        if (this._isMove || this._isCreatingMove) {
+            ZRSJZ_UIManager.Dragging = false;
+        }
+        this._touchID = -1;
         this.node.off(Node.EventType.TOUCH_START, this.OnTouchStart, this);
         this.node.off(Node.EventType.TOUCH_MOVE, this.OnTouchMove, this);
         this.node.off(Node.EventType.TOUCH_END, this.OnTouchEnd, this);
@@ -249,6 +253,7 @@ export class ZRSJZ_PropGrid extends Component {
         if (event.getID() == this._touchID) {
             this._touchID = -1;
             if (this._isMove) {
+                ZRSJZ_UIManager.Dragging = false;
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
                 ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this._inventory, this.PropID, this._propSFNode.worldPosition, true);
                 this._isMove = false;
@@ -271,6 +276,7 @@ export class ZRSJZ_PropGrid extends Component {
         if (event.getID() == this._touchID) {
             this._touchID = -1;
             if (this._isMove) {
+                ZRSJZ_UIManager.Dragging = false;
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
                 ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this._inventory, this.PropID, this._propSFNode.worldPosition, true);
                 this._isMove = false;
@@ -290,8 +296,16 @@ export class ZRSJZ_PropGrid extends Component {
         ) return;
 
         this._isCreatingMove = true;
+        ZRSJZ_UIManager.Dragging = true;
         const touchID = this._touchID;
-        const propSFNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/PropSF");
+        let propSFNode: Node;
+        try {
+            propSFNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/PropSF");
+        } catch (error) {
+            this._isCreatingMove = false;
+            ZRSJZ_UIManager.Dragging = false;
+            throw error;
+        }
         this._isCreatingMove = false;
 
         // 获取对象池节点期间触摸可能已经结束或改为无效状态。
@@ -300,6 +314,7 @@ export class ZRSJZ_PropGrid extends Component {
             || this._dragAxis === 2
             || this.IsSearchLocked()
         ) {
+            ZRSJZ_UIManager.Dragging = false;
             ZRSJZ_PoolManager.Instance.PutNode(propSFNode);
             return;
         }
