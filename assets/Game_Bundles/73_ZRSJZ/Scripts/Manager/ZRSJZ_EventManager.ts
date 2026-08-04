@@ -26,6 +26,8 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_SHOW_ROLE_ITEM: string = 'ZRSJZ_SHOW_ROLE_ITEM';//角色选中显示
     public static ZRSJZ_SHOW_ROLE_DESC: string = 'ZRSJZ_SHOW_ROLE_DESC';//显示角色描述
     public static ZRSJZ_SHOW_EQUIPMENT: string = 'ZRSJZ_SHOW_EQUIPMENT';//显示皮肤装备
+    public static ZRSJZ_MAIN_CHECKED: string = 'ZRSJZ_MAIN_CHECKED';//主界面选中
+    public static ZRSJZ_MAIN_CHANGE_SKIN: string = 'ZRSJZ_MAIN_CHANGE_SKIN';//主界面切换皮肤
 }
 
 export class ZRSJZ_EventManager {

@@ -489,7 +489,7 @@ export const ZRSJZ_SKIN_CONFIG: Map<string, {
     Headset: string[],
 }> = new Map([
     ["洛克", { Name: "洛克", UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0002_耳机_蓝狼", "ll-_0000_前刘海_蓝狼"] }],
-    ["洛克2", { Name: "洛克", UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0003_曲线-3-拷贝-3", "llpf1_0000s_0001_前刘海"] }],
+    ["洛克2", { Name: "洛克", UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0003_曲线-3-拷贝-3", "llpf1__0000s_0001_前刘海"] }],
     ["安娜", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
     ["安娜2", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
     ["小美", { Name: "小美", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [] }],

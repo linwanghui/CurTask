@@ -1,6 +1,6 @@
 import { _decorator, Component, EventTouch, find, instantiate, math, Node, Prefab, Sprite, SpriteFrame, UITransform, Vec3, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
-import { ZRSJZ_GameCamera } from './Controller/ZRSJZ_GameCamera';
+import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
@@ -54,14 +54,13 @@ export class ZRSJZ_Game extends Component {
     }
 
     LoadMap() {
-        // const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
-        // if (!mapConfig) {
-        //     console.error(`[ZRSJZ_Game] 未找到地图配置: ${ZRSJZ_GameData.Instance.CurMap}`);
-        //     return;
-        // }
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
+        if (!mapConfig) {
+            console.error(`[ZRSJZ_Game] 未找到地图配置: ${ZRSJZ_GameData.Instance.CurMap}`);
+            return;
+        }
 
-        ZRSJZ_Tools.LoadPrefab("Prefabs/Map/沙漠").then((prefab: Prefab) => {
-            // ZRSJZ_Tools.LoadPrefab("Prefabs/Map/" + mapConfig.MapName).then((prefab: Prefab) => {
+        ZRSJZ_Tools.LoadPrefab("Prefabs/Map/" + mapConfig.MapName).then((prefab: Prefab) => {
             const map = instantiate(prefab);
             map.parent = this.MapParent;
             this.CurMap = map.getComponent(ZRSJZ_Map);

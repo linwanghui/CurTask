@@ -1,20 +1,39 @@
-import { _decorator, Component, director, EventTouch, instantiate, Node, Prefab } from 'cc';
+import { _decorator, Component, director, EventTouch, instantiate, Label, Node, Prefab, tween, v3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
-import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
-import { ZRSJZ_Tools } from './ZRSJZ_Tools';
-import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
 export class ZRSJZ_Start extends Component {
 
     @property(Node)
-    Canvas: Node = null;
+    Checked: Node = null;
+
+    @property(Node)
+    Confirm: Node = null;
+
+    @property(Label)
+    ConfirmName: Label = null;
+
     protected start(): void {
         ZRSJZ_UIManager.Instance;
         ZRSJZ_AudioManager.Instance.PlayMusic("BGM0");
+        tween(this.Checked)
+            .to(0.5, { scale: v3(1.2, 1.2, 1.2) }, { easing: "sineInOut" })
+            .to(0.5, { scale: v3(1, 1, 1) }, { easing: "sineInOut" })
+            .union()
+            .repeatForever()
+            .start();
+    }
+
+    protected onEnable(): void {
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHECKED, this.OnMainChecked, this);
+    }
+
+    protected onDisable(): void {
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHECKED, this.OnMainChecked, this);
     }
 
     OnButtonClick(event: EventTouch) {
@@ -30,34 +49,24 @@ export class ZRSJZ_Start extends Component {
             case "干员":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.角色界面);
                 break;
-            case "失败界面":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.失败弹窗, "直升机", "10", "11");
-                break;
-            case "胜利界面":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.胜利弹窗);
-                break;
             case "收藏室":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.收藏室界面);
                 break;
             case "盲盒":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.盲盒界面);
                 break;
-            case "开始行动":
+            case "选择地图":
                 director.loadScene("ZRSJZ_Game");
                 break;
-            case "更多游戏":
-                BundleManager.LoadBundle("73_ZRSJZ_DLC_BNS", () => {
-                    director.loadScene("ZRSJZ_BNS_Game");
-                })
-                break;
-            case "加载玩家":
-                ZRSJZ_Tools.LoadPrefab('Prefabs/Unit/Player').then((prefab: Prefab) => {
-                    const player = instantiate(prefab);
-                    player.parent = this.Canvas;
-                    player.setPosition(0, 0, 0);
-                })
-                break;
         }
+    }
+
+    OnMainChecked(target: Node, isChecked: boolean) {
+        this.ConfirmName.string = target.name;
+        this.Confirm.active = isChecked;
+        this.Checked.setWorldPosition(target.getWorldPosition().clone());
+        this.Checked.active = isChecked;
+        this.Confirm.name = target.name;
     }
 }
 

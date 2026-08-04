@@ -87,6 +87,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
                 break;
             case "上场":
                 ZRSJZ_GameData.Instance.SetCurSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN);
                 this.ShowButton();
                 break;
             default:
