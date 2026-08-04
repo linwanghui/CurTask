@@ -180,6 +180,15 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //搜索
     Search() {
+        if (this._targetBox?.RequiresRewardVideo()) {
+            if (this._targetBox.IsOpened()) {
+                ZRSJZ_UIManager.Instance.ShowTip("医疗箱已经打开");
+            } else {
+                ZRSJZ_Game.Instance.GamePaused = true;
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.医疗箱弹窗, this._targetBox);
+            }
+            return;
+        }
         if (this._targetBox?.RequiresPassword() && !this._targetBox.IsPasswordUnlocked()) {
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.密码箱弹窗, this._targetBox);
             return;
