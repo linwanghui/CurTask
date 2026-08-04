@@ -1,5 +1,5 @@
 import { sys } from "cc";
-import { ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData } from "./ZRSJZ_Constant";
+import { GetFacilityBonusValue as GetConfiguredFacilityBonusValue, GetFiringRangeAttackBonusPercent, ZRSJZ_FACILITY_UPGRADE_CONFIG, ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName } from "./ZRSJZ_Constant";
 import { ZRSJZ_Tools } from "./ZRSJZ_Tools";
 import { ZRSJZ_PlayerSwitchButton } from "./UI/ZRSJZ_PlayerSwitchButton";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "./Manager/ZRSJZ_EventManager";
@@ -41,6 +41,8 @@ export class ZRSJZ_GameData {
     public SoundMute: boolean = false;//音效静音
 
     public Gold: number = 0;
+    public FiringRangeLevel: number = 0;
+    public FacilityLevel: Partial<Record<ZRSJZ_UpgradeFacilityName, number>> = {};
     public HaveRole: string[] = ["洛克", "安娜"];
     public CurRole: string[] = ["洛克", "安娜"];
     public HaveSkin: string[] = ["洛克", "安娜"];
@@ -193,22 +195,75 @@ export class ZRSJZ_GameData {
     }
 
     //消耗道具
-    public ConsumeProp(propName: string, count: number = 1) {
+    public ConsumeProp(propName: string, count: number = 1): boolean {
         if (this.GetPropCountByName(propName) < count) {
             console.error("道具数量不足！");
-            return;
+            return false;
         }
         for (const propID in this.PropData) {
             if (this.PropData[propID].Name === propName) {
                 if (count < this.PropData[propID].CurCount) {
                     this.PropData[propID].CurCount -= count;
+                    count = 0;
                     break;
                 } else {
                     count -= this.PropData[propID].CurCount;
+                    // 先通知库存清理格子，再删除道具数据。
+                    ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, propID);
                     delete this.PropData[propID];
                 }
             }
         }
+        ZRSJZ_GameData.SaveData();
+        return count === 0;
+    }
+
+    public GetFiringRangeLevel(): number {
+        return this.GetFacilityLevel("靶场");
+    }
+
+    public SetFiringRangeLevel(level: number): void {
+        this.SetFacilityLevel("靶场", level);
+    }
+
+    public GetFacilityLevel(facilityName: ZRSJZ_UpgradeFacilityName): number {
+        const maxLevel = ZRSJZ_FACILITY_UPGRADE_CONFIG[facilityName].Levels.length;
+        const savedLevel = this.FacilityLevel?.[facilityName]
+            ?? (facilityName === "靶场" ? this.FiringRangeLevel : 0)
+            ?? 0;
+        return Math.max(0, Math.min(maxLevel, Math.floor(savedLevel)));
+    }
+
+    public SetFacilityLevel(facilityName: ZRSJZ_UpgradeFacilityName, level: number): void {
+        if (!Number.isFinite(level)) return;
+
+        const newLevel = Math.max(
+            0,
+            Math.min(ZRSJZ_FACILITY_UPGRADE_CONFIG[facilityName].Levels.length, Math.floor(level)),
+        );
+        if (this.GetFacilityLevel(facilityName) === newLevel) return;
+
+        if (!this.FacilityLevel) this.FacilityLevel = {};
+        this.FacilityLevel[facilityName] = newLevel;
+        // 保留旧字段，使之前版本的靶场存档仍可双向兼容。
+        if (facilityName === "靶场") this.FiringRangeLevel = newLevel;
+        ZRSJZ_GameData.SaveData();
+    }
+
+    public GetFacilityBonusValue(facilityName: ZRSJZ_UpgradeFacilityName): number {
+        return GetConfiguredFacilityBonusValue(facilityName, this.GetFacilityLevel(facilityName));
+    }
+
+    public GetFiringRangeAttackBonusRate(): number {
+        return GetFiringRangeAttackBonusPercent(this.GetFiringRangeLevel()) / 100;
+    }
+
+    public GetResearchMaxHPBonus(): number {
+        return this.GetFacilityBonusValue("研究所");
+    }
+
+    public GetGymMoveSpeedBonusRate(): number {
+        return this.GetFacilityBonusValue("健身") / 100;
     }
 
     public GetPropID(): string {

@@ -55,6 +55,15 @@ export class ZRSJZ_Start extends Component {
             case "盲盒":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.盲盒界面);
                 break;
+            case "靶场":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.升级弹窗, "靶场");
+                break;
+            case "研究所":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.升级弹窗, "研究所");
+                break;
+            case "健身":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.升级弹窗, "健身");
+                break;
             case "选择地图":
                 director.loadScene("ZRSJZ_Game");
                 break;

@@ -18,6 +18,7 @@ export enum ZRSJZ_PANEL {
     暂停界面 = "73_ZRSJZ/Prefabs/Panel/暂停界面",
     失败弹窗 = "73_ZRSJZ/Prefabs/Panel/失败弹窗",
     胜利弹窗 = "73_ZRSJZ/Prefabs/Panel/胜利弹窗",
+    升级弹窗 = "73_ZRSJZ/Prefabs/Panel/升级弹窗",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -392,6 +393,84 @@ export const ZRSJZ_PROP_PROPERTY_MAX: Map<string, number> = new Map([
     ["射速", 800],
     ["弹夹", 35],
 ])
+
+export type ZRSJZ_UpgradeMaterial = {
+    PropName: string,
+    Count: number,
+};
+
+export type ZRSJZ_UpgradeFacilityName = "靶场" | "研究所" | "健身";
+
+export type ZRSJZ_FacilityLevelConfig = {
+    /** 升级完成后的等级。 */
+    Level: number,
+    /** 本次升级消耗的金币。 */
+    Gold: number,
+    /** 本次升级消耗的两种物资。 */
+    Materials: [ZRSJZ_UpgradeMaterial, ZRSJZ_UpgradeMaterial],
+    /** 到达该等级后的累计属性提升。 */
+    BonusValue: number,
+};
+
+/**
+ * 主页设施逐级升级配置。
+ * Levels 中的 Level 必须从 1 连续递增，BonusValue 为对应等级的累计提升。
+ */
+export const ZRSJZ_FACILITY_UPGRADE_CONFIG: Record<ZRSJZ_UpgradeFacilityName, {
+    AttributeName: string,
+    ValueSuffix: string,
+    Levels: ZRSJZ_FacilityLevelConfig[],
+}> = {
+    "靶场": {
+        AttributeName: "攻击力",
+        ValueSuffix: "%",
+        Levels: [
+            { Level: 1, Gold: 10000, Materials: [{ PropName: "切割刀", Count: 2 }, { PropName: "实验数据", Count: 2 }], BonusValue: 5 },
+            { Level: 2, Gold: 30000, Materials: [{ PropName: "高精数显卡尺", Count: 2 }, { PropName: "显卡", Count: 1 }], BonusValue: 10 },
+            { Level: 3, Gold: 80000, Materials: [{ PropName: "刀片服务器", Count: 2 }, { PropName: "军用电台", Count: 1 }], BonusValue: 15 },
+            { Level: 4, Gold: 200000, Materials: [{ PropName: "高速阵列", Count: 1 }, { PropName: "信息终端", Count: 1 }], BonusValue: 20 },
+            { Level: 5, Gold: 500000, Materials: [{ PropName: "供能单元", Count: 1 }, { PropName: "动力电池组", Count: 1 }], BonusValue: 30 },
+        ],
+    },
+    "研究所": {
+        AttributeName: "生命上限",
+        ValueSuffix: "",
+        Levels: [
+            { Level: 1, Gold: 10000, Materials: [{ PropName: "实验数据", Count: 2 }, { PropName: "八宝粥", Count: 2 }], BonusValue: 10 },
+            { Level: 2, Gold: 30000, Materials: [{ PropName: "脑机数据", Count: 2 }, { PropName: "显卡", Count: 1 }], BonusValue: 20 },
+            { Level: 3, Gold: 80000, Materials: [{ PropName: "除颤器", Count: 1 }, { PropName: "动力电池组", Count: 1 }], BonusValue: 35 },
+            { Level: 4, Gold: 200000, Materials: [{ PropName: "呼吸机", Count: 1 }, { PropName: "ECMO", Count: 1 }], BonusValue: 50 },
+            { Level: 5, Gold: 500000, Materials: [{ PropName: "医疗机器人", Count: 1 }, { PropName: "反应炉", Count: 1 }], BonusValue: 75 },
+        ],
+    },
+    "健身": {
+        AttributeName: "移动速度",
+        ValueSuffix: "%",
+        Levels: [
+            { Level: 1, Gold: 10000, Materials: [{ PropName: "哑铃", Count: 2 }, { PropName: "沙袋", Count: 2 }], BonusValue: 5 },
+            { Level: 2, Gold: 30000, Materials: [{ PropName: "哑铃", Count: 4 }, { PropName: "沙袋", Count: 4 }], BonusValue: 10 },
+            { Level: 3, Gold: 80000, Materials: [{ PropName: "哑铃", Count: 6 }, { PropName: "高精数显卡尺", Count: 2 }], BonusValue: 15 },
+            { Level: 4, Gold: 200000, Materials: [{ PropName: "电动马达", Count: 2 }, { PropName: "动力电池组", Count: 1 }], BonusValue: 20 },
+            { Level: 5, Gold: 500000, Materials: [{ PropName: "供能单元", Count: 1 }, { PropName: "反应炉", Count: 1 }], BonusValue: 30 },
+        ],
+    },
+};
+
+export const ZRSJZ_FIRING_RANGE_LEVEL_CONFIG = ZRSJZ_FACILITY_UPGRADE_CONFIG["靶场"].Levels;
+
+export function GetFacilityBonusValue(facilityName: ZRSJZ_UpgradeFacilityName, level: number): number {
+    const safeLevel = Math.max(0, Math.floor(level || 0));
+    if (safeLevel === 0) return 0;
+
+    const levels = ZRSJZ_FACILITY_UPGRADE_CONFIG[facilityName].Levels;
+    return levels.find(config => config.Level === safeLevel)?.BonusValue
+        ?? levels[levels.length - 1]?.BonusValue
+        ?? 0;
+}
+
+export function GetFiringRangeAttackBonusPercent(level: number): number {
+    return GetFacilityBonusValue("靶场", level);
+}
 
 export const ZRSJZ_WEAPONRY_TYPE: Map<string, string[]> = new Map([
     ["步枪", ["突击步枪"]],

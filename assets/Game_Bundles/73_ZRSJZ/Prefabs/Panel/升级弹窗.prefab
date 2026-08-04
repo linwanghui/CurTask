@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "靶场弹窗",
+    "_name": "升级弹窗",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "靶场弹窗",
+    "_name": "升级弹窗",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -321,7 +321,7 @@
       "__id__": 1
     },
     "component": "",
-    "_componentId": "c13db496WBGQptGyGNwxZeK",
+    "_componentId": "77bb6wUQclJUIcuDUbub+jr",
     "handler": "OnButtonClick",
     "customEventData": ""
   },
@@ -2522,7 +2522,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -102.348,
+      "x": -93.724,
       "y": 52.165,
       "z": 0
     },
@@ -2684,7 +2684,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -102.348,
+      "x": -93.724,
       "y": -19.659,
       "z": 0
     },
@@ -3115,7 +3115,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -102.348,
+      "x": -93.724,
       "y": -124.992,
       "z": 0
     },
@@ -3277,7 +3277,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -102.348,
+      "x": -93.724,
       "y": -196.816,
       "z": 0
     },
@@ -4102,7 +4102,7 @@
       "__id__": 1
     },
     "component": "",
-    "_componentId": "c13db496WBGQptGyGNwxZeK",
+    "_componentId": "77bb6wUQclJUIcuDUbub+jr",
     "handler": "OnButtonClick",
     "customEventData": ""
   },

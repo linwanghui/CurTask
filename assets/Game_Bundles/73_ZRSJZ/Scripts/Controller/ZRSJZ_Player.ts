@@ -97,6 +97,9 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected start(): void {
+        this.MaxHP += ZRSJZ_GameData.Instance.GetResearchMaxHPBonus();
+        this.CurHP = this.MaxHP;
+        this._moveSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
         this.WeaponType = ZRSJZ_GameData.Instance.WeaponryID[0] != "" ? "枪" : "刀";
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
         if (ZRSJZ_GameData.Instance.WeaponryID[0]) {
@@ -120,6 +123,7 @@ export class ZRSJZ_Player extends Component {
         });
 
         this.HP.Init(this.MaxHP);
+        this.HP.Show(this.CurHP);
         this.PlayerSkeleton.AttackX = 200;
         this.FillInitialMagazineWhenReady();
     }
@@ -266,6 +270,7 @@ export class ZRSJZ_Player extends Component {
         const gunDamage = this.GetGunProperty("伤害", 0);
         const bulletDamage = ZRSJZ_PROP_PROPERTY
             .get(ammoName)?.["增伤"] ?? 0;
+        const firingRangeDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate();
         const bulletRange = this.GetGunProperty("射程", 0);
         const bulletLevel = this.GetBulletLevel(ammoName);
 
@@ -288,7 +293,8 @@ export class ZRSJZ_Player extends Component {
             bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
             bullet.active = true;
 
-            bullet.getComponent(ZRSJZ_Bullet).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, bulletRange, gunDamage + bulletDamage, bulletLevel,);
+            const finalDamage = Math.round((gunDamage + bulletDamage) * firingRangeDamageRate);
+            bullet.getComponent(ZRSJZ_Bullet).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, bulletRange, finalDamage, bulletLevel,);
         });
 
     }
@@ -306,6 +312,9 @@ export class ZRSJZ_Player extends Component {
     }
 
     KnifeAttack(skillRange: number, skillDamage: number) {
+        const finalDamage = Math.round(
+            skillDamage * (1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate())
+        );
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         enemys = enemys.filter(enemy => !enemy.IsDead);
 
@@ -327,7 +336,7 @@ export class ZRSJZ_Player extends Component {
 
         enemys.forEach(enemy => {
             if (Vec3.distance(targetPosition, enemy.node.worldPosition) < skillRange) {
-                enemy.BeHit(skillDamage);
+                enemy.BeHit(finalDamage);
             }
         })
     }

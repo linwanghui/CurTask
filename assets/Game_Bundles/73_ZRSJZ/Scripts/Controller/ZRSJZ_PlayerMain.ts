@@ -25,6 +25,7 @@ export class ZRSJZ_PlayerMain extends Component {
     }
 
     protected start(): void {
+        this._moveSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
         const weaponType = ZRSJZ_GameData.Instance.WeaponryID[0] != "" ? "枪" : "刀";
         this.PlayerSkeleton.IsKnife = weaponType === "刀";
         if (ZRSJZ_GameData.Instance.WeaponryID[0]) {
