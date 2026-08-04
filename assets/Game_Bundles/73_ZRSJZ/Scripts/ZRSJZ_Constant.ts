@@ -968,6 +968,12 @@ export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, {
                 MaxPropCount: 8,
                 Probability: [90, 80, 60, 30, 20, 5]
             }],
+            ["密码箱", {
+                BoxName: "密码箱",
+                MinPropCount: 5,
+                MaxPropCount: 8,
+                Probability: [20, 30, 60, 60, 20, 10]
+            }],
         ]),
         MapProp: [
             //白色/绿色/蓝色/紫色/金色/红色
