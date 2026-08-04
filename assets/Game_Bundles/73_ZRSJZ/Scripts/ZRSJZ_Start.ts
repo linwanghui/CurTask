@@ -30,11 +30,11 @@ export class ZRSJZ_Start extends Component {
             case "干员":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.角色界面);
                 break;
-            case "切换武器":
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON);
+            case "失败界面":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.失败弹窗, "直升机", "10", "11");
                 break;
-            case "背包":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.背包弹窗);
+            case "胜利界面":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.胜利弹窗);
                 break;
             case "收藏室":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.收藏室界面);
