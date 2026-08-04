@@ -25,6 +25,7 @@ export class ZRSJZ_Bullet extends Component {
     private _dirY: number = 0;
     private _isFlying: boolean = false;
     private _harm: number = 0;
+    private _isRemove = false;
 
     Init() {
         this.Collider = this.getComponent(Collider2D);
@@ -37,6 +38,7 @@ export class ZRSJZ_Bullet extends Component {
             this._isInit = true;
             this.Init();
         }
+        this._isRemove = false;
         this.node.active = true;
         this.node.setWorldPosition(worldPos.clone());
 
@@ -53,7 +55,7 @@ export class ZRSJZ_Bullet extends Component {
         this._maxRange = Math.max(0, range);
         this._curRange = 0;
         this._isFlying = directionLength > 0 && this._maxRange > 0;
-        this._harm = Math.max(10, harm);
+        this._harm = Math.max(0, harm);
 
         const angle = Math.atan2(this._dirY, this._dirX) * 180 / Math.PI + this.RotationOffset;
         this.node.setWorldRotationFromEuler(0, 0, angle);
@@ -62,14 +64,17 @@ export class ZRSJZ_Bullet extends Component {
 
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
         contract.disabled = true;
+        if (this._isRemove) return;
 
         // console.error(otherCollider.node.name);
         if (otherCollider.group === ZRSJZ_TIER.地形) {
+            this._isRemove = true;
             this.CreateEffect();
             this.scheduleOnce(() => {
                 this.Recycle();
             });
         } else if (otherCollider.group === ZRSJZ_TIER.玩家 && otherCollider.node.getComponent(ZRSJZ_Player)) {
+            this._isRemove = true;
             otherCollider.node.getComponent(ZRSJZ_Player).BeHit(this._harm);
             this.CreateEffect();
             this.scheduleOnce(() => {
@@ -77,6 +82,7 @@ export class ZRSJZ_Bullet extends Component {
             });
             // this.Recycle();
         } else if (otherCollider.group === ZRSJZ_TIER.敌人 && otherCollider.node.getComponent(ZRSJZ_EnemyBase)) {
+            this._isRemove = true;
             otherCollider.node.getComponent(ZRSJZ_EnemyBase).BeHit(this._harm);
             this.CreateEffect();
             this.scheduleOnce(() => {

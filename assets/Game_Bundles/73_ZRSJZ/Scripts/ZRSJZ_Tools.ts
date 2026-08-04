@@ -105,7 +105,8 @@ export class ZRSJZ_Tools {
     //能否滑动
     public static IsSlide(inventory: ZRSJZ_INVENTORY): boolean {
         return inventory == ZRSJZ_INVENTORY.仓库_全部 || inventory == ZRSJZ_INVENTORY.仓库_弹药 || inventory == ZRSJZ_INVENTORY.仓库_武器 ||
-            inventory == ZRSJZ_INVENTORY.仓库_物品 || inventory == ZRSJZ_INVENTORY.仓库_装备 || inventory == ZRSJZ_INVENTORY.保险箱;
+            inventory == ZRSJZ_INVENTORY.仓库_物品 || inventory == ZRSJZ_INVENTORY.仓库_装备 || inventory == ZRSJZ_INVENTORY.保险箱 ||
+            inventory == ZRSJZ_INVENTORY.物资;
     }
 
     public static ScaleNodeToFit(targetNode: Node, parentWidth: number, parentHeight: number): void {
@@ -132,4 +133,5 @@ export class ZRSJZ_Tools {
 
         targetNode.setScale(scale / 100, scale / 100, 1);
     }
+
 }

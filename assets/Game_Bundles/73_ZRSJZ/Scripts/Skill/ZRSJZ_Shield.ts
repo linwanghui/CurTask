@@ -5,7 +5,7 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Shield')
 export class ZRSJZ_Shield extends ZRSJZ_Skill {
-    Show(worldPos: Vec3, dirX?: number, dirY?: number, cb: Function = null) {
+    Show(worldPos: Vec3, dirX?: number, dirY?: number, harm: number = 10, cb: Function = null) {
         if (!this.IsInit) {
             this.IsInit = true;
             this.Init();

@@ -14,6 +14,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
     CurPlayerIndex: number = 0;
     QKBone: sp.spine.Bone = null;
+    GunType: string = "";
 
     AttackX: number = 0;
     AttackY: number = 0;
@@ -103,6 +104,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
             if (flag) {
                 if (isEquipment) {
                     this.QKBone = this.Skeleton.findBone(key + "枪口");
+                    this.GunType = key;
                 }
             }
         }

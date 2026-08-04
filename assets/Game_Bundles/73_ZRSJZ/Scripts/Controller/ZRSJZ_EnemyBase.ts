@@ -1,4 +1,4 @@
-import { _decorator, Collider2D, Component, Node, RigidBody2D, Vec2, Vec3 } from 'cc';
+import { _decorator, Collider2D, Color, Component, Node, RigidBody2D, tween, Tween, v3, Vec2, Vec3 } from 'cc';
 import {
     ZRSJZ_ANI,
     ZRSJZ_BoxConfig,
@@ -15,6 +15,7 @@ import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
 
 const { ccclass, property } = _decorator;
 
@@ -287,7 +288,14 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (this._health <= 0) {
             this._health = 0;
             this.Die();
+        } else {
+            this.beHitEffect();
         }
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
+            effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+            effect.active = true;
+            effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), harm);
+        })
         this.HP.Show(this._health);
     }
 
@@ -307,18 +315,6 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         }
         this.OnDeath();
         this.Colliders.forEach(collider => collider.enabled = false);
-    }
-
-    /** 统一受伤入口，生命值降至 0 时自动调用 Die。 */
-    public TakeDamage(damage: number): void {
-        if (this.IsDead || damage <= 0) {
-            return;
-        }
-
-        this._health = Math.max(0, this._health - damage);
-        if (this._health === 0) {
-            this.Die();
-        }
     }
 
     /**
@@ -789,5 +785,21 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         this._attackCooldown = Math.max(0, this.EnemyConfig.AttackInterval);
         // this.OnAttack();
+    }
+
+    private beHitEffect() {
+        this.unschedule(this.changeColor);
+        this.EnemySkeleton.Skeleton.color = new Color(255, 0, 0, 255);
+        this.scheduleOnce(this.changeColor, 0.04);
+        Tween.stopAllByTarget(this.EnemySkeleton.node);
+        tween(this.EnemySkeleton.node)
+            .to(0.013, { eulerAngles: v3(0, 0, 5) }, { easing: 'sineInOut' })
+            .to(0.013, { eulerAngles: v3(0, 0, -5) }, { easing: 'sineInOut' })
+            .to(0.013, { eulerAngles: v3(0, 0, 0) }, { easing: 'sineInOut' })
+            .start();
+    }
+
+    private changeColor() {
+        this.EnemySkeleton.Skeleton.color = new Color(255, 255, 255, 255);
     }
 }

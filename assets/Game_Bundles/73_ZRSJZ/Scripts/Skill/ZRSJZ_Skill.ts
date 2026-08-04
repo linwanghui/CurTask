@@ -10,6 +10,7 @@ export class ZRSJZ_Skill extends Component {
     Skeleton: sp.Skeleton = null;
 
     IsInit: boolean = false;
+    Harm: number = 0;
 
     private _dirX: number = 0;
     private _dirY: number = 0;
@@ -29,11 +30,12 @@ export class ZRSJZ_Skill extends Component {
         });
     }
 
-    Show(worldPos: Vec3, dirX?: number, dirY?: number, cb: Function = null) {
+    Show(worldPos: Vec3, dirX?: number, dirY?: number, harm: number = 10, cb: Function = null) {
         if (!this.IsInit) {
             this.IsInit = true;
             this.Init();
         }
+        this.Harm = harm;
         this.node.active = true;
         this.node.setWorldPosition(worldPos.clone());
 

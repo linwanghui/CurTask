@@ -16,7 +16,8 @@ export class ZRSJZ_PausePanel extends ZRSJZ_Panel {
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.暂停界面);
                 break;
             case "返回主页":
-                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.暂停界面, () => {
+                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.暂停界面, async () => {
+                    await ZRSJZ_UIManager.Instance.FinishGameInventory();
                     director.loadScene("ZRSJZ_Star");
                 });
                 break;

@@ -1,6 +1,6 @@
-import { _decorator, CircleCollider2D, Collider2D, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, v2, Vec3 } from 'cc';
+import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, tween, Tween, v2, v3, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_ANI, ZRSJZ_TIER } from '../ZRSJZ_Constant';
+import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -12,6 +12,8 @@ import { ZRSJZ_MuzzleEffect } from '../Effect/ZRSJZ_MuzzleEffect';
 import { ZRSJZ_Effect_CB } from '../Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_Skill } from '../Skill/ZRSJZ_Skill';
+import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -43,6 +45,32 @@ export class ZRSJZ_Player extends Component {
     private _targetBox: ZRSJZ_Box = null;
     private _isStop: boolean = false;
     private _shielding: boolean = false;
+    private _knifeCount: number = 0;
+    private _magazineGunID: string = "";
+    /** 按实际装入顺序保存每一发子弹的名称，射击时从队首取出。 */
+    private readonly _magazineAmmo: string[] = [];
+    private _isReloading: boolean = false;
+    private _initialMagazineRetryCount: number = 0;
+
+    public get MagazineAmmoCount(): number {
+        return this._magazineAmmo.length;
+    }
+
+    public get MagazineCapacity(): number {
+        return Math.max(0, Math.floor(this.GetGunProperty("弹夹", 0)));
+    }
+
+    /** 当前备战弹药栏中尚未装入弹夹的子弹总数。 */
+    public get WarehouseAmmoCount(): number {
+        let count = 0;
+        for (const ammoID of ZRSJZ_GameData.Instance.AmmoID) {
+            const ammoData = ZRSJZ_GameData.Instance.PropData[ammoID];
+            if (ammoData?.PropType === "弹药") {
+                count += Math.max(0, Math.floor(ammoData.CurCount));
+            }
+        }
+        return count;
+    }
 
     //是否锁定敌人
     public get IsLockEnemy(): boolean {
@@ -78,13 +106,22 @@ export class ZRSJZ_Player extends Component {
         }
 
         this.Skeleton.setEventListener((trackEntry, event) => {
-            if (typeof event !== "number" && (event.data.name === "kq" || event.data.name === "gj_jjq") && this._isFireing && this.WeaponType === "枪") {
-                void this.Fire();
+            if (typeof event !== "number") {
+
+                if ((event.data.name === "kq" || event.data.name === "gj_jjq") && this._isFireing && this.WeaponType === "枪") {
+                    void this.Fire();
+                } else if (event.data.name === "dao") {
+                    this.KnifeAttack(200, ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害);
+                } else if (event.data.name === "hui") {
+                    this.KnifeAttack(250, ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害);
+                }
+
             }
         });
 
         this.HP.Init(this.MaxHP);
         this.PlayerSkeleton.AttackX = 200;
+        this.FillInitialMagazineWhenReady();
     }
 
     protected onEnable(): void {
@@ -125,6 +162,7 @@ export class ZRSJZ_Player extends Component {
         this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed * this._moveRadius, this._moveY * dt * this._moveSpeed * this._moveRadius);
     }
 
+    //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number) {
         if (this._isSlide) return;
         switch (skillName) {
@@ -140,7 +178,7 @@ export class ZRSJZ_Player extends Component {
                 ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/LaserEffect").then((laser: Node) => {
                     laser.parent = this.node.parent.parent;
                     laser.active = true;
-                    laser.getComponent(ZRSJZ_Skill).Show(this.getMuzzlePos(), this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, () => {
+                    laser.getComponent(ZRSJZ_Skill).Show(this.getMuzzlePos(), this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, 20, () => {
                         if (isKnife) {
                             this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
                             this.PlayAni(ZRSJZ_ANI.Idle_D1);
@@ -162,7 +200,7 @@ export class ZRSJZ_Player extends Component {
                         }
                         bomb.parent = this.node.parent.parent;
                         bomb.active = true;
-                        bomb.getComponent(ZRSJZ_Skill).Show(this.TargetEnemy.worldPosition.clone());
+                        bomb.getComponent(ZRSJZ_Skill).Show(this.TargetEnemy.worldPosition.clone(), 0, 0, 20);
                     })
                 }
                 cb();
@@ -173,7 +211,7 @@ export class ZRSJZ_Player extends Component {
                 ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/ShieldEffect").then((laser: Node) => {
                     laser.parent = this.node;
                     laser.active = true;
-                    laser.getComponent(ZRSJZ_Skill).Show(this.node.worldPosition.clone(), 0, 0, () => {
+                    laser.getComponent(ZRSJZ_Skill).Show(this.node.worldPosition.clone(), 0, 0, 0, () => {
                         this._shielding = false;
                     })
                 }).catch((error) => {
@@ -184,6 +222,7 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
+    //#region 移动
     Move(x: number, y: number, radius: number) {
         if (this._isStop) return;
         this._moveX = x;
@@ -193,7 +232,7 @@ export class ZRSJZ_Player extends Component {
             this.PlayerSkeleton.SetPlayerDir(x / Math.abs(x))
         }
     }
-
+    //#region 攻击
     Attack(fireing: boolean) {
         if (this._isSlide || this._isStop) return;
         if (!fireing) {
@@ -201,18 +240,99 @@ export class ZRSJZ_Player extends Component {
             if (this._isFireing) {
                 this._isFireing = false;
             }
+            this._isKnifeAttack = false;
             return;
         }
         if (this.WeaponType === "枪") {
-            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q) : this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
+            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(this.PlayerSkeleton.GunType === "步枪" ? ZRSJZ_ANI.Attack_Idle_Q : ZRSJZ_ANI.Attack_Idle_Q2) : this.PlayAni(this.PlayerSkeleton.GunType === "步枪" ? ZRSJZ_ANI.Attack_Move_Q : ZRSJZ_ANI.Attack_Move_Q2);
             if (!this._isFireing) {
                 this._isFireing = true;
             }
         } else {
-            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
+            this._isKnifeAttack = true;
+            this.onKnifeAttack();
         }
     }
 
+    async Fire() {
+        this.EnsureMagazineMatchesGun();
+        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && (this.WeaponType !== "枪" || this._magazineAmmo.length <= 0)) {
+            this.StopFiring();
+            return;
+        }
+
+
+        const ammoName = ZRSJZ_Game.Instance.UnlimitedFirepower ? this._magazineAmmo.length > 0 ? this._magazineAmmo[0] : "1级子弹" : this._magazineAmmo.length > 0 ? this._magazineAmmo.shift() : "";
+        const gunDamage = this.GetGunProperty("伤害", 0);
+        const bulletDamage = ZRSJZ_PROP_PROPERTY
+            .get(ammoName)?.["增伤"] ?? 0;
+        const bulletRange = this.GetGunProperty("射程", 0);
+        const bulletLevel = this.GetBulletLevel(ammoName);
+
+        // 在任何异步资源加载前从队首取弹，防止连续动画事件重复使用同一发子弹。
+        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._magazineAmmo.length <= 0) {
+            this.StopFiring();
+        }
+
+        const muzzleWorldPos = this.getMuzzlePos();
+        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && (!muzzleWorldPos || bulletRange <= 0)) {
+            return;
+        }
+
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
+            muzzleEffect.parent = this.node;
+            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
+        })
+
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet").then((bullet: Node) => {
+            bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+            bullet.active = true;
+
+            bullet.getComponent(ZRSJZ_Bullet).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, bulletRange, gunDamage + bulletDamage, bulletLevel,);
+        });
+
+    }
+
+    private _isKnifeAttack: boolean = false;
+    onKnifeAttack() {
+        this._aniName = "";
+        this._moveX == 0 && this._moveY == 0 ?
+            this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Idle_D2 : ZRSJZ_ANI.Attack_Idle_D3, false, () => {
+                this.onKnifeAttack();
+            }) :
+            this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Move_D2 : ZRSJZ_ANI.Attack_Move_D3, false, () => {
+                this.onKnifeAttack();
+            });
+    }
+
+    KnifeAttack(skillRange: number, skillDamage: number) {
+        let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
+        enemys = enemys.filter(enemy => !enemy.IsDead);
+
+        // 节点自身朝上 300
+        const up = new Vec3();
+        Vec3.transformQuat(up, new Vec3(0, 1, 0), this.node.worldRotation);
+        up.normalize().multiplyScalar(150);
+
+        // 最终位置 = 原位置 + 朝前 200 + 自身朝上 300
+        const targetPosition = new Vec3();
+        Vec3.add(targetPosition, this.node.worldPosition.clone(), up);
+
+        targetPosition.x += Math.sign(this.PlayerSkeleton.AttackX) * 150;
+
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
+            muzzleEffect.parent = this.node;
+            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(targetPosition, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
+        })
+
+        enemys.forEach(enemy => {
+            if (Vec3.distance(targetPosition, enemy.node.worldPosition) < skillRange) {
+                enemy.BeHit(skillDamage);
+            }
+        })
+    }
+
+    //#region 动画
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
         if (aniName == this._aniName) return;
         this._aniName = aniName;
@@ -227,11 +347,21 @@ export class ZRSJZ_Player extends Component {
             } else if (this._aniName == ZRSJZ_ANI.Walk_Q) {
                 this.PlayAni(ZRSJZ_ANI.Idle_Q);
             } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
+                if (this._isKnifeAttack) {
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2, false, () => { this.onKnifeAttack() });
+                } else {
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
+                }
             } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D3) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D3);
+                if (this._isKnifeAttack) {
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2, false, () => { this.onKnifeAttack() });
+                } else {
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D3);
+                }
             } else if (this._aniName == ZRSJZ_ANI.Attack_Move_Q) {
                 this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_Q2) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q2);
             }
         } else if (this._moveX != 0 || this._moveY != 0) {
             if (this._aniName == ZRSJZ_ANI.Idle_D1 || this._aniName == ZRSJZ_ANI.Idle_D2) {
@@ -239,47 +369,43 @@ export class ZRSJZ_Player extends Component {
             } else if (this._aniName == ZRSJZ_ANI.Idle_Q) {
                 this.PlayAni(ZRSJZ_ANI.Walk_Q);
             } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
+                if (this._isKnifeAttack) {
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2, false, () => { this.onKnifeAttack() });
+                } else {
+                    this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
+                }
             } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D3) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_D3);
+                if (this._isKnifeAttack) {
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2, false, () => { this.onKnifeAttack() });
+                } else {
+                    this.PlayAni(ZRSJZ_ANI.Attack_Move_D3);
+                }
             } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_Q) {
                 this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
+            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_Q2) {
+                this.PlayAni(ZRSJZ_ANI.Attack_Move_Q2);
             }
         }
     }
 
+    //#region 武器切换
+    private _curKnifeName: string = "";
     SwitchWeapon(weaponType: string) {
         this.WeaponType = weaponType;
         if (this.WeaponType === "枪") {
+            this.EnsureMagazineMatchesGun();
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
             this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name);
         } else if (this.WeaponType === "刀") {
             this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
-            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
+            this._curKnifeName = ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name
+            this.PlayerSkeleton.ShowEquipment(this._curKnifeName);
         }
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
     }
 
-    async Fire() {
-        const muzzleWorldPos = this.getMuzzlePos();
 
-        const muzzleEffect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect");
-        muzzleEffect.parent = this.node;
-        muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
-
-        const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
-        bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
-        bullet.active = true;
-
-        bullet.getComponent(ZRSJZ_Bullet).Show(
-            muzzleWorldPos,
-            this.PlayerSkeleton.AttackX,
-            this.PlayerSkeleton.AttackY,
-            3000,
-        );
-
-    }
-
+    //#region 血量恢复
     async Recover(hp: number) {
         this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
         this.HP.Show(this.CurHP);
@@ -293,7 +419,12 @@ export class ZRSJZ_Player extends Component {
 
 
 
+    //#region 寻找敌人
     protected FindTarget() {
+        // const attackRange = this.WeaponType === "枪"
+        //     ? this.GetGunProperty("射程", 500)
+        //     : 500;
+        const attackRange = 2000;
         if (this.TargetEnemy && !this.TargetEnemy.getComponent(ZRSJZ_EnemyBase).IsDead && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= 500) {
             return;
         }
@@ -305,27 +436,179 @@ export class ZRSJZ_Player extends Component {
             Vec3.distance(a.node.worldPosition, currentPosition)
             - Vec3.distance(b.node.worldPosition, currentPosition)
         ));
-        if (enemys.length > 0 && Vec3.distance(enemys[0].node.worldPosition, this.node.worldPosition) <= this.TargetRange) {
+        if (
+            enemys.length > 0
+            && Vec3.distance(enemys[0].node.worldPosition, this.node.worldPosition) <= attackRange
+        ) {
             this.TargetEnemy = enemys[0].node;
         } else {
             this.TargetEnemy = null;
         }
     }
 
-    //受到打击
+    //#region 受到打击
     BeHit(harm: number) {
         this.CurHP -= harm;
         if (this.CurHP <= 0) {
             console.error("玩家死亡");
+        } else {
+            this.beHitEffect();
         }
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
+            effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+            effect.active = true;
+            effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), harm);
+        })
         this.HP.Show(this.CurHP);
     }
 
-    Reload(fill: number) {
-        this.Reloading.active = fill < 1;
-        this.Loading.fillRange = fill;
+    private beHitEffect() {
+        this.unschedule(this.changeColor);
+        this.PlayerSkeleton.Skeleton.color = new Color(255, 0, 0, 255);
+        this.scheduleOnce(this.changeColor, 0.04);
+        Tween.stopAllByTarget(this.PlayerSkeleton.node);
+        tween(this.PlayerSkeleton.node)
+            .to(0.013, { eulerAngles: v3(0, 0, 5) }, { easing: 'sineInOut' })
+            .to(0.013, { eulerAngles: v3(0, 0, -5) }, { easing: 'sineInOut' })
+            .to(0.013, { eulerAngles: v3(0, 0, 0) }, { easing: 'sineInOut' })
+            .start();
     }
 
+    private changeColor() {
+        this.PlayerSkeleton.Skeleton.color = new Color(255, 255, 255, 255);
+    }
+
+    //#region 换弹
+    Reload(fill: number, isCancelled: boolean = false) {
+        if (isCancelled) {
+            this._isReloading = false;
+            this.Reloading.active = false;
+            this.Loading.fillRange = 1;
+            return;
+        }
+
+        if (fill <= 0) {
+            if (!this.CanReload()) {
+                return;
+            }
+            this._isReloading = true;
+        }
+
+        this.Reloading.active = this._isReloading && fill < 1;
+        this.Loading.fillRange = fill;
+        if (this._isReloading && fill >= 1) {
+            this.FillMagazine();
+            this._isReloading = false;
+            this.Reloading.active = false;
+        }
+    }
+
+    public CanReload(): boolean {
+        if (this.WeaponType !== "枪") {
+            return false;
+        }
+
+        this.EnsureMagazineMatchesGun();
+        const capacity = this.MagazineCapacity;
+        if (capacity <= 0 || this._magazineAmmo.length >= capacity) {
+            return false;
+        }
+
+        return this.WarehouseAmmoCount > 0;
+    }
+
+    private FillMagazine(): void {
+        this.EnsureMagazineMatchesGun();
+        const capacity = this.MagazineCapacity;
+        if (capacity <= 0 || this._magazineAmmo.length >= capacity) {
+            return;
+        }
+
+        const ammoIDs = ZRSJZ_GameData.Instance.AmmoID.slice();
+        let remaining = capacity - this._magazineAmmo.length;
+        let isChanged = false;
+
+        // 严格从弹药栏第一个格子开始获取，当前格耗尽后再读取后一个格子。
+        for (let index = 0; index < ammoIDs.length && remaining > 0; index++) {
+            const ammoID = ammoIDs[index];
+            const ammoData = ZRSJZ_GameData.Instance.PropData[ammoID];
+            if (
+                !ammoData
+                || ammoData.PropType !== "弹药"
+                || ammoData.CurCount <= 0
+            ) {
+                continue;
+            }
+
+            const takeCount = Math.min(remaining, ammoData.CurCount);
+            for (let count = 0; count < takeCount; count++) {
+                this._magazineAmmo.push(ammoData.Name);
+            }
+            ammoData.CurCount -= takeCount;
+            remaining -= takeCount;
+            isChanged = true;
+
+            if (ammoData.CurCount <= 0) {
+                delete ZRSJZ_GameData.Instance.PropData[ammoID];
+                ammoIDs[index] = "";
+            }
+        }
+
+        if (isChanged) {
+            ZRSJZ_GameData.Instance.SetAmmoID(ammoIDs);
+        }
+    }
+
+    /** 等待弹药栏完成 AmmoID 整理后，只执行一次进入游戏的默认装填。 */
+    private FillInitialMagazineWhenReady(): void {
+        if (this.WeaponType !== "枪") {
+            return;
+        }
+
+        const ammoInventoryReady = ZRSJZ_UIManager.Instance.InventoryMap
+            .has(ZRSJZ_INVENTORY.弹药);
+        if (ammoInventoryReady || this._initialMagazineRetryCount >= 40) {
+            this.FillMagazine();
+            return;
+        }
+
+        this._initialMagazineRetryCount++;
+        this.scheduleOnce(() => this.FillInitialMagazineWhenReady(), 0.05);
+    }
+
+    private EnsureMagazineMatchesGun(): void {
+        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0] ?? "";
+        if (gunID === this._magazineGunID) {
+            return;
+        }
+
+        this._magazineGunID = gunID;
+        this._magazineAmmo.length = 0;
+        this._isReloading = false;
+    }
+
+    private GetGunProperty(propertyName: string, defaultValue: number): number {
+        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0];
+        const gunName = ZRSJZ_GameData.Instance.PropData[gunID]?.Name;
+        const value = gunName
+            ? ZRSJZ_PROP_PROPERTY.get(gunName)?.[propertyName]
+            : undefined;
+        return Number.isFinite(value) ? value : defaultValue;
+    }
+
+    private GetBulletLevel(ammoName: string): number {
+        const match = /^(\d+)级子弹$/.exec(ammoName);
+        return match ? Math.max(1, Number(match[1])) : 1;
+    }
+
+    private StopFiring(): void {
+        this._isFireing = false;
+        if (this.WeaponType === "枪") {
+            this.PlayAni(ZRSJZ_ANI.Idle_Q);
+        }
+    }
+
+    //#region 滑动
     Slide() {
         if (this._isStop) return;
         this._moveSpeed += 1500;
@@ -338,6 +621,7 @@ export class ZRSJZ_Player extends Component {
         })
     }
 
+    //#region 碰撞检测
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
         // if (this._targetBox) return;
         if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Box) && otherCollider.node?.getComponent(ZRSJZ_Box) != this._targetBox) {
@@ -362,6 +646,7 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
+    //#region 获取枪口位置
     private getMuzzlePos() {
         const qkBone = this.PlayerSkeleton?.QKBone;
         if (!qkBone) {

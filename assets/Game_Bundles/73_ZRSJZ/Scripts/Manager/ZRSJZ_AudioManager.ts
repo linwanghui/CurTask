@@ -58,6 +58,7 @@ export class ZRSJZ_AudioManager extends Component {
             error(`音频不存在: ${audioName}`);
             return;
         }
+
         const sound = this.getIdleSource();
         sound.clip = this.AudioClipMaps.get(audioName);
         sound.loop = false;
@@ -71,6 +72,8 @@ export class ZRSJZ_AudioManager extends Component {
             error(`音频不存在:`);
             return;
         }
+        console.error(audioClip.name);
+
         const sound = this.getIdleSource();
         sound.clip = audioClip;
         sound.loop = false;
@@ -87,6 +90,7 @@ export class ZRSJZ_AudioManager extends Component {
 
     private freeSource(source: AudioSource) {
         source.stop();
+        source.clip = null;
         this.idleSources.push(source);
     }
 

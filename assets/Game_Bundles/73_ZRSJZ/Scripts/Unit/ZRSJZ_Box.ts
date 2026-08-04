@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, tween, v3, Vec3 } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_BoxConfig, ZRSJZ_INVENTORY } from '../ZRSJZ_Constant';
+import { ZRSJZ_BoxConfig, ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_BoxInventory } from '../UI/ZRSJZ_BoxInventory';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 const { ccclass, property } = _decorator;
@@ -16,6 +16,9 @@ export class ZRSJZ_Box extends Component {
 
     @property
     BoxName: string = '';
+
+    @property
+    IsInit: boolean = false;
 
     Icon: Sprite = null;
     Checked: Sprite = null;
@@ -33,7 +36,9 @@ export class ZRSJZ_Box extends Component {
     private _mapProp: readonly (readonly string[])[] = [];
 
     protected start(): void {
-        this.Init();
+        if (this.IsInit) {
+            this.Configure(ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap).MapBox.get(this.BoxName), ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap).MapProp);
+        }
     }
 
     protected onDestroy(): void {
