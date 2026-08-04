@@ -19,6 +19,8 @@ export enum ZRSJZ_PANEL {
     失败弹窗 = "73_ZRSJZ/Prefabs/Panel/失败弹窗",
     胜利弹窗 = "73_ZRSJZ/Prefabs/Panel/胜利弹窗",
     升级弹窗 = "73_ZRSJZ/Prefabs/Panel/升级弹窗",
+    密码箱弹窗 = "73_ZRSJZ/Prefabs/Panel/密码箱弹窗",
+    医疗箱弹窗 = "73_ZRSJZ/Prefabs/Panel/医疗箱弹窗",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",

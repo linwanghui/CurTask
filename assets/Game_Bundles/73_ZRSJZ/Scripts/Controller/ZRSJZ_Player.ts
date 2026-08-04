@@ -97,6 +97,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected start(): void {
+        this._curKnifeName = ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name;
         this.MaxHP += ZRSJZ_GameData.Instance.GetResearchMaxHPBonus();
         this.CurHP = this.MaxHP;
         this._moveSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
@@ -418,11 +419,10 @@ export class ZRSJZ_Player extends Component {
     async Recover(hp: number) {
         this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
         this.HP.Show(this.CurHP);
-        const effect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect");
-        effect.parent = this.node;
-        effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition, () => {
-            this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
-            this.HP.Show(this.CurHP);
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect").then((effect: Node) => {
+            effect.parent = this.node;
+            effect.active = true;
+            effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition);
         });
     }
 

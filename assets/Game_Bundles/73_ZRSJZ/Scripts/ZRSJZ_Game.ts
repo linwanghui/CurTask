@@ -20,11 +20,15 @@ export class ZRSJZ_Game extends Component {
     @property(ZRSJZ_GameCamera)
     Camera: ZRSJZ_GameCamera = null;
 
+    @property(Node)
+    UI: Node = null;
+
     CurMap: ZRSJZ_Map = null;
     CurPlayer: ZRSJZ_Player = null;
 
     GamePaused: boolean = false;
     UnlimitedFirepower: boolean = false;
+    Drug: number[] = [0, 0, 0];//药品数量--高级/中级/低级
 
     private _player: Node = null;
     private _miniMapContent: Node = null;
@@ -78,7 +82,13 @@ export class ZRSJZ_Game extends Component {
             this._player = player;
             this.Camera.Init(player, this.CurMap.Map);
             this.RefreshMiniMap();
+            this.LoadUI();
         })
+    }
+
+    LoadUI() {
+        this.Drug = [0, 0, 0];
+        this.UI.active = true;
     }
 
     async CreateDieEffect(worldPos: Vec3, cb: Function = null) {

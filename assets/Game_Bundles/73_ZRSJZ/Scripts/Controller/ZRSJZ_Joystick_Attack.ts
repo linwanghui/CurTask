@@ -180,6 +180,10 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //搜索
     Search() {
+        if (this._targetBox?.RequiresPassword() && !this._targetBox.IsPasswordUnlocked()) {
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.密码箱弹窗, this._targetBox);
+            return;
+        }
         ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.物资弹窗, this._targetBox);
     }
 

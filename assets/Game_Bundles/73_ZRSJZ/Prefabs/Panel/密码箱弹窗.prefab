@@ -32,10 +32,13 @@
       },
       {
         "__id__": 361
+      },
+      {
+        "__id__": 363
       }
     ],
     "_prefab": {
-      "__id__": 363
+      "__id__": 365
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -1864,7 +1867,7 @@
     "node": {
       "__id__": 15
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": {
       "__id__": 67
     },
@@ -3314,7 +3317,7 @@
     "node": {
       "__id__": 69
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": {
       "__id__": 121
     },
@@ -4764,7 +4767,7 @@
     "node": {
       "__id__": 123
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": {
       "__id__": 175
     },
@@ -6214,7 +6217,7 @@
     "node": {
       "__id__": 177
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": {
       "__id__": 229
     },
@@ -7664,7 +7667,7 @@
     "node": {
       "__id__": 231
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": {
       "__id__": 283
     },
@@ -7782,6 +7785,8 @@
       "__id__": 0
     },
     "fileId": "fb2HW0HLNPYY3J0AWxp29I",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -8087,7 +8092,7 @@
       "__id__": 1
     },
     "component": "",
-    "_componentId": "c13db496WBGQptGyGNwxZeK",
+    "_componentId": "fd095QFhSlI/ZE0ZoTQVJ/Y",
     "handler": "OnButtonClick",
     "customEventData": ""
   },
@@ -9220,6 +9225,8 @@
       "__id__": 0
     },
     "fileId": "01BGtrvMpMDadLr08LIm/l",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -9285,6 +9292,26 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "aer78GYARCvKdHQpW4wJnx"
+  },
+  {
+    "__type__": "fd095QFhSlI/ZE0ZoTQVJ/Y",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 364
+    },
+    "RollSpeed": 360,
+    "WrongPauseDuration": 0.3,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "aZRSJZPasswordBoxPanel"
   },
   {
     "__type__": "cc.PrefabInfo",

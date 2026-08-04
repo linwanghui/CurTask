@@ -74,6 +74,13 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
         const source = args[0];
         const box = source instanceof ZRSJZ_Box ? source : null;
+        // 防止其他入口直接打开物资弹窗而绕过密码验证。
+        if (box?.RequiresPassword() && !box.IsPasswordUnlocked()) {
+            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.物资弹窗, () => {
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.密码箱弹窗, box);
+            });
+            return;
+        }
         const props = Array.isArray(source)
             ? source.filter(propName => typeof propName === 'string')
             : [];
