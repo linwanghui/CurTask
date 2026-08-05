@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "74c30f92-6010-4e57-8352-a96d753bfa59",
+  "uuid": "d50c28c8-e87c-4e88-a62c-f749365d8993",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "74c30f92-6010-4e57-8352-a96d753bfa59@6c48a",
-      "displayName": "突击步枪",
+      "uuid": "d50c28c8-e87c-4e88-a62c-f749365d8993@6c48a",
+      "displayName": "KK41-见雪",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "74c30f92-6010-4e57-8352-a96d753bfa59",
+        "imageUuidOrDatabaseUri": "d50c28c8-e87c-4e88-a62c-f749365d8993",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "74c30f92-6010-4e57-8352-a96d753bfa59@f9941",
-      "displayName": "突击步枪",
+      "uuid": "d50c28c8-e87c-4e88-a62c-f749365d8993@f9941",
+      "displayName": "KK41-见雪",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 216,
-        "height": 89,
-        "rawWidth": 216,
-        "rawHeight": 89,
+        "width": 242,
+        "height": 44,
+        "rawWidth": 242,
+        "rawHeight": 44,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -108,
-            -44.5,
+            -121,
+            -22,
             0,
-            108,
-            -44.5,
+            121,
+            -22,
             0,
-            -108,
-            44.5,
+            -121,
+            22,
             0,
-            108,
-            44.5,
+            121,
+            22,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            89,
-            216,
-            89,
+            44,
+            242,
+            44,
             0,
             0,
-            216,
+            242,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -108,
-            -44.5,
+            -121,
+            -22,
             0
           ],
           "maxPos": [
-            108,
-            44.5,
+            121,
+            22,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "74c30f92-6010-4e57-8352-a96d753bfa59@6c48a",
+        "imageUuidOrDatabaseUri": "d50c28c8-e87c-4e88-a62c-f749365d8993@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "74c30f92-6010-4e57-8352-a96d753bfa59@6c48a"
+    "redirect": "d50c28c8-e87c-4e88-a62c-f749365d8993@6c48a"
   }
 }

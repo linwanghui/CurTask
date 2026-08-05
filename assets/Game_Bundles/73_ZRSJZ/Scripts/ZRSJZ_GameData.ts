@@ -43,17 +43,17 @@ export class ZRSJZ_GameData {
     public Gold: number = 0;
     public FiringRangeLevel: number = 0;
     public FacilityLevel: Partial<Record<ZRSJZ_UpgradeFacilityName, number>> = {};
-    public HaveRole: string[] = ["洛克", "安娜"];
-    public CurRole: string[] = ["洛克", "安娜"];
-    public HaveSkin: string[] = ["洛克", "安娜"];
-    public CurSkin: string[] = ["洛克", "安娜"];
+    public HaveRole: string[] = ["蓝狼", "安娜"];
+    public CurRole: string[] = ["蓝狼", "安娜"];
+    public HaveSkin: string[] = ["蓝狼", "安娜"];
+    public CurSkin: string[] = ["蓝狼", "安娜"];
     public PropID: number = 0;//道具的唯一ID
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};//道具数据
     public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
     public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
     // public GameTempID: string[] = [];//战斗时的临时ID
+    public CurMap: string = "五号小镇_机密行动";//当前地图
 
-    public CurMap: string = "城镇_初级";
     ChangeGold(gold: number) {
         this.Gold += gold;
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);

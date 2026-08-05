@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "5fc30f44-5ceb-4667-9d62-9811b959e1d4",
+  "uuid": "b3f1039d-17d7-4f6d-b926-0922460653ad",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "5fc30f44-5ceb-4667-9d62-9811b959e1d4@6c48a",
-      "displayName": "ssv狙击枪",
+      "uuid": "b3f1039d-17d7-4f6d-b926-0922460653ad@6c48a",
+      "displayName": "四级甲",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "5fc30f44-5ceb-4667-9d62-9811b959e1d4",
+        "imageUuidOrDatabaseUri": "b3f1039d-17d7-4f6d-b926-0922460653ad",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,21 +34,21 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "5fc30f44-5ceb-4667-9d62-9811b959e1d4@f9941",
-      "displayName": "ssv狙击枪",
+      "uuid": "b3f1039d-17d7-4f6d-b926-0922460653ad@f9941",
+      "displayName": "四级甲",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": 0.5,
+        "offsetX": 0,
         "offsetY": 0,
-        "trimX": 1,
+        "trimX": 0,
         "trimY": 0,
-        "width": 246,
-        "height": 91,
-        "rawWidth": 247,
-        "rawHeight": 91,
+        "width": 197,
+        "height": 244,
+        "rawWidth": 197,
+        "rawHeight": 244,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -123,
-            -45.5,
+            -98.5,
+            -122,
             0,
-            123,
-            -45.5,
+            98.5,
+            -122,
             0,
-            -123,
-            45.5,
+            -98.5,
+            122,
             0,
-            123,
-            45.5,
+            98.5,
+            122,
             0
           ],
           "indexes": [
@@ -82,40 +82,40 @@
             3
           ],
           "uv": [
-            1,
-            91,
-            247,
-            91,
-            1,
             0,
-            247,
+            244,
+            197,
+            244,
+            0,
+            0,
+            197,
             0
           ],
           "nuv": [
-            0.004048582995951417,
+            0,
             0,
             1,
             0,
-            0.004048582995951417,
+            0,
             1,
             1,
             1
           ],
           "minPos": [
-            -123,
-            -45.5,
+            -98.5,
+            -122,
             0
           ],
           "maxPos": [
-            123,
-            45.5,
+            98.5,
+            122,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "5fc30f44-5ceb-4667-9d62-9811b959e1d4@6c48a",
+        "imageUuidOrDatabaseUri": "b3f1039d-17d7-4f6d-b926-0922460653ad@6c48a",
         "atlasUuid": "",
-        "trimType": "auto"
+        "trimType": "none"
       },
       "ver": "1.0.12",
       "imported": true,
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "5fc30f44-5ceb-4667-9d62-9811b959e1d4@6c48a"
+    "redirect": "b3f1039d-17d7-4f6d-b926-0922460653ad@6c48a"
   }
 }

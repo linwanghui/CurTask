@@ -7,6 +7,7 @@ export const ZRSJZ_AMMO_MAX_COUNT = 60;
 
 //界面路径
 export enum ZRSJZ_PANEL {
+    选关界面 = "73_ZRSJZ/Prefabs/Panel/选关界面",
     商店界面 = "73_ZRSJZ/Prefabs/Panel/商店界面",
     仓库界面 = "73_ZRSJZ/Prefabs/Panel/仓库界面",
     角色界面 = "73_ZRSJZ/Prefabs/Panel/角色界面",
@@ -187,6 +188,11 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["浮力机器设备", { Name: "浮力机器设备", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1368000, MaxCount: 1 }],
     ["火箭燃料", { Name: "火箭燃料", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1068000, MaxCount: 1 }],
 
+    //房卡
+    ["低级房卡", { Name: "低级房卡", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "房卡", UnitPrice: 26000, MaxCount: 1 }],
+    ["中级房卡", { Name: "中级房卡", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "房卡", UnitPrice: 79000, MaxCount: 1 }],
+    ["高级房卡", { Name: "高级房卡", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "房卡", UnitPrice: 218000, MaxCount: 1 }],
+
     //子弹
     ["1级子弹", { Name: "1级子弹", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 1900, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
     ["2级子弹", { Name: "2级子弹", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 4700, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
@@ -198,28 +204,43 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["一级头", { Name: "一级头", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 2200, MaxCount: 1 }],
     ["二级头", { Name: "二级头", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 5100, MaxCount: 1 }],
     ["三级头", { Name: "三级头", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 13000, MaxCount: 1 }],
+    ["四级头", { Name: "四级头", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 32000, MaxCount: 1 }],
+    ["五级头", { Name: "五级头", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 78000, MaxCount: 1 }],
+    ["六级头", { Name: "六级头", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 196000, MaxCount: 1 }],
     //防弹衣
     ["一级甲", { Name: "一级甲", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "防弹衣", UnitPrice: 8800, MaxCount: 1 }],
     ["二级甲", { Name: "二级甲", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "防弹衣", UnitPrice: 16000, MaxCount: 1 }],
     ["三级甲", { Name: "三级甲", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "防弹衣", UnitPrice: 49000, MaxCount: 1 }],
+    ["四级甲", { Name: "四级甲", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "防弹衣", UnitPrice: 112000, MaxCount: 1 }],
+    ["五级甲", { Name: "五级甲", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "防弹衣", UnitPrice: 286000, MaxCount: 1 }],
+    ["六级甲", { Name: "六级甲", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "防弹衣", UnitPrice: 720000, MaxCount: 1 }],
     //背包
     ["一级包", { Name: "一级包", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "背包", UnitPrice: 9300, MaxCount: 1 }],
     ["二级包", { Name: "二级包", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "背包", UnitPrice: 19000, MaxCount: 1 }],
     ["三级包", { Name: "三级包", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "背包", UnitPrice: 47000, MaxCount: 1 }],
     ["四级包", { Name: "四级包", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "背包", UnitPrice: 106000, MaxCount: 1 }],
+    ["五级包", { Name: "五级包", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "背包", UnitPrice: 258000, MaxCount: 1 }],
+    ["六级包", { Name: "六级包", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "背包", UnitPrice: 640000, MaxCount: 1 }],
     //枪
-    ["突击步枪", { Name: "突击步枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 9000, MaxCount: 1 }],
-    ["散弹枪", { Name: "散弹枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 28000, MaxCount: 1 }],
-    ["ssv狙击枪", { Name: "ssv狙击枪", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 55000, MaxCount: 1 }],
+    ["CN8-突击步枪", { Name: "CN8-突击步枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 9000, MaxCount: 1 }],
+    ["DX9-冲锋枪", { Name: "DX9-冲锋枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 10500, MaxCount: 1 }],
+    ["K50-轻机枪", { Name: "K50-轻机枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 12500, MaxCount: 1 }],
+    ["RK77-轻机枪", { Name: "RK77-轻机枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 15000, MaxCount: 1 }],
+    ["FS-霰弹枪", { Name: "FS-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 28000, MaxCount: 1 }],
+    ["KK41-霰弹枪", { Name: "KK41-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 36000, MaxCount: 1 }],
+    ["ssv-狙击枪", { Name: "ssv-狙击枪", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 55000, MaxCount: 1 }],
+    ["W76-狙击枪", { Name: "W76-狙击枪", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 68000, MaxCount: 1 }],
     //刀
     ["战术匕首", { Name: "战术匕首", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 8400, MaxCount: 1 }],
     ["刺厌", { Name: "刺厌", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 16000, MaxCount: 1 }],
     ["科技斧", { Name: "科技斧", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 56000, MaxCount: 1 }],
     ["熔岩剑", { Name: "熔岩剑", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 139000, MaxCount: 1 }],
+    ["赤牙", { Name: "赤牙", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 168000, MaxCount: 1 }],
+    ["魔刀", { Name: "魔刀", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 196000, MaxCount: 1 }],
 ])
 
 // 道具描述：结合道具名称及图标外观，用于详情、商店和仓库界面展示。
-const ZRSJZ_PROP_DESCRIPTION: Map<string, string> = new Map([
+export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["八宝粥", "一罐方便携带的八宝粥，密封完好，可在行动间隙快速补充体力。"],
     ["切割刀", "带有防滑握柄的小型切割工具，刀口锋利，适合处理绳索和薄板。"],
     ["实验数据", "记录着关键实验结果的数据文件，内容专业，具有一定研究价值。"],
@@ -306,6 +327,11 @@ const ZRSJZ_PROP_DESCRIPTION: Map<string, string> = new Map([
     ["浮力机器设备", "结构复杂的浮力控制设备，可为水上或水下机械提供稳定支撑。"],
     ["火箭燃料", "装在专用容器中的高能推进剂，是航天与导弹系统的关键物资。"],
 
+    //房卡
+    ["低级房卡", "用于开启普通封锁房间的电子门禁卡，卡片上的紫色权限标识仍然有效。"],
+    ["中级房卡", "拥有较高区域权限的加密门禁卡，可开启存放稀有物资的金色房间。"],
+    ["高级房卡", "最高安全等级的红色门禁卡，可进入戒备森严的核心物资区域。"],
+
     //子弹
     ["1级子弹", "基础级弹药，穿透与杀伤能力有限，适合应对防护较弱的目标。"],
     ["2级子弹", "改良级弹药，拥有更稳定的弹道和略高的护甲穿透能力。"],
@@ -318,24 +344,39 @@ const ZRSJZ_PROP_DESCRIPTION: Map<string, string> = new Map([
     ["一级头", "基础防护头盔，可减轻低强度冲击和弹片对头部造成的伤害。"],
     ["二级头", "经过加固的战术头盔，能为头部提供更可靠的战场防护。"],
     ["三级头", "高等级复合材料头盔，可抵御强力冲击，是珍贵的防护装备。"],
+    ["四级头", "采用多层复合装甲的高级头盔，能够有效抵御高威力弹药和猛烈冲击。"],
+    ["五级头", "军用重型防护头盔，配备强化面罩，可在高危交火中保护头部。"],
+    ["六级头", "以顶级防弹材料打造的全覆盖头盔，能为最危险的行动提供极限防护。"],
     //防弹衣
     ["一级甲", "轻型基础防弹衣，可保护躯干免受低等级弹药与碎片伤害。"],
     ["二级甲", "强化防弹衣，在防护能力和行动灵活性之间取得良好平衡。"],
     ["三级甲", "采用高级装甲板的重型防弹衣，可有效抵御高威力攻击。"],
+    ["四级甲", "内置复合防弹插板的高级护甲，能承受连续射击并保护重要躯干部位。"],
+    ["五级甲", "专为正面攻坚设计的军用重甲，在高强度战斗中拥有出色生存保障。"],
+    ["六级甲", "覆盖核心区域的顶级战术装甲，以极高重量换取近乎极限的防护能力。"],
     //背包
     ["一级包", "小型基础背包，结构简单，可额外携带少量行动物资。"],
     ["二级包", "容量适中的战术背包，分区合理，能够容纳更多补给。"],
     ["三级包", "大容量军用背包，结实耐磨，适合长时间搜集与行动。"],
     ["四级包", "顶级扩容背包，拥有优秀承重与收纳能力，可携带大量战利品。"],
+    ["五级包", "采用模块化分区的军用运输背包，容量巨大且能稳定固定贵重物资。"],
+    ["六级包", "为极限搜集行动打造的重型扩容背包，拥有当前最高的物资携带能力。"],
     //枪
-    ["突击步枪", "射速与精度均衡的自动步枪，适合处理中近距离的多种战斗。"],
-    ["散弹枪", "近距离威力强大的霰弹武器，一次射击可覆盖较宽范围。"],
-    ["ssv狙击枪", "高精度远程狙击步枪，配有光学瞄具，擅长打击远距离目标。"],
+    ["CN8-突击步枪", "性能均衡的制式突击步枪，后坐力稳定，适合中近距离持续交火。"],
+    ["DX9-冲锋枪", "紧凑轻便的高速冲锋枪，射速突出，擅长在狭窄区域快速压制目标。"],
+    ["K50-轻机枪", "便携式班用轻机枪，火力持续性良好，能够有效封锁敌人的移动路线。"],
+    ["RK77-轻机枪", "经过强化的重枪管轻机枪，单发威力更高，适合稳定进行中距离压制。"],
+    ["FS-霰弹枪", "结构可靠的泵动霰弹枪，近距离弹丸覆盖广，可对无甲目标造成重创。"],
+    ["KK41-霰弹枪", "强化弹仓与枪管的战术霰弹枪，爆发力更强，适合近距离连续作战。"],
+    ["ssv-狙击枪", "高威力远程狙击步枪，配有精密光学瞄具，擅长一击重创关键目标。"],
+    ["W76-狙击枪", "为超远距离射击设计的精确步枪，射程与弹容量兼顾，容错率更高。"],
     //刀
     ["战术匕首", "轻巧锋利的战术短刀，便于隐藏，可用于快速近身攻击。"],
     ["刺厌", "造型凌厉的特殊近战兵器，尖锐刃口适合穿刺与连续攻击。"],
     ["科技斧", "采用高强度材料打造的科技战斧，兼具劈砍威力与未来感。"],
     ["熔岩剑", "剑身仿佛流淌着炽热熔岩，锋利而危险，是稀有的高级近战武器。"],
+    ["赤牙", "剑身呈现出炽热的红色光泽，锋利无比，是极为罕见的近战武器。"],
+    ["魔刀", "剑身散发着神秘的魔力，攻击力强大，是传说中的神器。"],
 ]);
 
 
@@ -374,14 +415,21 @@ export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new M
     ["五级包", { "背包等级": 5, "容量": 16 * 4, }],
     ["六级包", { "背包等级": 6, "容量": 20 * 4, }],
     //枪
-    ["突击步枪", { "伤害": 30, "射程": 1200, "射速": 700, "弹夹": 30 }],
-    ["散弹枪", { "伤害": 35, "射程": 1200, "射速": 300, "弹夹": 6 }],
-    ["ssv狙击枪", { "伤害": 200, "射程": 2000, "射速": 100, "弹夹": 5 }],
+    ["CN8-突击步枪", { "伤害": 30, "射程": 1200, "射速": 700, "弹夹": 30 }],
+    ["DX9-冲锋枪", { "伤害": 24, "射程": 900, "射速": 800, "弹夹": 35 }],
+    ["K50-轻机枪", { "伤害": 34, "射程": 1300, "射速": 550, "弹夹": 35 }],
+    ["RK77-轻机枪", { "伤害": 38, "射程": 1400, "射速": 480, "弹夹": 35 }],
+    ["FS-霰弹枪", { "伤害": 35, "射程": 1200, "射速": 300, "弹夹": 6 }],
+    ["KK41-霰弹枪", { "伤害": 42, "射程": 1000, "射速": 240, "弹夹": 8 }],
+    ["ssv-狙击枪", { "伤害": 200, "射程": 2000, "射速": 100, "弹夹": 5 }],
+    ["W76-狙击枪", { "伤害": 150, "射程": 2300, "射速": 120, "弹夹": 8 }],
     //刀
     ["战术匕首", { "伤害": 65 }],
     ["刺厌", { "伤害": 85 }],
     ["科技斧", { "伤害": 100 }],
     ["熔岩剑", { "伤害": 105 }],
+    ["赤牙", { "伤害": 115 }],
+    ["魔刀", { "伤害": 125 }],
 ])
 
 export const ZRSJZ_PROP_PROPERTY_MAX: Map<string, number> = new Map([
@@ -396,6 +444,23 @@ export const ZRSJZ_PROP_PROPERTY_MAX: Map<string, number> = new Map([
     ["弹夹", 35],
 ])
 
+
+export const ZRSJZ_WEAPONRY_TYPE: Map<string, string[]> = new Map([
+    ["步枪", ["CN8-突击步枪", "DX9-冲锋枪", "K50-轻机枪", "RK77-轻机枪"]],
+    ["狙击枪", ["ssv-狙击枪", "W76-狙击枪"]],
+    ["散弹枪", ["FS-霰弹枪", "KK41-霰弹枪"]],
+])
+
+export const ZRSJZ_WEAPON_SKIN: Map<string, string[]> = new Map([
+    ["CN8-突击步枪", ["CN8-突击步枪", "CN8-毒剂", "CN8-红魔"]],
+    ["DX9-冲锋枪", ["DX9-冲锋枪", "DX9-零", "DX9-未来金属"]],
+    ["K50-轻机枪", ["K50-轻机枪", "K50-云雾"]],
+    ["RK77-轻机枪", ["RK77-轻机枪", "RK77-鼓手"]],
+    ["FS-霰弹枪", ["FS-霰弹枪", "FS-白弧", "FS-橙灼"]],
+    ["KK41-霰弹枪", ["KK41-霰弹枪", "KK41-见雪", "KK41-绫虹"]],
+    ["ssv-狙击枪", ["ssv-狙击枪", "ssv-星零", "ssv-鎏光"]],
+    ["W76-狙击枪", ["W76-狙击枪", "W76-寒汐", "W76-紫墟"]],
+]);
 export type ZRSJZ_UpgradeMaterial = {
     PropName: string,
     Count: number,
@@ -474,11 +539,6 @@ export function GetFiringRangeAttackBonusPercent(level: number): number {
     return GetFacilityBonusValue("靶场", level);
 }
 
-export const ZRSJZ_WEAPONRY_TYPE: Map<string, string[]> = new Map([
-    ["步枪", ["突击步枪"]],
-    ["狙击枪", ["ssv狙击枪"]],
-    ["散弹枪", ["散弹枪"]],
-])
 
 //道具存储类型
 export class ZRSJZ_PropData {
@@ -542,13 +602,13 @@ export const ZRSJZ_INVENTORY_CONFIG: Map<ZRSJZ_INVENTORY, { Row: number, Col: nu
 ])
 
 export const ZRSJZ_SHOP_CONFIG: Map<string, string[]> = new Map([
-    ["武器", ["突击步枪", "散弹枪", "ssv狙击枪"]],
-    ["头盔", ["一级头", "二级头", "三级头"]],
-    ["防弹衣", ["一级甲", "二级甲", "三级甲"]],
-    ["背包", ["一级包", "二级包", "三级包", "四级包"]],
-    ["匕首", ["战术匕首", "刺厌", "科技斧", "熔岩剑"]],
+    ["武器", ["CN8-突击步枪", "DX9-冲锋枪", "K50-轻机枪", "RK77-轻机枪", "FS-霰弹枪", "KK41-霰弹枪", "ssv-狙击枪", "W76-狙击枪"]],
+    ["头盔", ["一级头", "二级头", "三级头", "四级头", "五级头", "六级头"]],
+    ["防弹衣", ["一级甲", "二级甲", "三级甲", "四级甲", "五级甲", "六级甲"]],
+    ["背包", ["一级包", "二级包", "三级包", "四级包", "五级包", "六级包"]],
+    ["匕首", ["战术匕首", "刺厌", "科技斧", "熔岩剑", "赤牙", "魔刀"]],
     ["弹药", ["1级子弹", "2级子弹", "3级子弹", "4级子弹", "5级子弹", "6级子弹"]],
-    ["房卡", ["曼德尔", "哑铃", "沙袋", "高速阵列", "6级子弹", "万金泪冠", "劳力士"]],
+    ["房卡", ["低级房卡", "中级房卡", "高级房卡"]],
 ])
 
 //#region 角色配置
@@ -557,7 +617,7 @@ export const ZRSJZ_ROLE_CONFIG: Map<string, {
     Skin: string[],
     SkillPath: string,
 }> = new Map([
-    ["洛克", { Name: "洛克", Skin: ["洛克", "洛克2"], SkillPath: "Prefabs/Controller/Bomb" }],
+    ["蓝狼", { Name: "蓝狼", Skin: ["蓝狼", "蓝狼"], SkillPath: "Prefabs/Controller/Bomb" }],
     ["安娜", { Name: "安娜", Skin: ["安娜", "安娜2"], SkillPath: "Prefabs/Controller/Laser" }],
     ["小美", { Name: "小美", Skin: ["小美", "小美2"], SkillPath: "Prefabs/Controller/Shield" }],
 ])
@@ -569,12 +629,12 @@ export const ZRSJZ_SKIN_CONFIG: Map<string, {
     Skin: string,
     Headset: string[],
 }> = new Map([
-    ["洛克", { Name: "洛克", UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0002_耳机_蓝狼", "ll-_0000_前刘海_蓝狼"] }],
-    ["洛克2", { Name: "洛克", UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0003_曲线-3-拷贝-3", "llpf1__0000s_0001_前刘海"] }],
+    ["蓝狼", { Name: "蓝狼", UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0000_前刘海_蓝狼"] }],
+    ["蓝狼2", { Name: "蓝狼", UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"] }],
     ["安娜", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
     ["安娜2", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
     ["小美", { Name: "小美", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [] }],
-    ["小美2", { Name: "小美2", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: [] }],
+    ["小美2", { Name: "小美2", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: ["wzt"] }],
 ])
 
 //玩家动画
@@ -875,14 +935,34 @@ export interface ZRSJZ_MapBossConfig {
     Box: ZRSJZ_BoxConfig;
 }
 
-export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, {
+export interface ZRSJZ_MapConfig {
+    /** 选关界面显示的区域名称。 */
+    DisplayName: string;
+    /** 行动名称，与 DisplayName 一起组成地图配置键。 */
+    ActionName: string;
+    /** 选关界面显示的难度星级，范围 0~5。 */
+    Difficulty: number;
+    /** 玩家当前随身配置的最低总价值；0 表示不限制。 */
+    RequiredLoadoutValue: number;
+    /** 选关界面展示的额外任务限制。 */
+    MissionLimit: string;
+    /** 行动时限，单位为分钟；0 表示不限时。 */
+    TimeLimitMinutes: number;
     MapName: string;
     MapEnemy: Map<string, ZRSJZ_MapEnemyConfig>
     MapBoss: Map<string, ZRSJZ_MapBossConfig>
     MapBox: Map<string, ZRSJZ_BoxConfig>
     MapProp: string[][]
-}> = new Map([
-    ["城镇_初级", {
+}
+
+export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_MapConfig>> = new Map([
+    ["五号小镇_机密行动", {
+        DisplayName: "五号小镇",
+        ActionName: "机密行动",
+        Difficulty: 1,
+        RequiredLoadoutValue: 1000,
+        MissionLimit: "战备价值达到1000",
+        TimeLimitMinutes: 10,
         MapName: "城镇",
         MapEnemy: new Map([
             ["持枪小兵", {

@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventTouch, instantiate, Label, Node, Prefab, tween, v3 } from 'cc';
+import { _decorator, Component, EventTouch, Label, Node, tween, v3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
@@ -65,7 +65,7 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.升级弹窗, "健身");
                 break;
             case "选择地图":
-                director.loadScene("ZRSJZ_Game");
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.选关界面);
                 break;
         }
     }
