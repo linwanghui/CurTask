@@ -20,6 +20,9 @@ import { WZSJZ_Cell } from './WZSJZ_Cell';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_GameData } from './WZSJZ_GameData';
+import { WZSJZ_UIManager } from './WZSJZ_UIManager';
+import { WZSJZ_Enemy } from './WZSJZ_Enemy';
+import { WZSJZ_Wall } from './WZSJZ_Wall';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 const { ccclass, property } = _decorator;
 
@@ -45,6 +48,12 @@ export class WZSJZ_GameManager extends Component {
 
     @property({ displayName: "可购买物资", type: [Prefab] })
     public MaterialPrefabs: Prefab[] = [];
+
+    @property({ displayName: "敌方单位区域", type: Node })
+    public EnemyArea: Node = null;
+
+    @property({ displayName: "敌方单位预制体", type: [Prefab] })
+    public EnemyPrefabs: Prefab[] = [];
 
     @property({ displayName: "初始钞票", min: 0 })
     public StartMoney: number = 999;
@@ -87,6 +96,7 @@ export class WZSJZ_GameManager extends Component {
     private _keyDragStartUIPosition: Vec2 = new Vec2();
     private _isDraggingKey: boolean = false;
     private _keyUnlockHintNodes: Node[] = [];
+    private _wallBehavior: WZSJZ_Wall = null;
 
     protected onLoad(): void {
         WZSJZ_GameManager._instance = this;
@@ -106,7 +116,7 @@ export class WZSJZ_GameManager extends Component {
 
     protected onDestroy(): void {
         this.unschedule(this.ProduceResources);
-        this.UnbindToolArea();
+        this.unschedule(this.SpawnEnemy);
         this.ClearKeyUnlockHints();
         if (WZSJZ_GameManager._instance === this) {
             WZSJZ_GameManager._instance = null;
@@ -264,8 +274,52 @@ export class WZSJZ_GameManager extends Component {
             return;
         }
         this._isGameStarted = true;
+        this.InitializeWallHealth(true);
         this.schedule(this.ProduceResources, 1);
+        this.ScheduleNextEnemySpawn();
     }
+
+    private ScheduleNextEnemySpawn(): void {
+        if (!this._isGameStarted) {
+            return;
+        }
+        const spawn = WZSJZ_Constant.EnemySpawn;
+        const delay = spawn.MinInterval
+            + Math.random() * Math.max(0, spawn.MaxInterval - spawn.MinInterval);
+        this.scheduleOnce(this.SpawnEnemy, delay);
+    }
+
+    private SpawnEnemy = (): void => {
+        if (!this._isGameStarted || !this.EnemyArea || this.EnemyPrefabs.length === 0) {
+            this.ScheduleNextEnemySpawn();
+            return;
+        }
+
+        const prefab = this.EnemyPrefabs[Math.floor(Math.random() * this.EnemyPrefabs.length)];
+        const enemyNode = instantiate(prefab);
+        enemyNode.setParent(this.EnemyArea);
+        const areaTransform = this.EnemyArea.getComponent(UITransform);
+        if (areaTransform) {
+            const size = areaTransform.contentSize;
+            const anchor = areaTransform.anchorPoint;
+            const padding = WZSJZ_Constant.EnemySpawn.EdgePadding;
+            const minX = -size.width * anchor.x + padding;
+            const maxX = size.width * (1 - anchor.x) - padding;
+            const minY = -size.height * anchor.y + padding;
+            const maxY = size.height * (1 - anchor.y) - padding;
+            enemyNode.setPosition(
+                minX + Math.random() * Math.max(0, maxX - minX),
+                minY + Math.random() * Math.max(0, maxY - minY),
+                0,
+            );
+        }
+
+        const enemy = enemyNode.getComponent(WZSJZ_Enemy);
+        if (!enemy?.Initialize(this._wallBehavior)) {
+            enemyNode.destroy();
+        }
+        this.ScheduleNextEnemySpawn();
+    };
 
     /** 每秒只结算布阵区内物资的产出。 */
     private ProduceResources = (): void => {
@@ -310,6 +364,7 @@ export class WZSJZ_GameManager extends Component {
         const moneyCost = this.CurrentMoneyCost;
         const foodCost = this.CurrentFoodCost;
         if (this._money < moneyCost || this._food < foodCost) {
+            WZSJZ_UIManager.Instance.ShowText(this.GetInsufficientResourceText(moneyCost, foodCost));
             console.warn(`[WZSJZ] 资源不足，需要钞票 ${moneyCost}、食物 ${foodCost}。`);
             return false;
         }
@@ -555,16 +610,6 @@ export class WZSJZ_GameManager extends Component {
         this.RefreshKeyCountView();
     }
 
-    private UnbindToolArea(): void {
-        if (!this._keySlotNode) {
-            return;
-        }
-        this._keySlotNode.off(Node.EventType.TOUCH_START, this.OnKeyTouchStart, this);
-        this._keySlotNode.off(Node.EventType.TOUCH_MOVE, this.OnKeyTouchMove, this);
-        this._keySlotNode.off(Node.EventType.TOUCH_END, this.OnKeyTouchEnd, this);
-        this._keySlotNode.off(Node.EventType.TOUCH_CANCEL, this.OnKeyTouchEnd, this);
-    }
-
     private OnKeyTouchStart(event: EventTouch): void {
         if (this.KeyCount <= 0 || !this.DragLayer || this._isDraggingKey) {
             return;
@@ -724,7 +769,8 @@ export class WZSJZ_GameManager extends Component {
         if (!recycleTransform?.getBoundingBoxToWorld().contains(uiPosition)) {
             return false;
         }
-        const reward = WZSJZ_Constant.GetRecycleReward(gameNode.Name, gameNode.Level);
+        const materialName = gameNode.Name;
+        const reward = WZSJZ_Constant.GetRecycleReward(materialName, gameNode.Level);
         sourceCell.Occupant = null;
         gameNode.CurrentCell = null;
         gameNode.node.destroy();
@@ -732,7 +778,36 @@ export class WZSJZ_GameManager extends Component {
         this._food += reward.Food;
         this.RefreshResourceView();
         this.RefreshPriceView();
+        WZSJZ_UIManager.Instance.ShowText(this.GetRecycleText(materialName, reward));
         return true;
+    }
+
+    private GetInsufficientResourceText(moneyCost: number, foodCost: number): string {
+        const missingMoney = Math.max(0, Math.ceil(moneyCost - this._money));
+        const missingFood = Math.max(0, Math.ceil(foodCost - this._food));
+        if (missingMoney > 0 && missingFood > 0) {
+            return `钞票不足 ${missingMoney}，食物不足 ${missingFood}`;
+        }
+        if (missingMoney > 0) {
+            return `钞票不足，还需要 ${missingMoney}`;
+        }
+        return `食物不足，还需要 ${missingFood}`;
+    }
+
+    private GetRecycleText(
+        materialName: string,
+        reward: { Money: number; Food: number },
+    ): string {
+        const rewards: string[] = [];
+        if (reward.Money > 0) {
+            rewards.push(`钞票 ${reward.Money}`);
+        }
+        if (reward.Food > 0) {
+            rewards.push(`食物 ${reward.Food}`);
+        }
+        return rewards.length > 0
+            ? `已回收${materialName}，获得${rewards.join("、")}`
+            : `已回收${materialName}`;
     }
 
     private CanMergeAtCell(
@@ -823,6 +898,7 @@ export class WZSJZ_GameManager extends Component {
         }
 
         this.WallDisplayNode.active = true;
+        this.InitializeWallHealth(!this._isGameStarted);
         const expectedLevel = wall.Level;
         const spriteFrame = await WZSJZ_Incident.LoadSprite(levelConfig.DisplaySpritePath) as SpriteFrame;
         if (spriteFrame
@@ -830,6 +906,17 @@ export class WZSJZ_GameManager extends Component {
             && wall.Level === expectedLevel
             && this.WallDisplayNode.isValid) {
             displaySprite.spriteFrame = spriteFrame;
+        }
+    }
+
+    private InitializeWallHealth(refill: boolean): void {
+        if (!this.WallDisplayNode || !this._wallCell || this._wallCell.IsEmpty()) {
+            return;
+        }
+        this._wallBehavior = this.WallDisplayNode.getComponent(WZSJZ_Wall);
+        const wall = this._wallCell.Occupant.getComponent("WZSJZ_GameNode") as WZSJZ_GameNode;
+        if (this._wallBehavior && wall) {
+            this._wallBehavior.SetMaxHealth(wall.GetMaxHealth(), refill);
         }
     }
 

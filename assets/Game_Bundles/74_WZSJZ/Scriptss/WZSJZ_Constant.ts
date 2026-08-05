@@ -44,6 +44,15 @@ export interface WZSJZ_RecycleReward {
     Food: number;
 }
 
+export interface WZSJZ_EnemyConfig {
+    MoveSpeed: number;
+    AttackRange: number;
+    AttackInterval: number;
+    AttackDamage: number;
+    MoveAnimation: string;
+    AttackAnimation: string;
+}
+
 export class WZSJZ_Constant {
     public static readonly Panel = {
         LoadingPanel: "Panel/LoadingPanel",
@@ -61,6 +70,32 @@ export class WZSJZ_Constant {
         G: 227,
         B: 81,
         A: 100,
+    };
+
+    /** 敌人刷出与战斗参数。 */
+    public static readonly EnemySpawn = {
+        MinInterval: 2,
+        MaxInterval: 3,
+        EdgePadding: 45,
+    };
+
+    public static readonly EnemyConfigs: Record<string, WZSJZ_EnemyConfig> = {
+        "哈夫克士兵": {
+            MoveSpeed: 85,
+            AttackRange: 80,
+            AttackInterval: 1.2,
+            AttackDamage: 8,
+            MoveAnimation: "zuolu",
+            AttackAnimation: "gongji",
+        },
+        "阿萨拉士兵": {
+            MoveSpeed: 105,
+            AttackRange: 75,
+            AttackInterval: 1.5,
+            AttackDamage: 10,
+            MoveAnimation: "zuolu",
+            AttackAnimation: "gongji",
+        },
     };
 
     /** 购买价格每上涨一档后，对应的物资初始等级权重。 */
@@ -204,6 +239,10 @@ export class WZSJZ_Constant {
         }
         const index = Math.max(0, Math.min(Math.floor(level) - 1, rewards.length - 1));
         return rewards[index];
+    }
+
+    public static GetEnemyConfig(name: string): WZSJZ_EnemyConfig | null {
+        return this.EnemyConfigs[name] || null;
     }
 
     private static GetLevelWeights(
