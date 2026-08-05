@@ -1,4 +1,4 @@
-import { _decorator, EventTouch, find, Label, Node, ScrollView, sp, tween, Tween, UITransform, Vec3 } from 'cc';
+import { _decorator, director, EventTouch, find, Label, Node, ScrollView, sp, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -188,6 +188,7 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.胜利弹窗);
+                director.loadScene("ZRSJZ_Star");
                 break;
         }
     }

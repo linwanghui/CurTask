@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "383d2cc1-1acd-470b-9f1a-e781fefa8bda",
+  "uuid": "ad792849-3209-4f2c-8970-c7bee9b8ccec",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "383d2cc1-1acd-470b-9f1a-e781fefa8bda@6c48a",
-      "displayName": "侦察",
+      "uuid": "ad792849-3209-4f2c-8970-c7bee9b8ccec@6c48a",
+      "displayName": "激光",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "383d2cc1-1acd-470b-9f1a-e781fefa8bda",
+        "imageUuidOrDatabaseUri": "ad792849-3209-4f2c-8970-c7bee9b8ccec",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "383d2cc1-1acd-470b-9f1a-e781fefa8bda@f9941",
-      "displayName": "侦察",
+      "uuid": "ad792849-3209-4f2c-8970-c7bee9b8ccec@f9941",
+      "displayName": "激光",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 70,
-        "height": 71,
-        "rawWidth": 70,
-        "rawHeight": 71,
+        "width": 74,
+        "height": 73,
+        "rawWidth": 74,
+        "rawHeight": 73,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -35,
-            -35.5,
+            -37,
+            -36.5,
             0,
-            35,
-            -35.5,
+            37,
+            -36.5,
             0,
-            -35,
-            35.5,
+            -37,
+            36.5,
             0,
-            35,
-            35.5,
+            37,
+            36.5,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            71,
-            70,
-            71,
+            73,
+            74,
+            73,
             0,
             0,
-            70,
+            74,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -35,
-            -35.5,
+            -37,
+            -36.5,
             0
           ],
           "maxPos": [
-            35,
-            35.5,
+            37,
+            36.5,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "383d2cc1-1acd-470b-9f1a-e781fefa8bda@6c48a",
+        "imageUuidOrDatabaseUri": "ad792849-3209-4f2c-8970-c7bee9b8ccec@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "383d2cc1-1acd-470b-9f1a-e781fefa8bda@6c48a"
+    "redirect": "ad792849-3209-4f2c-8970-c7bee9b8ccec@6c48a"
   }
 }

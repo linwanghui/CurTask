@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, find, Label, Node, sp, tween, Tween, Vec3 } from 'cc';
+import { _decorator, Component, director, EventTouch, find, Label, Node, sp, tween, Tween, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -49,6 +49,7 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.失败弹窗);
+                director.loadScene("ZRSJZ_Star");
                 break;
         }
     }

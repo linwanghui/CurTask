@@ -1,6 +1,6 @@
 import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, tween, Tween, v2, v3, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER } from '../ZRSJZ_Constant';
+import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -136,6 +136,7 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, this.Reload, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SKILL, this.Skill, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESURGENCE, this.Resurgence, this);
         this.Collider.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.on(Contact2DType.END_CONTACT, this.EndContact, this)
     }
@@ -147,6 +148,7 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, this.Reload, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SKILL, this.Skill, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESURGENCE, this.Resurgence, this);
         this.Collider.off(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.off(Contact2DType.END_CONTACT, this.EndContact, this)
     }
@@ -426,7 +428,23 @@ export class ZRSJZ_Player extends Component {
         });
     }
 
+    //#region 复活
+    Resurgence() {
+        this.CurHP = this.MaxHP;
+        this.HP.Show(this.CurHP);
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect").then((effect: Node) => {
+            effect.parent = this.node;
+            effect.active = true;
+            effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition);
+        });
+        this.Skill("护盾");
 
+        if (!this.PlayerSkeleton.IsKnife) {
+            this.PlayAni(ZRSJZ_ANI.Idle_Q);
+        } else {
+            this.PlayAni(ZRSJZ_ANI.Idle_D1);
+        }
+    }
 
     //#region 寻找敌人
     protected FindTarget() {
@@ -457,9 +475,14 @@ export class ZRSJZ_Player extends Component {
 
     //#region 受到打击
     BeHit(harm: number) {
+        if (this.CurHP <= 0) return;
+
         this.CurHP -= harm;
         if (this.CurHP <= 0) {
-            console.error("玩家死亡");
+            this.CurHP = 0;
+            ZRSJZ_Game.Instance.GamePaused = true;
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗);
+            this.PlayAni(ZRSJZ_ANI.SW, false);
         } else {
             this.beHitEffect();
         }

@@ -1,4 +1,4 @@
-import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Sprite, SpriteFrame, Tween, tween } from 'cc';
+import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Prefab, Sprite, SpriteFrame, Tween, tween } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_PROP_PROPERTY, ZRSJZ_PROP_PROPERTY_MAX, ZRSJZ_PROP_QUALITY, ZRSJZ_SHOP_CONFIG, ZRSJZ_WEAPON_SKIN } from '../ZRSJZ_Constant';
@@ -11,6 +11,9 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_ShowPanel')
 export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
+
+    @property(Prefab)
+    WeaponSkin: Prefab = null;
 
     @property(SpriteFrame)
     SkineTypeSFs: SpriteFrame[] = [];
@@ -148,6 +151,9 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
 
     SwitchButton(shopTypeNode: Node) {
         const shopType = shopTypeNode.name;
+        this.ShopPurchase.active = false;
+        this.ShopLeft.active = false;
+        this.ShopRight.active = false;
         if (this._shopType == shopType) return;
         this._shopType = shopType;
         Tween.stopAllByTarget(this.CheckedNode);
@@ -179,6 +185,8 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             return shopItem;
         }));
 
+        this.ShopPurchase.active = true;
+        this.ShowShopButton();
         if (version !== this._shopListVersion) {
             shopItems.forEach(shopItem => ZRSJZ_PoolManager.Instance.PutNode(shopItem));
             return;
@@ -250,15 +258,12 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopSkin.active = !!skins?.length;
         if (!skins?.length) return;
 
-        const template = this.ShopSkin.getChildByName("WeaponSkin");
-        if (!template) return;
-
         for (let index = 0; index < skins.length; index++) {
             // ShowShop 可能在图片加载期间切换到了其他商品，旧列表不再继续创建。
             if (weaponName !== this._curShop) return;
             const skinConfig = skins[index];
             const skinName = skinConfig.Name;
-            const skinNode = instantiate(template);
+            const skinNode = instantiate(this.WeaponSkin);
             skinNode.name = `WeaponSkin_${index}`;
             skinNode.active = true;
             skinNode.parent = this.ShopSkin;

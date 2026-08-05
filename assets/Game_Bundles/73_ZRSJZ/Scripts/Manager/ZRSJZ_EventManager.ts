@@ -11,7 +11,7 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_PLAYER_SLIDE: string = 'ZRSJZ_PLAYER_SLIDE';//滑铲
     public static ZRSJZ_PLAYER_SKILL: string = 'ZRSJZ_PLAYER_SKILL';//玩家技能
     public static ZRSJZ_PLAYER_SEARCH: string = 'ZRSJZ_PLAYER_SEARCH';//玩家搜索显示
-
+    public static ZRSJZ_PLAYER_RESURGENCE: string = 'ZRSJZ_PLAYER_RESURGENCE';//玩家复活
 
     public static ZRSJZ_CURRENCY_CHANGE: string = 'ZRSJZ_CURRENCY_CHANGE';//货币发生变动
     public static ZRSJZ_PROP_MOVE: string = 'ZRSJZ_PROP_MOVE';//道具拖动

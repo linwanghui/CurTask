@@ -184,4 +184,18 @@ export class ZRSJZ_Game extends Component {
         );
     }
 
+    //#region 获取游戏时间
+    GetGameTime(): string {
+        return "";
+    }
+
+    //#region 获取击杀数
+    GetKillCount(): string {
+        return "0";
+    }
+
+    //#region 战利品ID（背包跟保险箱）
+    GetAllGoodsID(): string[] {
+        return [];
+    }
 }

@@ -38,6 +38,7 @@ export class ZRSJZ_UIManager extends Component {
     PropSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     HeroIconSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     BoxSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
+    RoleSkinIconSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     WeaponryTextureMap: Map<string, Texture2D> = new Map<string, Texture2D>();
     InventoryMap: Map<string, Node> = new Map<string, Node>();
 
@@ -104,6 +105,8 @@ export class ZRSJZ_UIManager extends Component {
         ZRSJZ_Tools.LoadSprites("Sprites/Weaponry").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D)));
         //初始化箱子
         ZRSJZ_Tools.LoadSprites("Sprites/箱子").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.BoxSFMap.set(sf.name, sf)));
+        //初始化角色皮肤
+        ZRSJZ_Tools.LoadSprites("Sprites/角色界面/Icon").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.RoleSkinIconSFMap.set(sf.name, sf)));
     }
 
     public static InitDLC() {
@@ -332,6 +335,25 @@ export class ZRSJZ_UIManager extends Component {
                         console.error(`加载 ${boxName} 失败`);
                     } else {
                         this.BoxSFMap.set(sf.name, sf);
+                        resolve && resolve(sf);
+                    }
+                });
+            });
+        }
+    }
+
+    //获取玩家Icon
+    public GetHeroSkinIconUI(SkinName: string): Promise<SpriteFrame> {
+        if (this.RoleSkinIconSFMap.has(SkinName)) {
+            return Promise.resolve(this.RoleSkinIconSFMap.get(SkinName));
+        } else {
+            return new Promise((resolve, reject) => {
+                BundleManager.GetBundle("73_ZRSJZ").load(`Sprites/角色界面/Icon/${SkinName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
+                    if (err) {
+                        reject(err);
+                        console.error(`加载 ${SkinName} 失败`);
+                    } else {
+                        this.RoleSkinIconSFMap.set(sf.name, sf);
                         resolve && resolve(sf);
                     }
                 });

@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "0eb92927-5aec-47b0-870a-f83648af7876",
+  "uuid": "83fc6a32-25db-4fc7-933b-2c5db05d2048",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "0eb92927-5aec-47b0-870a-f83648af7876@6c48a",
-      "displayName": "医疗",
+      "uuid": "83fc6a32-25db-4fc7-933b-2c5db05d2048@6c48a",
+      "displayName": "爆破",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "0eb92927-5aec-47b0-870a-f83648af7876",
+        "imageUuidOrDatabaseUri": "83fc6a32-25db-4fc7-933b-2c5db05d2048",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "0eb92927-5aec-47b0-870a-f83648af7876@f9941",
-      "displayName": "医疗",
+      "uuid": "83fc6a32-25db-4fc7-933b-2c5db05d2048@f9941",
+      "displayName": "爆破",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 79,
-        "height": 76,
-        "rawWidth": 79,
-        "rawHeight": 76,
+        "width": 75,
+        "height": 74,
+        "rawWidth": 75,
+        "rawHeight": 74,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -39.5,
-            -38,
+            -37.5,
+            -37,
             0,
-            39.5,
-            -38,
+            37.5,
+            -37,
             0,
-            -39.5,
-            38,
+            -37.5,
+            37,
             0,
-            39.5,
-            38,
+            37.5,
+            37,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            76,
-            79,
-            76,
+            74,
+            75,
+            74,
             0,
             0,
-            79,
+            75,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -39.5,
-            -38,
+            -37.5,
+            -37,
             0
           ],
           "maxPos": [
-            39.5,
-            38,
+            37.5,
+            37,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "0eb92927-5aec-47b0-870a-f83648af7876@6c48a",
+        "imageUuidOrDatabaseUri": "83fc6a32-25db-4fc7-933b-2c5db05d2048@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "0eb92927-5aec-47b0-870a-f83648af7876@6c48a"
+    "redirect": "83fc6a32-25db-4fc7-933b-2c5db05d2048@6c48a"
   }
 }
