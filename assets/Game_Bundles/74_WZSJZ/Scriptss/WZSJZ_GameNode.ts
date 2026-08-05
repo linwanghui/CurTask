@@ -6,10 +6,12 @@ import {
     Node,
     Sprite,
     SpriteFrame,
+    sp,
     Vec3,
 } from 'cc';
 import { WZSJZ_Cell } from './WZSJZ_Cell';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
+import { WZSJZ_CombatSystem } from './WZSJZ_CombatSystem';
 import { WZSJZ_GameManager } from './WZSJZ_GameManager';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 const { ccclass, property } = _decorator;
@@ -29,6 +31,11 @@ export class WZSJZ_GameNode extends Component {
     private _dragStartWorldPosition: Vec3 = new Vec3();
     private _dragStartUIPosition: Vec3 = new Vec3();
     private _isDragging: boolean = false;
+    private _attackCooldown: number = 0;
+
+    public get IsDragging(): boolean {
+        return this._isDragging;
+    }
 
     protected onEnable(): void {
         this.node.on(Node.EventType.TOUCH_START, this.OnTouchStart, this);
@@ -37,6 +44,14 @@ export class WZSJZ_GameNode extends Component {
         this.node.on(Node.EventType.TOUCH_CANCEL, this.OnTouchEnd, this);
         this.SetUpgradeHint(false);
         this.RefreshView();
+        this.PlayInitialIdleAnimation();
+    }
+
+    protected onDestroy(): void {
+        // 合成、回收等操作直接销毁“雷”时，也要同步清理它布置的地雷。
+        if (this.Name === "雷") {
+            WZSJZ_CombatSystem.Instance?.RemoveMinesByOwner(this);
+        }
     }
 
     public Init(cell: WZSJZ_Cell, level: number = 1): void {
@@ -72,6 +87,34 @@ export class WZSJZ_GameNode extends Component {
             ?.MaxHealth || 0;
     }
 
+    protected update(deltaTime: number): void {
+        if (this.Name === "枪") {
+            WZSJZ_CombatSystem.Instance?.UpdateGun(this, deltaTime);
+        } else if (this.Name === "刀") {
+            WZSJZ_CombatSystem.Instance?.UpdateKnife(this, deltaTime);
+        } else if (this.Name === "炮") {
+            WZSJZ_CombatSystem.Instance?.UpdateCannon(this, deltaTime);
+        } else if (this.Name === "雷") {
+            WZSJZ_CombatSystem.Instance?.UpdateMineLayer(this, deltaTime);
+        }
+    }
+
+    public ReduceAttackCooldown(deltaTime: number): void {
+        this._attackCooldown = Math.max(0, this._attackCooldown - deltaTime);
+    }
+
+    public IsAttackReady(): boolean {
+        return this._attackCooldown <= 0;
+    }
+
+    public StartAttackCooldown(interval: number): void {
+        this._attackCooldown = Math.max(0, interval);
+    }
+
+    public ResetAttackCooldown(): void {
+        this._attackCooldown = 0;
+    }
+
     public SetUpgradeHint(active: boolean): void {
         const hint = this.node.getChildByName("可升级提示");
         if (hint) {
@@ -88,12 +131,27 @@ export class WZSJZ_GameNode extends Component {
         this.RefreshMaterialSprite();
     }
 
+    /** 攻击单位在开战前也保持待机表现；是否攻击仍由战斗系统控制。 */
+    private PlayInitialIdleAnimation(): void {
+        const config = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level);
+        if (!config?.AttackDamage) {
+            return;
+        }
+        this.node.getChildByName("图像")
+            ?.getComponent(sp.Skeleton)
+            ?.setAnimation(0, "daiji", true);
+    }
+
     private async RefreshMaterialSprite(): Promise<void> {
         const levelConfig = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level);
         const imageNode = this.node.getChildByName("图像");
         const sprite = imageNode?.getComponent(Sprite);
-        if (!levelConfig || !sprite) {
+        if (!levelConfig) {
             console.warn(`[WZSJZ] ${this.Name} 缺少等级配置或“图像”Sprite。`);
+            return;
+        }
+        // Spine表现的战斗物资不需要按等级替换SpriteFrame。
+        if (!sprite || !levelConfig.SpritePath) {
             return;
         }
 

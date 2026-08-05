@@ -1,4 +1,4 @@
-import { _decorator, Component, director, Label, Sprite } from 'cc';
+import { _decorator, Component, director, Label, Sprite, UITransform } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_Wall')
@@ -9,6 +9,16 @@ export class WZSJZ_Wall extends Component {
 
     public get IsAlive(): boolean {
         return !this._isDestroyed && this._currentHealth > 0;
+    }
+
+    /** 返回面向来袭单位一侧的城墙外边缘世界坐标。 */
+    public GetFrontWorldX(attackerWorldX: number): number {
+        const transform = this.getComponent(UITransform);
+        if (!transform) {
+            return this.node.worldPosition.x;
+        }
+        const bounds = transform.getBoundingBoxToWorld();
+        return attackerWorldX >= this.node.worldPosition.x ? bounds.xMax : bounds.xMin;
     }
 
     public SetMaxHealth(maxHealth: number, refill: boolean = false): void {

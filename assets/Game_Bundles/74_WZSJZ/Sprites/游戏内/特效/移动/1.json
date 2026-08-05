@@ -1,0 +1,159 @@
+{
+"skeleton": {
+	"hash": "nW1iLLg09eW99U+rDg35/lQJv6Q",
+	"spine": "3.8.75",
+	"x": -66.5,
+	"y": -66.5,
+	"width": 133,
+	"height": 133,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/移动特效"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "粒子", "parent": "root", "x": 21.88, "y": 2.39 },
+	{ "name": "框", "parent": "root", "length": 50 },
+	{ "name": "粒子2", "parent": "root", "rotation": 89.98, "x": -0.02, "y": 11.67 },
+	{ "name": "粒子3", "parent": "root", "rotation": -179.79, "x": -13.69, "y": 0.62 },
+	{ "name": "粒子4", "parent": "root", "rotation": -89.76, "x": -0.06, "y": -8.54 },
+	{ "name": "框2", "parent": "root", "length": 50, "rotation": 90 }
+],
+"slots": [
+	{ "name": "框", "bone": "框", "attachment": "框" },
+	{ "name": "框2", "bone": "框2", "attachment": "框" },
+	{ "name": "粒子", "bone": "粒子" },
+	{ "name": "粒子2", "bone": "粒子2" },
+	{ "name": "粒子3", "bone": "粒子3" },
+	{ "name": "粒子4", "bone": "粒子4" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"框": {
+				"框": { "width": 133, "height": 133 }
+			},
+			"框2": {
+				"框": { "width": 133, "height": 133 }
+			},
+			"粒子2": {
+				"粒子": { "x": -1.12, "y": -0.34, "width": 27, "height": 8 }
+			},
+			"粒子3": {
+				"粒子": { "x": -1.12, "y": -0.34, "width": 27, "height": 8 }
+			},
+			"粒子4": {
+				"粒子": { "x": -1.12, "y": -0.34, "width": 27, "height": 8 }
+			},
+			"粒子": {
+				"粒子": { "x": -1.12, "y": -0.34, "width": 27, "height": 8 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {
+		"slots": {
+			"框": {
+				"color": [
+					{ "time": 0.6, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.8, "color": "ffffff00" }
+				]
+			},
+			"粒子2": {
+				"color": [
+					{ "time": 0.3333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.0333, "name": "粒子" }
+				]
+			},
+			"粒子3": {
+				"color": [
+					{ "time": 0.3333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.0333, "name": "粒子" }
+				]
+			},
+			"粒子": {
+				"color": [
+					{ "time": 0.3333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.0333, "name": "粒子" }
+				]
+			},
+			"框2": {
+				"color": [
+					{ "time": 0.4, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.6, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.4, "name": "框" }
+				]
+			},
+			"粒子4": {
+				"color": [
+					{ "time": 0.3333, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.0333, "name": "粒子" }
+				]
+			}
+		},
+		"bones": {
+			"粒子": {
+				"translate": [
+					{ "time": 0.0333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.2, "x": 39.82, "y": -2.7, "curve": "stepped" },
+					{ "time": 0.3333, "x": 39.82, "y": -2.7, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.4333, "x": 23.98, "y": -2.7 }
+				]
+			},
+			"框": {
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.2, "x": 1.275, "y": 1.275, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.4 }
+				]
+			},
+			"粒子2": {
+				"translate": [
+					{ "time": 0.0333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.2, "x": 0.47, "y": 52.11, "curve": "stepped" },
+					{ "time": 0.3333, "x": 0.47, "y": 52.11, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.4333, "x": 0.47, "y": 35.26 }
+				]
+			},
+			"粒子3": {
+				"translate": [
+					{ "time": 0.0333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.2, "x": -49.85, "y": -0.73, "curve": "stepped" },
+					{ "time": 0.3333, "x": -49.85, "y": -0.73, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.4333, "x": -31.99, "y": -0.73 }
+				]
+			},
+			"粒子4": {
+				"translate": [
+					{ "time": 0.0333, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.2, "x": -0.12, "y": -55.68, "curve": "stepped" },
+					{ "time": 0.3333, "x": -0.12, "y": -55.68, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.4333, "x": -0.12, "y": -38.15 }
+				]
+			},
+			"框2": {
+				"scale": [
+					{ "time": 0.4, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.6, "x": 1.262, "y": 1.262 }
+				]
+			}
+		}
+	}
+}
+}

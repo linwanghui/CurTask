@@ -10,8 +10,25 @@ export interface WZSJZ_MaterialLevelConfig {
     ProductionPerSecond: number;
     /** 围墙等战斗单位可使用；普通资源填0。 */
     MaxHealth: number;
+    /** 攻击型物资使用；非攻击单位可不填。 */
+    AttackDamage?: number;
+    AttackInterval?: number;
+    AttackRange?: number;
+    BulletSpeed?: number;
+    /** 范围武器的爆炸半径；单体武器可不填。 */
+    AreaRadius?: number;
+    /** 地雷等接近触发单位使用。 */
+    TriggerRadius?: number;
 }
-
+//物理层级
+export enum WZSJZ_TIER {
+    地形 = 1 << 0,
+    玩家 = 1 << 1,
+    敌人 = 1 << 2,
+    场景物 = 1 << 3,
+    玩家子弹 = 1 << 4,
+    敌人子弹 = 1 << 5,
+};
 /** 一类可合成物资的完整配置。 */
 export interface WZSJZ_MaterialConfig {
     Name: string;
@@ -45,12 +62,21 @@ export interface WZSJZ_RecycleReward {
 }
 
 export interface WZSJZ_EnemyConfig {
+    MaxHealth: number;
     MoveSpeed: number;
+    /** 与城墙外边缘之间的攻击距离，单位为世界坐标像素。 */
     AttackRange: number;
+    /** Spine原点的视觉修正；负值会让近战单位更贴近墙体。 */
+    AttackPositionOffset: number;
     AttackInterval: number;
     AttackDamage: number;
     MoveAnimation: string;
     AttackAnimation: string;
+    HitAnimation: string;
+    /** 受击硬直时间，期间不移动也不攻击。 */
+    HitDuration: number;
+    DeathAnimation: string;
+    DeathDuration: number;
 }
 
 export class WZSJZ_Constant {
@@ -72,6 +98,13 @@ export class WZSJZ_Constant {
         A: 100,
     };
 
+    /** 购买生成和二合一升级时的物资弹出动画。 */
+    public static readonly MaterialPopAnimation = {
+        StartScale: 0.25,
+        Duration: 0.22,
+        Easing: "backOut",
+    };
+
     /** 敌人刷出与战斗参数。 */
     public static readonly EnemySpawn = {
         MinInterval: 2,
@@ -79,23 +112,87 @@ export class WZSJZ_Constant {
         EdgePadding: 45,
     };
 
+    /** 高频生成节点的对象池预热数量；不足时仍会按需扩容。 */
+    public static readonly ObjectPool = {
+        EnemyPrewarmPerType: 5,
+        GunBulletPrewarm: 20,
+        CannonBulletPrewarm: 12,
+        MinePrewarm: 16,
+        KnifeEffectPrewarm: 10,
+    };
+
+    /** 防止单位停在攻击范围临界点时因浮点误差反复进入移动状态。 */
+    public static readonly EnemyCombat = {
+        AttackPositionTolerance: 2,
+    };
+
+    /** Inspector 未绑定时使用这些Bundle内路径自动加载。 */
+    public static readonly EnemyPrefabPaths: string[] = [
+        "Prefabs/单位/哈夫克士兵",
+        "Prefabs/单位/阿萨拉士兵",
+    ];
+
     public static readonly EnemyConfigs: Record<string, WZSJZ_EnemyConfig> = {
         "哈夫克士兵": {
+            MaxHealth: 60,
             MoveSpeed: 85,
-            AttackRange: 80,
+            AttackRange: -80,
+            AttackPositionOffset: -30,
             AttackInterval: 1.2,
             AttackDamage: 8,
             MoveAnimation: "zuolu",
             AttackAnimation: "gongji",
+            HitAnimation: "shouji",
+            HitDuration: 0.34,
+            DeathAnimation: "siwang",
+            DeathDuration: 1,
         },
         "阿萨拉士兵": {
+            MaxHealth: 80,
             MoveSpeed: 105,
-            AttackRange: 75,
+            AttackRange: -80,
+            AttackPositionOffset: -30,
             AttackInterval: 1.5,
             AttackDamage: 10,
             MoveAnimation: "zuolu",
             AttackAnimation: "gongji",
+            HitAnimation: "shouji",
+            HitDuration: 0.34,
+            DeathAnimation: "siwang",
+            DeathDuration: 1,
         },
+    };
+
+    public static readonly GunBullet = {
+        PrefabPath: "Prefabs/投掷物/枪子弹",
+        HitDistance: 18,
+        HitEffectDuration: 0.25,
+        AimHeight: 55,
+    };
+
+    public static readonly KnifeEffect = {
+        PrefabPath: "Prefabs/投掷物/刀特效",
+        Duration: 0.25,
+        PositionOffsetX: 0,
+        PositionOffsetY: 55,
+    };
+
+    public static readonly CannonBullet = {
+        PrefabPath: "Prefabs/投掷物/炮子弹",
+        HitDistance: 22,
+        /** 炮弹飞行轨迹相对直线抬高的最大高度。 */
+        ArcHeight: 260,
+        /** 动画资源缺少时使用的回收兜底时长。 */
+        HitEffectDuration: 0.6,
+    };
+
+    public static readonly Mine = {
+        PrefabPath: "Prefabs/投掷物/地雷",
+        Lifetime: 30,
+        HitEffectDuration: 0.3,
+        MinDistanceFromWall: 100,
+        VerticalPadding: 45,
+        FarEdgePadding: 45,
     };
 
     /** 购买价格每上涨一档后，对应的物资初始等级权重。 */
@@ -131,6 +228,22 @@ export class WZSJZ_Constant {
         "围墙": [
             { Money: 1, Food: 1 }, { Money: 2, Food: 2 }, { Money: 4, Food: 4 },
             { Money: 8, Food: 8 }, { Money: 16, Food: 16 }, { Money: 32, Food: 32 },
+        ],
+        "枪": [
+            { Money: 2, Food: 1 }, { Money: 4, Food: 2 }, { Money: 8, Food: 4 },
+            { Money: 16, Food: 8 }, { Money: 32, Food: 16 }, { Money: 64, Food: 32 },
+        ],
+        "刀": [
+            { Money: 2, Food: 1 }, { Money: 4, Food: 2 }, { Money: 8, Food: 4 },
+            { Money: 16, Food: 8 }, { Money: 32, Food: 16 }, { Money: 64, Food: 32 },
+        ],
+        "炮": [
+            { Money: 3, Food: 2 }, { Money: 6, Food: 4 }, { Money: 12, Food: 8 },
+            { Money: 24, Food: 16 }, { Money: 48, Food: 32 }, { Money: 96, Food: 64 },
+        ],
+        "雷": [
+            { Money: 2, Food: 3 }, { Money: 4, Food: 6 }, { Money: 8, Food: 12 },
+            { Money: 16, Food: 24 }, { Money: 32, Food: 48 }, { Money: 64, Food: 96 },
         ],
     };
 
@@ -204,6 +317,78 @@ export class WZSJZ_Constant {
             MergeSameLevelCount: 0,
             Levels: [
                 { Level: 1, SpritePath: "Sprites/游戏内/钥匙", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "枪": {
+            Name: "枪",
+            ResourceType: "none",
+            PurchaseWeight: 12,
+            ItemLockWeight: 8,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 10, AttackInterval: 1, AttackRange: 1000, BulletSpeed: 1400 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 18, AttackInterval: 0.9, AttackRange: 1050, BulletSpeed: 1520 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 32, AttackInterval: 0.8, AttackRange: 1100, BulletSpeed: 1640 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 55, AttackInterval: 0.7, AttackRange: 1150, BulletSpeed: 1800 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 90, AttackInterval: 0.6, AttackRange: 1200, BulletSpeed: 2000 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 150, AttackInterval: 0.5, AttackRange: 1300, BulletSpeed: 2300 },
+            ],
+        },
+        "刀": {
+            Name: "刀",
+            ResourceType: "none",
+            PurchaseWeight: 12,
+            ItemLockWeight: 8,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 12, AttackInterval: 1, AttackRange: 500 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 22, AttackInterval: 0.9, AttackRange: 600 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 40, AttackInterval: 0.8, AttackRange: 650 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 70, AttackInterval: 0.7, AttackRange: 700 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 140, AttackInterval: 0.6, AttackRange: 750 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 280, AttackInterval: 0.5, AttackRange: 800 },
+            ],
+        },
+        "炮": {
+            Name: "炮",
+            ResourceType: "none",
+            PurchaseWeight: 8,
+            ItemLockWeight: 5,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 12, AttackInterval: 2.8, AttackRange: 1100, BulletSpeed: 800, AreaRadius: 150 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 22, AttackInterval: 2.6, AttackRange: 1160, BulletSpeed: 850, AreaRadius: 165 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 40, AttackInterval: 2.4, AttackRange: 1220, BulletSpeed: 900, AreaRadius: 180 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 70, AttackInterval: 2.2, AttackRange: 1280, BulletSpeed: 960, AreaRadius: 195 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 140, AttackInterval: 2, AttackRange: 1340, BulletSpeed: 1030, AreaRadius: 210 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 280, AttackInterval: 1.8, AttackRange: 1400, BulletSpeed: 1100, AreaRadius: 225 },
+            ],
+        },
+        "雷": {
+            Name: "雷",
+            ResourceType: "none",
+            PurchaseWeight: 7,
+            ItemLockWeight: 4,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 45, AttackInterval: 4.5, AttackRange: 99999, AreaRadius: 170, TriggerRadius: 55 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 75, AttackInterval: 4.2, AttackRange: 99999, AreaRadius: 185, TriggerRadius: 58 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 125, AttackInterval: 3.9, AttackRange: 99999, AreaRadius: 200, TriggerRadius: 62 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 205, AttackInterval: 3.6, AttackRange: 99999, AreaRadius: 220, TriggerRadius: 66 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 330, AttackInterval: 3.2, AttackRange: 99999, AreaRadius: 240, TriggerRadius: 70 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 520, AttackInterval: 2.8, AttackRange: 99999, AreaRadius: 260, TriggerRadius: 75 },
             ],
         },
     };
