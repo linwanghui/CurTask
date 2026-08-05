@@ -8,6 +8,9 @@ import {
     Layout,
     Node,
     Sprite,
+    tween,
+    Tween,
+    v3,
 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -23,16 +26,21 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
     @property({ displayName: '锁定错误停顿时间', min: 0.1 })
     WrongPauseDuration: number = 0.7;
 
+    @property({ displayName: '成功锁定动画时间', min: 0.1 })
+    SuccessLockDuration: number = 0.36;
+
     private static readonly PASSWORD: string = "LWKJA";
     private static readonly LETTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static readonly CORRECT_COLOR: Color = new Color(80, 255, 100, 255);
     private static readonly NORMAL_COLOR: Color = new Color(255, 255, 255, 255);
     private static readonly WRONG_COLOR: Color = new Color(255, 90, 90, 255);
     private static readonly CURRENT_LOCK_COLOR: Color = new Color(255, 220, 80, 255);
-    private static readonly WAIT_LOCK_COLOR: Color = new Color(110, 110, 110, 255);
+    /** 每列使用不同速度倍率，避免五列保持同步滚动。 */
+    private static readonly COLUMN_SPEED_RATIOS: readonly number[] = [0.82, 0.94, 1.06, 1.18, 1.30];
 
     private readonly _columns: Node[] = [];
     private readonly _lockSprites: Sprite[] = [];
+    private readonly _successLockNodes: Node[] = [];
     private readonly _correctRows: number[] = [];
     private readonly _rolling: boolean[] = [];
     private readonly _rowSteps: number[] = [];
@@ -99,6 +107,7 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
             column.getComponent(Layout).enabled = false;
             this._columns.push(column);
             this._lockSprites.push(lockSprite);
+            this._successLockNodes.push(lockSprite.node.getChildByName("成功锁定"));
             this._correctRows.push(-1);
             this._rolling.push(true);
             const rowStep = column.children.length > 1
@@ -115,6 +124,13 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
         this._currentColumn = 0;
         this._isLockCoolingDown = false;
         if (this._lockButton) this._lockButton.interactable = true;
+
+        for (const successNode of this._successLockNodes) {
+            if (!successNode) continue;
+            Tween.stopAllByTarget(successNode);
+            successNode.active = false;
+            successNode.setScale(1, 1, 1);
+        }
 
         for (let columnIndex = 0; columnIndex < this._columns.length; columnIndex++) {
             const column = this._columns[columnIndex];
@@ -156,7 +172,8 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
     private RollColumn(column: Node, deltaTime: number): void {
         const columnIndex = this._columns.indexOf(column);
         if (columnIndex < 0) return;
-        const offset = this.RollSpeed * deltaTime;
+        const speedRatio = ZRSJZ_PasswordBoxPanel.COLUMN_SPEED_RATIOS[columnIndex] ?? 1;
+        const offset = this.RollSpeed * speedRatio * deltaTime;
         const span = this._wheelSpans[columnIndex];
         const halfSpan = span * 0.5;
 
@@ -233,6 +250,7 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
             return;
         }
 
+        this.PlaySuccessLock(columnIndex);
         // 只有前一列成功后 currentColumn 才会前进，从而保证按顺序锁定。
         this._currentColumn++;
         this.RefreshAllLockSprites();
@@ -241,7 +259,12 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
         }
 
         if (this._lockButton) this._lockButton.interactable = false;
-        this.OpenUnlockedBox();
+        const serial = this._roundSerial;
+        this.scheduleOnce(() => {
+            if (serial === this._roundSerial && this.node.activeInHierarchy) {
+                this.OpenUnlockedBox();
+            }
+        }, this.SuccessLockDuration);
     }
 
     private PlayWrongPause(columnIndex: number, row: number): void {
@@ -271,13 +294,29 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
     private RefreshLockSprite(index: number): void {
         const sprite = this._lockSprites[index];
         if (!sprite) return;
-        if (index < this._currentColumn) {
-            sprite.color = ZRSJZ_PasswordBoxPanel.CORRECT_COLOR;
-        } else if (index === this._currentColumn) {
-            sprite.color = ZRSJZ_PasswordBoxPanel.CURRENT_LOCK_COLOR;
-        } else {
-            sprite.color = ZRSJZ_PasswordBoxPanel.WAIT_LOCK_COLOR;
-        }
+        const isCompleted = index < this._currentColumn;
+        const isCurrent = index === this._currentColumn;
+        const successNode = this._successLockNodes[index];
+
+        // 锁定底图只允许当前正在操作的列显示。
+        sprite.enabled = isCurrent;
+        sprite.color = ZRSJZ_PasswordBoxPanel.CURRENT_LOCK_COLOR;
+        if (successNode) successNode.active = isCompleted;
+    }
+
+    private PlaySuccessLock(index: number): void {
+        const successNode = this._successLockNodes[index];
+        if (!successNode) return;
+
+        Tween.stopAllByTarget(successNode);
+        successNode.active = true;
+        successNode.setScale(0.25, 0.25, 1);
+        const expandDuration = this.SuccessLockDuration * 0.65;
+        const settleDuration = this.SuccessLockDuration - expandDuration;
+        tween(successNode)
+            .to(expandDuration, { scale: v3(1.25, 1.25, 1) }, { easing: 'backOut' })
+            .to(settleDuration, { scale: v3(1, 1, 1) }, { easing: 'sineOut' })
+            .start();
     }
 
     private OpenUnlockedBox(): void {
@@ -291,6 +330,7 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
     private Close(): void {
         this._roundSerial++;
         this._rolling.fill(false);
+        this._successLockNodes.forEach(node => node && Tween.stopAllByTarget(node));
         this._targetBox = null;
         ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.密码箱弹窗);
     }

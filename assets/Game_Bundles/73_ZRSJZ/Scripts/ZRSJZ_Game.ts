@@ -5,7 +5,7 @@ import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from './ZRSJZ_Constant';
+import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 const { ccclass, property } = _decorator;
@@ -35,9 +35,15 @@ export class ZRSJZ_Game extends Component {
     private _miniMapPoint: Node = null;
     private _miniMapIcon: Sprite = null;
     private _miniMapPointPosition: Vec3 = new Vec3();
+    private _elapsedGameTime: number = 0;
+    private _killCount: number = 0;
+    private _battleStarted: boolean = false;
 
     protected onLoad(): void {
         ZRSJZ_Game.Instance = this;
+        this._elapsedGameTime = 0;
+        this._killCount = 0;
+        this._battleStarted = false;
     }
 
     protected start(): void {
@@ -55,6 +61,12 @@ export class ZRSJZ_Game extends Component {
 
     protected lateUpdate(): void {
         this.RefreshMiniMap();
+    }
+
+    protected update(deltaTime: number): void {
+        if (this._battleStarted && !this.GamePaused && Number.isFinite(deltaTime) && deltaTime > 0) {
+            this._elapsedGameTime += deltaTime;
+        }
     }
 
     LoadMap() {
@@ -89,6 +101,7 @@ export class ZRSJZ_Game extends Component {
     LoadUI() {
         this.Drug = [0, 0, 0];
         this.UI.active = true;
+        this._battleStarted = true;
     }
 
     async CreateDieEffect(worldPos: Vec3, cb: Function = null) {
@@ -186,16 +199,35 @@ export class ZRSJZ_Game extends Component {
 
     //#region 获取游戏时间
     GetGameTime(): string {
-        return "";
+        const totalSeconds = Math.max(0, Math.floor(this._elapsedGameTime));
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     }
 
     //#region 获取击杀数
     GetKillCount(): string {
-        return "0";
+        return Math.max(0, Math.floor(this._killCount)).toString();
+    }
+
+    /** 敌人首次确认死亡时登记击杀，防止死亡表现或回收流程重复计数。 */
+    RecordKill(count: number = 1): void {
+        if (!Number.isFinite(count) || count <= 0) return;
+        this._killCount += Math.floor(count);
     }
 
     //#region 战利品ID（背包跟保险箱）
     GetAllGoodsID(): string[] {
-        return [];
+        const goodsInventories = new Set<ZRSJZ_INVENTORY>([
+            ZRSJZ_INVENTORY.背包,
+            ZRSJZ_INVENTORY.保险箱,
+        ]);
+
+        return Object.entries(ZRSJZ_GameData.Instance.PropData ?? {})
+            .filter(([id, propData]) => !!id
+                && !!propData
+                && propData.CurCount > 0
+                && goodsInventories.has(propData.CurInventory))
+            .map(([id]) => id);
     }
 }

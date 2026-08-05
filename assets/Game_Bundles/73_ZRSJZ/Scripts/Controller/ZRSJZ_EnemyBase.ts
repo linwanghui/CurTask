@@ -307,6 +307,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         this._health = 0;
         this.ChangeState(ZRSJZ_ENEMY_STATE.DEAD);
+        ZRSJZ_Game.Instance?.RecordKill();
         this.Target = null;
         this.ClearNavigation();
         this.StopMoving();
