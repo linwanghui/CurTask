@@ -51,7 +51,7 @@ export class ZRSJZ_Currency extends Component {
     }
 
     AddCurrencyByVideo() {
-        ZRSJZ_GameData.Instance.ChangeGold(10000);
+        ZRSJZ_GameData.Instance.ChangeGold(100000);
         ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
     }
 }

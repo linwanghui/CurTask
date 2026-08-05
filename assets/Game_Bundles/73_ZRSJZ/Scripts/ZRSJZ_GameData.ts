@@ -1,5 +1,5 @@
 import { sys } from "cc";
-import { GetFacilityBonusValue as GetConfiguredFacilityBonusValue, GetFiringRangeAttackBonusPercent, ZRSJZ_FACILITY_UPGRADE_CONFIG, ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName } from "./ZRSJZ_Constant";
+import { GetFacilityBonusValue as GetConfiguredFacilityBonusValue, GetFiringRangeAttackBonusPercent, ZRSJZ_FACILITY_UPGRADE_CONFIG, ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName, ZRSJZ_WEAPON_SKIN } from "./ZRSJZ_Constant";
 import { ZRSJZ_Tools } from "./ZRSJZ_Tools";
 import { ZRSJZ_PlayerSwitchButton } from "./UI/ZRSJZ_PlayerSwitchButton";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "./Manager/ZRSJZ_EventManager";
@@ -34,7 +34,7 @@ export class ZRSJZ_GameData {
         const propId = this.AddPropByName("战术匕首");
         this.WeaponryID[4] = propId;
         this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_刀, 1, 0, 0);
-        this.CurMap = "城镇_初级";
+        this.CurMap = "五号小镇_机密行动";
     }
 
     public MusicMute: boolean = false;//音乐静音
@@ -43,14 +43,18 @@ export class ZRSJZ_GameData {
     public Gold: number = 0;
     public FiringRangeLevel: number = 0;
     public FacilityLevel: Partial<Record<ZRSJZ_UpgradeFacilityName, number>> = {};
-    public HaveRole: string[] = ["蓝狼", "安娜"];
-    public CurRole: string[] = ["蓝狼", "安娜"];
-    public HaveSkin: string[] = ["蓝狼", "安娜"];
-    public CurSkin: string[] = ["蓝狼", "安娜"];
+    public HaveRole: string[] = ["威蓝", "小温"];
+    public CurRole: string[] = ["威蓝", "小温"];
+    public HaveSkin: string[] = ["威蓝", "小温"];
+    public CurSkin: string[] = ["威蓝", "小温"];
     public PropID: number = 0;//道具的唯一ID
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};//道具数据
     public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
     public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
+    /** 已购买的非默认武器皮肤；每把武器的首个皮肤始终视为拥有。 */
+    public HaveWeaponSkin: string[] = [];
+    /** 每把武器当前使用的皮肤。 */
+    public CurWeaponSkin: { [weaponName: string]: string } = {};
     // public GameTempID: string[] = [];//战斗时的临时ID
     public CurMap: string = "五号小镇_机密行动";//当前地图
 
@@ -122,6 +126,46 @@ export class ZRSJZ_GameData {
         this.AmmoID = ammoID.slice(0, 6);
         while (this.AmmoID.length < 6) this.AmmoID.push("");
         ZRSJZ_GameData.SaveData();
+    }
+
+    public HasWeaponSkin(weaponName: string, skinName: string): boolean {
+        const skins = ZRSJZ_WEAPON_SKIN.get(weaponName);
+        if (!skins?.some(skin => skin.Name === skinName)) return false;
+        return skinName === skins[0].Name || (this.HaveWeaponSkin ?? []).includes(skinName);
+    }
+
+    public AddWeaponSkin(weaponName: string, skinName: string): boolean {
+        if (!ZRSJZ_WEAPON_SKIN.get(weaponName)?.some(skin => skin.Name === skinName)) return false;
+        if (!this.HaveWeaponSkin) this.HaveWeaponSkin = [];
+        if (!this.HaveWeaponSkin.includes(skinName)) {
+            this.HaveWeaponSkin.push(skinName);
+            ZRSJZ_GameData.SaveData();
+        }
+        return true;
+    }
+
+    public GetWeaponSkin(weaponName: string): string {
+        const skins = ZRSJZ_WEAPON_SKIN.get(weaponName);
+        if (!skins?.length) return weaponName;
+
+        const currentSkin = this.CurWeaponSkin?.[weaponName];
+        return currentSkin && this.HasWeaponSkin(weaponName, currentSkin)
+            ? currentSkin
+            : skins[0].Name;
+    }
+
+    public SetWeaponSkin(weaponName: string, skinName: string): boolean {
+        if (!this.HasWeaponSkin(weaponName, skinName)) return false;
+        if (!this.CurWeaponSkin) this.CurWeaponSkin = {};
+        if (this.GetWeaponSkin(weaponName) === skinName) return true;
+
+        this.CurWeaponSkin[weaponName] = skinName;
+        ZRSJZ_GameData.SaveData();
+        const equippedGunName = this.PropData?.[this.WeaponryID?.[0]]?.Name;
+        if (equippedGunName === weaponName) {
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, weaponName);
+        }
+        return true;
     }
 
 

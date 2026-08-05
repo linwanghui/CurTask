@@ -451,15 +451,52 @@ export const ZRSJZ_WEAPONRY_TYPE: Map<string, string[]> = new Map([
     ["散弹枪", ["FS-霰弹枪", "KK41-霰弹枪"]],
 ])
 
-export const ZRSJZ_WEAPON_SKIN: Map<string, string[]> = new Map([
-    ["CN8-突击步枪", ["CN8-突击步枪", "CN8-毒剂", "CN8-红魔"]],
-    ["DX9-冲锋枪", ["DX9-冲锋枪", "DX9-零", "DX9-未来金属"]],
-    ["K50-轻机枪", ["K50-轻机枪", "K50-云雾"]],
-    ["RK77-轻机枪", ["RK77-轻机枪", "RK77-鼓手"]],
-    ["FS-霰弹枪", ["FS-霰弹枪", "FS-白弧", "FS-橙灼"]],
-    ["KK41-霰弹枪", ["KK41-霰弹枪", "KK41-见雪", "KK41-绫虹"]],
-    ["ssv-狙击枪", ["ssv-狙击枪", "ssv-星零", "ssv-鎏光"]],
-    ["W76-狙击枪", ["W76-狙击枪", "W76-寒汐", "W76-紫墟"]],
+export interface ZRSJZ_WeaponSkinConfig {
+    Name: string;
+    Quality: ZRSJZ_PROP_QUALITY;
+    /** 默认皮肤填 0，非默认皮肤为购买价格。 */
+    Price: number;
+}
+
+export const ZRSJZ_WEAPON_SKIN: ReadonlyMap<string, ReadonlyArray<Readonly<ZRSJZ_WeaponSkinConfig>>> = new Map([
+    ["CN8-突击步枪", [
+        { Name: "CN8-突击步枪", Quality: ZRSJZ_PROP_QUALITY.绿色, Price: 0 },
+        { Name: "CN8-毒剂", Quality: ZRSJZ_PROP_QUALITY.紫色, Price: 25000 },
+        { Name: "CN8-红魔", Quality: ZRSJZ_PROP_QUALITY.红色, Price: 50000 },
+    ]],
+    ["DX9-冲锋枪", [
+        { Name: "DX9-冲锋枪", Quality: ZRSJZ_PROP_QUALITY.绿色, Price: 0 },
+        { Name: "DX9-零", Quality: ZRSJZ_PROP_QUALITY.蓝色, Price: 28000 },
+        { Name: "DX9-未来金属", Quality: ZRSJZ_PROP_QUALITY.金色, Price: 56000 },
+    ]],
+    ["K50-轻机枪", [
+        { Name: "K50-轻机枪", Quality: ZRSJZ_PROP_QUALITY.绿色, Price: 0 },
+        { Name: "K50-云雾", Quality: ZRSJZ_PROP_QUALITY.紫色, Price: 36000 },
+    ]],
+    ["RK77-轻机枪", [
+        { Name: "RK77-轻机枪", Quality: ZRSJZ_PROP_QUALITY.绿色, Price: 0 },
+        { Name: "RK77-鼓手", Quality: ZRSJZ_PROP_QUALITY.金色, Price: 42000 },
+    ]],
+    ["FS-霰弹枪", [
+        { Name: "FS-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, Price: 0 },
+        { Name: "FS-白弧", Quality: ZRSJZ_PROP_QUALITY.紫色, Price: 65000 },
+        { Name: "FS-橙灼", Quality: ZRSJZ_PROP_QUALITY.红色, Price: 110000 },
+    ]],
+    ["KK41-霰弹枪", [
+        { Name: "KK41-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, Price: 0 },
+        { Name: "KK41-见雪", Quality: ZRSJZ_PROP_QUALITY.紫色, Price: 78000 },
+        { Name: "KK41-绫虹", Quality: ZRSJZ_PROP_QUALITY.金色, Price: 130000 },
+    ]],
+    ["ssv-狙击枪", [
+        { Name: "ssv-狙击枪", Quality: ZRSJZ_PROP_QUALITY.紫色, Price: 0 },
+        { Name: "ssv-星零", Quality: ZRSJZ_PROP_QUALITY.金色, Price: 120000 },
+        { Name: "ssv-鎏光", Quality: ZRSJZ_PROP_QUALITY.红色, Price: 200000 },
+    ]],
+    ["W76-狙击枪", [
+        { Name: "W76-狙击枪", Quality: ZRSJZ_PROP_QUALITY.紫色, Price: 0 },
+        { Name: "W76-寒汐", Quality: ZRSJZ_PROP_QUALITY.金色, Price: 150000 },
+        { Name: "W76-紫墟", Quality: ZRSJZ_PROP_QUALITY.红色, Price: 260000 },
+    ]],
 ]);
 export type ZRSJZ_UpgradeMaterial = {
     PropName: string,
@@ -617,9 +654,9 @@ export const ZRSJZ_ROLE_CONFIG: Map<string, {
     Skin: string[],
     SkillPath: string,
 }> = new Map([
-    ["蓝狼", { Name: "蓝狼", Skin: ["蓝狼", "蓝狼"], SkillPath: "Prefabs/Controller/Bomb" }],
-    ["安娜", { Name: "安娜", Skin: ["安娜", "安娜2"], SkillPath: "Prefabs/Controller/Laser" }],
-    ["小美", { Name: "小美", Skin: ["小美", "小美2"], SkillPath: "Prefabs/Controller/Shield" }],
+    ["威蓝", { Name: "威蓝", Skin: ["威蓝", "威蓝2"], SkillPath: "Prefabs/Controller/Bomb" }],
+    ["小温", { Name: "小温", Skin: ["小温", "小温2"], SkillPath: "Prefabs/Controller/Laser" }],
+    ["小雅", { Name: "小雅", Skin: ["小雅", "小雅2"], SkillPath: "Prefabs/Controller/Shield" }],
 ])
 
 export const ZRSJZ_SKIN_CONFIG: Map<string, {
@@ -629,12 +666,12 @@ export const ZRSJZ_SKIN_CONFIG: Map<string, {
     Skin: string,
     Headset: string[],
 }> = new Map([
-    ["蓝狼", { Name: "蓝狼", UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0000_前刘海_蓝狼"] }],
-    ["蓝狼2", { Name: "蓝狼", UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"] }],
-    ["安娜", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
-    ["安娜2", { Name: "安娜", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
-    ["小美", { Name: "小美", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [] }],
-    ["小美2", { Name: "小美2", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: ["wzt"] }],
+    ["威蓝", { Name: "威蓝", UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0000_前刘海_蓝狼"] }],
+    ["威蓝2", { Name: "威蓝2", UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"] }],
+    ["小温", { Name: "小温", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
+    ["小温2", { Name: "小温2", UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
+    ["小雅", { Name: "小雅", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [] }],
+    ["小雅2", { Name: "小雅2", UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: ["wzt"] }],
 ])
 
 //玩家动画

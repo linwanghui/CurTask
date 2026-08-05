@@ -51,14 +51,16 @@ export class ZRSJZ_Skeleton extends Component {
                 if (flag) {
                     isWeaponry = true;
                     if (isEquipment) {
-                        const texture = await ZRSJZ_UIManager.Instance.GetWeaponryUI(equipmentName);
-                        if (!texture) {
-                            console.error(`武器纹理不存在: ${equipmentName}`);
-                            return;
-                        }
-                        this.Skeleton.findSlot('dao').setAttachment(null);
-                        this.Skeleton.setAttachment(key, key);
-                        this.Skeleton.setSlotTexture(key, texture, true);
+                        const weaponSkin = ZRSJZ_GameData.Instance.GetWeaponSkin(equipmentName);
+                        ZRSJZ_UIManager.Instance.GetWeaponryUI(weaponSkin).then(texture => {
+                            if (!texture) {
+                                console.error(`武器纹理不存在: ${weaponSkin}`);
+                                return;
+                            }
+                            this.Skeleton.findSlot('dao').setAttachment(null);
+                            this.Skeleton.setAttachment(key, key);
+                            this.Skeleton.setSlotTexture(key, texture, true);
+                        });
                         this.PlayAni(ZRSJZ_ANI.Idle_Q);
                     } else {
                         this.Skeleton.findSlot(key)?.setAttachment(null);

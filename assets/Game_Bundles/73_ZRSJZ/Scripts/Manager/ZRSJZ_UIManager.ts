@@ -293,11 +293,12 @@ export class ZRSJZ_UIManager extends Component {
             });
         }
 
-        if (!this.WeaponryTextureMap.has(propName)) {
-            console.error("没找到武器ui:", propName);
-            return null;
+        if (this.WeaponryTextureMap.has(propName)) {
+            return Promise.resolve(this.WeaponryTextureMap.get(propName));
         }
-        return Promise.resolve(this.WeaponryTextureMap.get(propName));
+
+        console.error("没找到武器ui:", propName);
+        return Promise.resolve(null);
     }
 
     //获取玩家Icon

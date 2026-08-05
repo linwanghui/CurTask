@@ -1,15 +1,19 @@
-import { _decorator, Button, Component, easing, EventHandler, EventTouch, find, Label, Node, Prefab, Sprite, Tween, tween, UIOpacity, Vec3 } from 'cc';
+import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Sprite, SpriteFrame, Tween, tween } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_PROP_PROPERTY, ZRSJZ_PROP_PROPERTY_MAX, ZRSJZ_SHOP_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_PROP_PROPERTY, ZRSJZ_PROP_PROPERTY_MAX, ZRSJZ_PROP_QUALITY, ZRSJZ_SHOP_CONFIG, ZRSJZ_WEAPON_SKIN } from '../ZRSJZ_Constant';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_ShopItem } from '../UI/ZRSJZ_ShopItem';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_ShopStats } from '../UI/ZRSJZ_ShopStats';
+import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_ShowPanel')
 export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
+
+    @property(SpriteFrame)
+    SkineTypeSFs: SpriteFrame[] = [];
 
     public CheckedNode: Node = null;
     public ShopTypeNode: Node = null;
@@ -19,7 +23,11 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     public ShopLeft: Node = null;
     public ShopRight: Node = null;
     public Shop: Node = null;
+    public ShopPurchase: Node = null;
+    public ShopUse: Node = null;
+    public ShopUsing: Node = null;
     public ShopPrice: Label = null;
+    public ShopCurrency: Node = null;
     public ShopDesc: Label = null;
     public ShopProperty: Node = null;
     public ShopSkin: Node = null;
@@ -32,6 +40,11 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     private _curShowIndex: number = 0;
     private _shopPrice: number = 0;
     private _scale: number = 2;
+    private _selectedWeaponSkin: string = null;
+    private _isWeaponSkinOperation: boolean = false;
+    private _weaponSkinNodes: Node[] = [];
+    private _shopListVersion: number = 0;
+    private _shopDisplayVersion: number = 0;
 
     protected onLoad(): void {
         this.CheckedNode = find("Panel/商品类型/Checked", this.node);
@@ -42,7 +55,17 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopLeft = find("Panel/展示/上一个", this.node);
         this.ShopRight = find("Panel/展示/下一个", this.node);
         this.Shop = find("Panel/商品", this.node);
+        this.ShopPurchase = find("Panel/购买", this.node);
+        this.ShopUse = find("Panel/使用", this.node);
+        this.ShopUsing = find("Panel/使用中", this.node);
+        const useButton = this.ShopUse.getComponent(Button) ?? this.ShopUse.addComponent(Button);
+        const useClickEvent = new EventHandler();
+        useClickEvent.target = this.node;
+        useClickEvent.component = "ZRSJZ_ShowPanel";
+        useClickEvent.handler = "OnButtonClick";
+        useButton.clickEvents = [useClickEvent];
         this.ShopPrice = find("Panel/购买/Price", this.node).getComponent(Label);
+        this.ShopCurrency = find("Panel/购买/金币", this.node);
         this.ShopDesc = find("Panel/详情/描述/Desc", this.node).getComponent(Label);
         this.ShopProperty = find("Panel/详情/属性", this.node);
         this.ShopSkin = find("Panel/详情/皮肤", this.node);
@@ -65,7 +88,12 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.商店界面);
                 break;
             case "购买":
-
+                this.OnPurchase();
+                break;
+            case "使用":
+                this.OnUseWeaponSkin();
+                break;
+            case "使用中":
                 break;
             case "上一个":
                 this._curShopsTs[this._curShowIndex].Chekcked.active = false;
@@ -90,8 +118,27 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
                 this.SwitchButton(event.getCurrentTarget());
                 break;
             default:
+                if (event.getCurrentTarget().name.startsWith("WeaponSkin_")) {
+                    const skinIndex = Number(event.getCurrentTarget().name.replace("WeaponSkin_", ""));
+                    const skins = ZRSJZ_WEAPON_SKIN.get(this._curShop);
+                    if (skins?.[skinIndex]) {
+                        this._selectedWeaponSkin = skins[skinIndex].Name;
+                        this._isWeaponSkinOperation = true;
+                        this.ShowShopPreview(this._selectedWeaponSkin);
+                        this.RefreshWeaponSkinState();
+                        this.RefreshPurchaseState();
+                    }
+                    break;
+                }
                 const clickIndex = Number(event.getCurrentTarget().name);
-                if (clickIndex == this._curShowIndex) break;
+                if (clickIndex == this._curShowIndex) {
+                    this._isWeaponSkinOperation = false;
+                    this._selectedWeaponSkin = ZRSJZ_GameData.Instance.GetWeaponSkin(this._curShop);
+                    this.ShowShopPreview(this._curShop);
+                    this.RefreshWeaponSkinState();
+                    this.RefreshPurchaseState();
+                    break;
+                }
                 this._curShopsTs[this._curShowIndex].Chekcked.active = false;
                 this._curShowIndex = clickIndex;
                 this.ShowShop();
@@ -113,23 +160,32 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     }
 
     async ShowShopItem() {
-        this._curShops = ZRSJZ_SHOP_CONFIG.get(this._shopType);
+        const version = ++this._shopListVersion;
+        const shops = ZRSJZ_SHOP_CONFIG.get(this._shopType) ?? [];
+        this._curShops = shops;
         this._curShowIndex = 0;
         this.RemoveShopItem();
         this._curShopsTs = [];
-        this._curShops.forEach(async (shopName, index) => {
+        const shopItems = await Promise.all(shops.map(async (shopName, index) => {
             const shopItem: Node = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/ShopItem");
-            shopItem.parent = this.ShopItemContent;
             shopItem.name = index.toString();
-            shopItem.getComponent(ZRSJZ_ShopItem).Init(shopName);
+            await shopItem.getComponent(ZRSJZ_ShopItem).Init(shopName);
             const clickEventHandler = new EventHandler();
-            clickEventHandler.target = this.node; // 这个 node 节点是你的事件处理代码组件所属的节点
-            clickEventHandler.component = "ZRSJZ_ShowPanel";// 这个是脚本类名
+            clickEventHandler.target = this.node;
+            clickEventHandler.component = "ZRSJZ_ShowPanel";
             clickEventHandler.handler = "OnButtonClick";
-            shopItem.getComponent(Button)?.clickEvents.push(clickEventHandler);
-            this._curShopsTs.push(shopItem.getComponent(ZRSJZ_ShopItem));
-            if (index == 0) this.ShowShop();
-        });
+            const button = shopItem.getComponent(Button);
+            if (button) button.clickEvents = [clickEventHandler];
+            return shopItem;
+        }));
+
+        if (version !== this._shopListVersion) {
+            shopItems.forEach(shopItem => ZRSJZ_PoolManager.Instance.PutNode(shopItem));
+            return;
+        }
+        shopItems.forEach(shopItem => shopItem.parent = this.ShopItemContent);
+        this._curShopsTs = shopItems.map(shopItem => shopItem.getComponent(ZRSJZ_ShopItem));
+        if (this._curShopsTs.length > 0) this.ShowShop();
 
     }
 
@@ -145,10 +201,17 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     }
 
     async ShowShop() {
+        const version = ++this._shopDisplayVersion;
         this.ShowShopButton();
         this._curShop = this._curShops[this._curShowIndex];
+        this._selectedWeaponSkin = null;
+        this._isWeaponSkinOperation = false;
+        this.ClearWeaponSkinNodes();
+        this.ShopSkin.active = false;
         this.ShopName.string = this._curShop;
-        this.ShopIcon.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropUI(this._curShop);
+        const shopIcon = await ZRSJZ_UIManager.Instance.GetPropUI(this._curShop);
+        if (version !== this._shopDisplayVersion) return;
+        this.ShopIcon.spriteFrame = shopIcon;
         const shopData = ZRSJZ_PROP_CONFIG.get(this._curShop);
         this._shopPrice = shopData.UnitPrice * shopData.MaxCount;
         this.ShopPrice.string = `${this._shopPrice}`;
@@ -156,6 +219,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         ZRSJZ_Tools.ScaleNodeToFit(this.ShopIcon.node, 500, 200);
         this.ShopIcon.node.setScale(this._scale, this._scale, 1);
         this.ShowShopDesc(this._curShop);
+        this.RefreshPurchaseState();
     }
 
     ShowShopDesc(shopName: string) {
@@ -177,8 +241,165 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             this.ShopProperty.active = false;
         }
 
-        //显示商品皮肤
-        this.ShopSkin.active = false;
+        this.ShowWeaponSkins(shopName);
+    }
+
+    private async ShowWeaponSkins(weaponName: string): Promise<void> {
+        this.ClearWeaponSkinNodes();
+        const skins = ZRSJZ_WEAPON_SKIN.get(weaponName);
+        this.ShopSkin.active = !!skins?.length;
+        if (!skins?.length) return;
+
+        const template = this.ShopSkin.getChildByName("WeaponSkin");
+        if (!template) return;
+
+        for (let index = 0; index < skins.length; index++) {
+            // ShowShop 可能在图片加载期间切换到了其他商品，旧列表不再继续创建。
+            if (weaponName !== this._curShop) return;
+            const skinConfig = skins[index];
+            const skinName = skinConfig.Name;
+            const skinNode = instantiate(template);
+            skinNode.name = `WeaponSkin_${index}`;
+            skinNode.active = true;
+            skinNode.parent = this.ShopSkin;
+            const iconSpriteFrame = await ZRSJZ_UIManager.Instance.GetPropUI(skinName);
+            const icon = skinNode.getChildByName("Icon")?.getComponent(Sprite);
+            if (icon) icon.spriteFrame = iconSpriteFrame;
+            const qualitySprite = skinNode.getComponent(Sprite);
+            if (qualitySprite) qualitySprite.spriteFrame = this.GetSkinQualitySpriteFrame(skinConfig.Quality);
+            if (weaponName !== this._curShop) {
+                skinNode.destroy();
+                return;
+            }
+
+            const nameLabel = skinNode.getChildByName("Name")?.getComponent(Label);
+            if (nameLabel) nameLabel.string = skinName;
+
+            const button = skinNode.getComponent(Button) ?? skinNode.addComponent(Button);
+            const clickEventHandler = new EventHandler();
+            clickEventHandler.target = this.node;
+            clickEventHandler.component = "ZRSJZ_ShowPanel";
+            clickEventHandler.handler = "OnButtonClick";
+            button.clickEvents = [clickEventHandler];
+            this._weaponSkinNodes.push(skinNode);
+        }
+        if (!this._isWeaponSkinOperation) {
+            this._selectedWeaponSkin = ZRSJZ_GameData.Instance.GetWeaponSkin(weaponName);
+        }
+        this.RefreshWeaponSkinState();
+        this.RefreshPurchaseState();
+    }
+
+    private ClearWeaponSkinNodes(): void {
+        this._weaponSkinNodes.forEach(node => node?.isValid && node.destroy());
+        this._weaponSkinNodes = [];
+    }
+
+    private async ShowShopPreview(spriteName: string): Promise<void> {
+        const shopName = this._curShop;
+        const spriteFrame = await ZRSJZ_UIManager.Instance.GetPropUI(spriteName);
+        if (shopName !== this._curShop) return;
+        if (this._isWeaponSkinOperation && spriteName !== this._selectedWeaponSkin) return;
+        if (!this._isWeaponSkinOperation && spriteName !== shopName) return;
+
+        this.ShopIcon.spriteFrame = spriteFrame;
+        ZRSJZ_Tools.ScaleNodeToFit(this.ShopIcon.node, 500, 200);
+        this.ShopIcon.node.setScale(this._scale, this._scale, 1);
+    }
+
+    /** SkineTypeSFs 顺序：白、蓝、紫、金、红；绿色暂无专用资源，回退到白色框。 */
+    private GetSkinQualitySpriteFrame(quality: ZRSJZ_PROP_QUALITY): SpriteFrame {
+        const indexMap: Partial<Record<ZRSJZ_PROP_QUALITY, number>> = {
+            [ZRSJZ_PROP_QUALITY.白色]: 0,
+            [ZRSJZ_PROP_QUALITY.绿色]: 0,
+            [ZRSJZ_PROP_QUALITY.蓝色]: 1,
+            [ZRSJZ_PROP_QUALITY.紫色]: 2,
+            [ZRSJZ_PROP_QUALITY.金色]: 3,
+            [ZRSJZ_PROP_QUALITY.红色]: 4,
+        };
+        return this.SkineTypeSFs[indexMap[quality] ?? 0] ?? this.SkineTypeSFs[0] ?? null;
+    }
+
+    private RefreshWeaponSkinState(): void {
+        const skins = ZRSJZ_WEAPON_SKIN.get(this._curShop) ?? [];
+        this._weaponSkinNodes.forEach((skinNode, index) => {
+            const skinName = skins[index]?.Name;
+            if (!skinName) return;
+            const checked = skinNode.getChildByName("Checked");
+            if (checked) checked.active = skinName === this._selectedWeaponSkin;
+        });
+    }
+
+    private RefreshPurchaseState(): void {
+        if (!this._isWeaponSkinOperation || !this._selectedWeaponSkin) {
+            this.ShopPurchase.active = true;
+            this.ShopUse.active = false;
+            this.ShopUsing.active = false;
+            this.ShopCurrency.active = true;
+            this.ShopPrice.string = `${this._shopPrice}`;
+            return;
+        }
+
+        const owned = ZRSJZ_GameData.Instance.HasWeaponSkin(this._curShop, this._selectedWeaponSkin);
+        const using = ZRSJZ_GameData.Instance.GetWeaponSkin(this._curShop) === this._selectedWeaponSkin;
+        const price = ZRSJZ_WEAPON_SKIN.get(this._curShop)
+            ?.find(skin => skin.Name === this._selectedWeaponSkin)?.Price;
+        this.ShopPurchase.active = !owned;
+        this.ShopUse.active = owned && !using;
+        this.ShopUsing.active = using;
+        this.ShopCurrency.active = true;
+        this.ShopPrice.string = price === undefined ? "未定价" : `${price}`;
+    }
+
+    private async OnPurchase(): Promise<void> {
+        if (this._isWeaponSkinOperation && this._selectedWeaponSkin) {
+            const owned = ZRSJZ_GameData.Instance.HasWeaponSkin(this._curShop, this._selectedWeaponSkin);
+            if (owned) {
+                this.RefreshPurchaseState();
+                return;
+            }
+
+            const price = ZRSJZ_WEAPON_SKIN.get(this._curShop)
+                ?.find(skin => skin.Name === this._selectedWeaponSkin)?.Price;
+            if (price === undefined) {
+                await ZRSJZ_UIManager.Instance.ShowTip("皮肤价格未配置");
+                return;
+            }
+            if (ZRSJZ_GameData.Instance.Gold < price) {
+                await ZRSJZ_UIManager.Instance.ShowTip("金币不足");
+                return;
+            }
+            ZRSJZ_GameData.Instance.ChangeGold(-price);
+            ZRSJZ_GameData.Instance.AddWeaponSkin(this._curShop, this._selectedWeaponSkin);
+            this.RefreshWeaponSkinState();
+            this.RefreshPurchaseState();
+            await ZRSJZ_UIManager.Instance.ShowTip("皮肤购买成功");
+            return;
+        }
+
+        if (ZRSJZ_GameData.Instance.Gold < this._shopPrice) {
+            await ZRSJZ_UIManager.Instance.ShowTip("金币不足");
+            return;
+        }
+        ZRSJZ_GameData.Instance.ChangeGold(-this._shopPrice);
+        const count = ZRSJZ_PROP_CONFIG.get(this._curShop)?.MaxCount ?? 1;
+        ZRSJZ_GameData.Instance.AddPropByName(this._curShop, count);
+        await ZRSJZ_UIManager.Instance.ShowTip("购买成功");
+    }
+
+    private async OnUseWeaponSkin(): Promise<void> {
+        if (!this._isWeaponSkinOperation || !this._selectedWeaponSkin) return;
+        if (!ZRSJZ_GameData.Instance.HasWeaponSkin(this._curShop, this._selectedWeaponSkin)) {
+            this.RefreshPurchaseState();
+            return;
+        }
+        if (!ZRSJZ_GameData.Instance.SetWeaponSkin(this._curShop, this._selectedWeaponSkin)) {
+            await ZRSJZ_UIManager.Instance.ShowTip("皮肤使用失败");
+            return;
+        }
+        this.RefreshWeaponSkinState();
+        this.RefreshPurchaseState();
+        await ZRSJZ_UIManager.Instance.ShowTip("皮肤使用成功");
     }
 
     TweenShop() {
@@ -189,5 +410,3 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             .start();
     }
 }
-
-

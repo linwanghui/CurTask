@@ -299,7 +299,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -108.54500000000007,
+      "x": -1114.859,
       "y": -372.655,
       "z": 0
     },
@@ -389,12 +389,12 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 899,
+      "width": 332.92999267578125,
       "height": 744.0900268554688
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.514182424916574,
+      "x": 0.48754996814688184,
       "y": 0.07784004096079039
     },
     "_id": "c80Es+Eb9C+62j2H8QhnKc"
@@ -423,9 +423,9 @@
       "__uuid__": "0797d2bd-9982-470f-8dfd-49b4877f52df",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "js/ll2",
-    "defaultAnimation": "daiji_dao1",
-    "_premultipliedAlpha": true,
+    "defaultSkin": "js/w1",
+    "defaultAnimation": "daiji_q",
+    "_premultipliedAlpha": false,
     "_timeScale": 1,
     "_preCacheMode": 0,
     "_cacheMode": 0,
