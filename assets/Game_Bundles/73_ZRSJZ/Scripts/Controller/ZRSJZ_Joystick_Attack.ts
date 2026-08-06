@@ -52,8 +52,8 @@ export class ZRSJZ_Joystick_Attack extends Component {
         this._attackSprite.node.on(Node.EventType.TOUCH_END, this.OnTouchEnd_Attack, this);
         this._attackSprite.node.on(Node.EventType.TOUCH_CANCEL, this.OnTouchEnd_Attack, this);
 
-        this._curWeaponIndex = ZRSJZ_GameData.Instance.WeaponryID[0] ? 0 : 1;
-        this.SwitchWeapon();
+        this._curWeaponIndex = this.HasWeapon(0) ? 0 : 1;
+        this.SwitchWeapon(false);
         this.LoadSkillButton();
     }
 
@@ -61,12 +61,14 @@ export class ZRSJZ_Joystick_Attack extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshWeaponSwitchState, this);
     }
 
     protected onDisable(): void {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshWeaponSwitchState, this);
     }
 
     protected update(dt: number): void {
@@ -138,8 +140,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "Switch":
-                this._curWeaponIndex++;
-                this.SwitchWeapon();
+                this.SwitchWeapon(true, (this._curWeaponIndex + 1) % 2);
                 break;
             case "Slide":
                 this.Slide();
@@ -170,7 +171,15 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     // 切换武器
-    SwitchWeapon() {
+    SwitchWeapon(showTip: boolean = false, targetWeaponIndex: number = this._curWeaponIndex): boolean {
+        const normalizedIndex = targetWeaponIndex % 2;
+        if (!this.HasWeapon(normalizedIndex)) {
+            this.RefreshWeaponSwitchState();
+            if (showTip) ZRSJZ_UIManager.Instance.ShowTip("未装备对应武器，无法切换");
+            return false;
+        }
+
+        this._curWeaponIndex = normalizedIndex;
         if (this._reloadingCD > 0) {
             this._reloadingCD = 0;
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 1, true);
@@ -183,6 +192,35 @@ export class ZRSJZ_Joystick_Attack extends Component {
         this._attackSprite.spriteFrame = this.AttackSFs[this._curWeaponIndex % 2];
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, ZRSJZ_Joystick_Attack.WeaponType[this._curWeaponIndex % 2]);
         this._switchButton.active = this._curWeaponIndex % 2 == 0;
+        this.RefreshWeaponSwitchState();
+        return true;
+    }
+
+    /** index 0 对应枪，index 1 对应刀；ID 和道具实例必须同时存在。 */
+    private HasWeapon(index: number): boolean {
+        const weaponryIndex = index === 0 ? 0 : 4;
+        const propID = ZRSJZ_GameData.Instance.WeaponryID[weaponryIndex];
+        return !!propID && !!ZRSJZ_GameData.Instance.PropData[propID];
+    }
+
+    /** 只有枪和刀都存在时才有切换目标，因此才显示切换按钮。 */
+    private RefreshWeaponSwitchState(): void {
+        if (!this._switchSprite?.node?.isValid) return;
+
+        const hasGun = this.HasWeapon(0);
+        const hasKnife = this.HasWeapon(1);
+        this._switchSprite.node.active = hasGun && hasKnife;
+        if (this._attackSprite?.node?.isValid) {
+            this._attackSprite.node.active = hasGun || hasKnife;
+        }
+
+        if (this.HasWeapon(this._curWeaponIndex)) return;
+        const fallbackIndex = hasGun ? 0 : (hasKnife ? 1 : -1);
+        if (fallbackIndex >= 0) {
+            this.SwitchWeapon(false, fallbackIndex);
+        } else if (this._switchButton?.isValid) {
+            this._switchButton.active = false;
+        }
     }
 
     //滑铲
@@ -253,7 +291,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
             const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);
             if (flag) {
                 this._curWeaponIndex = isEquipment ? 0 : 1;
-                this.SwitchWeapon();
+                this.SwitchWeapon(false);
                 return;
             }
         }
@@ -261,7 +299,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
         //刀
         if (ZRSJZ_KNIFE.includes(equipmentName)) {
             this._curWeaponIndex = isEquipment ? 1 : 0;
-            this.SwitchWeapon();
+            this.SwitchWeapon(false);
             return;
         }
 

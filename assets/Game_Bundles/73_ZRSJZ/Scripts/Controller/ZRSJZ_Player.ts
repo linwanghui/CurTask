@@ -37,7 +37,7 @@ export class ZRSJZ_Player extends Component {
     Reloading: Node = null;
     Loading: Sprite = null;
 
-    private _moveSpeed: number = 3000;
+    private _moveSpeed: number = 1000;
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _moveRadius: number = 0;
@@ -100,13 +100,19 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected start(): void {
-        this._curKnifeName = ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name;
+        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0];
+        const knifeID = ZRSJZ_GameData.Instance.WeaponryID[4];
+        const hasGun = !!gunID && !!ZRSJZ_GameData.Instance.PropData[gunID];
+        const hasKnife = !!knifeID && !!ZRSJZ_GameData.Instance.PropData[knifeID];
+        this._curKnifeName = hasKnife
+            ? ZRSJZ_GameData.Instance.PropData[knifeID].Name
+            : "";
         this.MaxHP += ZRSJZ_GameData.Instance.GetResearchMaxHPBonus();
         this.CurHP = this.MaxHP;
         this._moveSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
-        this.WeaponType = ZRSJZ_GameData.Instance.WeaponryID[0] != "" ? "枪" : "刀";
+        this.WeaponType = hasGun ? "枪" : (hasKnife ? "刀" : "");
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
-        if (ZRSJZ_GameData.Instance.WeaponryID[0]) {
+        if (hasGun) {
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
         } else {
             this.PlayAni(ZRSJZ_ANI.Idle_D1);
@@ -406,6 +412,15 @@ export class ZRSJZ_Player extends Component {
     //#region 武器切换
     private _curKnifeName: string = "";
     SwitchWeapon(weaponType: string) {
+        const weaponryIndex = weaponType === "枪" ? 0 : (weaponType === "刀" ? 4 : -1);
+        const weaponID = weaponryIndex >= 0
+            ? ZRSJZ_GameData.Instance.WeaponryID[weaponryIndex]
+            : "";
+        if (!weaponID || !ZRSJZ_GameData.Instance.PropData[weaponID]) {
+            console.warn(`[ZRSJZ_Player] 未装备${weaponType}，已忽略切换请求`);
+            return;
+        }
+
         this.WeaponType = weaponType;
         if (this.WeaponType === "枪") {
             this.EnsureMagazineMatchesGun();

@@ -40,7 +40,6 @@ export class ZRSJZ_Skeleton extends Component {
             return;
         }
 
-        console.error(this.node.parent.name, equipmentName, isEquipment);
         //枪的穿戴
         let isWeaponry = false;
         for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
@@ -64,7 +63,6 @@ export class ZRSJZ_Skeleton extends Component {
                             this.Skeleton.setAttachment(key, key);
                             this.Skeleton.setSlotTexture(key, texture, true);
                         });
-                        console.error(this.node.parent.name);
                         this.PlayAni(ZRSJZ_ANI.Idle_Q);
                     } else {
                         this.Skeleton.findSlot(key)?.setAttachment(null);
