@@ -1,4 +1,4 @@
-import { _decorator, Component, director, isValid, Node } from 'cc';
+import { _decorator, Component, director, instantiate, isValid, Label, Node, Prefab, tween, v3 } from 'cc';
 import Banner from '../../../Scripts/Banner';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { BundleManager } from '../../../Scripts/Framework/Managers/BundleManager';
@@ -6,6 +6,8 @@ const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_UIManager')
 export class WZSJZ_UIManager extends Component {
+    @property(Prefab)
+    message_box: Prefab = null;
     private _panelDict: any = {}
     private _loadingPanelDict: any = {}
     private static _instance: WZSJZ_UIManager;
@@ -160,7 +162,14 @@ export class WZSJZ_UIManager extends Component {
 
     }
 
-
+    //弹出信息框
+    public ShowText(txt: string) {
+        let nd = instantiate(this.message_box);
+        nd.parent = WZSJZ_UIManager.Instance.node.getChildByPath("Canvas");
+        nd.position = v3(0, 0, 0);
+        nd.getChildByName("内容").getComponent(Label).string = txt;
+        tween(nd).to(1.5, { position: v3(0, 200, 0) }, { easing: "backOut" }).call(() => { nd.destroy() }).start();
+    }
     //跨场景监听事件
     public SJZXD_On(type: string, callback: Function, target?: any) {
         this.node.on(type, callback, target);

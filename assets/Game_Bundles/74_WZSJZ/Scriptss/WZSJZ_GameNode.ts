@@ -39,13 +39,6 @@ export class WZSJZ_GameNode extends Component {
         this.RefreshView();
     }
 
-    protected onDisable(): void {
-        this.node.off(Node.EventType.TOUCH_START, this.OnTouchStart, this);
-        this.node.off(Node.EventType.TOUCH_MOVE, this.OnTouchMove, this);
-        this.node.off(Node.EventType.TOUCH_END, this.OnTouchEnd, this);
-        this.node.off(Node.EventType.TOUCH_CANCEL, this.OnTouchEnd, this);
-    }
-
     public Init(cell: WZSJZ_Cell, level: number = 1): void {
         this.CurrentCell = cell;
         this.Level = Math.max(1, level);
