@@ -1,4 +1,4 @@
-import { _decorator, Component, sp } from 'cc';
+import { _decorator, Component, sp, UITransform, Vec3 } from 'cc';
 import { WZSJZ_Constant, WZSJZ_EnemyConfig } from './WZSJZ_Constant';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 const { ccclass, property } = _decorator;
@@ -56,8 +56,12 @@ export class WZSJZ_Enemy extends Component {
         const current = this.node.worldPosition;
         const wallFrontX = this._wall.GetFrontWorldX(current.x);
         const side = current.x >= this._wall.node.worldPosition.x ? 1 : -1;
-        const attackPositionX = wallFrontX
-            + side * (this._config.AttackRange + this._config.AttackPositionOffset);
+        const attackDistance = Math.max(0, this._config.AttackRange);
+        const desiredVisualFrontX = wallFrontX
+            + side * (attackDistance + this._config.AttackPositionOffset);
+        // 敌人根节点通常位于脚下中央；用图像朝墙一侧的边缘反推根节点停止点。
+        const visualFrontOffset = this.GetVisualFrontWorldX(side) - current.x;
+        const attackPositionX = desiredVisualFrontX - visualFrontOffset;
         const distanceToAttackPosition = Math.abs(current.x - attackPositionX);
         const tolerance = WZSJZ_Constant.EnemyCombat.AttackPositionTolerance;
         if (distanceToAttackPosition > tolerance) {
@@ -78,20 +82,38 @@ export class WZSJZ_Enemy extends Component {
         }
     }
 
-    public TakeDamage(damage: number): void {
+    /** 返回本次伤害是否刚好击杀，供经验、掉落等系统订阅结果。 */
+    public TakeDamage(damage: number): boolean {
         if (!this.IsAlive || damage <= 0) {
-            return;
+            return false;
         }
         this._currentHealth = Math.max(0, this._currentHealth - damage);
         if (this._currentHealth > 0) {
             this._hitReactionTimer = this._config.HitDuration;
             this.PlayAnimation(this._config.HitAnimation, false, true);
-            return;
+            return false;
         }
         this._isDead = true;
         this._hitReactionTimer = 0;
         this.PlayAnimation(this._config.DeathAnimation, false);
         this.scheduleOnce(() => this._recycleCallback?.(this), this._config.DeathDuration);
+        return true;
+    }
+
+    public ApplyKnockback(direction: Vec3, distance: number): void {
+        if (!this.IsAlive || distance <= 0) {
+            return;
+        }
+        const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+        if (length <= 0.0001) {
+            return;
+        }
+        const current = this.node.worldPosition;
+        this.node.setWorldPosition(
+            current.x + direction.x / length * distance,
+            current.y + direction.y / length * distance,
+            current.z,
+        );
     }
 
     public GetAimWorldPosition(): { x: number; y: number; z: number } {
@@ -101,6 +123,18 @@ export class WZSJZ_Enemy extends Component {
             y: position.y + WZSJZ_Constant.GunBullet.AimHeight,
             z: position.z,
         };
+    }
+
+    private GetVisualFrontWorldX(side: number): number {
+        const visualTransform = this.node.getChildByName("动画")?.getComponent(UITransform)
+            || this.node.children
+                .map((child) => child.getComponent(UITransform))
+                .find((transform) => !!transform && transform.contentSize.width > 1);
+        if (!visualTransform) {
+            return this.node.worldPosition.x;
+        }
+        const bounds = visualTransform.getBoundingBoxToWorld();
+        return side >= 0 ? bounds.xMin : bounds.xMax;
     }
 
     private PlayAnimation(

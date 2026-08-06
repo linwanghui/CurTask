@@ -46,6 +46,8 @@ export interface WZSJZ_MaterialConfig {
     UpgradeTimes: number;
     /** 当前玩法为两个相同等级物资合成。 */
     MergeSameLevelCount: number;
+    /** 名字单位可通过经验升级，并在单独存在时播放待机动画。 */
+    IsNameUnit?: boolean;
     Levels: WZSJZ_MaterialLevelConfig[];
 }
 
@@ -61,12 +63,21 @@ export interface WZSJZ_RecycleReward {
     Food: number;
 }
 
+/** 横向名字组合配方；数组顺序同时决定文字顺序和重叠配方优先级。 */
+export interface WZSJZ_NameCombinationConfig {
+    Name: string;
+    Parts: string[];
+    PrefabPath: string;
+    /** 配方文字默认都能喂养；这里可声明额外允许喂养该角色的文字。 */
+    FeedNames?: string[];
+}
+
 export interface WZSJZ_EnemyConfig {
     MaxHealth: number;
     MoveSpeed: number;
     /** 与城墙外边缘之间的攻击距离，单位为世界坐标像素。 */
     AttackRange: number;
-    /** Spine原点的视觉修正；负值会让近战单位更贴近墙体。 */
+    /** 在攻击范围基础上的微调；正值远离围墙，负值靠近围墙。 */
     AttackPositionOffset: number;
     AttackInterval: number;
     AttackDamage: number;
@@ -105,6 +116,24 @@ export class WZSJZ_Constant {
         Easing: "backOut",
     };
 
+    /** 名字单位与多格名字组合的统一规则。 */
+    public static readonly NameUnit = {
+        FormationColumns: 5,
+        /** 下标0对应1级升2级；满级不会再读取经验需求。 */
+        ExperienceToNextLevel: [10, 20, 40, 80, 160],
+        /** 喂给组合角色时，按被消耗文字等级，给予每一个组成文字的经验。 */
+        FeedExperiencePerUnitByLevel: [5, 12, 28, 64, 144, 320],
+    };
+
+    /** 后续新增组合角色只需在这里继续添加配方，并补齐角色数值配置和预制体。 */
+    public static readonly NameCombinations: WZSJZ_NameCombinationConfig[] = [
+        {
+            Name: "盾哥",
+            Parts: ["盾", "哥"],
+            PrefabPath: "Prefabs/节点/盾哥",
+        },
+    ];
+
     /** 敌人刷出与战斗参数。 */
     public static readonly EnemySpawn = {
         MinInterval: 2,
@@ -119,6 +148,10 @@ export class WZSJZ_Constant {
         CannonBulletPrewarm: 12,
         MinePrewarm: 16,
         KnifeEffectPrewarm: 10,
+        ShieldProjectilePrewarm: 10,
+        BlueExplosionPrewarm: 10,
+        CellMoveEffectPrewarm: 8,
+        CellUpgradeEffectPrewarm: 8,
     };
 
     /** 防止单位停在攻击范围临界点时因浮点误差反复进入移动状态。 */
@@ -136,8 +169,8 @@ export class WZSJZ_Constant {
         "哈夫克士兵": {
             MaxHealth: 60,
             MoveSpeed: 85,
-            AttackRange: -80,
-            AttackPositionOffset: -30,
+            AttackRange: 0,
+            AttackPositionOffset: 0,
             AttackInterval: 1.2,
             AttackDamage: 8,
             MoveAnimation: "zuolu",
@@ -150,8 +183,8 @@ export class WZSJZ_Constant {
         "阿萨拉士兵": {
             MaxHealth: 80,
             MoveSpeed: 105,
-            AttackRange: -80,
-            AttackPositionOffset: -30,
+            AttackRange: 0,
+            AttackPositionOffset: 0,
             AttackInterval: 1.5,
             AttackDamage: 10,
             MoveAnimation: "zuolu",
@@ -193,6 +226,34 @@ export class WZSJZ_Constant {
         MinDistanceFromWall: 100,
         VerticalPadding: 45,
         FarEdgePadding: 45,
+    };
+
+    /** 可被不同武器复用的通用表现。 */
+    public static readonly CommonEffect = {
+        BlueExplosion: {
+            PrefabPath: "Prefabs/特效/蓝色爆炸特效",
+            FallbackDuration: 0.35,
+        },
+    };
+
+    /** 盾哥的直线盾牌投掷参数；最大飞行距离约为半张地图。 */
+    public static readonly ShieldProjectile = {
+        PrefabPath: "Prefabs/投掷物/盾牌",
+        MaxTravelDistance: 960,
+        HitRadius: 55,
+        KnockbackDistance: 35,
+        AimHeight: 55,
+        KillExperience: 1,
+        AttackAnimation: "gongji",
+        IdleAnimation: "daiji",
+    };
+
+    public static readonly CellEffect = {
+        MovePrefabPath: "Prefabs/特效/移动特效",
+        UpgradePrefabPath: "Prefabs/特效/升级特效",
+        AnimationName: "animation",
+        MoveFallbackDuration: 0.8,
+        UpgradeFallbackDuration: 0.97,
     };
 
     /** 购买价格每上涨一档后，对应的物资初始等级权重。 */
@@ -244,6 +305,17 @@ export class WZSJZ_Constant {
         "雷": [
             { Money: 2, Food: 3 }, { Money: 4, Food: 6 }, { Money: 8, Food: 12 },
             { Money: 16, Food: 24 }, { Money: 32, Food: 48 }, { Money: 64, Food: 96 },
+        ],
+        "钥匙": [
+            { Money: 1, Food: 1 },
+        ],
+        "盾": [
+            { Money: 2, Food: 2 }, { Money: 4, Food: 4 }, { Money: 8, Food: 8 },
+            { Money: 16, Food: 16 }, { Money: 32, Food: 32 }, { Money: 64, Food: 64 },
+        ],
+        "哥": [
+            { Money: 2, Food: 2 }, { Money: 4, Food: 4 }, { Money: 8, Food: 8 },
+            { Money: 16, Food: 16 }, { Money: 32, Food: 32 }, { Money: 64, Food: 64 },
         ],
     };
 
@@ -391,6 +463,63 @@ export class WZSJZ_Constant {
                 { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 520, AttackInterval: 2.8, AttackRange: 99999, AreaRadius: 260, TriggerRadius: 75 },
             ],
         },
+        "盾": {
+            Name: "盾",
+            ResourceType: "none",
+            PurchaseWeight: 6,
+            ItemLockWeight: 4,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "哥": {
+            Name: "哥",
+            ResourceType: "none",
+            PurchaseWeight: 6,
+            ItemLockWeight: 4,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "盾哥": {
+            Name: "盾哥",
+            ResourceType: "none",
+            PurchaseWeight: 0,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 0,
+            IsNameUnit: true,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 35, AttackInterval: 4, AttackRange: 960, BulletSpeed: 800 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 55, AttackInterval: 3.8, AttackRange: 960, BulletSpeed: 830 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 75, AttackInterval: 3.6, AttackRange: 960, BulletSpeed: 860 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 100, AttackInterval: 3.4, AttackRange: 960, BulletSpeed: 900 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 150, AttackInterval: 3.2, AttackRange: 960, BulletSpeed: 940 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 220, AttackInterval: 3, AttackRange: 960, BulletSpeed: 980 },
+            ],
+        },
     };
 
     public static GetMaterialConfig(name: string): WZSJZ_MaterialConfig | null {
@@ -415,6 +544,25 @@ export class WZSJZ_Constant {
 
     public static GetItemLockMaterialLevel(unlockedCellCount: number): number {
         return this.RollLevel(this.GetLevelWeights(this.ItemLockLevelStages, unlockedCellCount));
+    }
+
+    public static GetNameUnitExperienceRequirement(level: number): number {
+        const index = Math.max(0, Math.floor(level) - 1);
+        return this.NameUnit.ExperienceToNextLevel[index] || 0;
+    }
+
+    public static GetCombinedNameUnitLevel(levels: number[]): number {
+        if (!levels || levels.length === 0) {
+            return 1;
+        }
+        const totalLevel = levels.reduce((total, level) => total + Math.max(1, level), 0);
+        return Math.max(1, Math.floor(totalLevel / levels.length));
+    }
+
+    public static GetNameUnitFeedExperience(feedLevel: number): number {
+        const values = this.NameUnit.FeedExperiencePerUnitByLevel;
+        const index = Math.max(0, Math.min(Math.floor(feedLevel) - 1, values.length - 1));
+        return values[index] || 0;
     }
 
     public static GetRecycleReward(name: string, level: number): WZSJZ_RecycleReward {

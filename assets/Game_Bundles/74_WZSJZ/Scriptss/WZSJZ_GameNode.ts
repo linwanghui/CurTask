@@ -14,6 +14,7 @@ import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_CombatSystem } from './WZSJZ_CombatSystem';
 import { WZSJZ_GameManager } from './WZSJZ_GameManager';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
+import { WZSJZ_ShieldBrotherCombatSystem } from './WZSJZ_ShieldBrotherCombatSystem';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_GameNode')
@@ -32,6 +33,9 @@ export class WZSJZ_GameNode extends Component {
     private _dragStartUIPosition: Vec3 = new Vec3();
     private _isDragging: boolean = false;
     private _attackCooldown: number = 0;
+    private _combinationChildStates: Map<Node, boolean> = null;
+    private _experienceReceiver: ((amount: number) => void) = null;
+    private _isCombinationDisplay: boolean = false;
 
     public get IsDragging(): boolean {
         return this._isDragging;
@@ -76,6 +80,100 @@ export class WZSJZ_GameNode extends Component {
         return true;
     }
 
+    /** 名字单位获得经验；允许一次经验跨越多个等级。 */
+    public AddExperience(amount: number): number {
+        const safeAmount = Math.max(0, amount);
+        if (safeAmount <= 0) {
+            return 0;
+        }
+        if (this._experienceReceiver) {
+            this._experienceReceiver(safeAmount);
+            return 0;
+        }
+
+        const config = WZSJZ_Constant.GetMaterialConfig(this.Name);
+        if (!config?.IsNameUnit || !this.CanUpgrade()) {
+            return 0;
+        }
+
+        const oldLevel = this.Level;
+        this.Exp += safeAmount;
+        while (this.CanUpgrade()) {
+            const requirement = WZSJZ_Constant.GetNameUnitExperienceRequirement(this.Level);
+            if (requirement <= 0 || this.Exp < requirement) {
+                break;
+            }
+            this.Exp -= requirement;
+            this.Level++;
+        }
+        if (this.Level !== oldLevel) {
+            this.RefreshView();
+        }
+        return this.Level - oldLevel;
+    }
+
+    public SetExperienceReceiver(receiver: ((amount: number) => void) | null): void {
+        this._experienceReceiver = receiver;
+    }
+
+    public SetCombinationDisplay(isCombinationDisplay: boolean): void {
+        this._isCombinationDisplay = isCombinationDisplay;
+    }
+
+    /** 投掷物发射时保存经验去向，组合体之后被拆开也能把击杀经验发回原文字。 */
+    public CreateExperienceReceiver(): (amount: number) => void {
+        if (this._experienceReceiver) {
+            return this._experienceReceiver;
+        }
+        return (amount: number): void => {
+            if (this.node?.isValid) {
+                this.AddExperience(amount);
+            }
+        };
+    }
+
+    public SetDisplayLevel(level: number): void {
+        const config = WZSJZ_Constant.GetMaterialConfig(this.Name);
+        this.Level = Math.max(1, Math.min(Math.floor(level), config?.MaxLevel || level));
+        this.RefreshView();
+    }
+
+    /** 组合时只隐藏子显示，不停用根节点，避免重复注册触摸监听。 */
+    public SetCombinationHidden(hidden: boolean): void {
+        if (hidden) {
+            if (this._combinationChildStates) {
+                return;
+            }
+            this._combinationChildStates = new Map<Node, boolean>();
+            for (const child of this.node.children) {
+                this._combinationChildStates.set(child, child.active);
+                child.active = false;
+            }
+            return;
+        }
+        if (!this._combinationChildStates) {
+            return;
+        }
+        for (const [child, wasActive] of this._combinationChildStates) {
+            if (child?.isValid) {
+                child.active = wasActive;
+            }
+        }
+        this._combinationChildStates = null;
+    }
+
+    public BeginExternalDrag(event: EventTouch): void {
+        this.BeginDragging(event);
+    }
+
+    public MoveExternalDrag(event: EventTouch): void {
+        this.MoveDragging(event);
+    }
+
+    public EndExternalDrag(event: EventTouch): void {
+        this.EndDragging(event);
+    }
+
     /** 开始游戏后可直接读取该值进行每秒资源结算。 */
     public GetProductionPerSecond(): number {
         return WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level)
@@ -96,6 +194,8 @@ export class WZSJZ_GameNode extends Component {
             WZSJZ_CombatSystem.Instance?.UpdateCannon(this, deltaTime);
         } else if (this.Name === "雷") {
             WZSJZ_CombatSystem.Instance?.UpdateMineLayer(this, deltaTime);
+        } else if (this.Name === "盾哥") {
+            WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateShieldBrother(this, deltaTime);
         }
     }
 
@@ -133,8 +233,9 @@ export class WZSJZ_GameNode extends Component {
 
     /** 攻击单位在开战前也保持待机表现；是否攻击仍由战斗系统控制。 */
     private PlayInitialIdleAnimation(): void {
-        const config = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level);
-        if (!config?.AttackDamage) {
+        const levelConfig = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level);
+        const materialConfig = WZSJZ_Constant.GetMaterialConfig(this.Name);
+        if (!levelConfig?.AttackDamage && !materialConfig?.IsNameUnit) {
             return;
         }
         this.node.getChildByName("图像")
@@ -163,6 +264,13 @@ export class WZSJZ_GameNode extends Component {
     }
 
     private OnTouchStart(event: EventTouch): void {
+        if (this._isCombinationDisplay) {
+            return;
+        }
+        this.BeginDragging(event);
+    }
+
+    private BeginDragging(event: EventTouch): void {
         const manager = WZSJZ_GameManager.Instance;
         if (!manager
             || !this.CurrentCell
@@ -180,6 +288,10 @@ export class WZSJZ_GameNode extends Component {
     }
 
     private OnTouchMove(event: EventTouch): void {
+        this.MoveDragging(event);
+    }
+
+    private MoveDragging(event: EventTouch): void {
         if (!this._isDragging) {
             return;
         }
@@ -193,6 +305,10 @@ export class WZSJZ_GameNode extends Component {
     }
 
     private OnTouchEnd(event: EventTouch): void {
+        this.EndDragging(event);
+    }
+
+    private EndDragging(event: EventTouch): void {
         if (!this._isDragging) {
             return;
         }

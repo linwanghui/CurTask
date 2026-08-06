@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "刀",
+    "_name": "哥",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "刀",
+    "_name": "哥",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -93,7 +93,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0.322,
-      "y": -32.905,
+      "y": -43.433,
       "z": 0
     },
     "_lrot": {
@@ -133,13 +133,13 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 66.26000213623047,
-      "height": 70.20999908447266
+      "width": 110.38999938964844,
+      "height": 108.80000305175781
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.48988828913308735,
-      "y": 0.007691212483965069
+      "x": 0.37439987371655253,
+      "y": 0.03281249846605698
     },
     "_id": ""
   },
@@ -170,11 +170,11 @@
       "a": 255
     },
     "_skeletonData": {
-      "__uuid__": "46bb33b1-5070-4375-a497-b31dbb5c07f0",
+      "__uuid__": "51fdfbef-db34-4f88-9d60-02102225bcf1",
       "__expectedType__": "sp.SkeletonData"
     },
     "defaultSkin": "default",
-    "defaultAnimation": "daiji",
+    "defaultAnimation": "animation",
     "_premultipliedAlpha": false,
     "_timeScale": 1,
     "_preCacheMode": 0,
@@ -281,7 +281,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "91NokP2SBHjIRCcediM4Qd"
+    "fileId": "e97yglnlpHjI2buoG83JT+"
   },
   {
     "__type__": "cc.Sprite",
@@ -326,7 +326,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "dfUE88GAtCCZSjJHV32agX"
+    "fileId": "d59q6jgDVOR4u7k1kDjTKZ"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -336,14 +336,14 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "edO4WdfMlHTp3qtVYAHk8C",
+    "fileId": "14I+g83fFP5IXGoybc/0fy",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
-    "_name": "刀等级",
+    "_name": "哥等级",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -471,7 +471,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "cbsYgy0GxORaeBA+Crqexk"
+    "fileId": "14ZHIUegtCmYwipylFL/wQ"
   },
   {
     "__type__": "cc.Label",
@@ -542,7 +542,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "e6S4qcFOFOSqXvk64Kit2S"
+    "fileId": "64aKpyH1JGarTQEJzFeFFK"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -552,7 +552,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "f46XZAtdlOzJfsMSgrJRRJ",
+    "fileId": "c7gEeiyCVJmagFoRHJAD1k",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -583,7 +583,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "31mYrWy/hLiqifW/6RVQ2c"
+    "fileId": "ee2q3+x+pFSL3ZDFER5fDF"
   },
   {
     "__type__": "cc.Sprite",
@@ -628,7 +628,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "4bG/Hv9A5MbaQsyMaJX3bA"
+    "fileId": "32G3+2KNdAP5M6VXOWd1p9"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -638,7 +638,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "cb0UFCJntNvqtuH05kLJ8N",
+    "fileId": "d6tcUy0nZLqad7mtpcqvWO",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -683,7 +683,7 @@
     "__prefab": {
       "__id__": 29
     },
-    "Name": "刀",
+    "Name": "哥",
     "Level": 1,
     "Exp": 0,
     "_id": ""

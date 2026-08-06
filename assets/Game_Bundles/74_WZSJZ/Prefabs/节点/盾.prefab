@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "刀",
+    "_name": "盾",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "刀",
+    "_name": "盾",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -93,7 +93,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0.322,
-      "y": -32.905,
+      "y": -43.433,
       "z": 0
     },
     "_lrot": {
@@ -133,13 +133,13 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 66.26000213623047,
-      "height": 70.20999908447266
+      "width": 108.38999938964844,
+      "height": 105.80000305175781
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.48988828913308735,
-      "y": 0.007691212483965069
+      "x": 0.3628563709984744,
+      "y": 0.005387523406484178
     },
     "_id": ""
   },
@@ -170,11 +170,11 @@
       "a": 255
     },
     "_skeletonData": {
-      "__uuid__": "46bb33b1-5070-4375-a497-b31dbb5c07f0",
+      "__uuid__": "bef93c7d-5b19-4f39-b320-905c20d3f65f",
       "__expectedType__": "sp.SkeletonData"
     },
     "defaultSkin": "default",
-    "defaultAnimation": "daiji",
+    "defaultAnimation": "animation",
     "_premultipliedAlpha": false,
     "_timeScale": 1,
     "_preCacheMode": 0,
@@ -281,7 +281,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "91NokP2SBHjIRCcediM4Qd"
+    "fileId": "2evtJtWHFKqrkOzJolpViw"
   },
   {
     "__type__": "cc.Sprite",
@@ -326,7 +326,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "dfUE88GAtCCZSjJHV32agX"
+    "fileId": "245uI0tAxAHJ/C+l7lElIi"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -336,14 +336,14 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "edO4WdfMlHTp3qtVYAHk8C",
+    "fileId": "3f1/wif1hMc4tml+exbGcR",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
-    "_name": "刀等级",
+    "_name": "盾等级",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -471,7 +471,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "cbsYgy0GxORaeBA+Crqexk"
+    "fileId": "20ufR8431H1Y25Kdu2ty5m"
   },
   {
     "__type__": "cc.Label",
@@ -542,7 +542,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "e6S4qcFOFOSqXvk64Kit2S"
+    "fileId": "daQuNZLfVI9LylWnAVpOmk"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -552,7 +552,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "f46XZAtdlOzJfsMSgrJRRJ",
+    "fileId": "a28DLP0H1MLKlO6OjA64kT",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -583,7 +583,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "31mYrWy/hLiqifW/6RVQ2c"
+    "fileId": "2c1Aih4OdDmZn96paIHB25"
   },
   {
     "__type__": "cc.Sprite",
@@ -628,7 +628,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "4bG/Hv9A5MbaQsyMaJX3bA"
+    "fileId": "d0cURBrmZNWaFWmHzTEJat"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -638,7 +638,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "cb0UFCJntNvqtuH05kLJ8N",
+    "fileId": "76EkySEh1FtL9gJYnKJwR9",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -683,7 +683,7 @@
     "__prefab": {
       "__id__": 29
     },
-    "Name": "刀",
+    "Name": "盾",
     "Level": 1,
     "Exp": 0,
     "_id": ""

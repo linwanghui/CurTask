@@ -1,8 +1,11 @@
-import { _decorator, Component, director, Label, Sprite, UITransform } from 'cc';
+import { _decorator, Component, director, Label, Node, Sprite, UITransform } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_Wall')
 export class WZSJZ_Wall extends Component {
+    @property({ displayName: "生命值显示节点", type: Node })
+    public HealthViewNode: Node = null;
+
     private _maxHealth: number = 1;
     private _currentHealth: number = 1;
     private _isDestroyed: boolean = false;
@@ -36,6 +39,11 @@ export class WZSJZ_Wall extends Component {
         this.RefreshView();
     }
 
+    public SetHealthViewNode(healthViewNode: Node): void {
+        this.HealthViewNode = healthViewNode;
+        this.RefreshView();
+    }
+
     public TakeDamage(damage: number): void {
         if (!this.IsAlive || damage <= 0) {
             return;
@@ -49,7 +57,7 @@ export class WZSJZ_Wall extends Component {
     }
 
     private RefreshView(): void {
-        const healthNode = this.node.getChildByName("生命值");
+        const healthNode = this.HealthViewNode || this.node.getChildByName("生命值");
         const label = healthNode?.getChildByName("血量文本")?.getComponent(Label);
         if (label) {
             label.string = `${Math.ceil(this._currentHealth)}/${this._maxHealth}`;

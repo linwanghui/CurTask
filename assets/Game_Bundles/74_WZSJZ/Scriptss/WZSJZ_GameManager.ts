@@ -22,11 +22,15 @@ import { WZSJZ_Cell } from './WZSJZ_Cell';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_GameData } from './WZSJZ_GameData';
-import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_CombatSystem } from './WZSJZ_CombatSystem';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import { WZSJZ_EconomySystem } from './WZSJZ_EconomySystem';
+import { WZSJZ_CellEffectSystem } from './WZSJZ_CellEffectSystem';
+import { WZSJZ_RecycleSystem } from './WZSJZ_RecycleSystem';
+import { WZSJZ_NameUnitSystem } from './WZSJZ_NameUnitSystem';
+import { WZSJZ_CommonEffectSystem } from './WZSJZ_CommonEffectSystem';
+import { WZSJZ_ShieldBrotherCombatSystem } from './WZSJZ_ShieldBrotherCombatSystem';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 const { ccclass, property } = _decorator;
 
@@ -83,7 +87,6 @@ export class WZSJZ_GameManager extends Component {
     private _draggingNode: WZSJZ_GameNode = null;
     private _isGameStarted: boolean = false;
     private _keySlotNode: Node = null;
-    private _recycleNode: Node = null;
     private _keyDragVisual: Node = null;
     private _keyDragStartWorldPosition: Vec3 = new Vec3();
     private _keyDragStartUIPosition: Vec2 = new Vec2();
@@ -92,6 +95,11 @@ export class WZSJZ_GameManager extends Component {
     private _wallBehavior: WZSJZ_Wall = null;
     private _combatSystem: WZSJZ_CombatSystem = null;
     private _economySystem: WZSJZ_EconomySystem = null;
+    private _cellEffectSystem: WZSJZ_CellEffectSystem = null;
+    private _recycleSystem: WZSJZ_RecycleSystem = null;
+    private _nameUnitSystem: WZSJZ_NameUnitSystem = null;
+    private _commonEffectSystem: WZSJZ_CommonEffectSystem = null;
+    private _shieldBrotherCombatSystem: WZSJZ_ShieldBrotherCombatSystem = null;
 
     protected onLoad(): void {
         WZSJZ_GameManager._instance = this;
@@ -102,6 +110,15 @@ export class WZSJZ_GameManager extends Component {
         this._combatSystem = this.node.getComponent(WZSJZ_CombatSystem)
             || this.node.addComponent(WZSJZ_CombatSystem);
         this._combatSystem.Configure(this.FormationZone?.parent, this.DragLayer);
+        this._commonEffectSystem = this.node.getComponent(WZSJZ_CommonEffectSystem)
+            || this.node.addComponent(WZSJZ_CommonEffectSystem);
+        this._commonEffectSystem.Configure(this.FormationZone?.parent, this.DragLayer);
+        this._shieldBrotherCombatSystem = this.node.getComponent(WZSJZ_ShieldBrotherCombatSystem)
+            || this.node.addComponent(WZSJZ_ShieldBrotherCombatSystem);
+        this._shieldBrotherCombatSystem.Configure(this.FormationZone?.parent, this.DragLayer);
+        this._cellEffectSystem = this.node.getComponent(WZSJZ_CellEffectSystem)
+            || this.node.addComponent(WZSJZ_CellEffectSystem);
+        this._cellEffectSystem.Configure(this.FormationZone?.parent, this.DragLayer);
         this._economySystem = this.node.getComponent(WZSJZ_EconomySystem)
             || this.node.addComponent(WZSJZ_EconomySystem);
         this._economySystem.Configure(
@@ -116,6 +133,9 @@ export class WZSJZ_GameManager extends Component {
             this.PriceIncreaseRate,
             (prefab, cell, level) => this.CreateMaterialAtCell(prefab, cell, level, true),
         );
+        this._nameUnitSystem = this.node.getComponent(WZSJZ_NameUnitSystem)
+            || this.node.addComponent(WZSJZ_NameUnitSystem);
+        this._nameUnitSystem.Configure(this._formationCells, this._formationObjectLayer);
         // 道具锁内的默认物资依赖经济模块的权重池，必须在其配置完成后生成。
         this.RefreshPreparationItemLocks();
         this.BindStartButton();
@@ -208,7 +228,9 @@ export class WZSJZ_GameManager extends Component {
         this.WallCellNode = this.WallCellNode
             || this.FormationZone?.getChildByName("墙体格子")
             || canvas?.getChildByName("墙体格子");
-        this.WallDisplayNode = this.WallDisplayNode || canvas?.getChildByName("围墙");
+        this.WallDisplayNode = this.WallDisplayNode
+            || this.FormationZone?.getChildByName("围墙")
+            || canvas?.getChildByName("围墙");
         if (!canvas || !this.WallCellNode) {
             console.error("[WZSJZ] 没有找到墙体格子。");
             return;
@@ -279,6 +301,7 @@ export class WZSJZ_GameManager extends Component {
 
     public BeginDrag(gameNode: WZSJZ_GameNode): void {
         this._draggingNode = gameNode;
+        this.node.emit(WZSJZ_EventManager.拖拽物变化, gameNode);
         this.RefreshUpgradeHints(gameNode);
         if (gameNode.Name === "钥匙") {
             this.ShowKeyUnlockHints();
@@ -300,99 +323,120 @@ export class WZSJZ_GameManager extends Component {
     public EndDrag(gameNode: WZSJZ_GameNode, uiPosition: Vec2): void {
         this.RefreshUpgradeHints(null);
         this.ClearKeyUnlockHints();
-        if (this._draggingNode !== gameNode || !gameNode.CurrentCell) {
+        if (this._draggingNode !== gameNode) {
             return;
         }
         this._draggingNode = null;
+        this.node.emit(WZSJZ_EventManager.拖拽物变化, null);
+        if (!gameNode.CurrentCell) {
+            return;
+        }
 
         const sourceCell = gameNode.CurrentCell;
-        if (sourceCell.Zone === "wall") {
-            this.SnapToCell(gameNode, sourceCell);
-            return;
-        }
-        // 购买生成的钥匙只能解锁；成功后消耗场上的钥匙节点。
-        if (gameNode.Name === "钥匙") {
-            if (this.TryUnlockCellWithKey(uiPosition)) {
+        try {
+            if (sourceCell.Zone === "wall") {
+                this.SnapToCell(gameNode, sourceCell);
+                return;
+            }
+            // 回收优先于钥匙解锁判断，使备战框中购买获得的钥匙也能拖入回收区。
+            if (this._recycleSystem?.TryRecycle(gameNode, sourceCell, uiPosition)) {
+                return;
+            }
+            // 购买生成的钥匙除回收外只能用于解锁；成功后消耗场上的钥匙节点。
+            if (gameNode.Name === "钥匙") {
+                if (this.TryUnlockCellWithKey(uiPosition)) {
+                    sourceCell.Occupant = null;
+                    gameNode.CurrentCell = null;
+                    gameNode.node.destroy();
+                } else {
+                    this.SnapToCell(gameNode, sourceCell);
+                }
+                return;
+            }
+            const targetCell = this.FindDropCell(uiPosition);
+            if (!targetCell || targetCell === sourceCell) {
+                this.SnapToCell(gameNode, sourceCell);
+                return;
+            }
+
+            if (!this.CanPlaceInCell(gameNode, targetCell)) {
+                this.SnapToCell(gameNode, sourceCell);
+                return;
+            }
+
+            // 道具锁格只能通过与格内默认物资合成来解锁，不能直接放入或交换。
+            if (targetCell.IsItemLocked && targetCell.IsEmpty()) {
+                this.SnapToCell(gameNode, sourceCell);
+                return;
+            }
+
+            if (this._nameUnitSystem?.TryFeedCombination(gameNode, sourceCell, targetCell)) {
+                this._cellEffectSystem?.PlayUpgrade(targetCell);
+                return;
+            }
+
+            if (targetCell.IsEmpty()) {
                 sourceCell.Occupant = null;
+                targetCell.Occupant = gameNode.node;
+                gameNode.CurrentCell = targetCell;
+                this.SnapToCell(gameNode, targetCell);
+                this.PlayMaterialPopAnimation(gameNode.node);
+                this._cellEffectSystem?.PlayMove(targetCell);
+                if (sourceCell.Zone === "wall" || targetCell.Zone === "wall") {
+                    this.RefreshWallDisplay();
+                }
+                return;
+            }
+
+            const targetNode = targetCell.Occupant.getComponent("WZSJZ_GameNode") as WZSJZ_GameNode;
+            const canMerge = this.CanMergeAtCell(gameNode, targetNode, targetCell);
+
+            if (canMerge) {
+                const unlockItemCell = targetCell.IsItemLocked;
+                sourceCell.Occupant = null;
+                targetNode.Upgrade();
+                this.PlayMaterialPopAnimation(targetNode.node);
+                this._cellEffectSystem?.PlayUpgrade(targetCell);
                 gameNode.CurrentCell = null;
                 gameNode.node.destroy();
-            } else {
+                if (unlockItemCell) {
+                    targetCell.SetUnlocked(true);
+                    this.RefreshPreparationItemLocks();
+                }
+                if (targetCell.Zone === "wall") {
+                    this.RefreshWallDisplay();
+                }
+                return;
+            }
+
+            if (targetCell.IsItemLocked) {
                 this.SnapToCell(gameNode, sourceCell);
+                return;
             }
-            return;
-        }
-        if (this.TryRecycleMaterial(gameNode, sourceCell, uiPosition)) {
-            return;
-        }
-        const targetCell = this.FindDropCell(uiPosition);
-        if (!targetCell || targetCell === sourceCell) {
+
+            if (targetNode && this.CanPlaceInCell(targetNode, sourceCell)) {
+                // 不能合成时交换位置；两个物资可以来自不同区域。
+                sourceCell.Occupant = targetNode.node;
+                targetCell.Occupant = gameNode.node;
+                targetNode.CurrentCell = sourceCell;
+                gameNode.CurrentCell = targetCell;
+
+                this.SnapToCell(targetNode, sourceCell);
+                this.SnapToCell(gameNode, targetCell);
+                this.PlayMaterialPopAnimation(targetNode.node);
+                this.PlayMaterialPopAnimation(gameNode.node);
+                this._cellEffectSystem?.PlayMove(sourceCell);
+                this._cellEffectSystem?.PlayMove(targetCell);
+                if (sourceCell.Zone === "wall" || targetCell.Zone === "wall") {
+                    this.RefreshWallDisplay();
+                }
+                return;
+            }
+
             this.SnapToCell(gameNode, sourceCell);
-            return;
+        } finally {
+            this.node.emit(WZSJZ_EventManager.布阵变化);
         }
-
-        if (!this.CanPlaceInCell(gameNode, targetCell)) {
-            this.SnapToCell(gameNode, sourceCell);
-            return;
-        }
-
-        // 道具锁格只能通过与格内默认物资合成来解锁，不能直接放入或交换。
-        if (targetCell.IsItemLocked && targetCell.IsEmpty()) {
-            this.SnapToCell(gameNode, sourceCell);
-            return;
-        }
-
-        if (targetCell.IsEmpty()) {
-            sourceCell.Occupant = null;
-            targetCell.Occupant = gameNode.node;
-            gameNode.CurrentCell = targetCell;
-            this.SnapToCell(gameNode, targetCell);
-            if (sourceCell.Zone === "wall" || targetCell.Zone === "wall") {
-                this.RefreshWallDisplay();
-            }
-            return;
-        }
-
-        const targetNode = targetCell.Occupant.getComponent("WZSJZ_GameNode") as WZSJZ_GameNode;
-        const canMerge = this.CanMergeAtCell(gameNode, targetNode, targetCell);
-
-        if (canMerge) {
-            const unlockItemCell = targetCell.IsItemLocked;
-            sourceCell.Occupant = null;
-            targetNode.Upgrade();
-            this.PlayMaterialPopAnimation(targetNode.node);
-            gameNode.CurrentCell = null;
-            gameNode.node.destroy();
-            if (unlockItemCell) {
-                targetCell.SetUnlocked(true);
-                this.RefreshPreparationItemLocks();
-            }
-            if (targetCell.Zone === "wall") {
-                this.RefreshWallDisplay();
-            }
-            return;
-        }
-
-        if (targetCell.IsItemLocked) {
-            this.SnapToCell(gameNode, sourceCell);
-            return;
-        }
-
-        if (targetNode && this.CanPlaceInCell(targetNode, sourceCell)) {
-            // 不能合成时交换位置；两个物资可以来自不同区域。
-            sourceCell.Occupant = targetNode.node;
-            targetCell.Occupant = gameNode.node;
-            targetNode.CurrentCell = sourceCell;
-            gameNode.CurrentCell = targetCell;
-
-            this.SnapToCell(targetNode, sourceCell);
-            this.SnapToCell(gameNode, targetCell);
-            if (sourceCell.Zone === "wall" || targetCell.Zone === "wall") {
-                this.RefreshWallDisplay();
-            }
-            return;
-        }
-
-        this.SnapToCell(gameNode, sourceCell);
     }
 
     private FindDropCell(uiPosition: Vec2): WZSJZ_Cell {
@@ -474,7 +518,10 @@ export class WZSJZ_GameManager extends Component {
     private SetupToolArea(): void {
         const toolArea = this.PreparationZone?.getChildByName("道具区");
         this._keySlotNode = toolArea?.getChildByName("钥匙");
-        this._recycleNode = toolArea?.getChildByName("回收");
+        const recycleNode = toolArea?.getChildByName("回收") || null;
+        this._recycleSystem = this.node.getComponent(WZSJZ_RecycleSystem)
+            || this.node.addComponent(WZSJZ_RecycleSystem);
+        this._recycleSystem.Configure(recycleNode, this._economySystem);
         if (this._keySlotNode) {
             this._keySlotNode.on(Node.EventType.TOUCH_START, this.OnKeyTouchStart, this);
             this._keySlotNode.on(Node.EventType.TOUCH_MOVE, this.OnKeyTouchMove, this);
@@ -634,41 +681,6 @@ export class WZSJZ_GameManager extends Component {
         this.SetLabel(this._keySlotNode?.getChildByName("数量"), this.KeyCount);
     }
 
-    private TryRecycleMaterial(
-        gameNode: WZSJZ_GameNode,
-        sourceCell: WZSJZ_Cell,
-        uiPosition: Vec2,
-    ): boolean {
-        const recycleTransform = this._recycleNode?.getComponent(UITransform);
-        if (!recycleTransform?.getBoundingBoxToWorld().contains(uiPosition)) {
-            return false;
-        }
-        const materialName = gameNode.Name;
-        const reward = WZSJZ_Constant.GetRecycleReward(materialName, gameNode.Level);
-        sourceCell.Occupant = null;
-        gameNode.CurrentCell = null;
-        gameNode.node.destroy();
-        this._economySystem?.AddResources(reward.Money, reward.Food);
-        WZSJZ_UIManager.Instance.ShowText(this.GetRecycleText(materialName, reward));
-        return true;
-    }
-
-    private GetRecycleText(
-        materialName: string,
-        reward: { Money: number; Food: number },
-    ): string {
-        const rewards: string[] = [];
-        if (reward.Money > 0) {
-            rewards.push(`钞票 ${reward.Money}`);
-        }
-        if (reward.Food > 0) {
-            rewards.push(`食物 ${reward.Food}`);
-        }
-        return rewards.length > 0
-            ? `已回收${materialName}，获得${rewards.join("、")}`
-            : `已回收${materialName}`;
-    }
-
     private CanMergeAtCell(
         draggingNode: WZSJZ_GameNode,
         targetNode: WZSJZ_GameNode,
@@ -779,6 +791,9 @@ export class WZSJZ_GameManager extends Component {
         this._wallBehavior = this.WallDisplayNode.getComponent(WZSJZ_Wall);
         const wall = this._wallCell.Occupant.getComponent("WZSJZ_GameNode") as WZSJZ_GameNode;
         if (this._wallBehavior && wall) {
+            const healthViewNode = this.FormationZone?.getChildByName("生命值")
+                || this.WallDisplayNode.getChildByName("生命值");
+            this._wallBehavior.SetHealthViewNode(healthViewNode);
             this._wallBehavior.SetMaxHealth(wall.GetMaxHealth(), refill);
         }
     }
