@@ -45,6 +45,8 @@ export class ZRSJZ_UIManager extends Component {
     private _panelNode: Node = null;
     private _panelMap: Map<string, Node> = new Map<string, Node>();
     private _curPanel: string[] = [];
+    /** 关闭全部弹窗时递增，使之前尚未完成的异步加载不再自动显示。 */
+    private _panelRequestVersion: number = 0;
     private _finishGameInventoryPromise: Promise<void> = null;
 
     //#region 初始化
@@ -191,6 +193,7 @@ export class ZRSJZ_UIManager extends Component {
         const panelName = panel.split('/').pop() || panel;
         if (this._curPanel.includes(panelName)) return;//当前面板显示中
         this._curPanel.push(panelName);
+        const requestVersion = this._panelRequestVersion;
 
         //显示面板
         const showPanel: Function = () => {
@@ -213,7 +216,12 @@ export class ZRSJZ_UIManager extends Component {
                     this._panelNode.addChild(panelNode);
                     panelNode.active = false;
                     this._panelMap.set(panelName, panelNode);
-                    showPanel();
+                    if (
+                        requestVersion === this._panelRequestVersion
+                        && this._curPanel.includes(panelName)
+                    ) {
+                        showPanel();
+                    }
                 }
             });
             return;
@@ -231,6 +239,35 @@ export class ZRSJZ_UIManager extends Component {
 
         if (!this._panelMap.has(panelName)) return;
         this._panelMap.get(panelName).getComponent(ZRSJZ_Panel).Hide(...args);
+    }
+
+    /**
+     * 玩家死亡前统一终止 UI 操作并立即关闭全部弹窗。
+     * 这里不走 HidePanel，避免拖动锁和关闭动画阻止死亡弹窗显示。
+     */
+    public PrepareForDeath(): void {
+        this._panelRequestVersion++;
+
+        // 先取消拖动，归还跟随手指的临时道具节点，并恢复滚动等交互状态。
+        ZRSJZ_UIManager.Dragging = false;
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CANCEL_PROP_DRAG);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
+
+        // 清除所有库存中的拖动落点预览颜色。
+        for (const inventoryNode of this.InventoryMap.values()) {
+            const inventory = inventoryNode?.getComponent(ZRSJZ_Inventory);
+            if (inventory) {
+                ZRSJZ_EventManager.EmitPersist(
+                    ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW,
+                    inventory.InventoryType,
+                );
+            }
+        }
+
+        this._curPanel.length = 0;
+        for (const panelNode of this._panelMap.values()) {
+            if (panelNode?.isValid) panelNode.active = false;
+        }
     }
 
     //展示提示

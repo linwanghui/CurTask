@@ -68,6 +68,7 @@ export class ZRSJZ_PropGrid extends Component {
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_EMPTY_GRID_REMOVE, this.RemoveEmptyProp, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_SHOW, this.SellShow, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_HIDE, this.SellHide, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CANCEL_PROP_DRAG, this.CancelCurrentDrag, this);
     }
 
     protected onDisable(): void {
@@ -84,6 +85,7 @@ export class ZRSJZ_PropGrid extends Component {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_EMPTY_GRID_REMOVE, this.RemoveEmptyProp, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_SHOW, this.SellShow, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_HIDE, this.SellHide, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CANCEL_PROP_DRAG, this.CancelCurrentDrag, this);
     }
 
     async Init(propID: string, gridX: number = -1, gridY: number = -1, inventory: ZRSJZ_INVENTORY = ZRSJZ_INVENTORY.仓库_全部) {
@@ -284,6 +286,28 @@ export class ZRSJZ_PropGrid extends Component {
                 this._propSFNode = null;
                 this.UIOpacity.opacity = 255;
             }
+        }
+    }
+
+    /**
+     * 死亡等强制中断场景下取消拖动，不触发落点确认，因此不会移动道具。
+     * 异步创建拖动节点尚未完成时，通过使 touchID 失效让 PropMove 自行回收节点。
+     */
+    public CancelCurrentDrag(): void {
+        const wasOperating = this._touchID !== -1 || this._isMove || this._isCreatingMove;
+        this._touchID = -1;
+        this._dragAxis = 0;
+        this._isMove = false;
+        ZRSJZ_UIManager.Dragging = false;
+
+        if (this._propSFNode?.isValid) {
+            ZRSJZ_PoolManager.Instance.PutNode(this._propSFNode);
+        }
+        this._propSFNode = null;
+        if (this.UIOpacity) this.UIOpacity.opacity = 255;
+
+        if (wasOperating) {
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
         }
     }
 

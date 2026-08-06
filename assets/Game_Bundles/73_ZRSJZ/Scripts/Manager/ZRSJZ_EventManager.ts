@@ -21,6 +21,7 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_GRID_MOVE: string = 'ZRSJZ_GRID_MOVE';//格子移动
     public static ZRSJZ_EMPTY_GRID_REMOVE: string = 'ZRSJZ_EMPTY_GRID_REMOVE';//删除格子
     public static ZRSJZ_CHECK_PROP: string = 'ZRSJZ_CHECK_PROP';//道具移动判断
+    public static ZRSJZ_CANCEL_PROP_DRAG: string = 'ZRSJZ_CANCEL_PROP_DRAG';//强制取消当前道具拖动
     public static ZRSJZ_SELL_PROP: string = 'ZRSJZ_SELL_PROP';//道具出售 
     public static ZRSJZ_SELL_PROP_ADD: string = 'ZRSJZ_SELL_PROP_ADD';//添加道具出售ID 
     public static ZRSJZ_SELL_PROP_SHOW: string = 'ZRSJZ_SELL_PROP_SHOW';//道具显示出售图标

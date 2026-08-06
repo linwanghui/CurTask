@@ -499,6 +499,9 @@ export class ZRSJZ_Player extends Component {
         if (this.CurHP <= 0) {
             this.CurHP = 0;
             ZRSJZ_Game.Instance.GamePaused = true;
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0);
+            ZRSJZ_UIManager.Instance.PrepareForDeath();
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗);
             this.PlayAni(ZRSJZ_ANI.SW, false);
         } else {

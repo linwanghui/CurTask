@@ -45,6 +45,19 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     }
 
     protected onDisable(): void {
+        // 弹窗被死亡流程强制关闭时，批量出售状态也必须一并清理。
+        if (this._isSelling) {
+            this._isSelling = false;
+            this._sellPropID = [];
+            if (this.SellMask) this.SellMask.active = false;
+            if (this._curInventory?.isValid) {
+                ZRSJZ_EventManager.EmitPersist(
+                    ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_HIDE,
+                    this._curInventory.getComponent(ZRSJZ_Inventory)?.InventoryType,
+                );
+            }
+        }
+        if (this.ScrollView) this.ScrollView.enabled = true;
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
     }

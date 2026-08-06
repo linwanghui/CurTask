@@ -69,7 +69,6 @@ export class ZRSJZ_Skeleton extends Component {
                         this.Skeleton.setAttachment('dao', ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
                         console.error(this.node.parent.name);
                         this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
-                            console.error(this.node.parent.name);
                             this.PlayAni(ZRSJZ_ANI.Idle_D1);
                         })
                     }
