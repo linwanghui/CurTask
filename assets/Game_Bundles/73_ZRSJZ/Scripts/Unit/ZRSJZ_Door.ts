@@ -46,7 +46,7 @@ export class ZRSJZ_Door extends Component {
     public Open() {
         if (this._isOpened) return;
         this._isOpened = true;
-        this.Spine.setAnimation(0, "kaim", false);
+        this.Spine.setAnimation(0, this.Skin, false);
         this.Spine.setCompleteListener(() => {
             this.Sensor.enabled = false;
             this.Collider.active = false;

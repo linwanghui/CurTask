@@ -52,12 +52,49 @@ export class ZRSJZ_GameData {
     public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
     public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
     public RoomCard: string[] = ["", "", ""];//当前装备的房卡
+    /** 七日签到已经领取的奖励数量，达到 7 后签到永久结束。 */
+    public SignInClaimedCount: number = 0;
+    /** 上次领取签到奖励的本地日期（YYYY-MM-DD）。 */
+    public SignInLastClaimDate: string = "";
     /** 已购买的非默认武器皮肤；每把武器的首个皮肤始终视为拥有。 */
     public HaveWeaponSkin: string[] = [];
     /** 每把武器当前使用的皮肤。 */
     public CurWeaponSkin: { [weaponName: string]: string } = {};
     // public GameTempID: string[] = [];//战斗时的临时ID
     public CurMap: string = "五号小镇_机密行动";//当前地图
+
+    //#region 签到
+    public GetSignInClaimedCount(): number {
+        return Math.max(0, Math.min(7, Math.floor(this.SignInClaimedCount ?? 0)));
+    }
+
+    public IsSignInCompleted(): boolean {
+        return this.GetSignInClaimedCount() >= 7;
+    }
+
+    public CanClaimSignInReward(): boolean {
+        return !this.IsSignInCompleted()
+            && this.SignInLastClaimDate !== this.GetLocalDateKey();
+    }
+
+    /** 领取下一天的签到奖励，成功时返回 0～6 的奖励索引。 */
+    public ClaimSignInReward(): number {
+        if (!this.CanClaimSignInReward()) return -1;
+
+        const dayIndex = this.GetSignInClaimedCount();
+        this.SignInClaimedCount = dayIndex + 1;
+        this.SignInLastClaimDate = this.GetLocalDateKey();
+        ZRSJZ_GameData.SaveData();
+        return dayIndex;
+    }
+
+    private GetLocalDateKey(): string {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = `${now.getMonth() + 1}`.padStart(2, "0");
+        const day = `${now.getDate()}`.padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
 
     ChangeGold(gold: number) {
         this.Gold += gold;
@@ -197,6 +234,7 @@ export class ZRSJZ_GameData {
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         ZRSJZ_GameData.SaveData();
     }
+
 
     public GetEquippedRoomCardID(roomCardName: string): string {
         if (!roomCardName) return "";

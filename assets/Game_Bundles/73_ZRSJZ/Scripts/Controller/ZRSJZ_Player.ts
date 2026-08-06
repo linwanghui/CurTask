@@ -27,6 +27,7 @@ export class ZRSJZ_Player extends Component {
 
     PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
     HP: ZRSJZ_HP = null;
+    Other: Node = null;
 
     MaxHP: number = 100;
     CurHP: number = 100;
@@ -95,6 +96,7 @@ export class ZRSJZ_Player extends Component {
         this.HP = this.node.getChildByName("HP").getComponent(ZRSJZ_HP);
         this.Reloading = this.node.getChildByName("Reloading");
         this.Loading = this.Reloading.getChildByName("Loading").getComponent(Sprite);
+        this.Other = this.node.getChildByName("Other");
     }
 
     protected start(): void {

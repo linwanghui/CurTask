@@ -4,6 +4,8 @@ import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
+import { ZRSJZ_SignInPanel } from './Panel/ZRSJZ_SignInPanel';
+import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -18,6 +20,9 @@ export class ZRSJZ_Start extends Component {
     @property(Label)
     ConfirmName: Label = null;
 
+    @property(Node)
+    SignBtn: Node = null;
+
     protected start(): void {
         ZRSJZ_UIManager.Instance;
         tween(this.Checked)
@@ -27,6 +32,11 @@ export class ZRSJZ_Start extends Component {
             .repeatForever()
             .start();
         ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
+        if (ZRSJZ_GameData.Instance.CanClaimSignInReward()) {
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
+        } else {
+            this.SignBtn.active = false;
+        }
     }
 
     protected onEnable(): void {
@@ -67,6 +77,9 @@ export class ZRSJZ_Start extends Component {
                 break;
             case "选择地图":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.选关界面);
+                break;
+            case "签到":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
                 break;
         }
     }
