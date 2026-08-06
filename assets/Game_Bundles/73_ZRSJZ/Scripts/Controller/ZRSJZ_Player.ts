@@ -36,7 +36,7 @@ export class ZRSJZ_Player extends Component {
     Reloading: Node = null;
     Loading: Sprite = null;
 
-    private _moveSpeed: number = 1000;
+    private _moveSpeed: number = 3000;
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _moveRadius: number = 0;
@@ -670,7 +670,6 @@ export class ZRSJZ_Player extends Component {
     }
 
     EndContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
-        if (!this._targetBox) return;
         if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Box) && otherCollider.node?.getComponent(ZRSJZ_Box) == this._targetBox) {
             const target = otherCollider.node?.getComponent(ZRSJZ_Box);
             if (target && target === this._targetBox) {

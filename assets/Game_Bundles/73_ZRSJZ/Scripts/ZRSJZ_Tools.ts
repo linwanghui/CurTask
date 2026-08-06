@@ -66,6 +66,7 @@ export class ZRSJZ_Tools {
             case "弹药":
                 return ZRSJZ_INVENTORY.仓库_弹药;
             case "门禁卡":
+            case "房卡":
             case "物品":
                 return ZRSJZ_INVENTORY.仓库_物品;
         }

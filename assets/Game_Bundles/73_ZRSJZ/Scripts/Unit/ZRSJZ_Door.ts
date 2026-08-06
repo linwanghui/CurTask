@@ -1,4 +1,6 @@
 import { _decorator, Collider2D, Component, Node, sp } from 'cc';
+import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Door')
@@ -13,6 +15,7 @@ export class ZRSJZ_Door extends Component {
     Spine: sp.Skeleton = null;
     Sensor: Collider2D = null;
     Collider: Node = null;
+    private _isOpened: boolean = false;
 
     protected onLoad(): void {
         this.Spine = this.getComponent(sp.Skeleton);
@@ -24,7 +27,25 @@ export class ZRSJZ_Door extends Component {
         this.Spine.setSkin(this.Skin);
     }
 
-    Open() {
+    public TryOpenWithRoomCard(): boolean {
+        if (this._isOpened) return false;
+        if (!ZRSJZ_GameData.Instance.HasEquippedRoomCard(this.RoomCard)) {
+            ZRSJZ_UIManager.Instance.ShowTip(`需要在卡包中装备${this.RoomCard}`);
+            return false;
+        }
+        if (!ZRSJZ_GameData.Instance.ConsumeEquippedRoomCard(this.RoomCard)) {
+            ZRSJZ_UIManager.Instance.ShowTip(`${this.RoomCard}已失效`);
+            return false;
+        }
+
+        this.Open();
+        ZRSJZ_UIManager.Instance.ShowTip(`已使用${this.RoomCard}`);
+        return true;
+    }
+
+    public Open() {
+        if (this._isOpened) return;
+        this._isOpened = true;
         this.Spine.setAnimation(0, "kaim", false);
         this.Spine.setCompleteListener(() => {
             this.Sensor.enabled = false;

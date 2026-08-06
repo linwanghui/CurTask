@@ -478,6 +478,7 @@ export class ZRSJZ_UIManager extends Component {
                 affectedPropIDs.add(propID);
                 delete ZRSJZ_GameData.Instance.PropData[propID];
             }
+            ZRSJZ_GameData.Instance.RoomCard = ["", "", ""];
         }
 
         // 先保存最终数据，避免后续 UI 节点异步清理失败时丢失结算结果。

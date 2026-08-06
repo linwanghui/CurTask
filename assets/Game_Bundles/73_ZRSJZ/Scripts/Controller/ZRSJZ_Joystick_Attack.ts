@@ -40,6 +40,8 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     start() {
         this._searchButton = this.node.getChildByName('Search');
+        this._doorCardButton = this.node.getChildByName('Crack');
+        this._doorVideoButton = this.node.getChildByName('CrackByVideo');
         this._attackSprite = this.node.getChildByName('Attack').getComponent(Sprite);
         this._switchSprite = this.node.getChildByName('Switch').getComponent(Sprite);
         this._slideSprite = this.node.getChildByPath('Slide/CD').getComponent(Sprite);
@@ -57,12 +59,13 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
-        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowSearch, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
     }
 
     protected onDisable(): void {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
     }
 
@@ -148,14 +151,21 @@ export class ZRSJZ_Joystick_Attack extends Component {
                 this.Search();
                 break;
             case "Crack":
-
-                break;
-            case "CrackByVedio":
-                Banner.Instance.ShowVideoAd(() => {
-                    this._targetDoor.Open();
+                if (this._targetDoor?.TryOpenWithRoomCard()) {
                     this.ShowDoor(null);
+                }
+                break;
+            case "CrackByVideo": {
+                const targetDoor = this._targetDoor;
+                if (!targetDoor) break;
+                Banner.Instance.ShowVideoAd(() => {
+                    targetDoor.Open();
+                    if (this._targetDoor === targetDoor) {
+                        this.ShowDoor(null);
+                    }
                 })
                 break;
+            }
         }
     }
 

@@ -114,6 +114,7 @@ export class ZRSJZ_GameData {
     public RemovePropID(propID: string) {
         if (this.PropData.hasOwnProperty(propID)) {
             delete this.PropData[propID];
+            this.RefreshRoomCardIDs();
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
             ZRSJZ_GameData.SaveData();
         }
@@ -192,8 +193,43 @@ export class ZRSJZ_GameData {
         if (this.WeaponryID.includes(propID)) {
 
         }
+        this.RefreshRoomCardIDs();
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         ZRSJZ_GameData.SaveData();
+    }
+
+    public GetEquippedRoomCardID(roomCardName: string): string {
+        if (!roomCardName) return "";
+
+        return Object.keys(this.PropData).find(propID => {
+            const propData = this.PropData[propID];
+            return propData?.Name === roomCardName
+                && (propData.PropType === "房卡" || propData.PropType === "门禁卡")
+                && propData.CurInventory === ZRSJZ_INVENTORY.卡包;
+        }) ?? "";
+    }
+
+    public HasEquippedRoomCard(roomCardName: string): boolean {
+        return this.GetEquippedRoomCardID(roomCardName) !== "";
+    }
+
+    public ConsumeEquippedRoomCard(roomCardName: string): boolean {
+        const roomCardID = this.GetEquippedRoomCardID(roomCardName);
+        if (!roomCardID) return false;
+
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, roomCardID);
+        delete this.PropData[roomCardID];
+        this.RefreshRoomCardIDs();
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+        ZRSJZ_GameData.SaveData();
+        return true;
+    }
+
+    private RefreshRoomCardIDs(): void {
+        const roomCardNames = ["低级房卡", "中级房卡", "高级房卡"];
+        this.RoomCard = roomCardNames.map(roomCardName =>
+            this.GetEquippedRoomCardID(roomCardName)
+        );
     }
 
     public GetInventoryTotalValue(inventories: readonly ZRSJZ_INVENTORY[]): number {

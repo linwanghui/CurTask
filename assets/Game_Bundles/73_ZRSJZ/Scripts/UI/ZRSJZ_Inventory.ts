@@ -478,6 +478,7 @@ export class ZRSJZ_Inventory extends Component {
             case "弹药":
                 return this.InventoryType == ZRSJZ_INVENTORY.仓库_弹药 || this.InventoryType == ZRSJZ_INVENTORY.弹药;
             case "门禁卡":
+            case "房卡":
                 return this.InventoryType == ZRSJZ_INVENTORY.仓库_物品 || this.InventoryType == ZRSJZ_INVENTORY.卡包;
             case "物品":
                 return this.InventoryType == ZRSJZ_INVENTORY.仓库_物品;
