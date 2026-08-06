@@ -51,6 +51,7 @@ export class ZRSJZ_GameData {
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};//道具数据
     public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
     public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
+    public RoomCard: string[] = ["", "", ""];//当前装备的房卡
     /** 已购买的非默认武器皮肤；每把武器的首个皮肤始终视为拥有。 */
     public HaveWeaponSkin: string[] = [];
     /** 每把武器当前使用的皮肤。 */
@@ -113,6 +114,7 @@ export class ZRSJZ_GameData {
     public RemovePropID(propID: string) {
         if (this.PropData.hasOwnProperty(propID)) {
             delete this.PropData[propID];
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
             ZRSJZ_GameData.SaveData();
         }
     }
@@ -190,7 +192,16 @@ export class ZRSJZ_GameData {
         if (this.WeaponryID.includes(propID)) {
 
         }
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         ZRSJZ_GameData.SaveData();
+    }
+
+    public GetInventoryTotalValue(inventories: readonly ZRSJZ_INVENTORY[]): number {
+        const inventorySet = new Set(inventories);
+        return Object.values(this.PropData).reduce((totalValue, propData) => {
+            if (!inventorySet.has(propData.CurInventory)) return totalValue;
+            return totalValue + propData.UnitPrice * propData.CurCount;
+        }, 0);
     }
 
     public RemoveInventoryRows(inventory: ZRSJZ_INVENTORY, removedRows: number[]) {
@@ -258,6 +269,7 @@ export class ZRSJZ_GameData {
                 }
             }
         }
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         ZRSJZ_GameData.SaveData();
         return count === 0;
     }

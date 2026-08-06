@@ -107,7 +107,6 @@ export class ZRSJZ_SearchPropEffect extends Component {
         this._cover.active = false;
         // 搜索完成、真实道具刚出现时再播放音效；若退出界面导致搜索取消，
         // 上方的版本检查会直接返回，不会在返回主页时误播。
-        console.error(111111111111111111111);
         ZRSJZ_AudioManager.Instance?.PlaySound("开宝箱");
         targetOpacity.opacity = 255;
         await Promise.all([

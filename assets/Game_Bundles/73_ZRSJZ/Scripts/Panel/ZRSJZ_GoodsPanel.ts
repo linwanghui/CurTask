@@ -40,6 +40,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     GoodsContent: Node = null;
     public ScrollView: ScrollView = null;
     public GoodsScrollView: ScrollView = null;
+    private _totalValue: Label = null;
 
     private _revealSerial: number = 0;
     private _arrayInventorySerial: number = 0;
@@ -52,13 +53,16 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
         this.BackpackContent = find("Panel/背包/View/Content", this.node);
         this.ScrollView = find("Panel/背包", this.node).getComponent(ScrollView);
+        this._totalValue = find("Panel/背包总价值/Count", this.node).getComponent(Label);
         this.GoodsContent = this.EnsureGoodsContent();
     }
 
     protected onEnable(): void {
         this.Prepare.Show(true);
         this.ShowBackpack();
+        this.RefreshTotalValue();
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
 
     protected onDisable(): void {
@@ -67,6 +71,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             this._activeGoodsInventory.node.active = false;
         }
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
 
     Show(...args: any[]): void {
@@ -105,6 +110,14 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         if (this.GoodsScrollView) {
             this.GoodsScrollView.enabled = move;
         }
+    }
+
+    private RefreshTotalValue(): void {
+        const totalValue = ZRSJZ_GameData.Instance.GetInventoryTotalValue([
+            ZRSJZ_INVENTORY.背包,
+            ZRSJZ_INVENTORY.保险箱,
+        ]);
+        this._totalValue.string = `${totalValue}`;
     }
 
     async ShowBackpack(): Promise<ZRSJZ_Inventory> {
@@ -164,18 +177,42 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             }
 
             const propID = ZRSJZ_GameData.Instance.AddPropByName(propName);
-            ZRSJZ_GameData.Instance.PropData[propID].SourceBoxID = goods.BoxID;
-            ZRSJZ_GameData.Instance.PropData[propID].IsSearchLocked = true;
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            propData.SourceBoxID = goods.BoxID;
+            propData.IsSearchLocked = true;
+            const placeholderGrid = this.GetPlaceholderGrid(placeholder);
+            if (placeholderGrid) {
+                while (goods.Grids.length < placeholderGrid.y + propData.Height) {
+                    goods.Grids.push(goods.GetEmptyRow());
+                }
+            }
+            const usePlaceholderGrid = placeholderGrid
+                && goods.CanPlace(
+                    placeholderGrid.x,
+                    placeholderGrid.y,
+                    propData.Width,
+                    propData.Height,
+                );
             ZRSJZ_GameData.Instance.MovePropToInventory(
                 propID,
                 ZRSJZ_INVENTORY.物资,
                 1,
-                -1,
-                -1,
+                usePlaceholderGrid ? placeholderGrid.x : -1,
+                usePlaceholderGrid ? placeholderGrid.y : -1,
             );
             ZRSJZ_GameData.SaveData();
 
-            goods.ShowPropItem()
+            const showProp = usePlaceholderGrid
+                ? goods.OccupyGrid(
+                    propID,
+                    placeholderGrid.x,
+                    placeholderGrid.y,
+                    propData.Width,
+                    propData.Height,
+                ).then(() => goods.ShowPropItem())
+                : goods.ShowPropItem();
+
+            showProp
                 .then(async () => {
                     this.RefreshGoodsContentSize(goods.node);
                     // ShowPropItem 扩容时会在末尾新建空白格子，需把尚未搜索的
@@ -221,6 +258,17 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         };
 
         this.ScheduleNextReveal(revealNext, 0.05);
+    }
+
+    /** 使用占位图预先确定的格子，避免前方物资取走后新物资自动向前补位。 */
+    private GetPlaceholderGrid(placeholder: Node): { x: number, y: number } | null {
+        if (!placeholder?.isValid) return null;
+
+        const step = ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL;
+        return {
+            x: Math.round(placeholder.position.x / step),
+            y: Math.round(-placeholder.position.y / step),
+        };
     }
 
     private ScheduleNextReveal(callback: () => void, interval: number): void {

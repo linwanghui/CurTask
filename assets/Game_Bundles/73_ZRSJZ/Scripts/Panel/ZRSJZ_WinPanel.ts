@@ -1,4 +1,4 @@
-import { _decorator, director, EventTouch, find, Label, Node, ScrollView, sp, tween, Tween, UITransform, Vec3 } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, ScrollView, sp, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -23,6 +23,7 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
     private readonly _propColumnCount: number = 6;
     private _showPropVersion: number = 0;
     private _propNodeVersions: Map<Node, number> = new Map<Node, number>();
+    private _isReturning: boolean = false;
 
     protected onLoad(): void {
         this.Earnings = find("Panel/收益/Earnings", this.node).getComponent(Label);
@@ -38,6 +39,7 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
 
     Show(...args: any[]) {
         super.Show();
+        this._isReturning = false;
         this.Mask.active = true;
         this.Evacuate.string = args[0];
         this.BattleTime.string = args[1];
@@ -184,16 +186,17 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
         if (propGrid) propGrid.enabled = true;
     }
 
-    public OnButtonClick(event: EventTouch): void {
+    public async OnButtonClick(event: EventTouch): Promise<void> {
         switch (event.getCurrentTarget().name) {
             case "Mask":
+                if (this._isReturning) return;
+                this._isReturning = true;
+                await ZRSJZ_UIManager.Instance.FinishGameInventory(true);
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Star");
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.胜利弹窗);
-                director.loadScene("ZRSJZ_Star");
                 break;
         }
     }
 
 
 }
-
-

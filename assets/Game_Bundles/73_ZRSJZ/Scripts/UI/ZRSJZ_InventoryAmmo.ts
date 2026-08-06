@@ -148,6 +148,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
 
         targetData.CurCount += moveCount;
         incomingData.CurCount -= moveCount;
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
 
         if (incomingData.CurCount <= 0) {
             if (sourceIndex >= 0) ZRSJZ_GameData.Instance.AmmoID[sourceIndex] = "";

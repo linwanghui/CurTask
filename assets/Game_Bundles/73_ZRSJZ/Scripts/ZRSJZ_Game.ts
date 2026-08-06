@@ -8,6 +8,7 @@ import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
+import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -46,7 +47,8 @@ export class ZRSJZ_Game extends Component {
         this._battleStarted = false;
     }
 
-    protected start(): void {
+    protected async start(): Promise<void> {
+        await ZRSJZ_UIManager.Instance.InitializeBattleInventories();
         this.LoadMap();
         this.InitMiniMap();
     }
@@ -95,6 +97,7 @@ export class ZRSJZ_Game extends Component {
             this.Camera.Init(player, this.CurMap.Map);
             this.RefreshMiniMap();
             this.LoadUI();
+            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
         })
     }
 

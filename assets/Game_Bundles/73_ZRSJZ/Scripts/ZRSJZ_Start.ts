@@ -3,6 +3,7 @@ import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
+import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -19,13 +20,13 @@ export class ZRSJZ_Start extends Component {
 
     protected start(): void {
         ZRSJZ_UIManager.Instance;
-        ZRSJZ_AudioManager.Instance.PlayMusic("BGM0");
         tween(this.Checked)
             .to(0.5, { scale: v3(1.2, 1.2, 1.2) }, { easing: "sineInOut" })
             .to(0.5, { scale: v3(1, 1, 1) }, { easing: "sineInOut" })
             .union()
             .repeatForever()
             .start();
+        ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
     }
 
     protected onEnable(): void {

@@ -61,6 +61,11 @@ export class ZRSJZ_BoxInventory extends ZRSJZ_Inventory {
             && propData.SourceBoxID === this.BoxID;
     }
 
+    /** 搜索或取走物资时保留原有行，避免后方物资自动向前移动。 */
+    protected ShouldRemoveEmptyRows(): boolean {
+        return false;
+    }
+
     public async ChangeGrid(
         inventory: ZRSJZ_INVENTORY,
         id: string,

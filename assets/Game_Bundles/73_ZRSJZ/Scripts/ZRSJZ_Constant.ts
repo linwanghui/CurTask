@@ -23,6 +23,7 @@ export enum ZRSJZ_PANEL {
     密码箱弹窗 = "73_ZRSJZ/Prefabs/Panel/密码箱弹窗",
     医疗箱弹窗 = "73_ZRSJZ/Prefabs/Panel/医疗箱弹窗",
     死亡弹窗 = "73_ZRSJZ/Prefabs/Panel/死亡弹窗",
+    加载界面 = "73_ZRSJZ/Prefabs/Panel/加载界面",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -451,6 +452,8 @@ export const ZRSJZ_WEAPONRY_TYPE: Map<string, string[]> = new Map([
     ["狙击枪", ["ssv-狙击枪", "W76-狙击枪"]],
     ["散弹枪", ["FS-霰弹枪", "KK41-霰弹枪"]],
 ])
+
+export const ZRSJZ_KNIFE: string[] = ["战术匕首", "刺厌", "科技斧", "熔岩剑", "赤牙", "魔刀"];
 
 export interface ZRSJZ_WeaponSkinConfig {
     Name: string;

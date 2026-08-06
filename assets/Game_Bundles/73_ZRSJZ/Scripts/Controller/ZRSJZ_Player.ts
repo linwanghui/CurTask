@@ -14,6 +14,7 @@ import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_Skill } from '../Skill/ZRSJZ_Skill';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
+import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -332,10 +333,10 @@ export class ZRSJZ_Player extends Component {
 
         targetPosition.x += Math.sign(this.PlayerSkeleton.AttackX) * 150;
 
-        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
-            muzzleEffect.parent = this.node;
-            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(targetPosition, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
-        })
+        // ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
+        //     muzzleEffect.parent = this.node;
+        //     muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(targetPosition, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
+        // })
 
         enemys.forEach(enemy => {
             if (Vec3.distance(targetPosition, enemy.node.worldPosition) < skillRange) {
@@ -663,6 +664,8 @@ export class ZRSJZ_Player extends Component {
             this._targetBox = otherCollider.node?.getComponent(ZRSJZ_Box);
             this._targetBox.Check();
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox);
+        } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, otherCollider.node?.getComponent(ZRSJZ_Door));
         }
     }
 
@@ -675,6 +678,8 @@ export class ZRSJZ_Player extends Component {
                 this._targetBox = null;
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox);
             }
+        } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, null);
         }
     }
 

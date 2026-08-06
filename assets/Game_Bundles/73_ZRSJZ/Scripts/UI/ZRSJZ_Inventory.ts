@@ -32,6 +32,14 @@ export class ZRSJZ_Inventory extends Component {
     }
 
     async Init(inventoryType: ZRSJZ_INVENTORY) {
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
+        for (let i = this.node.children.length - 1; i >= 0; i--) {
+            ZRSJZ_PoolManager.Instance.PutNode(this.node.children[i]);
+        }
+        this.Grids = [];
+        this.IsInitialized = false;
+
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
         this.InventoryType = inventoryType;
@@ -142,7 +150,11 @@ export class ZRSJZ_Inventory extends Component {
                 }
             }
 
-            if (this.InventoryConfig.IsDilatation && this.Grids.length > 4) {
+            if (
+                this.InventoryConfig.IsDilatation
+                && this.ShouldRemoveEmptyRows()
+                && this.Grids.length > 4
+            ) {
                 // 最后三行始终保留，只检查它们之前的行。
                 const removableRowCount = this.Grids.length - 4;
                 const removedRows: number[] = [];
@@ -187,6 +199,11 @@ export class ZRSJZ_Inventory extends Component {
             inventoryType === ZRSJZ_INVENTORY.仓库_全部
             && this.checkIsInWarhouse(propData.CurInventory)
         ) || propData.CurInventory === inventoryType;
+    }
+
+    /** 箱子等需要固定展示位置的库存可关闭自动删除空行。 */
+    protected ShouldRemoveEmptyRows(): boolean {
+        return true;
     }
 
     private async SyncEmptyGridNodes() {

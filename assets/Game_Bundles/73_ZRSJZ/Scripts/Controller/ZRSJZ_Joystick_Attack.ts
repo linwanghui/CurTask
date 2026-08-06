@@ -1,11 +1,13 @@
 import { _decorator, Component, EventKeyboard, EventTouch, Touch, Input, input, KeyCode, Node, UITransform, Vec2, Vec3, SpriteFrame, Sprite, Label } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PANEL, ZRSJZ_ROLE_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_KNIFE, ZRSJZ_PANEL, ZRSJZ_ROLE_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
+import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
+import Banner from 'db://assets/Scripts/Banner';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Joystick_Attack')
@@ -22,6 +24,9 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     private _searchButton: Node = null;
     private _targetBox: ZRSJZ_Box = null;
+    private _doorCardButton: Node = null;
+    private _doorVideoButton: Node = null;
+    private _targetDoor: ZRSJZ_Door = null;
 
     private _attackSprite: Sprite = null;
     private _attackTouch: Touch = null;
@@ -52,6 +57,13 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowSearch, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
+    }
+
+    protected onDisable(): void {
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
     }
 
     protected update(dt: number): void {
@@ -135,6 +147,15 @@ export class ZRSJZ_Joystick_Attack extends Component {
             case "Search":
                 this.Search();
                 break;
+            case "Crack":
+
+                break;
+            case "CrackByVedio":
+                Banner.Instance.ShowVideoAd(() => {
+                    this._targetDoor.Open();
+                    this.ShowDoor(null);
+                })
+                break;
         }
     }
 
@@ -207,6 +228,33 @@ export class ZRSJZ_Joystick_Attack extends Component {
     ShowSearch(box: ZRSJZ_Box) {
         this._targetBox = box;
         this._searchButton.active = box != null;
+    }
+
+    ShowDoor(door: ZRSJZ_Door) {
+        this._targetDoor = door;
+        this._doorCardButton.active = door != null;
+        this._doorVideoButton.active = door != null;
+    }
+
+    //装备切换
+    ShowEquipment(equipmentName: string, isEquipment: boolean = true) {
+        //枪
+        for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
+            const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);
+            if (flag) {
+                this._curWeaponIndex = isEquipment ? 0 : 1;
+                this.SwitchWeapon();
+                return;
+            }
+        }
+
+        //刀
+        if (ZRSJZ_KNIFE.includes(equipmentName)) {
+            this._curWeaponIndex = isEquipment ? 1 : 0;
+            this.SwitchWeapon();
+            return;
+        }
+
     }
 }
 

@@ -1,4 +1,4 @@
-import { _decorator, director, EventTouch, find, Label, Node, Sprite, SpriteFrame } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_MapConfig, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
@@ -213,7 +213,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
         }
         ZRSJZ_GameData.Instance.CurMap = mapKey;
         ZRSJZ_GameData.SaveData();
-        director.loadScene("ZRSJZ_Game");
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Game");
         ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.选关界面);
     }
 
@@ -227,5 +227,3 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
     }
 
 }
-
-

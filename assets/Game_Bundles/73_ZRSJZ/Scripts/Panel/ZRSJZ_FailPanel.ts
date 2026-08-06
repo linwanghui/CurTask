@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventTouch, find, Label, Node, sp, tween, Tween, Vec3 } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, sp, tween, Tween, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -13,6 +13,7 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
     Skeleton: sp.Skeleton = null;
     Point: Node = null;
     Mask: Node = null;
+    private _isReturning: boolean = false;
 
     protected onLoad(): void {
         this.Evacuate = find("Panel/Desc/撤离方式/Count", this.node).getComponent(Label);
@@ -25,6 +26,7 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
 
     Show(...args: any[]) {
         super.Show();
+        this._isReturning = false;
         this.Mask.active = true;
         this.Evacuate.string = args[0];
         this.BattleTime.string = args[1];
@@ -45,11 +47,14 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
         });
     }
 
-    public OnButtonClick(event: EventTouch): void {
+    public async OnButtonClick(event: EventTouch): Promise<void> {
         switch (event.getCurrentTarget().name) {
             case "Mask":
+                if (this._isReturning) return;
+                this._isReturning = true;
+                await ZRSJZ_UIManager.Instance.FinishGameInventory(false);
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Star");
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.失败弹窗);
-                director.loadScene("ZRSJZ_Star");
                 break;
         }
     }

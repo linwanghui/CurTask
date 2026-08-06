@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, find, instantiate, Node, Prefab, ScrollView, tween, Tween, UITransform, Vec3 } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, ScrollView, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -19,6 +19,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
 
     public CheckedNode: Node = null;
     public SellMask: Node = null;
+    public SellValue: Label = null;
 
     private _warehouseName: string = "";
     private _warehouseNode: Node = null;
@@ -33,6 +34,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         this.ScrollView = find("Panel/仓库", this.node).getComponent(ScrollView);
         this.CheckedNode = find("Panel/仓库/物品按键/Checked", this.node);
         this.SellMask = find("Panel/Mask", this.node);
+        this.SellValue = find("总价值/Count", this.SellMask).getComponent(Label);
         this._warehouseNode = find("Panel/仓库/物品按键/全部", this.node);
     }
 
@@ -80,6 +82,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
                     this.SellMask.active = true;
                     this._isSelling = true;
                     this._sellPropID = [];
+                    this.RefreshSellValue();
                     ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_SHOW, this._curInventory.getComponent(ZRSJZ_Inventory).InventoryType);
                 } else {
                     this._isSelling = false;
@@ -95,6 +98,8 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
             case "Mask":
                 this._isSelling = false;
                 this.SellMask.active = false;
+                this._sellPropID = [];
+                this.RefreshSellValue();
                 ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_HIDE, this._curInventory.getComponent(ZRSJZ_Inventory).InventoryType);
                 break;
             default:
@@ -133,13 +138,33 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         } else {
             this._sellPropID.push(propID);
         }
+        this.RefreshSellValue();
     }
 
     SellProp() {
+        let totalValue = 0;
         this._sellPropID.forEach(propID => {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            if (!propData) return;
+
+            totalValue += propData.UnitPrice * propData.CurCount;
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, propID);
             ZRSJZ_GameData.Instance.RemovePropID(propID);
         });
+        if (totalValue > 0) {
+            ZRSJZ_GameData.Instance.ChangeGold(totalValue);
+            ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
+        }
+        this._sellPropID = [];
+        this.RefreshSellValue();
+    }
+
+    private RefreshSellValue() {
+        const totalValue = this._sellPropID.reduce((value, propID) => {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            return value + (propData ? propData.UnitPrice * propData.CurCount : 0);
+        }, 0);
+        this.SellValue.string = `${totalValue}`;
     }
 }
 
