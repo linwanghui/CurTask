@@ -9,6 +9,7 @@ export class ZRSJZ_Skeleton extends Component {
 
     Skeleton: sp.Skeleton = null;
     SkinName: string = null;
+    AniName: string = "";
 
     protected onLoad(): void {
         this.Skeleton = this.getComponent(sp.Skeleton);
@@ -25,6 +26,7 @@ export class ZRSJZ_Skeleton extends Component {
     }
 
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
+        this.AniName = aniName;
         this.Skeleton.setAnimation(0, aniName, loop);
         this.Skeleton.setCompleteListener(() => {
             if (cb) cb();
@@ -38,6 +40,7 @@ export class ZRSJZ_Skeleton extends Component {
             return;
         }
 
+        console.error(this.node.parent.name, equipmentName, isEquipment);
         //枪的穿戴
         let isWeaponry = false;
         for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
@@ -61,11 +64,14 @@ export class ZRSJZ_Skeleton extends Component {
                             this.Skeleton.setAttachment(key, key);
                             this.Skeleton.setSlotTexture(key, texture, true);
                         });
+                        console.error(this.node.parent.name);
                         this.PlayAni(ZRSJZ_ANI.Idle_Q);
                     } else {
                         this.Skeleton.findSlot(key)?.setAttachment(null);
                         this.Skeleton.setAttachment('dao', ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
+                        console.error(this.node.parent.name);
                         this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
+                            console.error(this.node.parent.name);
                             this.PlayAni(ZRSJZ_ANI.Idle_D1);
                         })
                     }

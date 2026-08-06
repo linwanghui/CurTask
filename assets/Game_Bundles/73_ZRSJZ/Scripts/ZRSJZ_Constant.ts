@@ -418,12 +418,12 @@ export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new M
     ["五级包", { "背包等级": 5, "容量": 16 * 4, }],
     ["六级包", { "背包等级": 6, "容量": 20 * 4, }],
     //枪
-    ["CN8-突击步枪", { "伤害": 30, "射程": 1200, "射速": 700, "弹夹": 30 }],
-    ["DX9-冲锋枪", { "伤害": 24, "射程": 900, "射速": 800, "弹夹": 35 }],
-    ["K50-轻机枪", { "伤害": 34, "射程": 1300, "射速": 550, "弹夹": 35 }],
-    ["RK77-轻机枪", { "伤害": 38, "射程": 1400, "射速": 480, "弹夹": 35 }],
-    ["FS-霰弹枪", { "伤害": 35, "射程": 1200, "射速": 300, "弹夹": 6 }],
-    ["KK41-霰弹枪", { "伤害": 42, "射程": 1000, "射速": 240, "弹夹": 8 }],
+    ["CN8-突击步枪", { "伤害": 22, "射程": 1200, "射速": 700, "弹夹": 30 }],
+    ["DX9-冲锋枪", { "伤害": 24, "射程": 1300, "射速": 700, "弹夹": 35 }],
+    ["K50-轻机枪", { "伤害": 26, "射程": 1400, "射速": 700, "弹夹": 35 }],
+    ["RK77-轻机枪", { "伤害": 25, "射程": 1400, "射速": 700, "弹夹": 35 }],
+    ["FS-霰弹枪", { "伤害": 60, "射程": 800, "射速": 300, "弹夹": 6 }],
+    ["KK41-霰弹枪", { "伤害": 72, "射程": 800, "射速": 240, "弹夹": 8 }],
     ["ssv-狙击枪", { "伤害": 200, "射程": 2000, "射速": 100, "弹夹": 5 }],
     ["W76-狙击枪", { "伤害": 150, "射程": 2300, "射速": 120, "弹夹": 8 }],
     //刀
@@ -1081,7 +1081,7 @@ export interface ZRSJZ_MapConfig {
     DisplayName: string;
     /** 行动名称，与 DisplayName 一起组成地图配置键。 */
     ActionName: string;
-    /** 选关界面显示的难度星级，范围 0~5。 */
+    /** 模式难度等级，六个模式依次为 1~6；选关界面最多显示五颗星。 */
     Difficulty: number;
     /** 玩家当前随身配置的最低总价值；0 表示不限制。 */
     RequiredLoadoutValue: number;
@@ -1096,116 +1096,171 @@ export interface ZRSJZ_MapConfig {
     MapProp: string[][]
 }
 
-export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_MapConfig>> = new Map([
-    ["五号小镇_机密行动", {
-        DisplayName: "五号小镇",
-        ActionName: "机密行动",
-        Difficulty: 1,
-        RequiredLoadoutValue: 1000,
-        MissionLimit: "战备价值达到1000",
-        TimeLimitMinutes: 10,
-        MapName: "城镇",
+/**
+ * 六个模式的品质权重，顺序为白、绿、蓝、紫、金、红。
+ * 权重随模式提高持续向高品质倾斜；箱子生成时会按这些权重进行加权随机。
+ */
+const ZRSJZ_MAP_LOOT_WEIGHTS: readonly (readonly number[])[] = [
+    [60, 25, 10, 4, 0.8, 0.2],
+    [48, 28, 15, 6, 2.3, 0.7],
+    [36, 28, 20, 10, 4.5, 1.5],
+    [26, 25, 23, 15, 8, 3],
+    [17, 21, 25, 20, 12, 5],
+    [10, 15, 22, 24, 19, 10],
+];
+
+const ZRSJZ_MAP_REQUIRED_VALUES: readonly number[] = [
+    1_000, 8_000, 20_000, 40_000, 80_000, 150_000,
+];
+
+const ZRSJZ_MAP_TIME_LIMITS: readonly number[] = [15, 14, 13, 12, 11, 10];
+const ZRSJZ_MAP_HP_MULTIPLIERS: readonly number[] = [1, 1.3, 1.7, 2.15, 2.75, 3.5];
+const ZRSJZ_MAP_HARM_MULTIPLIERS: readonly number[] = [1, 1.2, 1.45, 1.75, 2.15, 2.6];
+const ZRSJZ_MAP_PROP_TYPES: readonly string[] = ["物品", "房卡", "弹药"];//地图中允许掉落的类型
+
+const ZRSJZ_MAP_PROP_POOL: string[][] = [
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.白色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.绿色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.蓝色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.紫色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.金色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.红色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
+];
+
+function CreateMapBoxConfig(
+    boxName: string,
+    modeIndex: number,
+    minPropCount: number,
+    maxPropCount: number,
+    qualityBonus: number = 0,
+): ZRSJZ_BoxConfig {
+    const lootIndex = Math.max(
+        0,
+        Math.min(ZRSJZ_MAP_LOOT_WEIGHTS.length - 1, modeIndex + qualityBonus),
+    );
+    return {
+        BoxName: boxName,
+        MinPropCount: minPropCount,
+        MaxPropCount: Math.max(minPropCount, maxPropCount),
+        Probability: [...ZRSJZ_MAP_LOOT_WEIGHTS[lootIndex]],
+    };
+}
+
+function CreateMapModeConfig(
+    displayName: string,
+    actionName: string,
+    mapName: string,
+    modeIndex: number,
+): ZRSJZ_MapConfig {
+    const hpMultiplier = ZRSJZ_MAP_HP_MULTIPLIERS[modeIndex];
+    const harmMultiplier = ZRSJZ_MAP_HARM_MULTIPLIERS[modeIndex];
+    const requiredValue = ZRSJZ_MAP_REQUIRED_VALUES[modeIndex];
+    const commonMin = 2 + Math.floor(modeIndex / 2);
+    const commonMax = 4 + modeIndex;
+    const eliteMin = 3 + Math.floor(modeIndex / 2);
+    const eliteMax = 5 + modeIndex;
+
+    return {
+        DisplayName: displayName,
+        ActionName: actionName,
+        Difficulty: modeIndex + 1,
+        RequiredLoadoutValue: requiredValue,
+        MissionLimit: `战备价值达到${requiredValue}`,
+        TimeLimitMinutes: ZRSJZ_MAP_TIME_LIMITS[modeIndex],
+        MapName: mapName,
         MapEnemy: new Map([
             ["持枪小兵", {
-                HP: 100,
-                Harm: 10,
-                Box: {
-                    BoxName: "物资箱1",
-                    MinPropCount: 3,
-                    MaxPropCount: 6,
-                    Probability: [90, 80, 60, 30, 20, 5]
-                }
+                HP: Math.round(100 * hpMultiplier),
+                Harm: Math.round(10 * harmMultiplier),
+                Box: CreateMapBoxConfig("物资箱1", modeIndex, commonMin, commonMax),
             }],
             ["持刀小兵", {
-                HP: 100,
-                Harm: 10,
-                Box: {
-                    BoxName: "物资箱1",
-                    MinPropCount: 3,
-                    MaxPropCount: 6,
-                    Probability: [90, 80, 60, 30, 20, 5]
-                }
+                HP: Math.round(110 * hpMultiplier),
+                Harm: Math.round(12 * harmMultiplier),
+                Box: CreateMapBoxConfig("物资箱1", modeIndex, commonMin, commonMax),
             }],
             ["喷火兵", {
-                HP: 100,
-                Harm: 20,
-                Box: {
-                    BoxName: "物资箱3",
-                    MinPropCount: 3,
-                    MaxPropCount: 6,
-                    Probability: [90, 80, 70, 50, 20, 5]
-                }
+                HP: Math.round(150 * hpMultiplier),
+                Harm: Math.round(18 * harmMultiplier),
+                Box: CreateMapBoxConfig("物资箱3", modeIndex, eliteMin, eliteMax, 1),
             }],
             ["盾牌兵", {
-                HP: 200,
-                Harm: 10,
-                Box: {
-                    BoxName: "物资箱3",
-                    MinPropCount: 3,
-                    MaxPropCount: 6,
-                    Probability: [90, 80, 70, 50, 20, 5]
-                }
+                HP: Math.round(220 * hpMultiplier),
+                Harm: Math.round(11 * harmMultiplier),
+                Box: CreateMapBoxConfig("物资箱4", modeIndex, eliteMin, eliteMax, 1),
             }],
         ]),
         MapBoss: new Map([
             ["Boss1", {
-                HP: 1200,
-                HarmMultiple: 1,
-                Box: {
-                    BoxName: "物资箱4",
-                    MinPropCount: 5,
-                    MaxPropCount: 8,
-                    Probability: [50, 50, 50, 50, 20, 5]
-                }
+                HP: Math.round(1200 * hpMultiplier),
+                HarmMultiple: Number((1 + modeIndex * 0.25).toFixed(2)),
+                Box: CreateMapBoxConfig(
+                    "物资箱5",
+                    modeIndex,
+                    5 + modeIndex,
+                    8 + modeIndex,
+                    2,
+                ),
+            }],
+            ["Boss2", {
+                HP: Math.round(1200 * hpMultiplier),
+                HarmMultiple: Number((1 + modeIndex * 0.25).toFixed(2)),
+                Box: CreateMapBoxConfig(
+                    "物资箱6",
+                    modeIndex,
+                    5 + modeIndex,
+                    8 + modeIndex,
+                    2,
+                ),
+            }],
+            ["Boss3", {
+                HP: Math.round(1200 * hpMultiplier),
+                HarmMultiple: Number((1 + modeIndex * 0.25).toFixed(2)),
+                Box: CreateMapBoxConfig(
+                    "物资箱7",
+                    modeIndex,
+                    5 + modeIndex,
+                    8 + modeIndex,
+                    2,
+                ),
             }],
         ]),
         MapBox: new Map([
-            ["军备箱", {
-                BoxName: "军备箱",
-                MinPropCount: 5,
-                MaxPropCount: 8,
-                Probability: [80, 80, 80, 70, 30, 5]
-            }],
-            ["小木箱", {
-                BoxName: "小木箱",
-                MinPropCount: 3,
-                MaxPropCount: 5,
-                Probability: [100, 100, 60, 30, 20, 5]
-            }],
-            ["小纸箱", {
-                BoxName: "小纸箱",
-                MinPropCount: 2,
-                MaxPropCount: 4,
-                Probability: [150, 100, 60, 30, 20, 5]
-            }],
-
-            ["木箱", {
-                BoxName: "木箱",
-                MinPropCount: 5,
-                MaxPropCount: 8,
-                Probability: [90, 80, 60, 30, 20, 5]
-            }],
-            ["柜子", {
-                BoxName: "柜子",
-                MinPropCount: 5,
-                MaxPropCount: 8,
-                Probability: [90, 80, 60, 30, 20, 5]
-            }],
-            ["密码箱", {
-                BoxName: "密码箱",
-                MinPropCount: 5,
-                MaxPropCount: 8,
-                Probability: [20, 30, 60, 60, 20, 10]
-            }],
+            ["军备箱", CreateMapBoxConfig(
+                "军备箱", modeIndex,
+                4 + Math.floor(modeIndex / 2), 7 + modeIndex, 1,
+            )],
+            ["小木箱", CreateMapBoxConfig(
+                "小木箱", modeIndex,
+                2 + Math.floor(modeIndex / 3), 4 + modeIndex,
+            )],
+            ["小纸箱", CreateMapBoxConfig(
+                "小纸箱", modeIndex,
+                1 + Math.floor(modeIndex / 3), 3 + modeIndex, -1,
+            )],
+            ["木箱", CreateMapBoxConfig(
+                "木箱", modeIndex,
+                3 + Math.floor(modeIndex / 2), 6 + modeIndex,
+            )],
+            ["柜子", CreateMapBoxConfig(
+                "柜子", modeIndex,
+                3 + Math.floor(modeIndex / 2), 6 + modeIndex,
+            )],
+            ["密码箱", CreateMapBoxConfig(
+                "密码箱", modeIndex,
+                4 + Math.floor(modeIndex / 2), 7 + modeIndex, 2,
+            )],
         ]),
-        MapProp: [
-            //白色/绿色/蓝色/紫色/金色/红色
-            Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.白色).map(prop => prop.Name),
-            Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.绿色).map(prop => prop.Name),
-            Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.蓝色).map(prop => prop.Name),
-            Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.紫色).map(prop => prop.Name),
-            ["万金泪冠", "高速阵列",],
-            ["金玫瑰"],
-        ]
-    }]
-])
+        MapProp: ZRSJZ_MAP_PROP_POOL.map(props => [...props]),
+    };
+}
+
+/** 三张地图、两种行动，共六个由易到难的模式。 */
+export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_MapConfig>> = new Map([
+    ["五号小镇_机密行动", CreateMapModeConfig("五号小镇", "机密行动", "城镇", 0)],
+    ["五号小镇_绝密行动", CreateMapModeConfig("五号小镇", "绝密行动", "城镇", 1)],
+    ["沙漠古迹_机密行动", CreateMapModeConfig("沙漠古迹", "机密行动", "沙漠", 2)],
+    ["沙漠古迹_绝密行动", CreateMapModeConfig("沙漠古迹", "绝密行动", "沙漠", 3)],
+    ["极北之地_机密行动", CreateMapModeConfig("极北之地", "机密行动", "雪地", 4)],
+    ["极北之地_绝密行动", CreateMapModeConfig("极北之地", "绝密行动", "雪地", 5)],
+]);
