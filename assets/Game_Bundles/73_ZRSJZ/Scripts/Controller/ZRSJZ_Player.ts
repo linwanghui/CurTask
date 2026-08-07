@@ -178,7 +178,7 @@ export class ZRSJZ_Player extends Component {
 
 
         //血量初始化
-        this.MaxHP = this.InitHP + ZRSJZ_GameData.Instance.GetResearchMaxHPBonus();
+        this.MaxHP = (this.InitHP + ZRSJZ_GameData.Instance.GetResearchMaxHPBonus()) * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("生命") : 0));
         this.CurHP = this.MaxHP;
         this.HP.Init(this.MaxHP);
         this.HP.Show(this.CurHP);
@@ -199,7 +199,7 @@ export class ZRSJZ_Player extends Component {
                 const isKnife = this.PlayerSkeleton.IsKnife;
                 if (isKnife) {
                     this.PlayerSkeleton.IsKnife = false;
-                    const weaponName: string = ZRSJZ_GameData.Instance.WeaponryID[0] ? ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name : "突击步枪";
+                    const weaponName: string = ZRSJZ_GameData.Instance.WeaponryID[0] ? ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name : "CN8-突击步枪";
                     this.PlayerSkeleton.ShowEquipment(weaponName);
                 }
                 this.PlayAni(ZRSJZ_ANI.Idle_Q);
@@ -293,7 +293,7 @@ export class ZRSJZ_Player extends Component {
         const ammoName = ZRSJZ_Game.Instance.UnlimitedFirepower ? this._magazineAmmo.length > 0 ? this._magazineAmmo[0] : "1级子弹" : this._magazineAmmo.length > 0 ? this._magazineAmmo.shift() : "";
         const gunDamage = this.GetGunProperty("伤害", 0);//本身伤害
         const bulletDamage = ZRSJZ_PROP_PROPERTY.get(ammoName)?.["增伤"] ?? 0;//子弹攻击力加成
-        const firingRangeDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate();//靶场攻击力加成
+        const totalGunDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
         const bulletRange = this.GetGunProperty("射程", 0);
         const bulletLevel = this.GetBulletLevel(ammoName);
 
@@ -309,7 +309,7 @@ export class ZRSJZ_Player extends Component {
 
         const attackX = this.PlayerSkeleton.AttackX;
         const attackY = this.PlayerSkeleton.AttackY;
-        const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + firingRangeDamageRate));
+        const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + totalGunDamageRate));
 
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
             muzzleEffect.parent = this.node;
@@ -368,7 +368,8 @@ export class ZRSJZ_Player extends Component {
         const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
 
         const finalDamage = Math.round(
-            damage * (1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate())
+            damage * (1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate() +
+                (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("枪械伤害") : 0))
         );
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         enemys = enemys.filter(enemy => !enemy.IsDead);

@@ -415,7 +415,7 @@ export class ZRSJZ_GameData {
         })
     }
 
-    //收藏室数据
+    //#region 收藏室数据
     public BoxroomPropLevel: { [propName: string]: number } = {};
     public BoxroomAttributeBonusBasisPoint: { [attributeName: string]: number } = {};
 
@@ -470,6 +470,18 @@ export class ZRSJZ_GameData {
     public GetBoxroomAttributeIncrease(attributeName: string, baseValue: number): number {
         if (!Number.isFinite(baseValue)) return 0;
         return baseValue * this.GetBoxroomAttributeBonusRate(attributeName);
+    }
+
+    /** 靶场与收藏室共同提供的枪械伤害总加成比例。 */
+    public GetTotalGunDamageBonusRate(): number {
+        return this.GetFiringRangeAttackBonusRate()
+            + this.GetBoxroomAttributeBonusRate("枪械伤害");
+    }
+
+    /** 靶场与收藏室共同提供的近战伤害总加成比例。 */
+    public GetTotalMeleeDamageBonusRate(): number {
+        return this.GetFiringRangeAttackBonusRate()
+            + this.GetBoxroomAttributeBonusRate("近战伤害");
     }
 
     //盲盒数据

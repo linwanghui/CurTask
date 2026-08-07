@@ -35,7 +35,7 @@ export class ZRSJZ_Game extends Component {
 
     GamePaused: boolean = false;
     UnlimitedFirepower: boolean = false;
-    Drug: number[] = [0, 0, 0];//药品数量--高级/中级/低级
+    Drug: number[] = [0, 0, 1];//药品数量--高级/中级/低级
 
     private _player: Node = null;
     private _miniMapContent: Node = null;

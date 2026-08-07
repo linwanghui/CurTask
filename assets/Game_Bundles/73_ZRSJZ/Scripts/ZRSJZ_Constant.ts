@@ -640,7 +640,7 @@ export const ZRSJZ_INVENTORY_CONFIG: Map<ZRSJZ_INVENTORY, { Row: number, Col: nu
     [ZRSJZ_INVENTORY.武器_背包, { Row: 1, Col: 1, IsDilatation: false }],
     [ZRSJZ_INVENTORY.武器_刀, { Row: 1, Col: 1, IsDilatation: false }],
     [ZRSJZ_INVENTORY.背包, { Row: 2, Col: 4, IsDilatation: false }],
-    [ZRSJZ_INVENTORY.物资, { Row: 4, Col: 6, IsDilatation: true }],
+    [ZRSJZ_INVENTORY.物资, { Row: 4, Col: 4, IsDilatation: true }],
 ])
 
 export const ZRSJZ_SHOP_CONFIG: Map<string, string[]> = new Map([

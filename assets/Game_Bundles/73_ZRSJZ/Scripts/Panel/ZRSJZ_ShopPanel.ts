@@ -1,4 +1,4 @@
-import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Prefab, Sprite, SpriteFrame, Tween, tween } from 'cc';
+import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Prefab, sp, Sprite, SpriteFrame, Tween, tween } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_PROP_PROPERTY, ZRSJZ_PROP_PROPERTY_MAX, ZRSJZ_PROP_QUALITY, ZRSJZ_SHOP_CONFIG, ZRSJZ_WEAPON_SKIN } from '../ZRSJZ_Constant';
@@ -34,6 +34,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     public ShopDesc: Label = null;
     public ShopProperty: Node = null;
     public ShopSkin: Node = null;
+    public EffectSkeleton: sp.Skeleton = null;;
 
     private _shopPropertyMap: Map<string, ZRSJZ_ShopStats> = new Map<string, ZRSJZ_ShopStats>();
     private _shopType: string = "";
@@ -72,6 +73,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopDesc = find("Panel/详情/描述/Desc", this.node).getComponent(Label);
         this.ShopProperty = find("Panel/详情/属性", this.node);
         this.ShopSkin = find("Panel/详情/皮肤", this.node);
+        this.EffectSkeleton = find("Panel/展示/Effect", this.node).getComponent(sp.Skeleton);
 
         this.ShopProperty.children.forEach(child => {
             const shopStats = child.getComponent(ZRSJZ_ShopStats);
@@ -228,6 +230,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopIcon.node.setScale(this._scale, this._scale, 1);
         this.ShowShopDesc(this._curShop);
         this.RefreshPurchaseState();
+        this.EffectSkeleton.setAnimation(0, "1", false);
     }
 
     ShowShopDesc(shopName: string) {
