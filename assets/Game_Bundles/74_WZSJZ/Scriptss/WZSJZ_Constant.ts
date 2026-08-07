@@ -72,6 +72,18 @@ export interface WZSJZ_NameCombinationConfig {
     FeedNames?: string[];
 }
 
+export interface WZSJZ_SkillConfig {
+    Id: string;
+    OwnerName: string;
+    ButtonPrefabPath: string;
+    Cooldown: number;
+    Duration: number;
+    EffectType: "wall_invincible";
+    EffectName: string;
+    EffectPrefabPath: string;
+    EffectPrewarm: number;
+}
+
 export interface WZSJZ_EnemyConfig {
     MaxHealth: number;
     MoveSpeed: number;
@@ -93,6 +105,7 @@ export interface WZSJZ_EnemyConfig {
 export class WZSJZ_Constant {
     public static readonly Panel = {
         LoadingPanel: "Panel/LoadingPanel",
+        IntroducePanel: "Panel/IntroducePanel"
     };
 
     public static readonly PreparationGrid = {
@@ -116,6 +129,14 @@ export class WZSJZ_Constant {
         Easing: "backOut",
     };
 
+    /** 单击查看与拖拽之间的手势判定，以及攻击范围显示规则。 */
+    public static readonly NodeInteraction = {
+        /** 手指移动超过该UI像素距离后才进入拖拽，避免单击时物体抖动。 */
+        DragThreshold: 12,
+        /** 99999等“全场范围”按该可视半径封顶，避免生成超大UI节点。 */
+        MaxDisplayedAttackRange: 1500,
+    };
+
     /** 名字单位与多格名字组合的统一规则。 */
     public static readonly NameUnit = {
         FormationColumns: 5,
@@ -131,6 +152,21 @@ export class WZSJZ_Constant {
             Name: "盾哥",
             Parts: ["盾", "哥"],
             PrefabPath: "Prefabs/节点/盾哥",
+        },
+    ];
+
+    /** 角色技能配置；同一个角色可以配置多条技能。 */
+    public static readonly CharacterSkills: WZSJZ_SkillConfig[] = [
+        {
+            Id: "绝对防线",
+            OwnerName: "盾哥",
+            ButtonPrefabPath: "Prefabs/UI/技能按钮/绝对防线",
+            Cooldown: 30,
+            Duration: 5,
+            EffectType: "wall_invincible",
+            EffectName: "技能绝对防线特效",
+            EffectPrefabPath: "Prefabs/特效/技能绝对防线特效",
+            EffectPrewarm: 2,
         },
     ];
 

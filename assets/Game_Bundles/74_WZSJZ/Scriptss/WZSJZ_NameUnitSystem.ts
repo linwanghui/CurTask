@@ -82,6 +82,7 @@ export class WZSJZ_NameUnitSystem extends Component {
             if (displayUnit) {
                 displayUnit.CurrentCell = null;
             }
+            this.EmitCombinationChanged();
             return;
         }
     }
@@ -143,6 +144,7 @@ export class WZSJZ_NameUnitSystem extends Component {
                 }
             }
         }
+        this.EmitCombinationChanged();
     }
 
     private CreateCombination(
@@ -196,6 +198,9 @@ export class WZSJZ_NameUnitSystem extends Component {
 
         const behavior = displayNode.addComponent(WZSJZ_NameCombination);
         behavior.Configure(this, units);
+        displayUnit.SetExperienceProgressProvider(
+            () => behavior.GetCombinedExperienceProgress(),
+        );
         units.forEach((unit) => unit.SetCombinationHidden(true));
         const combination: WZSJZ_ActiveNameCombination = {
             Key: key,
@@ -245,6 +250,13 @@ export class WZSJZ_NameUnitSystem extends Component {
 
     private GetCombinationKey(recipe: WZSJZ_NameCombinationConfig, startIndex: number): string {
         return `${recipe.Name}:${startIndex}`;
+    }
+
+    private EmitCombinationChanged(): void {
+        const combinationUnits = Array.from(this._combinations.values())
+            .map((combination) => combination.DisplayNode.getComponent(WZSJZ_GameNode))
+            .filter((unit): unit is WZSJZ_GameNode => !!unit?.node?.isValid);
+        this.node.emit(WZSJZ_EventManager.组合单位变化, combinationUnits);
     }
 
     private GetUnit(cell: WZSJZ_Cell): WZSJZ_GameNode | null {

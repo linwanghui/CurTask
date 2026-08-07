@@ -31,6 +31,8 @@ import { WZSJZ_RecycleSystem } from './WZSJZ_RecycleSystem';
 import { WZSJZ_NameUnitSystem } from './WZSJZ_NameUnitSystem';
 import { WZSJZ_CommonEffectSystem } from './WZSJZ_CommonEffectSystem';
 import { WZSJZ_ShieldBrotherCombatSystem } from './WZSJZ_ShieldBrotherCombatSystem';
+import { WZSJZ_SkillSystem } from './WZSJZ_SkillSystem';
+import { WZSJZ_NodeInspectSystem } from './WZSJZ_NodeInspectSystem';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 const { ccclass, property } = _decorator;
 
@@ -100,6 +102,8 @@ export class WZSJZ_GameManager extends Component {
     private _nameUnitSystem: WZSJZ_NameUnitSystem = null;
     private _commonEffectSystem: WZSJZ_CommonEffectSystem = null;
     private _shieldBrotherCombatSystem: WZSJZ_ShieldBrotherCombatSystem = null;
+    private _skillSystem: WZSJZ_SkillSystem = null;
+    private _nodeInspectSystem: WZSJZ_NodeInspectSystem = null;
 
     protected onLoad(): void {
         WZSJZ_GameManager._instance = this;
@@ -107,12 +111,20 @@ export class WZSJZ_GameManager extends Component {
 
     protected start(): void {
         this.InitBoard();
+        this._nodeInspectSystem = this.node.getComponent(WZSJZ_NodeInspectSystem)
+            || this.node.addComponent(WZSJZ_NodeInspectSystem);
+        this._nodeInspectSystem.Configure(
+            this.FormationZone?.parent?.getChildByName('攻击范围显示') || null,
+        );
         this._combatSystem = this.node.getComponent(WZSJZ_CombatSystem)
             || this.node.addComponent(WZSJZ_CombatSystem);
         this._combatSystem.Configure(this.FormationZone?.parent, this.DragLayer);
         this._commonEffectSystem = this.node.getComponent(WZSJZ_CommonEffectSystem)
             || this.node.addComponent(WZSJZ_CommonEffectSystem);
         this._commonEffectSystem.Configure(this.FormationZone?.parent, this.DragLayer);
+        this._skillSystem = this.node.getComponent(WZSJZ_SkillSystem)
+            || this.node.addComponent(WZSJZ_SkillSystem);
+        this._skillSystem.Configure(this.PreparationZone, this.WallDisplayNode);
         this._shieldBrotherCombatSystem = this.node.getComponent(WZSJZ_ShieldBrotherCombatSystem)
             || this.node.addComponent(WZSJZ_ShieldBrotherCombatSystem);
         this._shieldBrotherCombatSystem.Configure(this.FormationZone?.parent, this.DragLayer);

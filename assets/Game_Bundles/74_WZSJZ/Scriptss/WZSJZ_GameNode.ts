@@ -7,6 +7,7 @@ import {
     Sprite,
     SpriteFrame,
     sp,
+    Vec2,
     Vec3,
 } from 'cc';
 import { WZSJZ_Cell } from './WZSJZ_Cell';
@@ -15,6 +16,7 @@ import { WZSJZ_CombatSystem } from './WZSJZ_CombatSystem';
 import { WZSJZ_GameManager } from './WZSJZ_GameManager';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_ShieldBrotherCombatSystem } from './WZSJZ_ShieldBrotherCombatSystem';
+import { WZSJZ_NodeInspectSystem } from './WZSJZ_NodeInspectSystem';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_GameNode')
@@ -32,9 +34,11 @@ export class WZSJZ_GameNode extends Component {
     private _dragStartWorldPosition: Vec3 = new Vec3();
     private _dragStartUIPosition: Vec3 = new Vec3();
     private _isDragging: boolean = false;
+    private _isPointerDown: boolean = false;
     private _attackCooldown: number = 0;
     private _combinationChildStates: Map<Node, boolean> = null;
     private _experienceReceiver: ((amount: number) => void) = null;
+    private _experienceProgressProvider: (() => number) = null;
     private _isCombinationDisplay: boolean = false;
 
     public get IsDragging(): boolean {
@@ -45,7 +49,7 @@ export class WZSJZ_GameNode extends Component {
         this.node.on(Node.EventType.TOUCH_START, this.OnTouchStart, this);
         this.node.on(Node.EventType.TOUCH_MOVE, this.OnTouchMove, this);
         this.node.on(Node.EventType.TOUCH_END, this.OnTouchEnd, this);
-        this.node.on(Node.EventType.TOUCH_CANCEL, this.OnTouchEnd, this);
+        this.node.on(Node.EventType.TOUCH_CANCEL, this.OnTouchCancel, this);
         this.SetUpgradeHint(false);
         this.RefreshView();
         this.PlayInitialIdleAnimation();
@@ -116,6 +120,22 @@ export class WZSJZ_GameNode extends Component {
         this._experienceReceiver = receiver;
     }
 
+    /** 组合角色可把经验进度代理给其隐藏的组成文字。 */
+    public SetExperienceProgressProvider(provider: (() => number) | null): void {
+        this._experienceProgressProvider = provider;
+    }
+
+    public GetExperienceProgress(): number {
+        if (this._experienceProgressProvider) {
+            return Math.max(0, Math.min(1, this._experienceProgressProvider()));
+        }
+        const requirement = WZSJZ_Constant.GetNameUnitExperienceRequirement(this.Level);
+        if (requirement <= 0) {
+            return 0;
+        }
+        return Math.max(0, Math.min(1, this.Exp / requirement));
+    }
+
     public SetCombinationDisplay(isCombinationDisplay: boolean): void {
         this._isCombinationDisplay = isCombinationDisplay;
     }
@@ -162,8 +182,11 @@ export class WZSJZ_GameNode extends Component {
         this._combinationChildStates = null;
     }
 
-    public BeginExternalDrag(event: EventTouch): void {
-        this.BeginDragging(event);
+    public BeginExternalDrag(event: EventTouch, startUIPosition?: Vec2): void {
+        const start = startUIPosition || event.getUILocation();
+        this._dragStartWorldPosition.set(this.node.worldPosition);
+        this._dragStartUIPosition.set(start.x, start.y, 0);
+        this.BeginDragging();
     }
 
     public MoveExternalDrag(event: EventTouch): void {
@@ -267,10 +290,13 @@ export class WZSJZ_GameNode extends Component {
         if (this._isCombinationDisplay) {
             return;
         }
-        this.BeginDragging(event);
+        this._isPointerDown = !!this.CurrentCell;
+        this._dragStartWorldPosition.set(this.node.worldPosition);
+        const start = event.getUILocation();
+        this._dragStartUIPosition.set(start.x, start.y, 0);
     }
 
-    private BeginDragging(event: EventTouch): void {
+    private BeginDragging(): void {
         const manager = WZSJZ_GameManager.Instance;
         if (!manager
             || !this.CurrentCell
@@ -280,14 +306,22 @@ export class WZSJZ_GameNode extends Component {
         }
 
         this._isDragging = true;
-        this._dragStartWorldPosition.set(this.node.worldPosition);
-        const start = event.getUILocation();
-        this._dragStartUIPosition.set(start.x, start.y, 0);
         this.node.setSiblingIndex(this.node.parent.children.length - 1);
         manager.BeginDrag(this);
     }
 
     private OnTouchMove(event: EventTouch): void {
+        if (this._isPointerDown && !this._isDragging) {
+            const current = event.getUILocation();
+            const deltaX = current.x - this._dragStartUIPosition.x;
+            const deltaY = current.y - this._dragStartUIPosition.y;
+            const threshold = WZSJZ_Constant.NodeInteraction.DragThreshold;
+            if (deltaX * deltaX + deltaY * deltaY >= threshold * threshold) {
+                // 一旦越过阈值，本次手势就不再按单击处理，即使该物体不可拖拽。
+                this._isPointerDown = false;
+                this.BeginDragging();
+            }
+        }
         this.MoveDragging(event);
     }
 
@@ -305,6 +339,17 @@ export class WZSJZ_GameNode extends Component {
     }
 
     private OnTouchEnd(event: EventTouch): void {
+        if (!this._isDragging && this._isPointerDown) {
+            this._isPointerDown = false;
+            WZSJZ_NodeInspectSystem.Instance?.Show(this);
+            return;
+        }
+        this._isPointerDown = false;
+        this.EndDragging(event);
+    }
+
+    private OnTouchCancel(event: EventTouch): void {
+        this._isPointerDown = false;
         this.EndDragging(event);
     }
 

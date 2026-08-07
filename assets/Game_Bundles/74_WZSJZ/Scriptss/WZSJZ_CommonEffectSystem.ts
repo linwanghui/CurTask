@@ -4,15 +4,13 @@ import { WZSJZ_Incident } from './WZSJZ_Incident';
 
 const { ccclass } = _decorator;
 
-export type WZSJZ_CommonEffectName = "蓝色爆炸";
-
 interface WZSJZ_CommonEffectRuntime {
     Prefab: Prefab;
     Pool: NodePool;
     FallbackDuration: number;
 }
 
-/** 通用一次性特效入口，负责动态加载、播放完成回池以及层级维护。 */
+/** 通用特效入口，负责动态注册、定时播放回池以及层级维护。 */
 @ccclass('WZSJZ_CommonEffectSystem')
 export class WZSJZ_CommonEffectSystem extends Component {
     private static _instance: WZSJZ_CommonEffectSystem = null;
@@ -23,7 +21,8 @@ export class WZSJZ_CommonEffectSystem extends Component {
     private _canvas: Node = null;
     private _dragLayer: Node = null;
     private _effectLayer: Node = null;
-    private _effects: Map<WZSJZ_CommonEffectName, WZSJZ_CommonEffectRuntime> = new Map();
+    private _effects: Map<string, WZSJZ_CommonEffectRuntime> = new Map();
+    private _effectLoads: Map<string, Promise<boolean>> = new Map();
 
     protected onLoad(): void {
         WZSJZ_CommonEffectSystem._instance = this;
@@ -34,6 +33,7 @@ export class WZSJZ_CommonEffectSystem extends Component {
             runtime.Pool.clear();
         }
         this._effects.clear();
+        this._effectLoads.clear();
         if (WZSJZ_CommonEffectSystem._instance === this) {
             WZSJZ_CommonEffectSystem._instance = null;
         }
@@ -50,7 +50,7 @@ export class WZSJZ_CommonEffectSystem extends Component {
         return this.Play("蓝色爆炸", worldPosition);
     }
 
-    public Play(effectName: WZSJZ_CommonEffectName, worldPosition: Vec3): boolean {
+    public Play(effectName: string, worldPosition: Vec3, durationOverride?: number): boolean {
         const runtime = this._effects.get(effectName);
         if (!runtime || !this._effectLayer) {
             return false;
@@ -66,7 +66,9 @@ export class WZSJZ_CommonEffectSystem extends Component {
             || effectNode.getComponentInChildren(Animation);
         animation?.stop();
         animation?.play();
-        const duration = animation?.defaultClip?.duration || runtime.FallbackDuration;
+        const duration = durationOverride && durationOverride > 0
+            ? durationOverride
+            : animation?.defaultClip?.duration || runtime.FallbackDuration;
         this.scheduleOnce(() => {
             if (effectNode?.isValid) {
                 animation?.stop();
@@ -77,24 +79,64 @@ export class WZSJZ_CommonEffectSystem extends Component {
         return true;
     }
 
+    public RegisterEffect(
+        effectName: string,
+        prefabPath: string,
+        fallbackDuration: number,
+        prewarm: number = 0,
+    ): Promise<boolean> {
+        if (this._effects.has(effectName)) {
+            return Promise.resolve(true);
+        }
+        const loading = this._effectLoads.get(effectName);
+        if (loading) {
+            return loading;
+        }
+        const loadPromise = this.LoadEffect(
+            effectName,
+            prefabPath,
+            fallbackDuration,
+            prewarm,
+        );
+        this._effectLoads.set(effectName, loadPromise);
+        void loadPromise.finally(() => this._effectLoads.delete(effectName));
+        return loadPromise;
+    }
+
     private async PrepareBlueExplosion(): Promise<void> {
         const config = WZSJZ_Constant.CommonEffect.BlueExplosion;
+        await this.RegisterEffect(
+            "蓝色爆炸",
+            config.PrefabPath,
+            config.FallbackDuration,
+            WZSJZ_Constant.ObjectPool.BlueExplosionPrewarm,
+        );
+    }
+
+    private async LoadEffect(
+        effectName: string,
+        prefabPath: string,
+        fallbackDuration: number,
+        prewarm: number,
+    ): Promise<boolean> {
         try {
-            const prefab = await WZSJZ_Incident.Loadprefab(config.PrefabPath);
+            const prefab = await WZSJZ_Incident.Loadprefab(prefabPath);
             if (!this.node?.isValid) {
-                return;
+                return false;
             }
             const runtime: WZSJZ_CommonEffectRuntime = {
                 Prefab: prefab,
                 Pool: new NodePool(),
-                FallbackDuration: config.FallbackDuration,
+                FallbackDuration: Math.max(0, fallbackDuration),
             };
-            while (runtime.Pool.size() < WZSJZ_Constant.ObjectPool.BlueExplosionPrewarm) {
+            while (runtime.Pool.size() < Math.max(0, prewarm)) {
                 runtime.Pool.put(instantiate(prefab));
             }
-            this._effects.set("蓝色爆炸", runtime);
+            this._effects.set(effectName, runtime);
+            return true;
         } catch (error) {
-            console.error("[WZSJZ] 蓝色爆炸特效预制体加载失败。", error);
+            console.error(`[WZSJZ] 通用特效预制体加载失败：${effectName}`, error);
+            return false;
         }
     }
 

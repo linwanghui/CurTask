@@ -9,9 +9,18 @@ export class WZSJZ_Wall extends Component {
     private _maxHealth: number = 1;
     private _currentHealth: number = 1;
     private _isDestroyed: boolean = false;
+    private _invincibleRemaining: number = 0;
 
     public get IsAlive(): boolean {
         return !this._isDestroyed && this._currentHealth > 0;
+    }
+
+    public get IsInvincible(): boolean {
+        return this._invincibleRemaining > 0;
+    }
+
+    protected update(deltaTime: number): void {
+        this._invincibleRemaining = Math.max(0, this._invincibleRemaining - deltaTime);
     }
 
     /** 返回面向来袭单位一侧的城墙外边缘世界坐标。 */
@@ -44,8 +53,12 @@ export class WZSJZ_Wall extends Component {
         this.RefreshView();
     }
 
+    public SetInvincible(duration: number): void {
+        this._invincibleRemaining = Math.max(this._invincibleRemaining, Math.max(0, duration));
+    }
+
     public TakeDamage(damage: number): void {
-        if (!this.IsAlive || damage <= 0) {
+        if (!this.IsAlive || this.IsInvincible || damage <= 0) {
             return;
         }
         this._currentHealth = Math.max(0, this._currentHealth - damage);
