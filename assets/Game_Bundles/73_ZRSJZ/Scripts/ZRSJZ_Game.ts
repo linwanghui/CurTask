@@ -9,6 +9,7 @@ import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from './ZRSJZ_Constant
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
+import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -44,6 +45,7 @@ export class ZRSJZ_Game extends Component {
     private _miniMapPointPosition: Vec3 = new Vec3();
     private _currentMapName: string = "";
     private _elapsedGameTime: number = 0;
+    private _timeLimitSeconds: number = 0;
     private _killCount: number = 0;
     private _battleStarted: boolean = false;
     private readonly _evacuationDuration: number = 10;
@@ -60,6 +62,7 @@ export class ZRSJZ_Game extends Component {
         this._evacuationElapsed = 0;
         this._isEvacuating = false;
         this._isGameFinished = false;
+        this.InitializeBattleTimer();
         this.SetEvacuationVisible(false);
     }
 
@@ -84,15 +87,36 @@ export class ZRSJZ_Game extends Component {
 
     protected update(deltaTime: number): void {
         if (this._battleStarted && !this.GamePaused && Number.isFinite(deltaTime) && deltaTime > 0) {
+            const battleTimeBeforeTimeout = this._timeLimitSeconds > 0
+                ? Math.max(0, this._timeLimitSeconds - this._elapsedGameTime)
+                : Number.POSITIVE_INFINITY;
+            const evacuationTimeBeforeComplete = this._isEvacuating
+                ? Math.max(0, this._evacuationDuration - this._evacuationElapsed)
+                : Number.POSITIVE_INFINITY;
             this._elapsedGameTime += deltaTime;
-            this.GameTime.string = this.GetGameTime();
+            this.RefreshGameTime();
 
             if (this._isEvacuating) {
                 this._evacuationElapsed += deltaTime;
                 this.RefreshEvacuationTime();
-                if (this._evacuationElapsed >= this._evacuationDuration) {
-                    this.CompleteEvacuation();
-                }
+            }
+
+            const evacuationCompleted = this._isEvacuating
+                && this._evacuationElapsed >= this._evacuationDuration;
+            const timeoutReached = this._timeLimitSeconds > 0
+                && this._elapsedGameTime >= this._timeLimitSeconds;
+
+            // 同一帧同时跨过两个节点时，按实际所需时间更短的事件决定结果。
+            if (evacuationCompleted && evacuationTimeBeforeComplete <= battleTimeBeforeTimeout) {
+                this.CompleteEvacuation();
+                return;
+            }
+            if (timeoutReached) {
+                this.FailEvacuationByTimeout();
+                return;
+            }
+            if (evacuationCompleted) {
+                this.CompleteEvacuation();
             }
         }
     }
@@ -150,6 +174,22 @@ export class ZRSJZ_Game extends Component {
         );
     }
 
+    private FailEvacuationByTimeout(): void {
+        if (this._isGameFinished) return;
+
+        this.CancelEvacuation();
+        this._isGameFinished = true;
+        this._battleStarted = false;
+        this.GamePaused = true;
+        this.RefreshGameTime();
+        ZRSJZ_UIManager.Instance.ShowPanel(
+            ZRSJZ_PANEL.失败弹窗,
+            "撤离失败",
+            this.GetGameTime(),
+            this.GetKillCount(),
+        );
+    }
+
     LoadMap() {
         const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
         if (!mapConfig) {
@@ -177,12 +217,14 @@ export class ZRSJZ_Game extends Component {
             this.RefreshMiniMap();
             this.LoadUI();
             ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
+            ZRSJZ_AudioManager.Instance.PlayMusic("战斗BGM");
         })
     }
 
     LoadUI() {
         this.Drug = [0, 0, 1];
         this.UI.active = true;
+        this.RefreshGameTime();
         this._battleStarted = true;
     }
 
@@ -308,8 +350,36 @@ export class ZRSJZ_Game extends Component {
     }
 
     //#region 获取游戏时间
+    private InitializeBattleTimer(): void {
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
+        const limitMinutes = Number(mapConfig?.TimeLimitMinutes ?? 0);
+        this._timeLimitSeconds = Number.isFinite(limitMinutes)
+            ? Math.max(0, limitMinutes * 60)
+            : 0;
+        this.RefreshGameTime();
+    }
+
+    private RefreshGameTime(): void {
+        if (!this.GameTime) return;
+        this.GameTime.string = this._timeLimitSeconds > 0
+            ? this.GetRemainingGameTime()
+            : this.GetGameTime();
+    }
+
+    private GetRemainingGameTime(): string {
+        const remainingSeconds = Math.max(
+            0,
+            Math.ceil(this._timeLimitSeconds - this._elapsedGameTime),
+        );
+        return this.FormatTime(remainingSeconds);
+    }
+
     GetGameTime(): string {
         const totalSeconds = Math.max(0, Math.floor(this._elapsedGameTime));
+        return this.FormatTime(totalSeconds);
+    }
+
+    private FormatTime(totalSeconds: number): string {
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
         return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;

@@ -2,6 +2,7 @@ import { _decorator, EventTouch, find, Label, Node, sp, tween, Tween, Vec3 } fro
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_FailPanel')
@@ -48,6 +49,7 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
     }
 
     public async OnButtonClick(event: EventTouch): Promise<void> {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 if (this._isReturning) return;

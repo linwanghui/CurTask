@@ -2,6 +2,8 @@ import { _decorator, Component, easing, Label, Node, tween, Tween } from 'cc';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Currency')
@@ -51,8 +53,8 @@ export class ZRSJZ_Currency extends Component {
     }
 
     AddCurrencyByVideo() {
-        ZRSJZ_GameData.Instance.ChangeGold(100000);
-        ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.获取金币弹窗);
     }
 }
 

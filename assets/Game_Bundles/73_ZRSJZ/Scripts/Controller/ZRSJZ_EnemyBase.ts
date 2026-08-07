@@ -16,6 +16,7 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 
 const { ccclass, property } = _decorator;
 
@@ -317,6 +318,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             this.EnemySkeleton.HasDirection = false;
         }
         this.OnDeath();
+        ZRSJZ_AudioManager.Instance.PlaySound("击杀");
+
         this.Colliders.forEach(collider => collider.enabled = false);
     }
 
@@ -354,7 +357,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         return ZRSJZ_ENEMY_CONFIG.get(enemyName);
     }
 
-    /** 使用当前地图配置覆盖普通敌人的血量、伤害和掉落箱。 */
+    /** 使用当前地图配置覆盖普通敌人的血量、伤害、行动节奏和掉落箱。 */
     protected ApplyMapConfig(enemyName: string): void {
         const mapName = ZRSJZ_GameData.Instance.CurMap;
         const mapConfig = ZRSJZ_MAP_CONFIG.get(mapName);
@@ -367,6 +370,9 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.EnemyConfig = {
             ...this.EnemyConfig,
             MaxHealth: Math.max(1, enemyConfig.HP),
+            PatrolSpeed: this.EnemyConfig.PatrolSpeed * enemyConfig.SpeedMultiplier,
+            ChaseSpeed: this.EnemyConfig.ChaseSpeed * enemyConfig.SpeedMultiplier,
+            AttackInterval: this.EnemyConfig.AttackInterval * enemyConfig.AttackIntervalMultiplier,
         };
         this.AttackDamage = Math.max(0, enemyConfig.Harm);
         this.DropBoxConfig = enemyConfig.Box;

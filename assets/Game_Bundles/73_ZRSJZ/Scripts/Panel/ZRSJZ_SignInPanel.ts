@@ -5,6 +5,7 @@ import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 
 const { ccclass, property } = _decorator;
 
@@ -140,6 +141,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
 
     private OnSignItemClick(dayIndex: number): void {
         const claimedCount = ZRSJZ_GameData.Instance.GetSignInClaimedCount();
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         if (dayIndex < claimedCount) {
             ZRSJZ_UIManager.Instance.ShowTip('该奖励已经领取');
             return;
@@ -176,6 +178,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
     }
 
     private ClosePanel(): void {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.签到弹窗);
     }
 

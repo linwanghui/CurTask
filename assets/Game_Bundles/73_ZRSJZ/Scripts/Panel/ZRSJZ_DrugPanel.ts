@@ -6,6 +6,7 @@ import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_DrugPanel')
@@ -26,6 +27,7 @@ export class ZRSJZ_DrugPanel extends ZRSJZ_Panel {
     }
 
     OnButtonClick(event: EventTouch) {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
             case "关闭":

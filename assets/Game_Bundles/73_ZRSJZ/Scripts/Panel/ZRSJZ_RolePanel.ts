@@ -11,6 +11,7 @@ import { ZRSJZ_Skeleton } from '../Controller/ZRSJZ_Skeleton';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_RoleItem } from '../UI/ZRSJZ_RoleItem';
 import Banner from 'db://assets/Scripts/Banner';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_RolePanel')
@@ -79,6 +80,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
 
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Close":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.角色界面);

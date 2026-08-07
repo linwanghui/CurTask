@@ -5,6 +5,7 @@ import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_PANEL } from '../ZRSJZ_Cons
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_PropGrid } from '../UI/ZRSJZ_PropGrid';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_WinPanel')
@@ -187,6 +188,7 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
     }
 
     public async OnButtonClick(event: EventTouch): Promise<void> {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 if (this._isReturning) return;

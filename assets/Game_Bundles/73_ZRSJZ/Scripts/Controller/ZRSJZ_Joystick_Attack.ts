@@ -8,6 +8,7 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
 import Banner from 'db://assets/Scripts/Banner';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Joystick_Attack')
@@ -245,6 +246,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
         }
         this._reloadingCD = ZRSJZ_Joystick_Attack.LoadingCD;
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 0);
+        ZRSJZ_AudioManager.Instance.PlaySound("换弹音效");
     }
 
     //搜索

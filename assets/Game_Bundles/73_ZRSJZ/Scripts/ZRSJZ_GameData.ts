@@ -1,5 +1,5 @@
 import { sys } from "cc";
-import { GetFacilityBonusValue as GetConfiguredFacilityBonusValue, GetFiringRangeAttackBonusPercent, ZRSJZ_FACILITY_UPGRADE_CONFIG, ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName, ZRSJZ_WEAPON_SKIN } from "./ZRSJZ_Constant";
+import { GetFacilityBonusValue as GetConfiguredFacilityBonusValue, GetFiringRangeAttackBonusPercent, ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_FACILITY_UPGRADE_CONFIG, ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName, ZRSJZ_WEAPON_SKIN } from "./ZRSJZ_Constant";
 import { ZRSJZ_Tools } from "./ZRSJZ_Tools";
 import { ZRSJZ_PlayerSwitchButton } from "./UI/ZRSJZ_PlayerSwitchButton";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "./Manager/ZRSJZ_EventManager";
@@ -31,10 +31,35 @@ export class ZRSJZ_GameData {
 
     public Init() {
         // this.AddAllProp();
-        const propId = this.AddPropByName("战术匕首");
+        this.Gold = 100000;
+        this.CurMap = "五号小镇_机密行动";
+
+        //初始化装备
+        let propId = this.AddPropByName("CN8-突击步枪");
+        this.WeaponryID[0] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_枪, 1, 0, 0);
+        propId = this.AddPropByName("一级头");
+        this.WeaponryID[1] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_头盔, 1, 0, 0);
+        propId = this.AddPropByName("一级甲");
+        this.WeaponryID[2] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_防弹衣, 1, 0, 0);
+        propId = this.AddPropByName("一级包");
+        this.WeaponryID[3] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_背包, 1, 0, 0);
+        propId = this.AddPropByName("战术匕首");
         this.WeaponryID[4] = propId;
         this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_刀, 1, 0, 0);
-        this.CurMap = "五号小镇_机密行动";
+        //初始化弹药
+        propId = this.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+        this.AmmoID[0] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        propId = this.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+        this.AmmoID[1] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        propId = this.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+        this.AmmoID[2] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
     }
 
     public MusicMute: boolean = false;//音乐静音

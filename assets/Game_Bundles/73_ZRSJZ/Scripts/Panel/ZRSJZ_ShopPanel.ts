@@ -7,6 +7,8 @@ import { ZRSJZ_ShopItem } from '../UI/ZRSJZ_ShopItem';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_ShopStats } from '../UI/ZRSJZ_ShopStats';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import Banner from 'db://assets/Scripts/Banner';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_ShowPanel')
@@ -27,6 +29,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     public ShopRight: Node = null;
     public Shop: Node = null;
     public ShopPurchase: Node = null;
+    public ShopVideo: Node = null;
     public ShopUse: Node = null;
     public ShopUsing: Node = null;
     public ShopPrice: Label = null;
@@ -60,6 +63,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopRight = find("Panel/展示/下一个", this.node);
         this.Shop = find("Panel/商品", this.node);
         this.ShopPurchase = find("Panel/购买", this.node);
+        this.ShopVideo = find("Panel/视频获取", this.node);
         this.ShopUse = find("Panel/使用", this.node);
         this.ShopUsing = find("Panel/使用中", this.node);
         const useButton = this.ShopUse.getComponent(Button) ?? this.ShopUse.addComponent(Button);
@@ -88,12 +92,16 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
 
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Close":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.商店界面);
                 break;
             case "购买":
                 this.OnPurchase();
+                break;
+            case "视频获取":
+                this.OnWatchWeaponSkinVideo();
                 break;
             case "使用":
                 this.OnUseWeaponSkin();
@@ -154,6 +162,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     SwitchButton(shopTypeNode: Node) {
         const shopType = shopTypeNode.name;
         this.ShopPurchase.active = false;
+        this.ShopVideo.active = false;
         this.ShopLeft.active = false;
         this.ShopRight.active = false;
         if (this._shopType == shopType) return;
@@ -206,8 +215,9 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     }
 
     ShowShopButton() {
-        this.ShopLeft.active = this._curShowIndex > 0;
-        this.ShopRight.active = this._curShowIndex < this._curShops.length - 1;
+        const canSwitchGoods = this._shopType !== "房卡";
+        this.ShopLeft.active = canSwitchGoods && this._curShowIndex > 0;
+        this.ShopRight.active = canSwitchGoods && this._curShowIndex < this._curShops.length - 1;
     }
 
     async ShowShop() {
@@ -341,6 +351,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     private RefreshPurchaseState(): void {
         if (!this._isWeaponSkinOperation || !this._selectedWeaponSkin) {
             this.ShopPurchase.active = true;
+            this.ShopVideo.active = false;
             this.ShopUse.active = false;
             this.ShopUsing.active = false;
             this.ShopCurrency.active = true;
@@ -350,13 +361,14 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
 
         const owned = ZRSJZ_GameData.Instance.HasWeaponSkin(this._curShop, this._selectedWeaponSkin);
         const using = ZRSJZ_GameData.Instance.GetWeaponSkin(this._curShop) === this._selectedWeaponSkin;
-        const price = ZRSJZ_WEAPON_SKIN.get(this._curShop)
-            ?.find(skin => skin.Name === this._selectedWeaponSkin)?.Price;
-        this.ShopPurchase.active = !owned;
+        const skinConfig = ZRSJZ_WEAPON_SKIN.get(this._curShop)
+            ?.find(skin => skin.Name === this._selectedWeaponSkin);
+        this.ShopPurchase.active = !owned && skinConfig?.UnlockType === "金币";
+        this.ShopVideo.active = !owned && skinConfig?.UnlockType === "视频";
         this.ShopUse.active = owned && !using;
         this.ShopUsing.active = using;
         this.ShopCurrency.active = true;
-        this.ShopPrice.string = price === undefined ? "未定价" : `${price}`;
+        this.ShopPrice.string = skinConfig === undefined ? "未配置" : `${skinConfig.Price}`;
     }
 
     private async OnPurchase(): Promise<void> {
@@ -367,17 +379,18 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
                 return;
             }
 
-            const price = ZRSJZ_WEAPON_SKIN.get(this._curShop)
-                ?.find(skin => skin.Name === this._selectedWeaponSkin)?.Price;
-            if (price === undefined) {
-                await ZRSJZ_UIManager.Instance.ShowTip("皮肤价格未配置");
+            const skinConfig = ZRSJZ_WEAPON_SKIN.get(this._curShop)
+                ?.find(skin => skin.Name === this._selectedWeaponSkin);
+            if (!skinConfig || skinConfig.UnlockType !== "金币") {
+                await ZRSJZ_UIManager.Instance.ShowTip("该皮肤不能使用金币购买");
                 return;
             }
-            if (ZRSJZ_GameData.Instance.Gold < price) {
+
+            if (ZRSJZ_GameData.Instance.Gold < skinConfig.Price) {
                 await ZRSJZ_UIManager.Instance.ShowTip("金币不足");
                 return;
             }
-            ZRSJZ_GameData.Instance.ChangeGold(-price);
+            ZRSJZ_GameData.Instance.ChangeGold(-skinConfig.Price);
             ZRSJZ_GameData.Instance.AddWeaponSkin(this._curShop, this._selectedWeaponSkin);
             this.RefreshWeaponSkinState();
             this.RefreshPurchaseState();
@@ -393,6 +406,30 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         const count = ZRSJZ_PROP_CONFIG.get(this._curShop)?.MaxCount ?? 1;
         ZRSJZ_GameData.Instance.AddPropByName(this._curShop, count);
         await ZRSJZ_UIManager.Instance.ShowTip("购买成功");
+    }
+
+    private async OnWatchWeaponSkinVideo(): Promise<void> {
+        if (!this._isWeaponSkinOperation || !this._selectedWeaponSkin) return;
+
+        const weaponName = this._curShop;
+        const skinName = this._selectedWeaponSkin;
+        const skinConfig = ZRSJZ_WEAPON_SKIN.get(weaponName)
+            ?.find(skin => skin.Name === skinName);
+        if (!skinConfig || skinConfig.UnlockType !== "视频") {
+            await ZRSJZ_UIManager.Instance.ShowTip("该皮肤不能通过视频解锁");
+            return;
+        }
+        if (ZRSJZ_GameData.Instance.HasWeaponSkin(weaponName, skinName)) {
+            this.RefreshPurchaseState();
+            return;
+        }
+
+        Banner.Instance.ShowVideoAd(async () => {
+            ZRSJZ_GameData.Instance.AddWeaponSkin(weaponName, skinName);
+            this.RefreshWeaponSkinState();
+            this.RefreshPurchaseState();
+            await ZRSJZ_UIManager.Instance.ShowTip("视频观看完成，皮肤已解锁");
+        });
     }
 
     private async OnUseWeaponSkin(): Promise<void> {

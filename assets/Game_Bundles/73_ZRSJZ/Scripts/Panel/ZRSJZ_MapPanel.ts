@@ -4,6 +4,7 @@ import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_Player } from '../Controller/ZRSJZ_Player';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_MapPanel')
@@ -52,6 +53,7 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
 
     public OnButtonClick(event: EventTouch): void {
         if (ZRSJZ_UIManager.Dragging) return;
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "关闭":
             case "Mask":

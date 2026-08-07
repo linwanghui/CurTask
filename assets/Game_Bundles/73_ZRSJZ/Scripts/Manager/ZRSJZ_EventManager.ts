@@ -33,6 +33,8 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_MAIN_CHANGE_SKIN: string = 'ZRSJZ_MAIN_CHANGE_SKIN';//主界面切换皮肤
     public static ZRSJZ_DRUG_ADD: string = 'ZRSJZ_DRUG_ADD';//药品数量增加
     public static ZRSJZ_DRUG_CHANGE: string = 'ZRSJZ_DRUG_CHANGE';//药品数量变化
+    public static ZRSJZ_AUDIO_INIT: string = 'ZRSJZ_AUDIO_INIT';//声音初始化完毕
+
 }
 
 export class ZRSJZ_EventManager {

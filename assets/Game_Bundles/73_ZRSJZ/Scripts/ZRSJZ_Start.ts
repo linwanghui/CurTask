@@ -34,13 +34,16 @@ export class ZRSJZ_Start extends Component {
         ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
         if (ZRSJZ_GameData.Instance.CanClaimSignInReward()) {
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
-        } else {
-            this.SignBtn.active = false;
         }
+        this.SignBtn.active = !ZRSJZ_GameData.Instance.IsSignInCompleted();
+        ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
     }
 
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHECKED, this.OnMainChecked, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT, () => {
+            ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
+        })
     }
 
     protected onDisable(): void {

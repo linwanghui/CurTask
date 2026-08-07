@@ -178,7 +178,7 @@ export class ZRSJZ_UIManager extends Component {
                         if (initCount === audioRes.length) {
                             //初始化完成
                             console.error("音频初始化完成");
-                            // ZRSJZ_AudioManager.Instance.PlayMusic("BGM0");
+                            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT);
                         }
                     }
                 })
@@ -189,8 +189,18 @@ export class ZRSJZ_UIManager extends Component {
     //#region UI展示
     //展示面板
     public ShowPanel(panel: string, ...args: any[]) {
-        if (ZRSJZ_UIManager.Dragging) return;
         const panelName = panel.split('/').pop() || panel;
+
+        // 结算界面拥有最高优先级：显示前立即关闭其余弹窗，并终止未完成的异步弹窗请求。
+        const winPanelName = ZRSJZ_PANEL.胜利弹窗.split('/').pop() || ZRSJZ_PANEL.胜利弹窗;
+        const failPanelName = ZRSJZ_PANEL.失败弹窗.split('/').pop() || ZRSJZ_PANEL.失败弹窗;
+        if (panelName === winPanelName || panelName === failPanelName) {
+            // 已发起过同一结算面板的加载时不递增版本，否则会误取消它自己的异步请求。
+            if (this._curPanel.includes(panelName)) return;
+            this.CloseAllPanelsImmediately(panelName);
+        }
+
+        if (ZRSJZ_UIManager.Dragging) return;
         if (this._curPanel.includes(panelName)) return;//当前面板显示中
         this._curPanel.push(panelName);
         const requestVersion = this._panelRequestVersion;
@@ -246,6 +256,13 @@ export class ZRSJZ_UIManager extends Component {
      * 这里不走 HidePanel，避免拖动锁和关闭动画阻止死亡弹窗显示。
      */
     public PrepareForDeath(): void {
+        this.CloseAllPanelsImmediately();
+    }
+
+    /**
+     * 立即关闭所有已打开和正在异步加载的弹窗，可选择保留一个最高优先级面板。
+     */
+    private CloseAllPanelsImmediately(excludedPanelName: string = ""): void {
         this._panelRequestVersion++;
 
         // 先取消拖动，归还跟随手指的临时道具节点，并恢复滚动等交互状态。
@@ -264,9 +281,13 @@ export class ZRSJZ_UIManager extends Component {
             }
         }
 
-        this._curPanel.length = 0;
-        for (const panelNode of this._panelMap.values()) {
-            if (panelNode?.isValid) panelNode.active = false;
+        this._curPanel = excludedPanelName && this._curPanel.includes(excludedPanelName)
+            ? [excludedPanelName]
+            : [];
+        for (const [panelName, panelNode] of this._panelMap) {
+            if (panelName !== excludedPanelName && panelNode?.isValid) {
+                panelNode.active = false;
+            }
         }
     }
 

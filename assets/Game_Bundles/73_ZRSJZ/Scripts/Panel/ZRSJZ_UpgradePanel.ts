@@ -69,6 +69,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     }
 
     public async OnButtonClick(event: EventTouch): Promise<void> {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.升级弹窗);

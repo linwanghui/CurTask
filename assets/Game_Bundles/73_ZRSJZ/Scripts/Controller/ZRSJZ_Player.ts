@@ -15,6 +15,7 @@ import { ZRSJZ_Skill } from '../Skill/ZRSJZ_Skill';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
 import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -332,6 +333,7 @@ export class ZRSJZ_Player extends Component {
         };
 
         spawnBullet(attackX, attackY);
+        ZRSJZ_AudioManager.Instance.PlaySound("枪声");
 
         if (ZRSJZ_WEAPONRY_TYPE.get("散弹枪")?.includes(this.PlayerSkeleton.WeaponryName)) {
             //散射两个子弹
@@ -365,6 +367,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     KnifeAttack(skillRange: number) {
+        ZRSJZ_AudioManager.Instance.PlaySound("近战攻击");
         const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
 
         const finalDamage = Math.round(
@@ -539,7 +542,13 @@ export class ZRSJZ_Player extends Component {
     //#region 受到打击
     BeHit(harm: number) {
         if (this.CurHP <= 0) return;
-        const madeHarm = Math.floor((this._shielding ? 0.1 : 1) * harm);//实际照成的伤害
+        const incomingHarm = Math.max(0, harm);
+        const damageMultiplier = this._shielding
+            ? 0.1
+            : 1 - this.GetEquippedDamageReductionRate();
+        const madeHarm = incomingHarm > 0
+            ? Math.max(1, Math.round(damageMultiplier * incomingHarm))
+            : 0;
         this.CurHP -= madeHarm;
         if (this.CurHP <= 0) {
             this.CurHP = 0;
@@ -552,6 +561,7 @@ export class ZRSJZ_Player extends Component {
             this.PlayAni(ZRSJZ_ANI.SW, false);
         } else {
             this.beHitEffect();
+            ZRSJZ_AudioManager.Instance.PlaySound("受击");
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
             effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
@@ -559,6 +569,19 @@ export class ZRSJZ_Player extends Component {
             effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), madeHarm);
         })
         this.HP.Show(this.CurHP);
+    }
+
+    /** 头盔与防弹衣减伤相加，最终上限为 50%，避免高阶装备完全免伤。 */
+    private GetEquippedDamageReductionRate(): number {
+        let reductionPercent = 0;
+        for (const equipmentIndex of [1, 2]) {
+            const equipmentID = ZRSJZ_GameData.Instance.WeaponryID[equipmentIndex];
+            const equipmentName = ZRSJZ_GameData.Instance.PropData[equipmentID]?.Name;
+            reductionPercent += equipmentName
+                ? ZRSJZ_PROP_PROPERTY.get(equipmentName)?.["减伤"] ?? 0
+                : 0;
+        }
+        return Math.min(0.5, Math.max(0, reductionPercent / 100));
     }
 
     private beHitEffect() {
@@ -710,6 +733,8 @@ export class ZRSJZ_Player extends Component {
     //#region 滑动
     Slide() {
         if (this._isStop) return;
+        ZRSJZ_AudioManager.Instance.PlaySound("滑铲音效");
+
         this.CurSpeed += 1500;
         this._isSlide = true;
         const anis: string[] = this.WeaponType === "枪" ? [ZRSJZ_ANI.HC_Q, ZRSJZ_ANI.Idle_Q] : [ZRSJZ_ANI.HC_D, ZRSJZ_ANI.Idle_D1];

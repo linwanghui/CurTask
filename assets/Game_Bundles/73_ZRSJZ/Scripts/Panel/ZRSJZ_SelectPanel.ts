@@ -57,7 +57,6 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
 
     public OnButtonClick(event: EventTouch): void {
         if (ZRSJZ_UIManager.Dragging) return;
-
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Close":

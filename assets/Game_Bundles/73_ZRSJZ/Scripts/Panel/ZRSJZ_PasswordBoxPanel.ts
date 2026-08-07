@@ -16,6 +16,7 @@ import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PasswordBoxPanel')
@@ -55,6 +56,14 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
     protected onLoad(): void {
         this.InitView();
         find("Panel/关闭", this.node)?.on(Node.EventType.TOUCH_END, this.Close, this);
+    }
+
+    protected onEnable(): void {
+        // ZRSJZ_AudioManager.Instance.PlayCyclicSound("SafeBoxBG");
+    }
+
+    protected onDisable(): void {
+        // ZRSJZ_AudioManager.Instance.StopCyclicSound("SafeBoxBG");
     }
 
     protected update(deltaTime: number): void {
@@ -177,10 +186,10 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
         const span = this._wheelSpans[columnIndex];
         const halfSpan = span * 0.5;
 
-        // 单个字符越过上边界时立即放到最下方，列节点本身不跳变。
+        // 单个字符越过下边界时立即放到最上方，列节点本身不跳变。
         // 所有字符之间始终相差一个 rowStep，从而形成无限连续滚动。
         for (const item of column.children) {
-            const nextY = this.WrapRowPosition(item.position.y + offset, halfSpan, span);
+            const nextY = this.WrapRowPosition(item.position.y - offset, halfSpan, span);
             item.setPosition(item.position.x, nextY, item.position.z);
         }
     }
@@ -246,11 +255,13 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
         this.SnapToRow(columnIndex, centeredRow);
 
         if (centeredRow !== this._correctRows[columnIndex]) {
+            ZRSJZ_AudioManager.Instance.PlaySound("SafeBoxF");
             this.PlayWrongPause(columnIndex, centeredRow);
             return;
         }
 
         this.PlaySuccessLock(columnIndex);
+        ZRSJZ_AudioManager.Instance.PlaySound("SafeBoxT");
         // 只有前一列成功后 currentColumn 才会前进，从而保证按顺序锁定。
         this._currentColumn++;
         this.RefreshAllLockSprites();

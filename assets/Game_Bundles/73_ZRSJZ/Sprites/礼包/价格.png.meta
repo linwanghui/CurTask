@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "9027be9e-89fb-4ef4-b9cb-decf42ed8d06",
+  "uuid": "6b0f6d2a-c242-4a8d-a779-e68b4d81d548",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "9027be9e-89fb-4ef4-b9cb-decf42ed8d06@6c48a",
-      "displayName": "保险",
+      "uuid": "6b0f6d2a-c242-4a8d-a779-e68b4d81d548@6c48a",
+      "displayName": "价格",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "9027be9e-89fb-4ef4-b9cb-decf42ed8d06",
+        "imageUuidOrDatabaseUri": "6b0f6d2a-c242-4a8d-a779-e68b4d81d548",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "9027be9e-89fb-4ef4-b9cb-decf42ed8d06@f9941",
-      "displayName": "保险",
+      "uuid": "6b0f6d2a-c242-4a8d-a779-e68b4d81d548@f9941",
+      "displayName": "价格",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,14 +45,14 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 425,
-        "height": 354,
-        "rawWidth": 425,
-        "rawHeight": 354,
-        "borderTop": 60,
-        "borderBottom": 56,
-        "borderLeft": 32,
-        "borderRight": 46,
+        "width": 304,
+        "height": 152,
+        "rawWidth": 304,
+        "rawHeight": 152,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
         "packable": true,
         "pixelsToUnit": 100,
         "pivotX": 0.5,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -212.5,
-            -177,
+            -152,
+            -76,
             0,
-            212.5,
-            -177,
+            152,
+            -76,
             0,
-            -212.5,
-            177,
+            -152,
+            76,
             0,
-            212.5,
-            177,
+            152,
+            76,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            354,
-            425,
-            354,
+            152,
+            304,
+            152,
             0,
             0,
-            425,
+            304,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -212.5,
-            -177,
+            -152,
+            -76,
             0
           ],
           "maxPos": [
-            212.5,
-            177,
+            152,
+            76,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "9027be9e-89fb-4ef4-b9cb-decf42ed8d06@6c48a",
+        "imageUuidOrDatabaseUri": "6b0f6d2a-c242-4a8d-a779-e68b4d81d548@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "9027be9e-89fb-4ef4-b9cb-decf42ed8d06@6c48a"
+    "redirect": "6b0f6d2a-c242-4a8d-a779-e68b4d81d548@6c48a"
   }
 }
