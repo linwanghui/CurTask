@@ -19,16 +19,17 @@ export class ZRSJZ_Inventory extends Component {
     public IsInitialized: boolean = false;
     private _newAddPropID: string[] = [];
     private _isShowingPropItem: boolean = false;
+    IsVisible: boolean = true;
 
     protected onEnable(): void {
         if (this.IsInitialized) {
             this.ShowPropItem();
         }
+        this.IsVisible = true;
     }
 
-    protected onDestroy(): void {
-        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
-        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
+    protected onDisable(): void {
+        this.IsVisible = false;
     }
 
     async Init(inventoryType: ZRSJZ_INVENTORY) {
@@ -320,6 +321,7 @@ export class ZRSJZ_Inventory extends Component {
 
     //道具拉动
     async CheckProp(inventory: ZRSJZ_INVENTORY, id: string, worldPos: Vec3, isConfirm: boolean) {
+        if (!this.IsVisible) return;
         if (inventory == ZRSJZ_INVENTORY.武器_刀) return;
         if (this.node.active) {
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType);

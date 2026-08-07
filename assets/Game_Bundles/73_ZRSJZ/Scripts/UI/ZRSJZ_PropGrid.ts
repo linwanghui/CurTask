@@ -242,8 +242,8 @@ export class ZRSJZ_PropGrid extends Component {
                 const curPos = this._propSFNode.worldPosition.clone();
                 this._v_2 = event.getUILocation().clone().subtract(this._v_1)
                 const targetPos: Vec3 = new Vec3();
-                Vec3.lerp(targetPos, this._propSFNode.worldPosition, this._propSFNode.worldPosition.clone().add3f(this._v_2.x, this._v_2.y, 0), 0.3);
-                this._propSFNode.setWorldPosition(curPos.add3f(this._v_2.x, this._v_2.y, 0));
+                Vec3.lerp(targetPos, this._propSFNode.worldPosition, this._propSFNode.worldPosition.clone().add3f(this._v_2.x, this._v_2.y, 0), 1);
+                this._propSFNode.setWorldPosition(targetPos);
                 ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this._inventory, this.PropID, this._propSFNode.worldPosition, false);
             }
             this._v_1.set(event.getUILocation().clone());

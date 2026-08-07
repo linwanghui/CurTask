@@ -18,6 +18,11 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
 
     protected onEnable(): void {
         if (this._isAmmoInitialized) this.RebuildView();
+        this.IsVisible = true;
+    }
+
+    protected onDisable(): void {
+        this.IsVisible = false;
     }
 
     async Init(_inventoryType: ZRSJZ_INVENTORY = ZRSJZ_INVENTORY.弹药) {
@@ -37,6 +42,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
     }
 
     async CheckProp(inventory: ZRSJZ_INVENTORY, id: string, worldPos: Vec3, isConfirm: boolean) {
+        if (!this.IsVisible) return;
         if (!this.node.active || this._isChanging) return;
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType);
 
