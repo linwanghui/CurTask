@@ -30,11 +30,16 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         }
 
         this.AllMap.children.forEach(map => map.active = false);
-        const requestedMapIndex = Number(args[0] ?? 0);
-        const mapIndex = Number.isFinite(requestedMapIndex)
-            ? Math.max(0, Math.min(this.AllMap.children.length - 1, Math.floor(requestedMapIndex)))
-            : 0;
-        this.CurMap = this.AllMap.children[mapIndex];
+        const requestedMap = args[0];
+        if (typeof requestedMap === "string") {
+            this.CurMap = this.AllMap.getChildByName(requestedMap) ?? this.AllMap.children[0];
+        } else {
+            const requestedMapIndex = Number(requestedMap ?? 0);
+            const mapIndex = Number.isFinite(requestedMapIndex)
+                ? Math.max(0, Math.min(this.AllMap.children.length - 1, Math.floor(requestedMapIndex)))
+                : 0;
+            this.CurMap = this.AllMap.children[mapIndex];
+        }
         this.CurMap.active = true;
 
         const iconArgument = args[1];
@@ -113,4 +118,3 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         this.ShowPoint(player.node.worldPosition.x, player.node.worldPosition.y);
     }
 }
-

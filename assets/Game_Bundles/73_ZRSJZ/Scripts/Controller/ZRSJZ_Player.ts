@@ -19,6 +19,8 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
 export class ZRSJZ_Player extends Component {
+    public readonly Speed: number = 1000;
+    public readonly InitHP: number = 100;
 
     RigidBody: RigidBody2D = null;
     Collider: CircleCollider2D = null;
@@ -31,13 +33,14 @@ export class ZRSJZ_Player extends Component {
 
     MaxHP: number = 100;
     CurHP: number = 100;
+    MaxSpeed: number = 1000;
+    CurSpeed: number = 1000;
 
     TargetEnemy: Node = null;
     TargetRange: number = 2000;
     Reloading: Node = null;
     Loading: Sprite = null;
 
-    private _moveSpeed: number = 1000;
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _moveRadius: number = 0;
@@ -100,23 +103,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected start(): void {
-        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0];
-        const knifeID = ZRSJZ_GameData.Instance.WeaponryID[4];
-        const hasGun = !!gunID && !!ZRSJZ_GameData.Instance.PropData[gunID];
-        const hasKnife = !!knifeID && !!ZRSJZ_GameData.Instance.PropData[knifeID];
-        this._curKnifeName = hasKnife
-            ? ZRSJZ_GameData.Instance.PropData[knifeID].Name
-            : "";
-        this.MaxHP += ZRSJZ_GameData.Instance.GetResearchMaxHPBonus();
-        this.CurHP = this.MaxHP;
-        this._moveSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
-        this.WeaponType = hasGun ? "枪" : (hasKnife ? "刀" : "");
-        this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
-        if (hasGun) {
-            this.PlayAni(ZRSJZ_ANI.Idle_Q);
-        } else {
-            this.PlayAni(ZRSJZ_ANI.Idle_D1);
-        }
+        this.Init();
 
         this.Skeleton.setEventListener((trackEntry, event) => {
             if (typeof event !== "number") {
@@ -124,18 +111,13 @@ export class ZRSJZ_Player extends Component {
                 if ((event.data.name === "kq" || event.data.name === "gj_jjq") && this._isFireing && this.WeaponType === "枪") {
                     void this.Fire();
                 } else if (event.data.name === "dao") {
-                    this.KnifeAttack(200, ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害);
+                    this.KnifeAttack(200);
                 } else if (event.data.name === "hui") {
-                    this.KnifeAttack(250, ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害);
+                    this.KnifeAttack(250);
                 }
 
             }
         });
-
-        this.HP.Init(this.MaxHP);
-        this.HP.Show(this.CurHP);
-        this.PlayerSkeleton.AttackX = 200;
-        this.FillInitialMagazineWhenReady();
     }
 
     protected onEnable(): void {
@@ -176,7 +158,36 @@ export class ZRSJZ_Player extends Component {
             this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
             this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
         }
-        this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed * this._moveRadius, this._moveY * dt * this._moveSpeed * this._moveRadius);
+        this.RigidBody.linearVelocity = v2(this._moveX * dt * this.CurSpeed * this._moveRadius, this._moveY * dt * this.CurSpeed * this._moveRadius);
+    }
+
+    Init() {
+        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0];
+        const knifeID = ZRSJZ_GameData.Instance.WeaponryID[4];
+        const hasGun = !!gunID && !!ZRSJZ_GameData.Instance.PropData[gunID];
+        const hasKnife = !!knifeID && !!ZRSJZ_GameData.Instance.PropData[knifeID];
+        this._curKnifeName = hasKnife ? ZRSJZ_GameData.Instance.PropData[knifeID].Name : "";
+        this.CurSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
+        this.WeaponType = hasGun ? "枪" : (hasKnife ? "刀" : "");
+        this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
+        if (hasGun) {
+            this.PlayAni(ZRSJZ_ANI.Idle_Q);
+        } else {
+            this.PlayAni(ZRSJZ_ANI.Idle_D1);
+        }
+
+
+        //血量初始化
+        this.MaxHP = this.InitHP + ZRSJZ_GameData.Instance.GetResearchMaxHPBonus();
+        this.CurHP = this.MaxHP;
+        this.HP.Init(this.MaxHP);
+        this.HP.Show(this.CurHP);
+        this.PlayerSkeleton.AttackX = 200;
+        this.FillInitialMagazineWhenReady();
+
+        //速度初始化
+        this.MaxSpeed = this.Speed * (1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate());
+        this.CurSpeed = this.MaxSpeed;
     }
 
     //#region 技能
@@ -296,22 +307,47 @@ export class ZRSJZ_Player extends Component {
             return;
         }
 
+        const attackX = this.PlayerSkeleton.AttackX;
+        const attackY = this.PlayerSkeleton.AttackY;
+        const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + firingRangeDamageRate));
+
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
             muzzleEffect.parent = this.node;
-            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
+            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(muzzleWorldPos, attackX, attackY);
         })
 
-        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet").then((bullet: Node) => {
-            bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
-            bullet.active = true;
-            const finalDamage = Math.round(gunDamage * (bulletDamage + firingRangeDamageRate));
-            bullet.getComponent(ZRSJZ_Bullet).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, bulletRange, finalDamage, bulletLevel,);
-        });
+        const spawnBullet = (dirX: number, dirY: number): void => {
+            ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet").then((bullet: Node) => {
+                bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+                bullet.active = true;
+                bullet.getComponent(ZRSJZ_Bullet).Show(
+                    muzzleWorldPos,
+                    dirX,
+                    dirY,
+                    bulletRange,
+                    finalDamage,
+                    bulletLevel,
+                );
+            });
+        };
 
-        if (ZRSJZ_WEAPONRY_TYPE.get("散弹枪").includes(this.PlayerSkeleton.WeaponryName)) {
+        spawnBullet(attackX, attackY);
+
+        if (ZRSJZ_WEAPONRY_TYPE.get("散弹枪")?.includes(this.PlayerSkeleton.WeaponryName)) {
             //散射两个子弹
             const offsetAnge: number = 10;
+            const offsetRadian = offsetAnge * Math.PI / 180;
+            const cos = Math.cos(offsetRadian);
+            const sin = Math.sin(offsetRadian);
 
+            spawnBullet(
+                attackX * cos - attackY * sin,
+                attackX * sin + attackY * cos,
+            );
+            spawnBullet(
+                attackX * cos + attackY * sin,
+                -attackX * sin + attackY * cos,
+            );
         }
 
     }
@@ -328,9 +364,11 @@ export class ZRSJZ_Player extends Component {
             });
     }
 
-    KnifeAttack(skillRange: number, skillDamage: number) {
+    KnifeAttack(skillRange: number) {
+        const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
+
         const finalDamage = Math.round(
-            skillDamage * (1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate())
+            damage * (1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate())
         );
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         enemys = enemys.filter(enemy => !enemy.IsDead);
@@ -352,7 +390,7 @@ export class ZRSJZ_Player extends Component {
         // })
 
         enemys.forEach(enemy => {
-            if (Vec3.distance(targetPosition, enemy.node.worldPosition) < skillRange || Vec3.distance(targetPosition, enemy.Other?.worldPosition)) {
+            if (Vec3.distance(targetPosition, enemy.node.worldPosition) < skillRange || Vec3.distance(targetPosition, enemy.Other?.worldPosition) < skillRange) {
                 enemy.BeHit(finalDamage);
             }
         })
@@ -455,6 +493,7 @@ export class ZRSJZ_Player extends Component {
     Resurgence() {
         this.CurHP = this.MaxHP;
         this.HP.Show(this.CurHP);
+        this.CurSpeed = this.MaxSpeed;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect").then((effect: Node) => {
             effect.parent = this.node;
             effect.active = true;
@@ -499,8 +538,8 @@ export class ZRSJZ_Player extends Component {
     //#region 受到打击
     BeHit(harm: number) {
         if (this.CurHP <= 0) return;
-
-        this.CurHP -= harm;
+        const madeHarm = Math.floor((this._shielding ? 0.1 : 1) * harm);//实际照成的伤害
+        this.CurHP -= madeHarm;
         if (this.CurHP <= 0) {
             this.CurHP = 0;
             ZRSJZ_Game.Instance.CancelEvacuation();
@@ -516,7 +555,7 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
             effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
             effect.active = true;
-            effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), harm);
+            effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), madeHarm);
         })
         this.HP.Show(this.CurHP);
     }
@@ -670,12 +709,12 @@ export class ZRSJZ_Player extends Component {
     //#region 滑动
     Slide() {
         if (this._isStop) return;
-        this._moveSpeed += 1500;
+        this.CurSpeed += 1500;
         this._isSlide = true;
         const anis: string[] = this.WeaponType === "枪" ? [ZRSJZ_ANI.HC_Q, ZRSJZ_ANI.Idle_Q] : [ZRSJZ_ANI.HC_D, ZRSJZ_ANI.Idle_D1];
         this.PlayAni(anis[0], false, () => {
             this._isSlide = false;
-            this._moveSpeed -= 1500;
+            this.CurSpeed -= 1500;
             this.PlayAni(anis[1]);
         })
     }

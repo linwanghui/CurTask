@@ -42,6 +42,7 @@ export class ZRSJZ_Game extends Component {
     private _miniMapPoint: Node = null;
     private _miniMapIcon: Sprite = null;
     private _miniMapPointPosition: Vec3 = new Vec3();
+    private _currentMapName: string = "";
     private _elapsedGameTime: number = 0;
     private _killCount: number = 0;
     private _battleStarted: boolean = false;
@@ -210,28 +211,55 @@ export class ZRSJZ_Game extends Component {
     private OpenMapPanel(): void {
         ZRSJZ_UIManager.Instance.ShowPanel(
             ZRSJZ_PANEL.地图弹窗,
-            0,
-            this._miniMapIcon.spriteFrame,
+            this._currentMapName,
+            this._miniMapIcon?.spriteFrame ?? null,
         );
     }
 
     private InitMiniMap(): void {
-        this._miniMapContent = find("UICanvas/小地图/Mask/地图");
-        this._miniMapPoint = find("UICanvas/小地图/Mask/地图/我的位置");
-        this._miniMapIcon = find("UICanvas/小地图/Mask/地图/我的位置/Icon")?.getComponent(Sprite);
-        console.error(ZRSJZ_GameData.Instance.HaveRole[0]);
-        ZRSJZ_UIManager.Instance.GetHeroUI(ZRSJZ_GameData.Instance.CurSkin[0]).then((sf: SpriteFrame) => this._miniMapIcon.spriteFrame = sf);
-
-        if (!this._miniMapContent || !this._miniMapPoint) {
-            console.warn("[ZRSJZ_Game] 小地图节点结构不完整");
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
+        const miniMapMask = find("UICanvas/小地图/Mask");
+        if (!mapConfig || !miniMapMask) {
+            console.warn(`[ZRSJZ_Game] 无法初始化小地图: ${ZRSJZ_GameData.Instance.CurMap}`);
             return;
         }
+
+        this._currentMapName = mapConfig.MapName;
+        this._miniMapContent = miniMapMask.getChildByName(this._currentMapName);
+        this._miniMapPoint = miniMapMask.getChildByName("我的位置");
+        this._miniMapIcon = this._miniMapPoint?.getChildByName("Icon")?.getComponent(Sprite) ?? null;
+
+        const mapNames = new Set(Array.from(ZRSJZ_MAP_CONFIG.values()).map(config => config.MapName));
+        miniMapMask.children.forEach(child => {
+            if (mapNames.has(child.name)) {
+                child.active = child === this._miniMapContent;
+            }
+        });
+
+        if (this._miniMapIcon) {
+            ZRSJZ_UIManager.Instance.GetHeroUI(ZRSJZ_GameData.Instance.CurSkin[0])
+                .then((sf: SpriteFrame) => {
+                    if (this._miniMapIcon?.node?.isValid) {
+                        this._miniMapIcon.spriteFrame = sf;
+                    }
+                })
+                .catch(() => undefined);
+        }
+
+        if (!this._miniMapContent || !this._miniMapPoint) {
+            console.warn(`[ZRSJZ_Game] 找不到关卡对应的小地图节点: ${this._currentMapName}`);
+            return;
+        }
+
+        this._miniMapPoint.active = true;
+        this._miniMapPoint.setPosition(0, 0, this._miniMapPoint.position.z);
+        this._miniMapPoint.setSiblingIndex(miniMapMask.children.length - 1);
     }
 
     /**
      * 小地图实时跟随：
-     * “我的位置”在地图底图中使用真实比例定位，再反向移动底图，
-     * 从而让玩家标记始终保持在 Mask 中心。
+     * 根据玩家在世界地图中的比例反向移动底图，
+     * “我的位置”作为底图的同级节点始终固定在 Mask 中心。
      */
     private RefreshMiniMap(): void {
         if (!this._player?.isValid
@@ -269,7 +297,8 @@ export class ZRSJZ_Game extends Component {
             0,
         );
 
-        this._miniMapPoint.setPosition(this._miniMapPointPosition);
+        // “我的位置”与地图底图是 Mask 下的同级节点，固定在遮罩中心并只移动底图。
+        this._miniMapPoint.setPosition(0, 0, this._miniMapPoint.position.z);
         const mapScale = this._miniMapContent.scale;
         this._miniMapContent.setPosition(
             -this._miniMapPointPosition.x * mapScale.x,
