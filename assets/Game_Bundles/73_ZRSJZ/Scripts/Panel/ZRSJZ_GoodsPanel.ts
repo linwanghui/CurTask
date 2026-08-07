@@ -167,7 +167,8 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                 return;
             }
             const placeholder = this._searchPlaceholders.shift() ?? null;
-            if (!ZRSJZ_PROP_CONFIG.has(propName)) {
+            const propConfig = ZRSJZ_PROP_CONFIG.get(propName);
+            if (!propConfig) {
                 console.warn(`[ZRSJZ_GoodsPanel] 未找到道具配置: ${propName}`);
                 this.ReleaseSearchPlaceholder(placeholder);
                 if (box?.HasUnclaimedLoot() || index < propNames.length) {
@@ -176,7 +177,8 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                 return;
             }
 
-            const propID = ZRSJZ_GameData.Instance.AddPropByName(propName);
+            const count = propConfig.PropType === "弹药" ? propConfig.MaxCount : 1;
+            const propID = ZRSJZ_GameData.Instance.AddPropByName(propName, count);
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
             propData.SourceBoxID = goods.BoxID;
             propData.IsSearchLocked = true;

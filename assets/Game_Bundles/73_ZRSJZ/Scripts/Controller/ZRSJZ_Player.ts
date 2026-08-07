@@ -1,6 +1,6 @@
 import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, tween, Tween, v2, v3, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER } from '../ZRSJZ_Constant';
+import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -151,6 +151,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected onDisable(): void {
+        ZRSJZ_Game.Instance?.CancelEvacuation();
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
@@ -279,10 +280,9 @@ export class ZRSJZ_Player extends Component {
 
 
         const ammoName = ZRSJZ_Game.Instance.UnlimitedFirepower ? this._magazineAmmo.length > 0 ? this._magazineAmmo[0] : "1级子弹" : this._magazineAmmo.length > 0 ? this._magazineAmmo.shift() : "";
-        const gunDamage = this.GetGunProperty("伤害", 0);
-        const bulletDamage = ZRSJZ_PROP_PROPERTY
-            .get(ammoName)?.["增伤"] ?? 0;
-        const firingRangeDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate();
+        const gunDamage = this.GetGunProperty("伤害", 0);//本身伤害
+        const bulletDamage = ZRSJZ_PROP_PROPERTY.get(ammoName)?.["增伤"] ?? 0;//子弹攻击力加成
+        const firingRangeDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate();//靶场攻击力加成
         const bulletRange = this.GetGunProperty("射程", 0);
         const bulletLevel = this.GetBulletLevel(ammoName);
 
@@ -304,10 +304,15 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet").then((bullet: Node) => {
             bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
             bullet.active = true;
-
-            const finalDamage = Math.round((gunDamage + bulletDamage) * firingRangeDamageRate);
+            const finalDamage = Math.round(gunDamage * (bulletDamage + firingRangeDamageRate));
             bullet.getComponent(ZRSJZ_Bullet).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, bulletRange, finalDamage, bulletLevel,);
         });
+
+        if (ZRSJZ_WEAPONRY_TYPE.get("散弹枪").includes(this.PlayerSkeleton.WeaponryName)) {
+            //散射两个子弹
+            const offsetAnge: number = 10;
+
+        }
 
     }
 
@@ -347,7 +352,7 @@ export class ZRSJZ_Player extends Component {
         // })
 
         enemys.forEach(enemy => {
-            if (Vec3.distance(targetPosition, enemy.node.worldPosition) < skillRange) {
+            if (Vec3.distance(targetPosition, enemy.node.worldPosition) < skillRange || Vec3.distance(targetPosition, enemy.Other?.worldPosition)) {
                 enemy.BeHit(finalDamage);
             }
         })
@@ -498,6 +503,7 @@ export class ZRSJZ_Player extends Component {
         this.CurHP -= harm;
         if (this.CurHP <= 0) {
             this.CurHP = 0;
+            ZRSJZ_Game.Instance.CancelEvacuation();
             ZRSJZ_Game.Instance.GamePaused = true;
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0);
@@ -686,6 +692,9 @@ export class ZRSJZ_Player extends Component {
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox);
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, otherCollider.node?.getComponent(ZRSJZ_Door));
+        } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
+            //开始撤离
+            ZRSJZ_Game.Instance.StartEvacuation(otherCollider.node.name);
         }
     }
 
@@ -699,6 +708,9 @@ export class ZRSJZ_Player extends Component {
             }
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, null);
+        } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
+            //撤离中断
+            ZRSJZ_Game.Instance.CancelEvacuation();
         }
     }
 

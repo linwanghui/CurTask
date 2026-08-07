@@ -38,6 +38,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     @property({ tooltip: '敌人配置名；留空时使用当前节点名' })
     EnemyName: string = '';
 
+    Other: Node = null;
     Target: Node = null;
     HP: ZRSJZ_HP = null;
 
@@ -85,6 +86,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected onLoad(): void {
+        this.Other = this.node.getChildByName("Other");
         const enemyName = this.EnemyName.trim() || this.node.name;
         this.EnemyConfig = this.ResolveEnemyConfig(enemyName);
         if (!this.EnemyConfig) {

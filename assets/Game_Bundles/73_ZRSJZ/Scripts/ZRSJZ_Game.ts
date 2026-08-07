@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, find, instantiate, math, Node, Prefab, Sprite, SpriteFrame, UITransform, Vec3, } from 'cc';
+import { _decorator, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Sprite, SpriteFrame, UITransform, Vec3, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
@@ -24,6 +24,12 @@ export class ZRSJZ_Game extends Component {
     @property(Node)
     UI: Node = null;
 
+    @property(Label)
+    GameTime: Label = null;
+
+    @property(Label)
+    Evacuate: Label = null;
+
     CurMap: ZRSJZ_Map = null;
     CurPlayer: ZRSJZ_Player = null;
 
@@ -39,12 +45,21 @@ export class ZRSJZ_Game extends Component {
     private _elapsedGameTime: number = 0;
     private _killCount: number = 0;
     private _battleStarted: boolean = false;
+    private readonly _evacuationDuration: number = 10;
+    private _evacuationElapsed: number = 0;
+    private _isEvacuating: boolean = false;
+    private _isGameFinished: boolean = false;
+    private _evacuationMethod: string = "固定撤离点";
 
     protected onLoad(): void {
         ZRSJZ_Game.Instance = this;
         this._elapsedGameTime = 0;
         this._killCount = 0;
         this._battleStarted = false;
+        this._evacuationElapsed = 0;
+        this._isEvacuating = false;
+        this._isGameFinished = false;
+        this.SetEvacuationVisible(false);
     }
 
     protected async start(): Promise<void> {
@@ -58,6 +73,7 @@ export class ZRSJZ_Game extends Component {
     }
 
     protected onDisable(): void {
+        this.CancelEvacuation();
         ZRSJZ_UIManager.IsBattle = false;
     }
 
@@ -68,7 +84,69 @@ export class ZRSJZ_Game extends Component {
     protected update(deltaTime: number): void {
         if (this._battleStarted && !this.GamePaused && Number.isFinite(deltaTime) && deltaTime > 0) {
             this._elapsedGameTime += deltaTime;
+            this.GameTime.string = this.GetGameTime();
+
+            if (this._isEvacuating) {
+                this._evacuationElapsed += deltaTime;
+                this.RefreshEvacuationTime();
+                if (this._evacuationElapsed >= this._evacuationDuration) {
+                    this.CompleteEvacuation();
+                }
+            }
         }
+    }
+
+    /** 玩家进入撤离点后开始计时；必须在区域内连续停留满 10 秒。 */
+    StartEvacuation(evacuationPointName: string = "固定撤离点"): void {
+        if (!this._battleStarted || this.GamePaused || this._isGameFinished) return;
+        if (this._isEvacuating) return;
+
+        this._evacuationMethod = evacuationPointName || "固定撤离点";
+        this._evacuationElapsed = 0;
+        this._isEvacuating = true;
+        this.SetEvacuationVisible(true);
+        this.RefreshEvacuationTime();
+    }
+
+    /** 玩家提前离开撤离点时取消并重置倒计时。 */
+    CancelEvacuation(): void {
+        if (!this._isEvacuating) return;
+
+        this._isEvacuating = false;
+        this._evacuationElapsed = 0;
+        this.SetEvacuationVisible(false);
+    }
+
+    private RefreshEvacuationTime(): void {
+        if (!this.Evacuate) return;
+        const remainingSeconds = Math.max(
+            0,
+            Math.ceil(this._evacuationDuration * 100 - this._evacuationElapsed * 100),
+        );
+        this.Evacuate.string = `${Math.floor(remainingSeconds / 100).toString().padStart(2, "0")}:${(remainingSeconds % 100).toString().padStart(2, "0")}`;
+    }
+
+    private SetEvacuationVisible(visible: boolean): void {
+        if (this.Evacuate?.node?.parent) {
+            this.Evacuate.node.parent.active = visible;
+        }
+    }
+
+    private CompleteEvacuation(): void {
+        if (!this._isEvacuating || this._isGameFinished) return;
+
+        this._isEvacuating = false;
+        this._isGameFinished = true;
+        this._battleStarted = false;
+        this.GamePaused = true;
+        this.SetEvacuationVisible(false);
+        ZRSJZ_UIManager.Instance.ShowPanel(
+            ZRSJZ_PANEL.胜利弹窗,
+            this._evacuationMethod,
+            this.GetGameTime(),
+            this.GetKillCount(),
+            this.GetAllGoodsID(),
+        );
     }
 
     LoadMap() {
@@ -102,7 +180,7 @@ export class ZRSJZ_Game extends Component {
     }
 
     LoadUI() {
-        this.Drug = [0, 0, 0];
+        this.Drug = [0, 0, 1];
         this.UI.active = true;
         this._battleStarted = true;
     }
