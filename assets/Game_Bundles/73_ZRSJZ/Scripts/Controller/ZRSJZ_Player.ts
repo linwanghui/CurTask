@@ -314,7 +314,7 @@ export class ZRSJZ_Player extends Component {
 
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
             muzzleEffect.parent = this.node;
-            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(muzzleWorldPos, attackX, attackY);
+            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(this.getMuzzlePos(), attackX, attackY);
         })
 
         const spawnBullet = (dirX: number, dirY: number): void => {
@@ -322,7 +322,7 @@ export class ZRSJZ_Player extends Component {
                 bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
                 bullet.active = true;
                 bullet.getComponent(ZRSJZ_Bullet).Show(
-                    muzzleWorldPos,
+                    this.getMuzzlePos(),
                     dirX,
                     dirY,
                     bulletRange,
