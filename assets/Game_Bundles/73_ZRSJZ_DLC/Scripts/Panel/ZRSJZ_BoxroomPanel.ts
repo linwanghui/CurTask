@@ -172,7 +172,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         const prefab = await this.GetBoxPrefab();
         if (!prefab || !this._content) return null;
 
-        const props = [...ZRSJZ_PROP_CONFIG.values()].filter(config =>
+        const props = Array.from(ZRSJZ_PROP_CONFIG.values()).filter(config =>
             config.PropType === "物品"
             && config.Quality === ZRSJZ_PROP_QUALITY.红色
             && GetBoxroomCategory(config.Name) === category
@@ -379,7 +379,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
     }
 
     private GetCollectionProps() {
-        return [...ZRSJZ_PROP_CONFIG.values()].filter(config =>
+        return Array.from(ZRSJZ_PROP_CONFIG.values()).filter(config =>
             config.PropType === "物品"
             && config.Quality === ZRSJZ_PROP_QUALITY.红色
         );

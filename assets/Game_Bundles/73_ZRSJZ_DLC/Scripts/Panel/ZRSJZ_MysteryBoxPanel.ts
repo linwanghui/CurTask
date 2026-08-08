@@ -263,7 +263,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
         const targetCells = Math.max(1, Math.round(totalCells * fillRate));
         const targetValue = this.GetTargetRewardValue(config.price);
         const targetCellValue = targetValue / Math.max(1, targetCells);
-        const pool = [...ZRSJZ_PROP_CONFIG.values()]
+        const pool = Array.from(ZRSJZ_PROP_CONFIG.values())
             .filter(prop => prop.PropType === "物品");
         const rewards: ZRSJZ_MysteryBoxReward[] = [];
         let occupiedCells = 0;
