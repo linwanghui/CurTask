@@ -111,9 +111,9 @@ export class ZRSJZ_Player extends Component {
 
                 if ((event.data.name === "kq" || event.data.name === "gj_jjq") && this._isFireing && this.WeaponType === "枪") {
                     void this.Fire();
-                } else if (event.data.name === "dao") {
+                } else if (event.data.name === "dao" && this._isKnifeAttack) {
                     this.KnifeAttack(200);
-                } else if (event.data.name === "hui") {
+                } else if (event.data.name === "hui" && this._isKnifeAttack) {
                     this.KnifeAttack(250);
                 }
 
@@ -194,6 +194,7 @@ export class ZRSJZ_Player extends Component {
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number) {
         if (this._isSlide) return;
+        this.CancelKnifeAttackState();
         switch (skillName) {
             case "激光":
                 this._isStop = true;
@@ -265,6 +266,10 @@ export class ZRSJZ_Player extends Component {
     Attack(fireing: boolean) {
         if (this._isSlide || this._isStop) return;
         if (!fireing) {
+            if (this.WeaponType === "刀" && this._isKnifeAttack) {
+                this._stopAfterCurrentKnifeAttack = true;
+                return;
+            }
             this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
             if (this._isFireing) {
                 this._isFireing = false;
@@ -278,6 +283,13 @@ export class ZRSJZ_Player extends Component {
                 this._isFireing = true;
             }
         } else {
+            // 当前挥刀周期未结束时缓存下一刀，不从头重播当前动画。
+            if (this._isKnifeAttack) {
+                this._queuedKnifeAttack = true;
+                return;
+            }
+            this._stopAfterCurrentKnifeAttack = false;
+            this._queuedKnifeAttack = false;
             this._isKnifeAttack = true;
             this.onKnifeAttack();
         }
@@ -355,15 +367,39 @@ export class ZRSJZ_Player extends Component {
     }
 
     private _isKnifeAttack: boolean = false;
+    private _stopAfterCurrentKnifeAttack: boolean = false;
+    private _queuedKnifeAttack: boolean = false;
     onKnifeAttack() {
+        if (!this._isKnifeAttack) return;
         this._aniName = "";
         this._moveX == 0 && this._moveY == 0 ?
             this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Idle_D2 : ZRSJZ_ANI.Attack_Idle_D3, false, () => {
-                this.onKnifeAttack();
+                this.FinishKnifeAttackCycle();
             }) :
             this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Move_D2 : ZRSJZ_ANI.Attack_Move_D3, false, () => {
-                this.onKnifeAttack();
+                this.FinishKnifeAttackCycle();
             });
+    }
+
+    private FinishKnifeAttackCycle(): void {
+        if (!this._isKnifeAttack) return;
+        if (this._queuedKnifeAttack) {
+            this._queuedKnifeAttack = false;
+            this.onKnifeAttack();
+            return;
+        }
+        if (this._stopAfterCurrentKnifeAttack) {
+            this.CancelKnifeAttackState();
+            this.PlayAni(this._moveX == 0 && this._moveY == 0 ? ZRSJZ_ANI.Idle_D1 : ZRSJZ_ANI.Walk_D);
+            return;
+        }
+        this.onKnifeAttack();
+    }
+
+    private CancelKnifeAttackState(): void {
+        this._isKnifeAttack = false;
+        this._stopAfterCurrentKnifeAttack = false;
+        this._queuedKnifeAttack = false;
     }
 
     KnifeAttack(skillRange: number) {
@@ -409,6 +445,8 @@ export class ZRSJZ_Player extends Component {
 
     //动画切换
     AniSwitch() {
+        // 挥刀周期内移动不覆盖攻击动画，否则 Spine 的伤害事件和完成回调会丢失。
+        if (this._isKnifeAttack) return;
         if (this._moveX == 0 && this._moveY == 0) {
             if (this._aniName == ZRSJZ_ANI.Walk_D) {
                 this.PlayAni(ZRSJZ_ANI.Idle_D1);
@@ -468,6 +506,7 @@ export class ZRSJZ_Player extends Component {
             return;
         }
 
+        this.CancelKnifeAttackState();
         this.WeaponType = weaponType;
         if (this.WeaponType === "枪") {
             this.EnsureMagazineMatchesGun();
@@ -517,7 +556,7 @@ export class ZRSJZ_Player extends Component {
         // const attackRange = this.WeaponType === "枪"
         //     ? this.GetGunProperty("射程", 500)
         //     : 500;
-        const attackRange = 2000;
+        const attackRange = 1500;
         if (this.TargetEnemy && !this.TargetEnemy.getComponent(ZRSJZ_EnemyBase).IsDead && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= 500) {
             return;
         }
@@ -552,6 +591,7 @@ export class ZRSJZ_Player extends Component {
         this.CurHP -= madeHarm;
         if (this.CurHP <= 0) {
             this.CurHP = 0;
+            this.CancelKnifeAttackState();
             ZRSJZ_Game.Instance.CancelEvacuation();
             ZRSJZ_Game.Instance.GamePaused = true;
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
@@ -733,6 +773,7 @@ export class ZRSJZ_Player extends Component {
     //#region 滑动
     Slide() {
         if (this._isStop) return;
+        this.CancelKnifeAttackState();
         ZRSJZ_AudioManager.Instance.PlaySound("滑铲音效");
 
         this.CurSpeed += 1500;
