@@ -31,6 +31,15 @@ import { ZRSJZ_SearchPropEffect } from '../Effect/ZRSJZ_SearchPropEffect';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
+type ZRSJZ_SearchReservation = {
+    goods: ZRSJZ_BoxInventory,
+    token: string,
+    gridX: number,
+    gridY: number,
+    width: number,
+    height: number,
+};
+
 @ccclass('ZRSJZ_GoodsPanel')
 export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     @property({ displayName: '每件物资搜索时间（秒）', min: 0.05 })
@@ -49,6 +58,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     private _activeGoodsInventory: ZRSJZ_BoxInventory = null;
     private _arrayGoodsInventory: ZRSJZ_BoxInventory = null;
     private readonly _searchPlaceholders: Array<Node | null> = [];
+    private readonly _searchReservations = new Map<Node, ZRSJZ_SearchReservation>();
 
     protected onLoad(): void {
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
@@ -185,6 +195,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             propData.SourceBoxID = goods.BoxID;
             propData.IsSearchLocked = true;
             const placeholderGrid = this.GetPlaceholderGrid(placeholder);
+            this.ClearSearchReservation(placeholder);
             if (placeholderGrid) {
                 while (goods.Grids.length < placeholderGrid.y + propData.Height) {
                     goods.Grids.push(goods.GetEmptyRow());
@@ -381,7 +392,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
     /**
      * 按库存相同的从左到右、从上到下规则，预先摆放尚未揭示的开箱图片。
-     * 这些节点只负责显示，不写入游戏数据，也不会占用真实库存格。
+     * 占位节点会同时在 Grids 中写入临时标记，使未搜索和正在搜索的位置不可放置。
      */
     private async ShowSearchPlaceholders(
         goods: ZRSJZ_BoxInventory,
@@ -393,16 +404,23 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         const colCount = goods.InventoryConfig.Col;
         const step = ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL;
         const emptyRow = (): string[] => Array(colCount).fill("");
+        const reservations: Array<(ZRSJZ_SearchReservation & { propName: string }) | null> = [];
+        const clearPlannedReservations = (): void => {
+            for (const reservation of reservations) {
+                if (reservation) this.ClearSearchReservationData(reservation);
+            }
+        };
 
         for (let index = 0; index < propNames.length; index++) {
             if (serial !== this._revealSerial || !this.node.activeInHierarchy) {
+                clearPlannedReservations();
                 return;
             }
 
             const propName = propNames[index];
             const gridType = ZRSJZ_PROP_CONFIG.get(propName)?.GridType;
             if (!gridType) {
-                this._searchPlaceholders.push(null);
+                reservations.push(null);
                 continue;
             }
             const [height, width] = gridType.split("_").map(Number);
@@ -440,10 +458,32 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             while (grids.length < gridY + height + 3) {
                 grids.push(emptyRow());
             }
+            while (goods.Grids.length < grids.length) {
+                goods.Grids.push(goods.GetEmptyRow());
+            }
+            const token = `__search_locked_${serial}_${index}`;
             for (let row = gridY; row < gridY + height; row++) {
                 for (let col = gridX; col < gridX + width; col++) {
-                    grids[row][col] = `search_${index}`;
+                    grids[row][col] = token;
+                    goods.Grids[row][col] = token;
                 }
+            }
+
+            reservations.push({
+                goods,
+                token,
+                gridX,
+                gridY,
+                width,
+                height,
+                propName,
+            });
+        }
+
+        for (const reservation of reservations) {
+            if (!reservation) {
+                this._searchPlaceholders.push(null);
+                continue;
             }
 
             const placeholder = await ZRSJZ_PoolManager.Instance.GetNode(
@@ -455,17 +495,26 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                 || !goods.node?.isValid
             ) {
                 this.ReleaseSearchPlaceholder(placeholder);
+                this.ClearSearchPlaceholders();
+                clearPlannedReservations();
                 return;
             }
 
             placeholder.parent = goods.node;
-            placeholder.setPosition(gridX * step, -gridY * step, 0);
+            placeholder.setPosition(
+                reservation.gridX * step,
+                -reservation.gridY * step,
+                0,
+            );
             placeholder.active = true;
+            this._searchReservations.set(placeholder, reservation);
             await placeholder
                 .getComponent(ZRSJZ_SearchPropEffect)
-                ?.ShowPlaceholder(propName);
+                ?.ShowPlaceholder(reservation.propName);
             if (serial !== this._revealSerial) {
                 this.ReleaseSearchPlaceholder(placeholder);
+                this.ClearSearchPlaceholders();
+                clearPlannedReservations();
                 return;
             }
             this._searchPlaceholders.push(placeholder);
@@ -482,6 +531,10 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     private ClearSearchPlaceholders(): void {
         const placeholders = this._searchPlaceholders.splice(0);
         placeholders.forEach(node => this.ReleaseSearchPlaceholder(node));
+
+        for (const [node] of Array.from(this._searchReservations.entries())) {
+            this.ReleaseSearchPlaceholder(node);
+        }
     }
 
     private BringSearchPlaceholdersToFront(): void {
@@ -493,8 +546,29 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     }
 
     private ReleaseSearchPlaceholder(node: Node): void {
+        this.ClearSearchReservation(node);
         if (node?.isValid) {
             ZRSJZ_PoolManager.Instance.PutNode(node);
+        }
+    }
+
+    private ClearSearchReservation(node: Node): void {
+        if (!node) return;
+        const reservation = this._searchReservations.get(node);
+        if (!reservation) return;
+
+        this._searchReservations.delete(node);
+        this.ClearSearchReservationData(reservation);
+    }
+
+    private ClearSearchReservationData(reservation: ZRSJZ_SearchReservation): void {
+        const { goods, token, gridX, gridY, width, height } = reservation;
+        for (let row = gridY; row < gridY + height; row++) {
+            for (let col = gridX; col < gridX + width; col++) {
+                if (goods.Grids[row]?.[col] === token) {
+                    goods.Grids[row][col] = "";
+                }
+            }
         }
     }
 

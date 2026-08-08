@@ -310,6 +310,29 @@ export class ZRSJZ_Inventory extends Component {
         node.active = true;
     }
 
+    /** 在已经腾空的原位置恢复道具，用于装备/弹药替换后把旧道具放回来源格。 */
+    public async RestorePropAt(id: string, gridX: number, gridY: number): Promise<boolean> {
+        const propData = ZRSJZ_GameData.Instance.PropData[id];
+        if (
+            !propData
+            || gridX < 0
+            || gridY < 0
+            || !this.CanPlace(gridX, gridY, propData.Width, propData.Height, id)
+        ) {
+            return false;
+        }
+
+        await this.OccupyGrid(
+            id,
+            gridX,
+            gridY,
+            propData.Width,
+            propData.Height,
+        );
+        await this.SyncEmptyGridNodes();
+        return true;
+    }
+
     //获取空的一行
     GetEmptyRow(): string[] {
         let row: string[] = [];

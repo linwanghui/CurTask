@@ -170,6 +170,18 @@ export class ZRSJZ_PropGrid extends Component {
         countWidget.bottom = 2;
         countWidget.isAlignRight = true;
         countWidget.right = 5;
+
+        const checkWidget: Widget = this.Check.getComponent(Widget);
+        checkWidget.isAlignTop = true;
+        checkWidget.top = 0;
+        checkWidget.isAlignRight = true;
+        checkWidget.right = 0;
+
+        const checkedWidget: Widget = this.Checked.getComponent(Widget);
+        checkedWidget.isAlignTop = true;
+        checkedWidget.top = -5;
+        checkedWidget.isAlignRight = true;
+        checkedWidget.right = -6;
     }
 
     async ShowGrid(inventory: ZRSJZ_INVENTORY, gridX: number = -1, gridY: number = -1, gridType: string = "灰") {

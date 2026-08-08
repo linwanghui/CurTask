@@ -107,7 +107,7 @@ export class ZRSJZ_Tools {
     public static IsSlide(inventory: ZRSJZ_INVENTORY): boolean {
         return inventory == ZRSJZ_INVENTORY.仓库_全部 || inventory == ZRSJZ_INVENTORY.仓库_弹药 || inventory == ZRSJZ_INVENTORY.仓库_武器 ||
             inventory == ZRSJZ_INVENTORY.仓库_物品 || inventory == ZRSJZ_INVENTORY.仓库_装备 || inventory == ZRSJZ_INVENTORY.保险箱 ||
-            inventory == ZRSJZ_INVENTORY.物资;
+            inventory == ZRSJZ_INVENTORY.物资 || inventory == ZRSJZ_INVENTORY.背包;
     }
 
     public static ScaleNodeToFit(targetNode: Node, parentWidth: number, parentHeight: number): void {

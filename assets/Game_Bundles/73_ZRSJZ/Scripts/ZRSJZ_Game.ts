@@ -36,7 +36,7 @@ export class ZRSJZ_Game extends Component {
 
     GamePaused: boolean = false;
     UnlimitedFirepower: boolean = false;
-    Drug: number[] = [0, 0, 1];//药品数量--高级/中级/低级
+    Drug: number[] = [0, 0, 3];//药品数量--高级/中级/低级
 
     private _player: Node = null;
     private _miniMapContent: Node = null;
@@ -222,7 +222,7 @@ export class ZRSJZ_Game extends Component {
     }
 
     LoadUI() {
-        this.Drug = [0, 0, 1];
+        this.Drug = [0, 0, 3];
         this.UI.active = true;
         this.RefreshGameTime();
         this._battleStarted = true;
