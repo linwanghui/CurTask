@@ -73,6 +73,7 @@ export class ZRSJZ_BoxInventory extends ZRSJZ_Inventory {
         gridY: number,
         width: number,
         height: number,
+        isRotate: boolean = false,
     ): Promise<boolean> {
         if (inventory !== ZRSJZ_INVENTORY.物资) {
             const propData = ZRSJZ_GameData.Instance.PropData[id];
@@ -80,6 +81,6 @@ export class ZRSJZ_BoxInventory extends ZRSJZ_Inventory {
                 propData.SourceBoxID = this.BoxID;
             }
         }
-        return super.ChangeGrid(inventory, id, gridX, gridY, width, height);
+        return super.ChangeGrid(inventory, id, gridX, gridY, width, height, isRotate);
     }
 }

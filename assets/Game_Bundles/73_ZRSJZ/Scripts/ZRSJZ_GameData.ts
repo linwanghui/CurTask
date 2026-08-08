@@ -234,14 +234,17 @@ export class ZRSJZ_GameData {
     }
 
 
-    public ChangePropGridPos(propID: string, index: number, x: number, y: number) {
+    public ChangePropGridPos(propID: string, index: number, x: number, y: number, isRotate?: boolean) {
         if (!this.PropData.hasOwnProperty(propID)) return;
         this.PropData[propID].GridData[index].GridX = x;
         this.PropData[propID].GridData[index].GridY = y;
+        if (isRotate !== undefined) {
+            this.PropData[propID].GridData[index].IsRotate = isRotate;
+        }
         ZRSJZ_GameData.SaveData();
     }
 
-    public MovePropToInventory(propID: string, inventory: ZRSJZ_INVENTORY, gridIndex: number, x: number, y: number) {
+    public MovePropToInventory(propID: string, inventory: ZRSJZ_INVENTORY, gridIndex: number, x: number, y: number, isRotate?: boolean) {
         const propData = this.PropData[propID];
         if (!propData) return;
 
@@ -252,6 +255,9 @@ export class ZRSJZ_GameData {
         }
         propData.GridData[gridIndex].GridX = x;
         propData.GridData[gridIndex].GridY = y;
+        if (isRotate !== undefined) {
+            propData.GridData[gridIndex].IsRotate = isRotate;
+        }
         if (this.WeaponryID.includes(propID)) {
 
         }

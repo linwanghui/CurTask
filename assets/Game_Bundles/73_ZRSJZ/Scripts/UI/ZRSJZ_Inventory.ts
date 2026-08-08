@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, UITransform, v2, v3, Vec3 } from 'cc';
-import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_INVENTORY, ZRSJZ_INVENTORY_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_INVENTORY, ZRSJZ_INVENTORY_CONFIG, ZRSJZ_PropData } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_PropGrid } from './ZRSJZ_PropGrid';
@@ -63,7 +63,8 @@ export class ZRSJZ_Inventory extends Component {
                 if (propData.GridData[gridIndex].GridX == -1) {
                     this._newAddPropID.push(propData.InstanceID);
                 } else {
-                    await this.OccupyGrid(propData.InstanceID, propData.GridData[gridIndex].GridX, propData.GridData[gridIndex].GridY, propData.Width, propData.Height)
+                    const size = this.GetPlacedSize(propData, gridIndex);
+                    await this.OccupyGrid(propData.InstanceID, propData.GridData[gridIndex].GridX, propData.GridData[gridIndex].GridY, size.width, size.height)
                 }
             }
         }
@@ -71,9 +72,10 @@ export class ZRSJZ_Inventory extends Component {
         //添加那些暂未添加到仓库的道具
         for (let index = 0; index < this._newAddPropID.length; index++) {
             const propData = ZRSJZ_GameData.Instance.PropData[this._newAddPropID[index]];
-            const gridPos: { x: number, y: number } = this.FindEmptyGrid(propData.Width, propData.Height);
-            ZRSJZ_GameData.Instance.ChangePropGridPos(propData.InstanceID, gridIndex, gridPos.x, gridPos.y);
-            await this.OccupyGrid(propData.InstanceID, propData.GridData[gridIndex].GridX, propData.GridData[gridIndex].GridY, propData.Width, propData.Height)
+            const placement = this.FindEmptyGridForProp(propData);
+            if (!placement) continue;
+            ZRSJZ_GameData.Instance.ChangePropGridPos(propData.InstanceID, gridIndex, placement.x, placement.y, placement.isRotate);
+            await this.OccupyGrid(propData.InstanceID, placement.x, placement.y, placement.width, placement.height)
         }
 
 
@@ -121,17 +123,17 @@ export class ZRSJZ_Inventory extends Component {
 
             for (const propID of newPropIDs) {
                 const propData = ZRSJZ_GameData.Instance.PropData[propID];
-                const gridPos = this.FindEmptyGrid(propData.Width, propData.Height);
-                if (!gridPos) {
+                const placement = this.FindEmptyGridForProp(propData);
+                if (!placement) {
                     continue;
                 }
 
-                ZRSJZ_GameData.Instance.ChangePropGridPos(propID, gridIndex, gridPos.x, gridPos.y);
-                await this.OccupyGrid(propID, gridPos.x, gridPos.y, propData.Width, propData.Height);
+                ZRSJZ_GameData.Instance.ChangePropGridPos(propID, gridIndex, placement.x, placement.y, placement.isRotate);
+                await this.OccupyGrid(propID, placement.x, placement.y, placement.width, placement.height);
 
                 // 移除新道具所覆盖位置上的空格子节点。
-                for (let row = gridPos.y; row < gridPos.y + propData.Height; row++) {
-                    for (let col = gridPos.x; col < gridPos.x + propData.Width; col++) {
+                for (let row = placement.y; row < placement.y + placement.height; row++) {
+                    for (let col = placement.x; col < placement.x + placement.width; col++) {
                         ZRSJZ_EventManager.EmitPersist(
                             ZRSJZ_MyEvent.ZRSJZ_EMPTY_GRID_REMOVE,
                             this.InventoryType,
@@ -254,6 +256,89 @@ export class ZRSJZ_Inventory extends Component {
     }
 
     // 找一个能放下 width x height 的空区域
+    private SupportsAutoRotation(): boolean {
+        return String(this.InventoryType).startsWith("仓库_")
+            || this.InventoryType === ZRSJZ_INVENTORY.保险箱
+            || this.InventoryType === ZRSJZ_INVENTORY.背包
+            || this.InventoryType === ZRSJZ_INVENTORY.物资;
+    }
+
+    private GetPlacedSize(propData: ZRSJZ_PropData, gridIndex: number): { width: number, height: number } {
+        const isRotate = this.SupportsAutoRotation() && propData.GridData[gridIndex]?.IsRotate === true;
+        return isRotate
+            ? { width: propData.Height, height: propData.Width }
+            : { width: propData.Width, height: propData.Height };
+    }
+
+    /** 在现有行中同时尝试横放和竖放；都放不下时，仓库再逐行扩容。 */
+    private FindEmptyGridForProp(propData: ZRSJZ_PropData): {
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        isRotate: boolean,
+    } {
+        if (!this.SupportsAutoRotation() || propData.Width === propData.Height) {
+            const pos = this.FindEmptyGrid(propData.Width, propData.Height);
+            return pos ? { ...pos, width: propData.Width, height: propData.Height, isRotate: false } : null;
+        }
+
+        const orientations = [
+            { width: propData.Width, height: propData.Height, isRotate: false },
+            { width: propData.Height, height: propData.Width, isRotate: true },
+        ];
+        if (orientations.every(item => item.width > this.InventoryConfig.Col)) return null;
+
+        while (true) {
+            let best: { x: number, y: number, width: number, height: number, isRotate: boolean } = null;
+            for (const orientation of orientations) {
+                const pos = this.FindEmptyGridInCurrentRows(orientation.width, orientation.height);
+                if (
+                    pos
+                    && (!best || pos.y < best.y || (pos.y === best.y && pos.x < best.x))
+                ) {
+                    best = { ...pos, ...orientation };
+                }
+            }
+            if (best) return best;
+            if (!this.InventoryConfig.IsDilatation) return null;
+            this.Grids.push(this.GetEmptyRow());
+        }
+    }
+
+    private FindEmptyGridInCurrentRows(width: number, height: number): { x: number, y: number } {
+        if (width > this.InventoryConfig.Col) return null;
+        for (let y = 0; y < this.Grids.length; y++) {
+            for (let x = 0; x <= this.InventoryConfig.Col - width; x++) {
+                if (this.CanPlace(x, y, width, height)) return { x, y };
+            }
+        }
+        return null;
+    }
+
+    private GetDropPlacement(propData: ZRSJZ_PropData, gridX: number, gridY: number, id: string): {
+        width: number,
+        height: number,
+        isRotate: boolean,
+    } {
+        // 拖动时固定优先横放；横放失败后再检测竖放，不受上一次保存方向影响。
+        const defaultOrientation = { width: propData.Width, height: propData.Height, isRotate: false };
+        const rotatedOrientation = { width: propData.Height, height: propData.Width, isRotate: true };
+        const orientations = defaultOrientation.width >= defaultOrientation.height
+            ? [defaultOrientation, rotatedOrientation]
+            : [rotatedOrientation, defaultOrientation];
+
+        for (const orientation of orientations) {
+            if (
+                (!orientation.isRotate || this.SupportsAutoRotation())
+                && this.CanPlace(gridX, gridY, orientation.width, orientation.height, id)
+            ) {
+                return orientation;
+            }
+        }
+        return null;
+    }
+
     FindEmptyGrid(width: number, height: number): { x: number, y: number } {
         for (let y = 0; y < this.Grids.length; y++) {
             for (let x = 0; x <= this.InventoryConfig.Col - width; x++) {
@@ -313,11 +398,13 @@ export class ZRSJZ_Inventory extends Component {
     /** 在已经腾空的原位置恢复道具，用于装备/弹药替换后把旧道具放回来源格。 */
     public async RestorePropAt(id: string, gridX: number, gridY: number): Promise<boolean> {
         const propData = ZRSJZ_GameData.Instance.PropData[id];
+        if (!propData) return false;
+        const gridIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+        const size = this.GetPlacedSize(propData, gridIndex);
         if (
-            !propData
-            || gridX < 0
+            gridX < 0
             || gridY < 0
-            || !this.CanPlace(gridX, gridY, propData.Width, propData.Height, id)
+            || !this.CanPlace(gridX, gridY, size.width, size.height, id)
         ) {
             return false;
         }
@@ -326,8 +413,8 @@ export class ZRSJZ_Inventory extends Component {
             id,
             gridX,
             gridY,
-            propData.Width,
-            propData.Height,
+            size.width,
+            size.height,
         );
         await this.SyncEmptyGridNodes();
         return true;
@@ -353,21 +440,33 @@ export class ZRSJZ_Inventory extends Component {
                 const pos: Vec3 = this.UITransform.convertToNodeSpaceAR(newPos);
                 const gridX: number = Math.floor(pos.x / (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL));
                 const gridY: number = Math.floor(-pos.y / (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL));
-                const width: number = ZRSJZ_GameData.Instance.PropData[id].Width;
-                const height: number = ZRSJZ_GameData.Instance.PropData[id].Height;
+                const propData = ZRSJZ_GameData.Instance.PropData[id];
+                if (!propData) return;
+                const placement = this.GetDropPlacement(propData, gridX, gridY, id);
 
                 //确定修改
                 if (isConfirm) {
-                    if (this.CanPlace(gridX, gridY, width, height, id) && this.IsAdaptive(id)) {
-                        const isMoved = await this.ChangeGrid(inventory, id, gridX, gridY, width, height);
+                    if (placement && this.IsAdaptive(id)) {
+                        const isMoved = await this.ChangeGrid(inventory, id, gridX, gridY, placement.width, placement.height, placement.isRotate);
                         if (isMoved && inventory === this.InventoryType) {
-                            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_MOVE, id, this.InventoryType, gridX, gridY);
+                            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_MOVE, id, this.InventoryType, gridX, gridY, placement.isRotate);
                         }
                     }
                 } else {
-                    const propType: string = this.CanPlace(gridX, gridY, width, height, id) && this.IsAdaptive(id) ? "绿" : "红";
-                    for (let i = gridX; i < gridX + width; i++) {
-                        for (let j = gridY; j < gridY + height; j++) {
+                    const propType: string = placement && this.IsAdaptive(id) ? "绿" : "红";
+                    if (placement && this.IsAdaptive(id)) {
+                        ZRSJZ_EventManager.EmitPersist(
+                            ZRSJZ_MyEvent.ZRSJZ_PROP_DRAG_ROTATE,
+                            id,
+                            placement.isRotate,
+                        );
+                    }
+                    const gridIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+                    const currentSize = this.GetPlacedSize(propData, gridIndex);
+                    const previewWidth = placement?.width ?? currentSize.width;
+                    const previewHeight = placement?.height ?? currentSize.height;
+                    for (let i = gridX; i < gridX + previewWidth; i++) {
+                        for (let j = gridY; j < gridY + previewHeight; j++) {
                             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType, i, j, propType);
                         }
                     }
@@ -377,7 +476,7 @@ export class ZRSJZ_Inventory extends Component {
         }
     }
 
-    async ChangeGrid(inventory: ZRSJZ_INVENTORY, id: string, gridX: number, gridY: number, width: number, height: number): Promise<boolean> {
+    async ChangeGrid(inventory: ZRSJZ_INVENTORY, id: string, gridX: number, gridY: number, width: number, height: number, isRotate: boolean = false): Promise<boolean> {
         if (inventory == this.InventoryType) {
             //在本仓库内移动
             // 清除旧占用数据。
@@ -395,6 +494,9 @@ export class ZRSJZ_Inventory extends Component {
                     this.Grids[row][col] = id;
                 }
             }
+
+            const gridIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+            ZRSJZ_GameData.Instance.ChangePropGridPos(id, gridIndex, gridX, gridY, isRotate);
 
             // 统一按 Grids 重建空格映射，避免删行后继续使用旧坐标增量修改。
             await this.SyncEmptyGridNodes();
@@ -420,7 +522,7 @@ export class ZRSJZ_Inventory extends Component {
             }
 
             const gridIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
-            ZRSJZ_GameData.Instance.MovePropToInventory(id, targetInventory, gridIndex, gridX, gridY);
+            ZRSJZ_GameData.Instance.MovePropToInventory(id, targetInventory, gridIndex, gridX, gridY, isRotate);
             await this.OccupyGrid(id, gridX, gridY, width, height);
             await this.SyncEmptyGridNodes();
         }
