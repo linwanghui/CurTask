@@ -90,7 +90,13 @@ export class ZRSJZ_PropGrid extends Component {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_PROP_DRAG_ROTATE, this.ChangeDragOrientation, this);
     }
 
-    async Init(propID: string, gridX: number = -1, gridY: number = -1, inventory: ZRSJZ_INVENTORY = ZRSJZ_INVENTORY.仓库_全部) {
+    async Init(
+        propID: string,
+        gridX: number = -1,
+        gridY: number = -1,
+        inventory: ZRSJZ_INVENTORY = ZRSJZ_INVENTORY.仓库_全部,
+        useSavedOrientation: boolean = true,
+    ) {
         const initVersion = ++this._initVersion;
         this._gridStyleVersion++;
 
@@ -163,7 +169,8 @@ export class ZRSJZ_PropGrid extends Component {
         this.CountLabel.string = `x${this.PropData.CurCount}`;
 
         const gridIndex = inventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
-        const isRotate = this.SupportsAutoRotation(inventory)
+        const isRotate = useSavedOrientation
+            && this.SupportsAutoRotation(inventory)
             && this.PropData.GridData[gridIndex]?.IsRotate === true;
         this.ApplyOrientation(isRotate, this.PropData.Width, this.PropData.Height);
 

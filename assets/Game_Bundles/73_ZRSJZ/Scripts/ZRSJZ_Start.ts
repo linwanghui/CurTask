@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, Label, Node, tween, v3 } from 'cc';
+import { _decorator, Component, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
@@ -17,8 +17,11 @@ export class ZRSJZ_Start extends Component {
     @property(Node)
     Confirm: Node = null;
 
+    @property(Node)
+    NameNode: Node = null;
+
     @property(Label)
-    ConfirmName: Label = null;
+    NameLabel: Label = null;
 
     @property(Node)
     SignBtn: Node = null;
@@ -54,6 +57,12 @@ export class ZRSJZ_Start extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Switch":
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON);
+                break;
+            case "Slide":
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE);
+                break;
             case "商店":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.商店界面);
                 break;
@@ -88,11 +97,19 @@ export class ZRSJZ_Start extends Component {
     }
 
     OnMainChecked(target: Node, isChecked: boolean) {
-        this.ConfirmName.string = target.name;
+        this.NameLabel.string = target.name;
         this.Confirm.active = isChecked;
         this.Checked.setWorldPosition(target.getWorldPosition().clone());
         this.Checked.active = isChecked;
         this.Confirm.name = target.name;
+        this.NameNode.active = isChecked;
+        if (isChecked) {
+            Tween.stopAllByTarget(this.NameNode);
+            this.NameNode.setWorldPosition(target.getWorldPosition().clone());
+            tween(this.NameNode)
+                .to(0.5, { worldPosition: target.getWorldPosition().clone().add3f(0, 300, 0) }, { easing: "backOut" })
+                .start();
+        }
     }
 }
 

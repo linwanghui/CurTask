@@ -17,6 +17,9 @@ export class ZRSJZ_PlayerMain extends Component {
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _aniName: string = "";
+    private _weaponType: string = "";
+    private _isSliding: boolean = false;
+    private _slideDirection: number = 1;
 
     protected onLoad(): void {
         this.RigidBody = this.getComponent(RigidBody2D);
@@ -26,17 +29,14 @@ export class ZRSJZ_PlayerMain extends Component {
 
     protected start(): void {
         this._moveSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
-        const weaponType = ZRSJZ_GameData.Instance.WeaponryID[0] != "" ? "枪" : "刀";
-        this.PlayerSkeleton.IsKnife = weaponType === "刀";
-        if (ZRSJZ_GameData.Instance.WeaponryID[0]) {
-            this.PlayAni(ZRSJZ_ANI.Idle_Q);
-        } else {
-            this.PlayAni(ZRSJZ_ANI.Idle_D1);
-        }
+        this._weaponType = ZRSJZ_GameData.Instance.WeaponryID[0] ? "枪" : "刀";
+        this.ApplyWeaponType(this._weaponType);
     }
 
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN, this.ChangeSkin, this);
         this.Collider.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.on(Contact2DType.END_CONTACT, this.EndContact, this)
@@ -44,17 +44,21 @@ export class ZRSJZ_PlayerMain extends Component {
 
     protected onDisable(): void {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN, this.ChangeSkin, this);
         this.Collider.off(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.off(Contact2DType.END_CONTACT, this.EndContact, this)
     }
 
     protected update(dt: number): void {
-        this.AniSwitch();
+        if (!this._isSliding) this.AniSwitch();
 
         this.PlayerSkeleton.AttackX = Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
         this.PlayerSkeleton.AttackY = 0;
-        this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed, 0);
+        const moveX = this._isSliding ? this._slideDirection : this._moveX;
+        const speed = this._isSliding ? this._moveSpeed + 1500 : this._moveSpeed;
+        this.RigidBody.linearVelocity = v2(moveX * dt * speed, 0);
     }
 
     Move(x: number, y: number, radius: number) {
@@ -63,6 +67,48 @@ export class ZRSJZ_PlayerMain extends Component {
         if (x != 0) {
             this.PlayerSkeleton.SetPlayerDir(x / Math.abs(x))
         }
+    }
+
+    /** 大厅场景切换枪和刀；只有对应装备存在时才允许切换。 */
+    SwitchWeapon(): void {
+        if (this._isSliding) return;
+        const targetType = this._weaponType === "枪" ? "刀" : "枪";
+        const targetIndex = targetType === "枪" ? 0 : 4;
+        const targetID = ZRSJZ_GameData.Instance.WeaponryID[targetIndex];
+        if (!targetID || !ZRSJZ_GameData.Instance.PropData[targetID]) return;
+        this._weaponType = targetType;
+        this.ApplyWeaponType(targetType);
+    }
+
+    private ApplyWeaponType(weaponType: string): void {
+        const targetIndex = weaponType === "枪" ? 0 : 4;
+        const targetID = ZRSJZ_GameData.Instance.WeaponryID[targetIndex];
+        const propData = ZRSJZ_GameData.Instance.PropData[targetID];
+        if (!propData) return;
+
+        this.PlayerSkeleton.IsKnife = weaponType === "刀";
+        this.PlayerSkeleton.ShowEquipment(propData.Name);
+        this.PlayAni(weaponType === "枪" ? ZRSJZ_ANI.Idle_Q : ZRSJZ_ANI.Idle_D2, false, () => {
+            this.PlayAni(weaponType === "枪" ? ZRSJZ_ANI.Idle_Q : ZRSJZ_ANI.Idle_D1);
+        });
+    }
+
+    /** 大厅滑铲没有冷却；仅等待当前滑铲动作结束即可再次使用。 */
+    Slide(): void {
+        if (this._isSliding) return;
+        this._isSliding = true;
+        this._slideDirection = Math.sign(this._moveX) || this.PlayerSkeleton.Facing || 1;
+        const slideAnimation = this._weaponType === "枪" ? ZRSJZ_ANI.HC_Q : ZRSJZ_ANI.HC_D;
+        this._aniName = "";
+        this.PlayAni(slideAnimation, false, () => {
+            this._isSliding = false;
+            this._aniName = "";
+            if (this._moveX == 0) {
+                this.PlayAni(this._weaponType === "枪" ? ZRSJZ_ANI.Idle_Q : ZRSJZ_ANI.Idle_D1);
+            } else {
+                this.PlayAni(this._weaponType === "枪" ? ZRSJZ_ANI.Walk_Q : ZRSJZ_ANI.Walk_D);
+            }
+        });
     }
 
 

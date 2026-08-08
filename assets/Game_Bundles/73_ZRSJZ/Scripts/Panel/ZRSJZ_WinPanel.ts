@@ -1,7 +1,7 @@
 import { _decorator, EventTouch, find, Label, Node, ScrollView, sp, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_PropGrid } from '../UI/ZRSJZ_PropGrid';
@@ -119,7 +119,15 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
                 placement.width * ZRSJZ_GRID_SIZE + (placement.width - 1) * ZRSJZ_GRID_INTERVAL,
                 placement.height * ZRSJZ_GRID_SIZE + (placement.height - 1) * ZRSJZ_GRID_INTERVAL,
             );
-            await propGrid.Init(placement.id);
+            // 结算界面使用自己计算的紧凑网格，不继承道具在库存中的旋转状态。
+            // 必须把坐标传给 Init，否则初始化方向时会按默认的 (-1, -1) 重置位置，导致全部重叠。
+            await propGrid.Init(
+                placement.id,
+                placement.gridX,
+                placement.gridY,
+                ZRSJZ_INVENTORY.仓库_全部,
+                false,
+            );
 
             if (showVersion !== this._showPropVersion || !this.node.active) {
                 if (this._propNodeVersions.get(propNode) === showVersion) {

@@ -241,12 +241,12 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     //枪
     ["CN8-突击步枪", { Name: "CN8-突击步枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 120000, MaxCount: 1 }],
     ["DX9-冲锋枪", { Name: "DX9-冲锋枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 160000, MaxCount: 1 }],
-    ["K50-轻机枪", { Name: "K50-轻机枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 220000, MaxCount: 1 }],
-    ["RK77-轻机枪", { Name: "RK77-轻机枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 280000, MaxCount: 1 }],
-    ["FS-霰弹枪", { Name: "FS-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 650000, MaxCount: 1 }],
-    ["KK41-霰弹枪", { Name: "KK41-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 850000, MaxCount: 1 }],
-    ["ssv-狙击枪", { Name: "ssv-狙击枪", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 1800000, MaxCount: 1 }],
-    ["W76-狙击枪", { Name: "W76-狙击枪", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 2400000, MaxCount: 1 }],
+    ["K50-轻机枪", { Name: "K50-轻机枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 220000, MaxCount: 1 }],
+    ["RK77-轻机枪", { Name: "RK77-轻机枪", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 280000, MaxCount: 1 }],
+    ["FS-霰弹枪", { Name: "FS-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 650000, MaxCount: 1 }],
+    ["KK41-霰弹枪", { Name: "KK41-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 850000, MaxCount: 1 }],
+    ["ssv-狙击枪", { Name: "ssv-狙击枪", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 1800000, MaxCount: 1 }],
+    ["W76-狙击枪", { Name: "W76-狙击枪", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 2400000, MaxCount: 1 }],
     //刀
     ["战术匕首", { Name: "战术匕首", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 8400, MaxCount: 1 }],
     ["刺厌", { Name: "刺厌", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 100000, MaxCount: 1 }],
@@ -1148,11 +1148,11 @@ const ZRSJZ_MAP_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.35, 1.65, 2.0
 const ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.3, 1.55, 1.85, 2.2];
 const ZRSJZ_MAP_SPEED_MULTIPLIERS: readonly number[] = [0.95, 1, 1.05, 1.1, 1.15, 1.2];
 const ZRSJZ_MAP_ATTACK_INTERVAL_MULTIPLIERS: readonly number[] = [1.05, 1, 0.95, 0.9, 0.85, 0.8];
-const ZRSJZ_MAP_PROP_TYPES: readonly string[] = ["物品", "房卡", "弹药"];//地图中允许掉落的类型
+const ZRSJZ_MAP_PROP_TYPES: readonly string[] = ["物品", "房卡", "弹药", "头盔", "防弹衣"];//地图中允许掉落的类型
 
 const ZRSJZ_MAP_PROP_POOL: string[][] = [
     Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.白色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
-    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.绿色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.绿色 && (ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType) || prop.Name == "CN8-突击步枪")).map(prop => prop.Name),
     Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.蓝色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
     Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.紫色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
     Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.金色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),

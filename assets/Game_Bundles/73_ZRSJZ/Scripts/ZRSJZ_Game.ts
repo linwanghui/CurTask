@@ -1,11 +1,11 @@
-import { _decorator, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Sprite, SpriteFrame, UITransform, Vec3, } from 'cc';
+import { _decorator, Camera, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Sprite, SpriteFrame, UITransform, Vec3, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from './ZRSJZ_Constant';
+import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
@@ -31,6 +31,9 @@ export class ZRSJZ_Game extends Component {
     @property(Label)
     Evacuate: Label = null;
 
+    @property(Node)
+    Direction: Node = null;
+
     CurMap: ZRSJZ_Map = null;
     CurPlayer: ZRSJZ_Player = null;
 
@@ -53,6 +56,7 @@ export class ZRSJZ_Game extends Component {
     private _isEvacuating: boolean = false;
     private _isGameFinished: boolean = false;
     private _evacuationMethod: string = "固定撤离点";
+    private _directionEndWorld: Vec3 = new Vec3();
 
     protected onLoad(): void {
         ZRSJZ_Game.Instance = this;
@@ -64,6 +68,7 @@ export class ZRSJZ_Game extends Component {
         this._isGameFinished = false;
         this.InitializeBattleTimer();
         this.SetEvacuationVisible(false);
+        if (this.Direction) this.Direction.active = false;
     }
 
     protected async start(): Promise<void> {
@@ -83,6 +88,72 @@ export class ZRSJZ_Game extends Component {
 
     protected lateUpdate(): void {
         this.RefreshMiniMap();
+        this.RefreshDirectionUI();
+    }
+
+    private RefreshDirectionUI(): void {
+        if (!this.Direction || !this.CurPlayer?.node?.isValid || !this.UI?.isValid) return;
+        const worldCamera = this.Camera?.getComponent(Camera);
+        const skeleton = this.CurPlayer.PlayerSkeleton;
+        if (!worldCamera || !skeleton) {
+            this.Direction.active = false;
+            return;
+        }
+
+        let dirX = skeleton.AttackX;
+        let dirY = skeleton.AttackY;
+        let dirLength = Math.sqrt(dirX * dirX + dirY * dirY);
+        if (dirLength <= 0.0001) {
+            dirX = skeleton.Facing || 1;
+            dirY = 0;
+            dirLength = 1;
+        }
+        dirX /= dirLength;
+        dirY /= dirLength;
+
+        const attackRange = this.GetPlayerAttackRange();
+        if (attackRange <= 0) {
+            this.Direction.active = false;
+            return;
+        }
+
+        const rangeOrigin = this.CurPlayer.node.getChildByName("Point") ?? this.CurPlayer.node;
+        const playerWorld = rangeOrigin.worldPosition;
+        this._directionEndWorld.set(
+            playerWorld.x + dirX * attackRange,
+            playerWorld.y + dirY * attackRange,
+            playerWorld.z,
+        );
+        const startUI = worldCamera.convertToUINode(playerWorld, this.UI);
+        const endUI = worldCamera.convertToUINode(this._directionEndWorld, this.UI);
+        const uiDirX = endUI.x - startUI.x;
+        const uiDirY = endUI.y - startUI.y;
+        if (uiDirX * uiDirX + uiDirY * uiDirY <= 0.0001) {
+            this.Direction.active = false;
+            return;
+        }
+
+        this.Direction.active = true;
+        // “方向”图片是攻击范围圆周的一小段，只放到射程边缘，不拉伸成箭头。
+        this.Direction.setPosition(endUI.x, endUI.y, this.Direction.position.z);
+        this.Direction.setRotationFromEuler(
+            0,
+            0,
+            Math.atan2(uiDirY, uiDirX) * 180 / Math.PI - 180,
+        );
+        const directionSprite = this.Direction.getComponent(Sprite);
+        if (directionSprite) directionSprite.sizeMode = Sprite.SizeMode.RAW;
+    }
+
+    private GetPlayerAttackRange(): number {
+        if (!this.CurPlayer) return 0;
+        // 近战实际伤害范围不变，这里只使用默认 1000 作为结界 UI 的显示半径。
+        if (this.CurPlayer.WeaponType === "刀") return 1000;
+
+        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0];
+        const gunName = ZRSJZ_GameData.Instance.PropData[gunID]?.Name;
+        const range = gunName ? ZRSJZ_PROP_PROPERTY.get(gunName)?.["射程"] : 0;
+        return Number.isFinite(range) ? Math.max(0, range) : 0;
     }
 
     protected update(deltaTime: number): void {

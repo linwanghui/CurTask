@@ -38,6 +38,8 @@ export class ZRSJZ_Joystick_Attack extends Component {
     private _reloadingCD: number = 0;
     private _switchButton: Node = null;
     private _bulletCount: Label = null;
+    /** 用于识别最后一发子弹刚刚被打出的瞬间，避免初始空弹匣误触发自动换弹。 */
+    private _previousMagazineAmmoCount: number = -1;
 
     start() {
         this._searchButton = this.node.getChildByName('Search');
@@ -77,6 +79,22 @@ export class ZRSJZ_Joystick_Attack extends Component {
         if (this._bulletCount && player) {
             this._bulletCount.string =
                 `${player.MagazineAmmoCount}/${player.WarehouseAmmoCount}`;
+        }
+
+        if (player) {
+            const magazineAmmoCount = player.MagazineAmmoCount;
+            const magazineJustEmptied = this._previousMagazineAmmoCount > 0
+                && magazineAmmoCount <= 0;
+            this._previousMagazineAmmoCount = magazineAmmoCount;
+
+            if (
+                magazineJustEmptied
+                && !ZRSJZ_Game.Instance.UnlimitedFirepower
+                && player.WeaponType === "枪"
+                && player.WarehouseAmmoCount > 0
+            ) {
+                this.Reload();
+            }
         }
 
         if (this._slideCD > 0) {

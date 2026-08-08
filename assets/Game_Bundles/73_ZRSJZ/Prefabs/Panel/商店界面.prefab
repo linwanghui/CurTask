@@ -28,17 +28,17 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 664
-      },
-      {
         "__id__": 666
       },
       {
         "__id__": 668
+      },
+      {
+        "__id__": 670
       }
     ],
     "_prefab": {
-      "__id__": 670
+      "__id__": 672
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -318,10 +318,13 @@
       },
       {
         "__id__": 661
+      },
+      {
+        "__id__": 663
       }
     ],
     "_prefab": {
-      "__id__": 663
+      "__id__": 665
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -15681,12 +15684,12 @@
     "__prefab": {
       "__id__": 660
     },
-    "_alignFlags": 45,
+    "_alignFlags": 18,
     "_target": null,
-    "_left": 0,
-    "_right": 0,
-    "_top": 0,
-    "_bottom": 0,
+    "_left": 420,
+    "_right": 420,
+    "_top": 140,
+    "_bottom": 140,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -15725,6 +15728,27 @@
     "fileId": "26aOzhZGNAO6umeSLrPEsS"
   },
   {
+    "__type__": "41cbewN/OFFUYk4khrwfDM+",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 12
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 664
+    },
+    "AllowUpscale": true,
+    "HorizontalPadding": 0,
+    "VerticalPadding": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "0b3kib3cRE1aOCoUIdfJ9+"
+  },
+  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -15747,7 +15771,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 665
+      "__id__": 667
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -15775,7 +15799,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 667
+      "__id__": 669
     },
     "_alignFlags": 45,
     "_target": null,
@@ -15811,7 +15835,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 669
+      "__id__": 671
     },
     "WeaponSkin": {
       "__uuid__": "bb166a47-9f57-4d92-90e2-21f4fdb2a9f2",
