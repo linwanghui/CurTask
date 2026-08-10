@@ -39,7 +39,7 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
 
     //道具拉动
     async CheckProp(inventory: ZRSJZ_INVENTORY, id: string, worldPos: Vec3, isConfirm: boolean) {
-        if (!this.IsVisible) return;
+        if (!this.IsVisible || this.checkID(id)) return;
         if (this.node.active) {
             const newPos: Vec3 = v3(worldPos.x + 50, worldPos.y - 50, worldPos.z)
             this._GridSprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropGridUI(this.InventoryType == ZRSJZ_INVENTORY.武器_枪 ? "枪_灰" : "空格子_灰");
@@ -178,6 +178,11 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
         if (isInit) return;
         ZRSJZ_GameData.Instance.SetWeaponry(this._weaponryIndex, id);
         ZRSJZ_GameData.Instance.MovePropToInventory(id, this.InventoryType, 1, 0, 0);
+    }
+
+    // 检查是否是同一个ID
+    private checkID(id: string): boolean {
+        return this.Grids[0][0] === id;
     }
 }
 

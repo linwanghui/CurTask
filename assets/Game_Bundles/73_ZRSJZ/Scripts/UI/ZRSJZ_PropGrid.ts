@@ -174,6 +174,14 @@ export class ZRSJZ_PropGrid extends Component {
             && this.PropData.GridData[gridIndex]?.IsRotate === true;
         this.ApplyOrientation(isRotate, this.PropData.Width, this.PropData.Height);
 
+        const nameWidget: Widget = this.NameLabel.getComponent(Widget);
+        nameWidget.isAlignLeft = true;
+        nameWidget.left = 5;
+        nameWidget.isAlignRight = true;
+        nameWidget.right = 5;
+        nameWidget.isAlignTop = true;
+        nameWidget.top = 5;
+
         const iconWidget: Widget = this.IconSprite.getComponent(Widget);
         iconWidget.isAlignHorizontalCenter = true;
         iconWidget.horizontalCenter = 0;
