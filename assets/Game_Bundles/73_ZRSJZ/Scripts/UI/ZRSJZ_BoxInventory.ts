@@ -61,6 +61,11 @@ export class ZRSJZ_BoxInventory extends ZRSJZ_Inventory {
             && propData.SourceBoxID === this.BoxID;
     }
 
+    /** 搜索或取走物资时保留原有行，避免后方物资自动向前移动。 */
+    protected ShouldRemoveEmptyRows(): boolean {
+        return false;
+    }
+
     public async ChangeGrid(
         inventory: ZRSJZ_INVENTORY,
         id: string,
@@ -68,6 +73,7 @@ export class ZRSJZ_BoxInventory extends ZRSJZ_Inventory {
         gridY: number,
         width: number,
         height: number,
+        isRotate: boolean = false,
     ): Promise<boolean> {
         if (inventory !== ZRSJZ_INVENTORY.物资) {
             const propData = ZRSJZ_GameData.Instance.PropData[id];
@@ -75,6 +81,6 @@ export class ZRSJZ_BoxInventory extends ZRSJZ_Inventory {
                 propData.SourceBoxID = this.BoxID;
             }
         }
-        return super.ChangeGrid(inventory, id, gridX, gridY, width, height);
+        return super.ChangeGrid(inventory, id, gridX, gridY, width, height, isRotate);
     }
 }

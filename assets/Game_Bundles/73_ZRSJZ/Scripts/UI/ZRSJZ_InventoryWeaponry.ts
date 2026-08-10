@@ -39,6 +39,7 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
 
     //道具拉动
     async CheckProp(inventory: ZRSJZ_INVENTORY, id: string, worldPos: Vec3, isConfirm: boolean) {
+        if (!this.IsVisible) return;
         if (this.node.active) {
             const newPos: Vec3 = v3(worldPos.x + 50, worldPos.y - 50, worldPos.z)
             this._GridSprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropGridUI(this.InventoryType == ZRSJZ_INVENTORY.武器_枪 ? "枪_灰" : "空格子_灰");
@@ -146,6 +147,7 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
 
     async RemoveProp(id: string, isRemoveProp: boolean = true) {
         if (this.Grids[0][0] == id) {
+            const propName = ZRSJZ_GameData.Instance.PropData[id]?.Name;
             this.Grids[0][0] = "";
             const propNode = this.node.children.find(child => {
                 const propGrid = child.getComponent(ZRSJZ_PropGrid);
@@ -158,7 +160,9 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
             ZRSJZ_GameData.Instance.SetWeaponry(this._weaponryIndex, "");
             this._GridSprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropGridUI(this.InventoryType == ZRSJZ_INVENTORY.武器_枪 ? "枪_灰" : "空格子_灰");
             this._Normal.active = true;
-            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, ZRSJZ_GameData.Instance.PropData[id].Name, false);
+            if (propName) {
+                ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, propName, false);
+            }
         }
     }
 

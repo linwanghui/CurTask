@@ -1,5 +1,5 @@
 import { sys } from "cc";
-import { GetFacilityBonusValue as GetConfiguredFacilityBonusValue, GetFiringRangeAttackBonusPercent, ZRSJZ_FACILITY_UPGRADE_CONFIG, ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName } from "./ZRSJZ_Constant";
+import { GetFacilityBonusValue as GetConfiguredFacilityBonusValue, GetFiringRangeAttackBonusPercent, ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_FACILITY_UPGRADE_CONFIG, ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName, ZRSJZ_WEAPON_SKIN } from "./ZRSJZ_Constant";
 import { ZRSJZ_Tools } from "./ZRSJZ_Tools";
 import { ZRSJZ_PlayerSwitchButton } from "./UI/ZRSJZ_PlayerSwitchButton";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "./Manager/ZRSJZ_EventManager";
@@ -31,10 +31,35 @@ export class ZRSJZ_GameData {
 
     public Init() {
         // this.AddAllProp();
-        const propId = this.AddPropByName("战术匕首");
+        this.Gold = 100000;
+        this.CurMap = "五号小镇_机密行动";
+
+        //初始化装备
+        let propId = this.AddPropByName("CN8-突击步枪");
+        this.WeaponryID[0] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_枪, 1, 0, 0);
+        propId = this.AddPropByName("一级头");
+        this.WeaponryID[1] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_头盔, 1, 0, 0);
+        propId = this.AddPropByName("一级甲");
+        this.WeaponryID[2] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_防弹衣, 1, 0, 0);
+        propId = this.AddPropByName("一级包");
+        this.WeaponryID[3] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_背包, 1, 0, 0);
+        propId = this.AddPropByName("战术匕首");
         this.WeaponryID[4] = propId;
         this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_刀, 1, 0, 0);
-        this.CurMap = "城镇_初级";
+        //初始化弹药
+        propId = this.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+        this.AmmoID[0] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        propId = this.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+        this.AmmoID[1] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        propId = this.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+        this.AmmoID[2] = propId;
+        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
     }
 
     public MusicMute: boolean = false;//音乐静音
@@ -43,17 +68,59 @@ export class ZRSJZ_GameData {
     public Gold: number = 0;
     public FiringRangeLevel: number = 0;
     public FacilityLevel: Partial<Record<ZRSJZ_UpgradeFacilityName, number>> = {};
-    public HaveRole: string[] = ["洛克", "安娜"];
-    public CurRole: string[] = ["洛克", "安娜"];
-    public HaveSkin: string[] = ["洛克", "安娜"];
-    public CurSkin: string[] = ["洛克", "安娜"];
+    public HaveRole: string[] = ["威蓝", "小温"];
+    public CurRole: string[] = ["威蓝", "小温"];
+    public HaveSkin: string[] = ["威蓝", "小温"];
+    public CurSkin: string[] = ["威蓝", "小温"];
     public PropID: number = 0;//道具的唯一ID
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};//道具数据
     public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
     public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
+    public RoomCard: string[] = ["", "", ""];//当前装备的房卡
+    /** 七日签到已经领取的奖励数量，达到 7 后签到永久结束。 */
+    public SignInClaimedCount: number = 0;
+    /** 上次领取签到奖励的本地日期（YYYY-MM-DD）。 */
+    public SignInLastClaimDate: string = "";
+    /** 已购买的非默认武器皮肤；每把武器的首个皮肤始终视为拥有。 */
+    public HaveWeaponSkin: string[] = [];
+    /** 每把武器当前使用的皮肤。 */
+    public CurWeaponSkin: { [weaponName: string]: string } = {};
     // public GameTempID: string[] = [];//战斗时的临时ID
+    public CurMap: string = "五号小镇_机密行动";//当前地图
 
-    public CurMap: string = "城镇_初级";
+    //#region 签到
+    public GetSignInClaimedCount(): number {
+        return Math.max(0, Math.min(7, Math.floor(this.SignInClaimedCount ?? 0)));
+    }
+
+    public IsSignInCompleted(): boolean {
+        return this.GetSignInClaimedCount() >= 7;
+    }
+
+    public CanClaimSignInReward(): boolean {
+        return !this.IsSignInCompleted()
+            && this.SignInLastClaimDate !== this.GetLocalDateKey();
+    }
+
+    /** 领取下一天的签到奖励，成功时返回 0～6 的奖励索引。 */
+    public ClaimSignInReward(): number {
+        if (!this.CanClaimSignInReward()) return -1;
+
+        const dayIndex = this.GetSignInClaimedCount();
+        this.SignInClaimedCount = dayIndex + 1;
+        this.SignInLastClaimDate = this.GetLocalDateKey();
+        ZRSJZ_GameData.SaveData();
+        return dayIndex;
+    }
+
+    private GetLocalDateKey(): string {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = `${now.getMonth() + 1}`.padStart(2, "0");
+        const day = `${now.getDate()}`.padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
     ChangeGold(gold: number) {
         this.Gold += gold;
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
@@ -109,6 +176,8 @@ export class ZRSJZ_GameData {
     public RemovePropID(propID: string) {
         if (this.PropData.hasOwnProperty(propID)) {
             delete this.PropData[propID];
+            this.RefreshRoomCardIDs();
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
             ZRSJZ_GameData.SaveData();
         }
     }
@@ -124,15 +193,58 @@ export class ZRSJZ_GameData {
         ZRSJZ_GameData.SaveData();
     }
 
+    public HasWeaponSkin(weaponName: string, skinName: string): boolean {
+        const skins = ZRSJZ_WEAPON_SKIN.get(weaponName);
+        if (!skins?.some(skin => skin.Name === skinName)) return false;
+        return skinName === skins[0].Name || (this.HaveWeaponSkin ?? []).includes(skinName);
+    }
 
-    public ChangePropGridPos(propID: string, index: number, x: number, y: number) {
+    public AddWeaponSkin(weaponName: string, skinName: string): boolean {
+        if (!ZRSJZ_WEAPON_SKIN.get(weaponName)?.some(skin => skin.Name === skinName)) return false;
+        if (!this.HaveWeaponSkin) this.HaveWeaponSkin = [];
+        if (!this.HaveWeaponSkin.includes(skinName)) {
+            this.HaveWeaponSkin.push(skinName);
+            ZRSJZ_GameData.SaveData();
+        }
+        return true;
+    }
+
+    public GetWeaponSkin(weaponName: string): string {
+        const skins = ZRSJZ_WEAPON_SKIN.get(weaponName);
+        if (!skins?.length) return weaponName;
+
+        const currentSkin = this.CurWeaponSkin?.[weaponName];
+        return currentSkin && this.HasWeaponSkin(weaponName, currentSkin)
+            ? currentSkin
+            : skins[0].Name;
+    }
+
+    public SetWeaponSkin(weaponName: string, skinName: string): boolean {
+        if (!this.HasWeaponSkin(weaponName, skinName)) return false;
+        if (!this.CurWeaponSkin) this.CurWeaponSkin = {};
+        if (this.GetWeaponSkin(weaponName) === skinName) return true;
+
+        this.CurWeaponSkin[weaponName] = skinName;
+        ZRSJZ_GameData.SaveData();
+        const equippedGunName = this.PropData?.[this.WeaponryID?.[0]]?.Name;
+        if (equippedGunName === weaponName) {
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, weaponName);
+        }
+        return true;
+    }
+
+
+    public ChangePropGridPos(propID: string, index: number, x: number, y: number, isRotate?: boolean) {
         if (!this.PropData.hasOwnProperty(propID)) return;
         this.PropData[propID].GridData[index].GridX = x;
         this.PropData[propID].GridData[index].GridY = y;
+        if (isRotate !== undefined) {
+            this.PropData[propID].GridData[index].IsRotate = isRotate;
+        }
         ZRSJZ_GameData.SaveData();
     }
 
-    public MovePropToInventory(propID: string, inventory: ZRSJZ_INVENTORY, gridIndex: number, x: number, y: number) {
+    public MovePropToInventory(propID: string, inventory: ZRSJZ_INVENTORY, gridIndex: number, x: number, y: number, isRotate?: boolean) {
         const propData = this.PropData[propID];
         if (!propData) return;
 
@@ -143,10 +255,58 @@ export class ZRSJZ_GameData {
         }
         propData.GridData[gridIndex].GridX = x;
         propData.GridData[gridIndex].GridY = y;
+        if (isRotate !== undefined) {
+            propData.GridData[gridIndex].IsRotate = isRotate;
+        }
         if (this.WeaponryID.includes(propID)) {
 
         }
+        this.RefreshRoomCardIDs();
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         ZRSJZ_GameData.SaveData();
+    }
+
+
+    public GetEquippedRoomCardID(roomCardName: string): string {
+        if (!roomCardName) return "";
+
+        return Object.keys(this.PropData).find(propID => {
+            const propData = this.PropData[propID];
+            return propData?.Name === roomCardName
+                && (propData.PropType === "房卡" || propData.PropType === "门禁卡")
+                && propData.CurInventory === ZRSJZ_INVENTORY.卡包;
+        }) ?? "";
+    }
+
+    public HasEquippedRoomCard(roomCardName: string): boolean {
+        return this.GetEquippedRoomCardID(roomCardName) !== "";
+    }
+
+    public ConsumeEquippedRoomCard(roomCardName: string): boolean {
+        const roomCardID = this.GetEquippedRoomCardID(roomCardName);
+        if (!roomCardID) return false;
+
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, roomCardID);
+        delete this.PropData[roomCardID];
+        this.RefreshRoomCardIDs();
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+        ZRSJZ_GameData.SaveData();
+        return true;
+    }
+
+    private RefreshRoomCardIDs(): void {
+        const roomCardNames = ["低级房卡", "中级房卡", "高级房卡"];
+        this.RoomCard = roomCardNames.map(roomCardName =>
+            this.GetEquippedRoomCardID(roomCardName)
+        );
+    }
+
+    public GetInventoryTotalValue(inventories: readonly ZRSJZ_INVENTORY[]): number {
+        const inventorySet = new Set(inventories);
+        return Object.values(this.PropData).reduce((totalValue, propData) => {
+            if (!inventorySet.has(propData.CurInventory)) return totalValue;
+            return totalValue + propData.UnitPrice * propData.CurCount;
+        }, 0);
     }
 
     public RemoveInventoryRows(inventory: ZRSJZ_INVENTORY, removedRows: number[]) {
@@ -214,6 +374,7 @@ export class ZRSJZ_GameData {
                 }
             }
         }
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         ZRSJZ_GameData.SaveData();
         return count === 0;
     }
@@ -285,7 +446,7 @@ export class ZRSJZ_GameData {
         })
     }
 
-    //收藏室数据
+    //#region 收藏室数据
     public BoxroomPropLevel: { [propName: string]: number } = {};
     public BoxroomAttributeBonusBasisPoint: { [attributeName: string]: number } = {};
 
@@ -340,6 +501,18 @@ export class ZRSJZ_GameData {
     public GetBoxroomAttributeIncrease(attributeName: string, baseValue: number): number {
         if (!Number.isFinite(baseValue)) return 0;
         return baseValue * this.GetBoxroomAttributeBonusRate(attributeName);
+    }
+
+    /** 靶场与收藏室共同提供的枪械伤害总加成比例。 */
+    public GetTotalGunDamageBonusRate(): number {
+        return this.GetFiringRangeAttackBonusRate()
+            + this.GetBoxroomAttributeBonusRate("枪械伤害");
+    }
+
+    /** 靶场与收藏室共同提供的近战伤害总加成比例。 */
+    public GetTotalMeleeDamageBonusRate(): number {
+        return this.GetFiringRangeAttackBonusRate()
+            + this.GetBoxroomAttributeBonusRate("近战伤害");
     }
 
     //盲盒数据

@@ -28,7 +28,17 @@ import { ZRSJZ_BoxInventory } from '../UI/ZRSJZ_BoxInventory';
 import { ZRSJZ_PropGrid } from '../UI/ZRSJZ_PropGrid';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_SearchPropEffect } from '../Effect/ZRSJZ_SearchPropEffect';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
+
+type ZRSJZ_SearchReservation = {
+    goods: ZRSJZ_BoxInventory,
+    token: string,
+    gridX: number,
+    gridY: number,
+    width: number,
+    height: number,
+};
 
 @ccclass('ZRSJZ_GoodsPanel')
 export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
@@ -40,6 +50,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     GoodsContent: Node = null;
     public ScrollView: ScrollView = null;
     public GoodsScrollView: ScrollView = null;
+    private _totalValue: Label = null;
 
     private _revealSerial: number = 0;
     private _arrayInventorySerial: number = 0;
@@ -47,18 +58,22 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     private _activeGoodsInventory: ZRSJZ_BoxInventory = null;
     private _arrayGoodsInventory: ZRSJZ_BoxInventory = null;
     private readonly _searchPlaceholders: Array<Node | null> = [];
+    private readonly _searchReservations = new Map<Node, ZRSJZ_SearchReservation>();
 
     protected onLoad(): void {
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
         this.BackpackContent = find("Panel/背包/View/Content", this.node);
         this.ScrollView = find("Panel/背包", this.node).getComponent(ScrollView);
+        this._totalValue = find("Panel/背包总价值/Count", this.node).getComponent(Label);
         this.GoodsContent = this.EnsureGoodsContent();
     }
 
     protected onEnable(): void {
         this.Prepare.Show(true);
         this.ShowBackpack();
+        this.RefreshTotalValue();
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
 
     protected onDisable(): void {
@@ -67,6 +82,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             this._activeGoodsInventory.node.active = false;
         }
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
 
     Show(...args: any[]): void {
@@ -74,6 +90,13 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
         const source = args[0];
         const box = source instanceof ZRSJZ_Box ? source : null;
+        // 防止其他入口直接打开物资弹窗而绕过密码验证。
+        if (box?.RequiresPassword() && !box.IsPasswordUnlocked()) {
+            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.物资弹窗, () => {
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.密码箱弹窗, box);
+            });
+            return;
+        }
         const props = Array.isArray(source)
             ? source.filter(propName => typeof propName === 'string')
             : [];
@@ -86,6 +109,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.物资弹窗);
@@ -98,6 +122,14 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         if (this.GoodsScrollView) {
             this.GoodsScrollView.enabled = move;
         }
+    }
+
+    private RefreshTotalValue(): void {
+        const totalValue = ZRSJZ_GameData.Instance.GetInventoryTotalValue([
+            ZRSJZ_INVENTORY.背包,
+            ZRSJZ_INVENTORY.保险箱,
+        ]);
+        this._totalValue.string = `${totalValue}`;
     }
 
     async ShowBackpack(): Promise<ZRSJZ_Inventory> {
@@ -147,7 +179,8 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                 return;
             }
             const placeholder = this._searchPlaceholders.shift() ?? null;
-            if (!ZRSJZ_PROP_CONFIG.has(propName)) {
+            const propConfig = ZRSJZ_PROP_CONFIG.get(propName);
+            if (!propConfig) {
                 console.warn(`[ZRSJZ_GoodsPanel] 未找到道具配置: ${propName}`);
                 this.ReleaseSearchPlaceholder(placeholder);
                 if (box?.HasUnclaimedLoot() || index < propNames.length) {
@@ -156,19 +189,45 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                 return;
             }
 
-            const propID = ZRSJZ_GameData.Instance.AddPropByName(propName);
-            ZRSJZ_GameData.Instance.PropData[propID].SourceBoxID = goods.BoxID;
-            ZRSJZ_GameData.Instance.PropData[propID].IsSearchLocked = true;
+            const count = propConfig.PropType === "弹药" ? propConfig.MaxCount : 1;
+            const propID = ZRSJZ_GameData.Instance.AddPropByName(propName, count);
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            propData.SourceBoxID = goods.BoxID;
+            propData.IsSearchLocked = true;
+            const placeholderGrid = this.GetPlaceholderGrid(placeholder);
+            this.ClearSearchReservation(placeholder);
+            if (placeholderGrid) {
+                while (goods.Grids.length < placeholderGrid.y + propData.Height) {
+                    goods.Grids.push(goods.GetEmptyRow());
+                }
+            }
+            const usePlaceholderGrid = placeholderGrid
+                && goods.CanPlace(
+                    placeholderGrid.x,
+                    placeholderGrid.y,
+                    propData.Width,
+                    propData.Height,
+                );
             ZRSJZ_GameData.Instance.MovePropToInventory(
                 propID,
                 ZRSJZ_INVENTORY.物资,
                 1,
-                -1,
-                -1,
+                usePlaceholderGrid ? placeholderGrid.x : -1,
+                usePlaceholderGrid ? placeholderGrid.y : -1,
             );
             ZRSJZ_GameData.SaveData();
 
-            goods.ShowPropItem()
+            const showProp = usePlaceholderGrid
+                ? goods.OccupyGrid(
+                    propID,
+                    placeholderGrid.x,
+                    placeholderGrid.y,
+                    propData.Width,
+                    propData.Height,
+                ).then(() => goods.ShowPropItem())
+                : goods.ShowPropItem();
+
+            showProp
                 .then(async () => {
                     this.RefreshGoodsContentSize(goods.node);
                     // ShowPropItem 扩容时会在末尾新建空白格子，需把尚未搜索的
@@ -214,6 +273,17 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         };
 
         this.ScheduleNextReveal(revealNext, 0.05);
+    }
+
+    /** 使用占位图预先确定的格子，避免前方物资取走后新物资自动向前补位。 */
+    private GetPlaceholderGrid(placeholder: Node): { x: number, y: number } | null {
+        if (!placeholder?.isValid) return null;
+
+        const step = ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL;
+        return {
+            x: Math.round(placeholder.position.x / step),
+            y: Math.round(-placeholder.position.y / step),
+        };
     }
 
     private ScheduleNextReveal(callback: () => void, interval: number): void {
@@ -322,7 +392,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
     /**
      * 按库存相同的从左到右、从上到下规则，预先摆放尚未揭示的开箱图片。
-     * 这些节点只负责显示，不写入游戏数据，也不会占用真实库存格。
+     * 占位节点会同时在 Grids 中写入临时标记，使未搜索和正在搜索的位置不可放置。
      */
     private async ShowSearchPlaceholders(
         goods: ZRSJZ_BoxInventory,
@@ -334,16 +404,23 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         const colCount = goods.InventoryConfig.Col;
         const step = ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL;
         const emptyRow = (): string[] => Array(colCount).fill("");
+        const reservations: Array<(ZRSJZ_SearchReservation & { propName: string }) | null> = [];
+        const clearPlannedReservations = (): void => {
+            for (const reservation of reservations) {
+                if (reservation) this.ClearSearchReservationData(reservation);
+            }
+        };
 
         for (let index = 0; index < propNames.length; index++) {
             if (serial !== this._revealSerial || !this.node.activeInHierarchy) {
+                clearPlannedReservations();
                 return;
             }
 
             const propName = propNames[index];
             const gridType = ZRSJZ_PROP_CONFIG.get(propName)?.GridType;
             if (!gridType) {
-                this._searchPlaceholders.push(null);
+                reservations.push(null);
                 continue;
             }
             const [height, width] = gridType.split("_").map(Number);
@@ -381,10 +458,32 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             while (grids.length < gridY + height + 3) {
                 grids.push(emptyRow());
             }
+            while (goods.Grids.length < grids.length) {
+                goods.Grids.push(goods.GetEmptyRow());
+            }
+            const token = `__search_locked_${serial}_${index}`;
             for (let row = gridY; row < gridY + height; row++) {
                 for (let col = gridX; col < gridX + width; col++) {
-                    grids[row][col] = `search_${index}`;
+                    grids[row][col] = token;
+                    goods.Grids[row][col] = token;
                 }
+            }
+
+            reservations.push({
+                goods,
+                token,
+                gridX,
+                gridY,
+                width,
+                height,
+                propName,
+            });
+        }
+
+        for (const reservation of reservations) {
+            if (!reservation) {
+                this._searchPlaceholders.push(null);
+                continue;
             }
 
             const placeholder = await ZRSJZ_PoolManager.Instance.GetNode(
@@ -396,17 +495,26 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                 || !goods.node?.isValid
             ) {
                 this.ReleaseSearchPlaceholder(placeholder);
+                this.ClearSearchPlaceholders();
+                clearPlannedReservations();
                 return;
             }
 
             placeholder.parent = goods.node;
-            placeholder.setPosition(gridX * step, -gridY * step, 0);
+            placeholder.setPosition(
+                reservation.gridX * step,
+                -reservation.gridY * step,
+                0,
+            );
             placeholder.active = true;
+            this._searchReservations.set(placeholder, reservation);
             await placeholder
                 .getComponent(ZRSJZ_SearchPropEffect)
-                ?.ShowPlaceholder(propName);
+                ?.ShowPlaceholder(reservation.propName);
             if (serial !== this._revealSerial) {
                 this.ReleaseSearchPlaceholder(placeholder);
+                this.ClearSearchPlaceholders();
+                clearPlannedReservations();
                 return;
             }
             this._searchPlaceholders.push(placeholder);
@@ -423,6 +531,10 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     private ClearSearchPlaceholders(): void {
         const placeholders = this._searchPlaceholders.splice(0);
         placeholders.forEach(node => this.ReleaseSearchPlaceholder(node));
+
+        for (const [node] of Array.from(this._searchReservations.entries())) {
+            this.ReleaseSearchPlaceholder(node);
+        }
     }
 
     private BringSearchPlaceholdersToFront(): void {
@@ -434,8 +546,29 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     }
 
     private ReleaseSearchPlaceholder(node: Node): void {
+        this.ClearSearchReservation(node);
         if (node?.isValid) {
             ZRSJZ_PoolManager.Instance.PutNode(node);
+        }
+    }
+
+    private ClearSearchReservation(node: Node): void {
+        if (!node) return;
+        const reservation = this._searchReservations.get(node);
+        if (!reservation) return;
+
+        this._searchReservations.delete(node);
+        this.ClearSearchReservationData(reservation);
+    }
+
+    private ClearSearchReservationData(reservation: ZRSJZ_SearchReservation): void {
+        const { goods, token, gridX, gridY, width, height } = reservation;
+        for (let row = gridY; row < gridY + height; row++) {
+            for (let col = gridX; col < gridX + width; col++) {
+                if (goods.Grids[row]?.[col] === token) {
+                    goods.Grids[row][col] = "";
+                }
+            }
         }
     }
 

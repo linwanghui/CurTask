@@ -12,9 +12,11 @@ export class ZRSJZ_InventoryBackpack extends ZRSJZ_Inventory {
     private static readonly COL = 4;
 
     async Init(_inventoryType: ZRSJZ_INVENTORY = ZRSJZ_INVENTORY.背包) {
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
         for (let i = this.node.children.length - 1; i >= 0; i--) {
             ZRSJZ_PoolManager.Instance.PutNode(this.node.children[i]);
         }
+        this.IsInitialized = false;
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
         this.InventoryType = _inventoryType;
         const row = this.GetCurrentBackpackRow();
@@ -68,5 +70,4 @@ export class ZRSJZ_InventoryBackpack extends ZRSJZ_Inventory {
     }
 
 }
-
 

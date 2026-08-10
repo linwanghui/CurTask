@@ -1,10 +1,11 @@
 import { _decorator, EventTouch, find, Label, Node, ScrollView, sp, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_PropGrid } from '../UI/ZRSJZ_PropGrid';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_WinPanel')
@@ -23,6 +24,7 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
     private readonly _propColumnCount: number = 6;
     private _showPropVersion: number = 0;
     private _propNodeVersions: Map<Node, number> = new Map<Node, number>();
+    private _isReturning: boolean = false;
 
     protected onLoad(): void {
         this.Earnings = find("Panel/收益/Earnings", this.node).getComponent(Label);
@@ -38,6 +40,7 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
 
     Show(...args: any[]) {
         super.Show();
+        this._isReturning = false;
         this.Mask.active = true;
         this.Evacuate.string = args[0];
         this.BattleTime.string = args[1];
@@ -116,7 +119,15 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
                 placement.width * ZRSJZ_GRID_SIZE + (placement.width - 1) * ZRSJZ_GRID_INTERVAL,
                 placement.height * ZRSJZ_GRID_SIZE + (placement.height - 1) * ZRSJZ_GRID_INTERVAL,
             );
-            await propGrid.Init(placement.id);
+            // 结算界面使用自己计算的紧凑网格，不继承道具在库存中的旋转状态。
+            // 必须把坐标传给 Init，否则初始化方向时会按默认的 (-1, -1) 重置位置，导致全部重叠。
+            await propGrid.Init(
+                placement.id,
+                placement.gridX,
+                placement.gridY,
+                ZRSJZ_INVENTORY.仓库_全部,
+                false,
+            );
 
             if (showVersion !== this._showPropVersion || !this.node.active) {
                 if (this._propNodeVersions.get(propNode) === showVersion) {
@@ -184,9 +195,14 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
         if (propGrid) propGrid.enabled = true;
     }
 
-    public OnButtonClick(event: EventTouch): void {
+    public async OnButtonClick(event: EventTouch): Promise<void> {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
+                if (this._isReturning) return;
+                this._isReturning = true;
+                await ZRSJZ_UIManager.Instance.FinishGameInventory(true);
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Star");
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.胜利弹窗);
                 break;
         }
@@ -194,5 +210,3 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
 
 
 }
-
-

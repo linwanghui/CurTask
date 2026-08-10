@@ -38,12 +38,15 @@ export class ZRSJZ_UIManager extends Component {
     PropSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     HeroIconSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     BoxSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
+    RoleSkinIconSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     WeaponryTextureMap: Map<string, Texture2D> = new Map<string, Texture2D>();
     InventoryMap: Map<string, Node> = new Map<string, Node>();
 
     private _panelNode: Node = null;
     private _panelMap: Map<string, Node> = new Map<string, Node>();
     private _curPanel: string[] = [];
+    /** 关闭全部弹窗时递增，使之前尚未完成的异步加载不再自动显示。 */
+    private _panelRequestVersion: number = 0;
     private _finishGameInventoryPromise: Promise<void> = null;
 
     //#region 初始化
@@ -104,6 +107,8 @@ export class ZRSJZ_UIManager extends Component {
         ZRSJZ_Tools.LoadSprites("Sprites/Weaponry").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D)));
         //初始化箱子
         ZRSJZ_Tools.LoadSprites("Sprites/箱子").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.BoxSFMap.set(sf.name, sf)));
+        //初始化角色皮肤
+        ZRSJZ_Tools.LoadSprites("Sprites/角色界面/Icon").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.RoleSkinIconSFMap.set(sf.name, sf)));
     }
 
     public static InitDLC() {
@@ -173,6 +178,7 @@ export class ZRSJZ_UIManager extends Component {
                         if (initCount === audioRes.length) {
                             //初始化完成
                             console.error("音频初始化完成");
+                            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT);
                         }
                     }
                 })
@@ -183,10 +189,21 @@ export class ZRSJZ_UIManager extends Component {
     //#region UI展示
     //展示面板
     public ShowPanel(panel: string, ...args: any[]) {
-        if (ZRSJZ_UIManager.Dragging) return;
         const panelName = panel.split('/').pop() || panel;
+
+        // 结算界面拥有最高优先级：显示前立即关闭其余弹窗，并终止未完成的异步弹窗请求。
+        const winPanelName = ZRSJZ_PANEL.胜利弹窗.split('/').pop() || ZRSJZ_PANEL.胜利弹窗;
+        const failPanelName = ZRSJZ_PANEL.失败弹窗.split('/').pop() || ZRSJZ_PANEL.失败弹窗;
+        if (panelName === winPanelName || panelName === failPanelName) {
+            // 已发起过同一结算面板的加载时不递增版本，否则会误取消它自己的异步请求。
+            if (this._curPanel.includes(panelName)) return;
+            this.CloseAllPanelsImmediately(panelName);
+        }
+
+        if (ZRSJZ_UIManager.Dragging) return;
         if (this._curPanel.includes(panelName)) return;//当前面板显示中
         this._curPanel.push(panelName);
+        const requestVersion = this._panelRequestVersion;
 
         //显示面板
         const showPanel: Function = () => {
@@ -209,7 +226,12 @@ export class ZRSJZ_UIManager extends Component {
                     this._panelNode.addChild(panelNode);
                     panelNode.active = false;
                     this._panelMap.set(panelName, panelNode);
-                    showPanel();
+                    if (
+                        requestVersion === this._panelRequestVersion
+                        && this._curPanel.includes(panelName)
+                    ) {
+                        showPanel();
+                    }
                 }
             });
             return;
@@ -227,6 +249,46 @@ export class ZRSJZ_UIManager extends Component {
 
         if (!this._panelMap.has(panelName)) return;
         this._panelMap.get(panelName).getComponent(ZRSJZ_Panel).Hide(...args);
+    }
+
+    /**
+     * 玩家死亡前统一终止 UI 操作并立即关闭全部弹窗。
+     * 这里不走 HidePanel，避免拖动锁和关闭动画阻止死亡弹窗显示。
+     */
+    public PrepareForDeath(): void {
+        this.CloseAllPanelsImmediately();
+    }
+
+    /**
+     * 立即关闭所有已打开和正在异步加载的弹窗，可选择保留一个最高优先级面板。
+     */
+    private CloseAllPanelsImmediately(excludedPanelName: string = ""): void {
+        this._panelRequestVersion++;
+
+        // 先取消拖动，归还跟随手指的临时道具节点，并恢复滚动等交互状态。
+        ZRSJZ_UIManager.Dragging = false;
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CANCEL_PROP_DRAG);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
+
+        // 清除所有库存中的拖动落点预览颜色。
+        for (const inventoryNode of this.InventoryMap.values()) {
+            const inventory = inventoryNode?.getComponent(ZRSJZ_Inventory);
+            if (inventory) {
+                ZRSJZ_EventManager.EmitPersist(
+                    ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW,
+                    inventory.InventoryType,
+                );
+            }
+        }
+
+        this._curPanel = excludedPanelName && this._curPanel.includes(excludedPanelName)
+            ? [excludedPanelName]
+            : [];
+        for (const [panelName, panelNode] of this._panelMap) {
+            if (panelName !== excludedPanelName && panelNode?.isValid) {
+                panelNode.active = false;
+            }
+        }
     }
 
     //展示提示
@@ -293,11 +355,12 @@ export class ZRSJZ_UIManager extends Component {
             });
         }
 
-        if (!this.WeaponryTextureMap.has(propName)) {
-            console.error("没找到武器ui:", propName);
-            return null;
+        if (this.WeaponryTextureMap.has(propName)) {
+            return Promise.resolve(this.WeaponryTextureMap.get(propName));
         }
-        return Promise.resolve(this.WeaponryTextureMap.get(propName));
+
+        console.error("没找到武器ui:", propName);
+        return Promise.resolve(null);
     }
 
     //获取玩家Icon
@@ -338,6 +401,25 @@ export class ZRSJZ_UIManager extends Component {
         }
     }
 
+    //获取玩家Icon
+    public GetHeroSkinIconUI(SkinName: string): Promise<SpriteFrame> {
+        if (this.RoleSkinIconSFMap.has(SkinName)) {
+            return Promise.resolve(this.RoleSkinIconSFMap.get(SkinName));
+        } else {
+            return new Promise((resolve, reject) => {
+                BundleManager.GetBundle("73_ZRSJZ").load(`Sprites/角色界面/Icon/${SkinName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
+                    if (err) {
+                        reject(err);
+                        console.error(`加载 ${SkinName} 失败`);
+                    } else {
+                        this.RoleSkinIconSFMap.set(sf.name, sf);
+                        resolve && resolve(sf);
+                    }
+                });
+            });
+        }
+    }
+
     //获取仓库
     public GetInventory(inventoryName: string): Promise<Node> {
         if (this.InventoryMap.size === 0) {
@@ -357,23 +439,24 @@ export class ZRSJZ_UIManager extends Component {
 
     /**
      * 游戏结束时结算局内库存：
-     * 1. 背包和保险箱中的道具按类型转入对应仓库；
-     * 2. 仍留在物资箱中的道具直接销毁；
-     * 3. 注销并销毁 InventoryMap 中所有箱子库存节点。
+     * 1. 撤离成功时，背包和保险箱中的道具全部归仓；
+     * 2. 撤离失败时，仅保险箱中的道具归仓；背包、刀以外的装备、子弹和房卡销毁；
+     * 3. 仍留在物资箱中的道具直接销毁；
+     * 4. 清空局内库存节点并同步仓库“全部”视图。
      */
-    public FinishGameInventory(): Promise<void> {
+    public FinishGameInventory(isEvacuationSuccess: boolean): Promise<void> {
         if (this._finishGameInventoryPromise) {
             return this._finishGameInventoryPromise;
         }
 
-        this._finishGameInventoryPromise = this.DoFinishGameInventory()
+        this._finishGameInventoryPromise = this.DoFinishGameInventory(isEvacuationSuccess)
             .finally(() => {
                 this._finishGameInventoryPromise = null;
             });
         return this._finishGameInventoryPromise;
     }
 
-    private async DoFinishGameInventory(): Promise<void> {
+    private async DoFinishGameInventory(isEvacuationSuccess: boolean): Promise<void> {
         const affectedPropIDs = new Set<string>();
 
         for (const propID in ZRSJZ_GameData.Instance.PropData) {
@@ -392,13 +475,22 @@ export class ZRSJZ_UIManager extends Component {
                 continue;
             }
 
-            const warehouse = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
-            if (!warehouse) {
-                console.warn(`[ZRSJZ_UIManager] 道具无法转入仓库: ${propData.Name}`);
+            affectedPropIDs.add(propID);
+            if (
+                propData.CurInventory === ZRSJZ_INVENTORY.背包
+                && !isEvacuationSuccess
+            ) {
+                delete ZRSJZ_GameData.Instance.PropData[propID];
                 continue;
             }
 
-            affectedPropIDs.add(propID);
+            const warehouse = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
+            if (!warehouse) {
+                console.warn(`[ZRSJZ_UIManager] 道具无法转入仓库: ${propData.Name}`);
+                delete ZRSJZ_GameData.Instance.PropData[propID];
+                continue;
+            }
+
             propData.CurInventory = warehouse;
             propData.SourceBoxID = "";
             propData.IsSearchLocked = false;
@@ -408,7 +500,47 @@ export class ZRSJZ_UIManager extends Component {
             });
         }
 
+        if (!isEvacuationSuccess) {
+            const knifeIndex = 4;
+            for (let index = 0; index < ZRSJZ_GameData.Instance.WeaponryID.length; index++) {
+                if (index === knifeIndex) continue;
+
+                const equipmentID = ZRSJZ_GameData.Instance.WeaponryID[index];
+                ZRSJZ_GameData.Instance.WeaponryID[index] = "";
+                if (!equipmentID) continue;
+
+                affectedPropIDs.add(equipmentID);
+                delete ZRSJZ_GameData.Instance.PropData[equipmentID];
+            }
+
+            for (const ammoID of ZRSJZ_GameData.Instance.AmmoID) {
+                if (!ammoID) continue;
+                affectedPropIDs.add(ammoID);
+                delete ZRSJZ_GameData.Instance.PropData[ammoID];
+            }
+            ZRSJZ_GameData.Instance.AmmoID = ["", "", "", "", "", ""];
+
+            const lostInventories = new Set<ZRSJZ_INVENTORY>([
+                ZRSJZ_INVENTORY.武器_枪,
+                ZRSJZ_INVENTORY.武器_头盔,
+                ZRSJZ_INVENTORY.武器_防弹衣,
+                ZRSJZ_INVENTORY.武器_背包,
+                ZRSJZ_INVENTORY.弹药,
+                ZRSJZ_INVENTORY.卡包,
+            ]);
+            for (const propID in ZRSJZ_GameData.Instance.PropData) {
+                if (!lostInventories.has(ZRSJZ_GameData.Instance.PropData[propID].CurInventory)) {
+                    continue;
+                }
+
+                affectedPropIDs.add(propID);
+                delete ZRSJZ_GameData.Instance.PropData[propID];
+            }
+            ZRSJZ_GameData.Instance.RoomCard = ["", "", ""];
+        }
+
         // 先保存最终数据，避免后续 UI 节点异步清理失败时丢失结算结果。
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         ZRSJZ_GameData.SaveData();
 
         const inventoryEntries = Array.from(this.InventoryMap.entries());
@@ -437,14 +569,57 @@ export class ZRSJZ_UIManager extends Component {
                 }
             }
         }
+
+        // 主界面复用常驻库存节点，结算完成后立即补充“仓库_全部”的新物资。
+        const warehouseAll = this.InventoryMap
+            .get(ZRSJZ_INVENTORY.仓库_全部)
+            ?.getComponent(ZRSJZ_Inventory);
+        if (warehouseAll) {
+            await warehouseAll.ShowPropItem();
+        }
     }
 
-    //重新初始化背包
-    public async ReloadBackpack() {
-        ZRSJZ_GameData.Instance.ReloadPropData();
-        const backpack = await this.GetInventory(ZRSJZ_INVENTORY.背包);
-        backpack.getComponent(ZRSJZ_InventoryBackpack).Init();
+    /** 开始新对局前清除上局可能残留的背包、保险箱数据并重建库存。 */
+    public async InitializeBattleInventories(): Promise<void> {
+        const battleInventories = new Set<ZRSJZ_INVENTORY>([
+            ZRSJZ_INVENTORY.背包,
+            ZRSJZ_INVENTORY.保险箱,
+        ]);
+
+        for (const propID in ZRSJZ_GameData.Instance.PropData) {
+            if (battleInventories.has(ZRSJZ_GameData.Instance.PropData[propID].CurInventory)) {
+                delete ZRSJZ_GameData.Instance.PropData[propID];
+            }
+        }
+        ZRSJZ_GameData.Instance.WeaponryID = ZRSJZ_GameData.Instance.WeaponryID
+            .map(propID => ZRSJZ_GameData.Instance.PropData[propID] ? propID : "");
+        ZRSJZ_GameData.Instance.AmmoID = ZRSJZ_GameData.Instance.AmmoID
+            .map(propID => ZRSJZ_GameData.Instance.PropData[propID] ? propID : "");
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+        ZRSJZ_GameData.SaveData();
+
+        const [backpackNode, protectorCaseNode] = await Promise.all([
+            this.WaitForInventory(ZRSJZ_INVENTORY.背包),
+            this.WaitForInventory(ZRSJZ_INVENTORY.保险箱),
+        ]);
+        await backpackNode.getComponent(ZRSJZ_InventoryBackpack).Init();
+        await protectorCaseNode.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY.保险箱);
     }
+
+    private WaitForInventory(inventoryType: ZRSJZ_INVENTORY): Promise<Node> {
+        const inventory = this.InventoryMap.get(inventoryType);
+        if (
+            inventory?.isValid
+            && inventory.getComponent(ZRSJZ_Inventory)?.IsInitialized
+        ) {
+            return Promise.resolve(inventory);
+        }
+
+        return new Promise(resolve => {
+            setTimeout(() => resolve(this.WaitForInventory(inventoryType)), 50);
+        });
+    }
+
 
     //目前显示的金币框
     public _curCurrencyUI: Node[] = [];

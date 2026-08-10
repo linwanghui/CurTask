@@ -9,6 +9,8 @@ export class ZRSJZ_Skeleton extends Component {
 
     Skeleton: sp.Skeleton = null;
     SkinName: string = null;
+    AniName: string = "";
+    WeaponryName: string = "";
 
     protected onLoad(): void {
         this.Skeleton = this.getComponent(sp.Skeleton);
@@ -25,6 +27,7 @@ export class ZRSJZ_Skeleton extends Component {
     }
 
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
+        this.AniName = aniName;
         this.Skeleton.setAnimation(0, aniName, loop);
         this.Skeleton.setCompleteListener(() => {
             if (cb) cb();
@@ -51,18 +54,23 @@ export class ZRSJZ_Skeleton extends Component {
                 if (flag) {
                     isWeaponry = true;
                     if (isEquipment) {
-                        const texture = await ZRSJZ_UIManager.Instance.GetWeaponryUI(equipmentName);
-                        if (!texture) {
-                            console.error(`武器纹理不存在: ${equipmentName}`);
-                            return;
-                        }
-                        this.Skeleton.findSlot('dao').setAttachment(null);
-                        this.Skeleton.setAttachment(key, key);
-                        this.Skeleton.setSlotTexture(key, texture, true);
+                        this.WeaponryName = equipmentName;
+                        const weaponSkin = ZRSJZ_GameData.Instance.GetWeaponSkin(equipmentName);
+                        ZRSJZ_UIManager.Instance.GetWeaponryUI(weaponSkin).then(texture => {
+                            if (!texture) {
+                                console.error(`武器纹理不存在: ${weaponSkin}`);
+                                return;
+                            }
+                            this.Skeleton.findSlot('dao').setAttachment(null);
+                            this.Skeleton.setAttachment(key, key);
+                            this.Skeleton.setSlotTexture(key, texture, true);
+                        });
                         this.PlayAni(ZRSJZ_ANI.Idle_Q);
                     } else {
+                        this.WeaponryName = "";
                         this.Skeleton.findSlot(key)?.setAttachment(null);
                         this.Skeleton.setAttachment('dao', ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
+                        console.error(this.node.parent.name);
                         this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
                             this.PlayAni(ZRSJZ_ANI.Idle_D1);
                         })
@@ -89,6 +97,7 @@ export class ZRSJZ_Skeleton extends Component {
             if (slotName === 'dao') {
                 //装备
                 if (isEquipment) {
+                    this.WeaponryName = equipmentName;
                     for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
                         this.Skeleton.findSlot(key)?.setAttachment(null);
                     }

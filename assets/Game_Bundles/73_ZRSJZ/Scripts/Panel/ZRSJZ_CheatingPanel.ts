@@ -24,6 +24,10 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             case "无限火力":
                 ZRSJZ_Game.Instance.UnlimitedFirepower = true;
                 break;
+            case "金币加1000W":
+                ZRSJZ_GameData.Instance.ChangeGold(10000000);
+                break;
+
         }
     }
 }

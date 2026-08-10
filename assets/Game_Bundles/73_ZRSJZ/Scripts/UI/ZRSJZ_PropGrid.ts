@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame, UIOpacity, v3, Vec2, Vec3, Widget } from 'cc';
+import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame, UITransform, UIOpacity, v3, Vec2, Vec3, Widget } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PROP_CONFIG, ZRSJZ_GRID_TYPE, ZRSJZ_PropData, ZRSJZ_INVENTORY, ZRSJZ_GRID_SIZE, ZRSJZ_GRID_INTERVAL, ZRSJZ_INVENTORY_CONFIG, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
@@ -68,6 +68,8 @@ export class ZRSJZ_PropGrid extends Component {
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_EMPTY_GRID_REMOVE, this.RemoveEmptyProp, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_SHOW, this.SellShow, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_HIDE, this.SellHide, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CANCEL_PROP_DRAG, this.CancelCurrentDrag, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_PROP_DRAG_ROTATE, this.ChangeDragOrientation, this);
     }
 
     protected onDisable(): void {
@@ -84,9 +86,17 @@ export class ZRSJZ_PropGrid extends Component {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_EMPTY_GRID_REMOVE, this.RemoveEmptyProp, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_SHOW, this.SellShow, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_HIDE, this.SellHide, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CANCEL_PROP_DRAG, this.CancelCurrentDrag, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_PROP_DRAG_ROTATE, this.ChangeDragOrientation, this);
     }
 
-    async Init(propID: string, gridX: number = -1, gridY: number = -1, inventory: ZRSJZ_INVENTORY = ZRSJZ_INVENTORY.仓库_全部) {
+    async Init(
+        propID: string,
+        gridX: number = -1,
+        gridY: number = -1,
+        inventory: ZRSJZ_INVENTORY = ZRSJZ_INVENTORY.仓库_全部,
+        useSavedOrientation: boolean = true,
+    ) {
         const initVersion = ++this._initVersion;
         this._gridStyleVersion++;
 
@@ -122,6 +132,7 @@ export class ZRSJZ_PropGrid extends Component {
         this.IconSprite.spriteFrame = null;
         this.NameLabel.string = "";
         this.CountLabel.string = "";
+        this.ApplyOrientation(false, 1, 1);
         this.Check.active = false;
         this.Checked.active = false;
 
@@ -157,6 +168,12 @@ export class ZRSJZ_PropGrid extends Component {
         this.NameLabel.string = this.PropName;
         this.CountLabel.string = `x${this.PropData.CurCount}`;
 
+        const gridIndex = inventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+        const isRotate = useSavedOrientation
+            && this.SupportsAutoRotation(inventory)
+            && this.PropData.GridData[gridIndex]?.IsRotate === true;
+        this.ApplyOrientation(isRotate, this.PropData.Width, this.PropData.Height);
+
         const iconWidget: Widget = this.IconSprite.getComponent(Widget);
         iconWidget.isAlignHorizontalCenter = true;
         iconWidget.horizontalCenter = 0;
@@ -168,6 +185,39 @@ export class ZRSJZ_PropGrid extends Component {
         countWidget.bottom = 2;
         countWidget.isAlignRight = true;
         countWidget.right = 5;
+
+        const checkWidget: Widget = this.Check.getComponent(Widget);
+        checkWidget.isAlignTop = true;
+        checkWidget.top = 0;
+        checkWidget.isAlignRight = true;
+        checkWidget.right = 0;
+
+        const checkedWidget: Widget = this.Checked.getComponent(Widget);
+        checkedWidget.isAlignTop = true;
+        checkedWidget.top = -5;
+        checkedWidget.isAlignRight = true;
+        checkedWidget.right = -6;
+    }
+
+    private ApplyOrientation(isRotate: boolean, originalWidth: number, originalHeight: number): void {
+        this.GridSprite.sizeMode = Sprite.SizeMode.RAW;
+        this.IconSprite.node.setRotationFromEuler(0, 0, 0);
+        this.node.setRotationFromEuler(0, 0, isRotate ? -90 : 0);
+
+        // 节点锚点在左上角。顺时针旋转后向右补偿原高度，保持占格左上角不变。
+        const baseX = this._gridX * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL);
+        const baseY = -this._gridY * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL);
+        const rotatedOffsetX = isRotate
+            ? originalHeight * ZRSJZ_GRID_SIZE + Math.max(0, originalHeight - 1) * ZRSJZ_GRID_INTERVAL
+            : 0;
+        this.node.setPosition(baseX + rotatedOffsetX, baseY, this.node.position.z);
+    }
+
+    private SupportsAutoRotation(inventory: ZRSJZ_INVENTORY): boolean {
+        return String(inventory).startsWith("仓库_")
+            || inventory === ZRSJZ_INVENTORY.保险箱
+            || inventory === ZRSJZ_INVENTORY.背包
+            || inventory === ZRSJZ_INVENTORY.物资;
     }
 
     async ShowGrid(inventory: ZRSJZ_INVENTORY, gridX: number = -1, gridY: number = -1, gridType: string = "灰") {
@@ -240,9 +290,15 @@ export class ZRSJZ_PropGrid extends Component {
                 const curPos = this._propSFNode.worldPosition.clone();
                 this._v_2 = event.getUILocation().clone().subtract(this._v_1)
                 const targetPos: Vec3 = new Vec3();
-                Vec3.lerp(targetPos, this._propSFNode.worldPosition, this._propSFNode.worldPosition.clone().add3f(this._v_2.x, this._v_2.y, 0), 0.3);
-                this._propSFNode.setWorldPosition(curPos.add3f(this._v_2.x, this._v_2.y, 0));
-                ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this._inventory, this.PropID, this._propSFNode.worldPosition, false);
+                Vec3.lerp(targetPos, this._propSFNode.worldPosition, this._propSFNode.worldPosition.clone().add3f(this._v_2.x, this._v_2.y, 0), 1);
+                this._propSFNode.setWorldPosition(targetPos);
+                ZRSJZ_EventManager.EmitPersist(
+                    ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
+                    this._inventory,
+                    this.PropID,
+                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldPosition(),
+                    false,
+                );
             }
             this._v_1.set(event.getUILocation().clone());
         }
@@ -255,7 +311,13 @@ export class ZRSJZ_PropGrid extends Component {
             if (this._isMove) {
                 ZRSJZ_UIManager.Dragging = false;
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
-                ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this._inventory, this.PropID, this._propSFNode.worldPosition, true);
+                ZRSJZ_EventManager.EmitPersist(
+                    ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
+                    this._inventory,
+                    this.PropID,
+                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldPosition(),
+                    true,
+                );
                 this._isMove = false;
                 ZRSJZ_PoolManager.Instance.PutNode(this._propSFNode);
                 this._propSFNode = null;
@@ -278,13 +340,53 @@ export class ZRSJZ_PropGrid extends Component {
             if (this._isMove) {
                 ZRSJZ_UIManager.Dragging = false;
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
-                ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this._inventory, this.PropID, this._propSFNode.worldPosition, true);
+                ZRSJZ_EventManager.EmitPersist(
+                    ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
+                    this._inventory,
+                    this.PropID,
+                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldPosition(),
+                    true,
+                );
                 this._isMove = false;
                 ZRSJZ_PoolManager.Instance.PutNode(this._propSFNode);
                 this._propSFNode = null;
                 this.UIOpacity.opacity = 255;
             }
         }
+    }
+
+    /**
+     * 死亡等强制中断场景下取消拖动，不触发落点确认，因此不会移动道具。
+     * 异步创建拖动节点尚未完成时，通过使 touchID 失效让 PropMove 自行回收节点。
+     */
+    public CancelCurrentDrag(): void {
+        const wasOperating = this._touchID !== -1 || this._isMove || this._isCreatingMove;
+        this._touchID = -1;
+        this._dragAxis = 0;
+        this._isMove = false;
+        ZRSJZ_UIManager.Dragging = false;
+
+        if (this._propSFNode?.isValid) {
+            ZRSJZ_PoolManager.Instance.PutNode(this._propSFNode);
+        }
+        this._propSFNode = null;
+        if (this.UIOpacity) this.UIOpacity.opacity = 255;
+
+        if (wasOperating) {
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
+        }
+    }
+
+    private ChangeDragOrientation(id: string, isRotate: boolean): void {
+        if (
+            id !== this.PropID
+            || !this._isMove
+            || !this._propSFNode?.isValid
+            || !this.PropData
+        ) {
+            return;
+        }
+        this._propSFNode.getComponent(ZRSJZ_PropSF).SetOrientation(isRotate);
     }
 
     async PropMove() {
@@ -323,9 +425,22 @@ export class ZRSJZ_PropGrid extends Component {
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, false);
         this._propSFNode = propSFNode;
         this._propSFNode.active = true;
+        const logicalGridWorldPosition = this.node.parent.getComponent(UITransform).convertToWorldSpaceAR(v3(
+            this._gridX * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL),
+            -this._gridY * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL),
+            0,
+        ));
         this._propSFNode.parent = ZRSJZ_UIManager.Instance.PropParent;
-        this._propSFNode.setWorldPosition(this.node.worldPosition.clone());
-        this._propSFNode.getComponent(ZRSJZ_PropSF).Init(this.PropID, this._propGridSF, this._propSF);
+        this._propSFNode.setWorldPosition(logicalGridWorldPosition);
+        const gridIndex = this._inventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+        const isRotate = this.SupportsAutoRotation(this._inventory)
+            && this.PropData.GridData[gridIndex]?.IsRotate === true;
+        this._propSFNode.getComponent(ZRSJZ_PropSF).Init(
+            this.PropID,
+            this._propGridSF,
+            this._propSF,
+            isRotate,
+        );
         this.UIOpacity.opacity = 100;
     }
 
@@ -351,7 +466,7 @@ export class ZRSJZ_PropGrid extends Component {
         }
     }
 
-    async ChangePosByGrid(id: string, inventory: ZRSJZ_INVENTORY, gridX: number, gridY: number, isRemove: boolean = false) {
+    async ChangePosByGrid(id: string, inventory: ZRSJZ_INVENTORY, gridX: number, gridY: number, isRotate: boolean = false, isRemove: boolean = false) {
         if (id == this.PropID) {
             if (isRemove) {
                 ZRSJZ_PoolManager.Instance.PutNode(this.node);
@@ -359,13 +474,16 @@ export class ZRSJZ_PropGrid extends Component {
             }
             //同一个库存直接移动
             if (inventory == this._inventory) {
-                ZRSJZ_GameData.Instance.ChangePropGridPos(id, inventory == ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1, gridX, gridY);
+                ZRSJZ_GameData.Instance.ChangePropGridPos(id, inventory == ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1, gridX, gridY, isRotate);
             } else {
 
             }
             this._gridX = gridX;
             this._gridY = gridY;
             this.node.setPosition(v3(gridX * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL), -gridY * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL), 0));
+            if (this.PropData) {
+                this.ApplyOrientation(isRotate && this.SupportsAutoRotation(inventory), this.PropData.Width, this.PropData.Height);
+            }
         }
     }
 
@@ -396,6 +514,12 @@ export class ZRSJZ_PropGrid extends Component {
             this._gridX * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL),
             -this._gridY * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL),
         );
+        if (this.PropData) {
+            const gridIndex = this._inventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+            const isRotate = this.SupportsAutoRotation(this._inventory)
+                && this.PropData.GridData[gridIndex]?.IsRotate === true;
+            this.ApplyOrientation(isRotate, this.PropData.Width, this.PropData.Height);
+        }
     }
 
     //开始售卖

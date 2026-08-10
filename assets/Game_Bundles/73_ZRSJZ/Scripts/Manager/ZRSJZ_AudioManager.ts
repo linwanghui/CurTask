@@ -7,9 +7,11 @@ export class ZRSJZ_AudioManager extends Component {
     public static Instance: ZRSJZ_AudioManager = null;
 
     public AudioClipMaps: Map<string, AudioClip> = new Map();
+    CyclicSoundMap: Map<string, AudioSource> = new Map();
     private idleSources: AudioSource[] = [];
     private _curMusic: string = "";
     private _curMusicAudioSource: AudioSource = null;
+
 
     Init() {
         this.node.on(AudioSource.EventType.ENDED, this.onPlayEnded, this);
@@ -64,6 +66,35 @@ export class ZRSJZ_AudioManager extends Component {
         sound.loop = false;
         sound.volume = valume;
         sound.play();
+    }
+
+    public PlayCyclicSound(audioName: string, loop: boolean = true, valume: number = 1) {
+        if (ZRSJZ_GameData.Instance.SoundMute) return;
+        if (!this.AudioClipMaps.has(audioName)) {
+            error(`音频不存在: ${audioName}`);
+            return;
+        }
+
+        const sound = this.getIdleSource();
+        sound.clip = this.AudioClipMaps.get(audioName);
+        sound.loop = loop;
+        sound.volume = valume;
+        sound.play();
+        this.CyclicSoundMap.set(audioName, sound);
+    }
+
+    public StopCyclicSound(audioName: string) {
+        if (ZRSJZ_GameData.Instance.SoundMute) return;
+        if (!this.CyclicSoundMap.has(audioName)) {
+            error(`音频不存在: ${audioName}`);
+            return;
+        }
+        const sound = this.CyclicSoundMap.get(audioName);
+        sound.clip = null;
+        sound.stop();
+        this.freeSource(sound);
+        this.CyclicSoundMap.delete(audioName);
+        console.error(2);
     }
 
     public PlaySoundByClip(audioClip: AudioClip, valume: number = 1) {

@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, find, instantiate, Node, Prefab, ScrollView, tween, Tween, UITransform, Vec3 } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, ScrollView, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -6,6 +6,7 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
 import { ZRSJZ_Prepare } from '../UI/ZRSJZ_Prepare';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 const GridCol: number = 7;
@@ -19,6 +20,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
 
     public CheckedNode: Node = null;
     public SellMask: Node = null;
+    public SellValue: Label = null;
 
     private _warehouseName: string = "";
     private _warehouseNode: Node = null;
@@ -33,6 +35,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         this.ScrollView = find("Panel/仓库", this.node).getComponent(ScrollView);
         this.CheckedNode = find("Panel/仓库/物品按键/Checked", this.node);
         this.SellMask = find("Panel/Mask", this.node);
+        this.SellValue = find("总价值/Count", this.SellMask).getComponent(Label);
         this._warehouseNode = find("Panel/仓库/物品按键/全部", this.node);
     }
 
@@ -43,6 +46,19 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     }
 
     protected onDisable(): void {
+        // 弹窗被死亡流程强制关闭时，批量出售状态也必须一并清理。
+        if (this._isSelling) {
+            this._isSelling = false;
+            this._sellPropID = [];
+            if (this.SellMask) this.SellMask.active = false;
+            if (this._curInventory?.isValid) {
+                ZRSJZ_EventManager.EmitPersist(
+                    ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_HIDE,
+                    this._curInventory.getComponent(ZRSJZ_Inventory)?.InventoryType,
+                );
+            }
+        }
+        if (this.ScrollView) this.ScrollView.enabled = true;
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
     }
@@ -70,6 +86,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     //#region 按钮点击事件
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Close":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.仓库界面);
@@ -80,6 +97,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
                     this.SellMask.active = true;
                     this._isSelling = true;
                     this._sellPropID = [];
+                    this.RefreshSellValue();
                     ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_SHOW, this._curInventory.getComponent(ZRSJZ_Inventory).InventoryType);
                 } else {
                     this._isSelling = false;
@@ -95,6 +113,8 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
             case "Mask":
                 this._isSelling = false;
                 this.SellMask.active = false;
+                this._sellPropID = [];
+                this.RefreshSellValue();
                 ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_HIDE, this._curInventory.getComponent(ZRSJZ_Inventory).InventoryType);
                 break;
             default:
@@ -133,13 +153,33 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         } else {
             this._sellPropID.push(propID);
         }
+        this.RefreshSellValue();
     }
 
     SellProp() {
+        let totalValue = 0;
         this._sellPropID.forEach(propID => {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            if (!propData) return;
+
+            totalValue += propData.UnitPrice * propData.CurCount;
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, propID);
             ZRSJZ_GameData.Instance.RemovePropID(propID);
         });
+        if (totalValue > 0) {
+            ZRSJZ_GameData.Instance.ChangeGold(totalValue);
+            ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
+        }
+        this._sellPropID = [];
+        this.RefreshSellValue();
+    }
+
+    private RefreshSellValue() {
+        const totalValue = this._sellPropID.reduce((value, propID) => {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            return value + (propData ? propData.UnitPrice * propData.CurCount : 0);
+        }, 0);
+        this.SellValue.string = `${totalValue}`;
     }
 }
 

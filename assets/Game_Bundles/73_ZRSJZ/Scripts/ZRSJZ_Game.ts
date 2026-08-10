@@ -1,13 +1,15 @@
-import { _decorator, Component, EventTouch, find, instantiate, math, Node, Prefab, Sprite, SpriteFrame, UITransform, Vec3, } from 'cc';
+import { _decorator, Camera, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Sprite, SpriteFrame, UITransform, Vec3, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from './ZRSJZ_Constant';
+import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
+import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
+import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -20,23 +22,57 @@ export class ZRSJZ_Game extends Component {
     @property(ZRSJZ_GameCamera)
     Camera: ZRSJZ_GameCamera = null;
 
+    @property(Node)
+    UI: Node = null;
+
+    @property(Label)
+    GameTime: Label = null;
+
+    @property(Label)
+    Evacuate: Label = null;
+
+    @property(Node)
+    Direction: Node = null;
+
     CurMap: ZRSJZ_Map = null;
     CurPlayer: ZRSJZ_Player = null;
 
     GamePaused: boolean = false;
     UnlimitedFirepower: boolean = false;
+    Drug: number[] = [0, 0, 3];//药品数量--高级/中级/低级
 
     private _player: Node = null;
     private _miniMapContent: Node = null;
     private _miniMapPoint: Node = null;
     private _miniMapIcon: Sprite = null;
     private _miniMapPointPosition: Vec3 = new Vec3();
+    private _currentMapName: string = "";
+    private _elapsedGameTime: number = 0;
+    private _timeLimitSeconds: number = 0;
+    private _killCount: number = 0;
+    private _battleStarted: boolean = false;
+    private readonly _evacuationDuration: number = 10;
+    private _evacuationElapsed: number = 0;
+    private _isEvacuating: boolean = false;
+    private _isGameFinished: boolean = false;
+    private _evacuationMethod: string = "固定撤离点";
+    private _directionEndWorld: Vec3 = new Vec3();
 
     protected onLoad(): void {
         ZRSJZ_Game.Instance = this;
+        this._elapsedGameTime = 0;
+        this._killCount = 0;
+        this._battleStarted = false;
+        this._evacuationElapsed = 0;
+        this._isEvacuating = false;
+        this._isGameFinished = false;
+        this.InitializeBattleTimer();
+        this.SetEvacuationVisible(false);
+        if (this.Direction) this.Direction.active = false;
     }
 
-    protected start(): void {
+    protected async start(): Promise<void> {
+        await ZRSJZ_UIManager.Instance.InitializeBattleInventories();
         this.LoadMap();
         this.InitMiniMap();
     }
@@ -46,11 +82,183 @@ export class ZRSJZ_Game extends Component {
     }
 
     protected onDisable(): void {
+        this.CancelEvacuation();
         ZRSJZ_UIManager.IsBattle = false;
     }
 
     protected lateUpdate(): void {
         this.RefreshMiniMap();
+        this.RefreshDirectionUI();
+    }
+
+    private RefreshDirectionUI(): void {
+        if (!this.Direction || !this.CurPlayer?.node?.isValid || !this.UI?.isValid) return;
+        const worldCamera = this.Camera?.getComponent(Camera);
+        const skeleton = this.CurPlayer.PlayerSkeleton;
+        if (!worldCamera || !skeleton) {
+            this.Direction.active = false;
+            return;
+        }
+
+        let dirX = skeleton.AttackX;
+        let dirY = skeleton.AttackY;
+        let dirLength = Math.sqrt(dirX * dirX + dirY * dirY);
+        if (dirLength <= 0.0001) {
+            dirX = skeleton.Facing || 1;
+            dirY = 0;
+            dirLength = 1;
+        }
+        dirX /= dirLength;
+        dirY /= dirLength;
+
+        const attackRange = this.GetPlayerAttackRange();
+        if (attackRange <= 0) {
+            this.Direction.active = false;
+            return;
+        }
+
+        const rangeOrigin = this.CurPlayer.node.getChildByName("Point") ?? this.CurPlayer.node;
+        const playerWorld = rangeOrigin.worldPosition;
+        this._directionEndWorld.set(
+            playerWorld.x + dirX * attackRange,
+            playerWorld.y + dirY * attackRange,
+            playerWorld.z,
+        );
+        const startUI = worldCamera.convertToUINode(playerWorld, this.UI);
+        const endUI = worldCamera.convertToUINode(this._directionEndWorld, this.UI);
+        const uiDirX = endUI.x - startUI.x;
+        const uiDirY = endUI.y - startUI.y;
+        if (uiDirX * uiDirX + uiDirY * uiDirY <= 0.0001) {
+            this.Direction.active = false;
+            return;
+        }
+
+        this.Direction.active = true;
+        // “方向”图片是攻击范围圆周的一小段，只放到射程边缘，不拉伸成箭头。
+        this.Direction.setPosition(endUI.x, endUI.y, this.Direction.position.z);
+        this.Direction.setRotationFromEuler(
+            0,
+            0,
+            Math.atan2(uiDirY, uiDirX) * 180 / Math.PI - 180,
+        );
+        const directionSprite = this.Direction.getComponent(Sprite);
+        if (directionSprite) directionSprite.sizeMode = Sprite.SizeMode.RAW;
+    }
+
+    private GetPlayerAttackRange(): number {
+        if (!this.CurPlayer) return 0;
+        // 近战实际伤害范围不变，这里只使用默认 1000 作为结界 UI 的显示半径。
+        if (this.CurPlayer.WeaponType === "刀") return 1000;
+
+        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0];
+        const gunName = ZRSJZ_GameData.Instance.PropData[gunID]?.Name;
+        const range = gunName ? ZRSJZ_PROP_PROPERTY.get(gunName)?.["射程"] : 0;
+        return Number.isFinite(range) ? Math.max(0, range) : 0;
+    }
+
+    protected update(deltaTime: number): void {
+        if (this._battleStarted && !this.GamePaused && Number.isFinite(deltaTime) && deltaTime > 0) {
+            const battleTimeBeforeTimeout = this._timeLimitSeconds > 0
+                ? Math.max(0, this._timeLimitSeconds - this._elapsedGameTime)
+                : Number.POSITIVE_INFINITY;
+            const evacuationTimeBeforeComplete = this._isEvacuating
+                ? Math.max(0, this._evacuationDuration - this._evacuationElapsed)
+                : Number.POSITIVE_INFINITY;
+            this._elapsedGameTime += deltaTime;
+            this.RefreshGameTime();
+
+            if (this._isEvacuating) {
+                this._evacuationElapsed += deltaTime;
+                this.RefreshEvacuationTime();
+            }
+
+            const evacuationCompleted = this._isEvacuating
+                && this._evacuationElapsed >= this._evacuationDuration;
+            const timeoutReached = this._timeLimitSeconds > 0
+                && this._elapsedGameTime >= this._timeLimitSeconds;
+
+            // 同一帧同时跨过两个节点时，按实际所需时间更短的事件决定结果。
+            if (evacuationCompleted && evacuationTimeBeforeComplete <= battleTimeBeforeTimeout) {
+                this.CompleteEvacuation();
+                return;
+            }
+            if (timeoutReached) {
+                this.FailEvacuationByTimeout();
+                return;
+            }
+            if (evacuationCompleted) {
+                this.CompleteEvacuation();
+            }
+        }
+    }
+
+    /** 玩家进入撤离点后开始计时；必须在区域内连续停留满 10 秒。 */
+    StartEvacuation(evacuationPointName: string = "固定撤离点"): void {
+        if (!this._battleStarted || this.GamePaused || this._isGameFinished) return;
+        if (this._isEvacuating) return;
+
+        this._evacuationMethod = evacuationPointName || "固定撤离点";
+        this._evacuationElapsed = 0;
+        this._isEvacuating = true;
+        this.SetEvacuationVisible(true);
+        this.RefreshEvacuationTime();
+    }
+
+    /** 玩家提前离开撤离点时取消并重置倒计时。 */
+    CancelEvacuation(): void {
+        if (!this._isEvacuating) return;
+
+        this._isEvacuating = false;
+        this._evacuationElapsed = 0;
+        this.SetEvacuationVisible(false);
+    }
+
+    private RefreshEvacuationTime(): void {
+        if (!this.Evacuate) return;
+        const remainingSeconds = Math.max(
+            0,
+            Math.ceil(this._evacuationDuration * 100 - this._evacuationElapsed * 100),
+        );
+        this.Evacuate.string = `${Math.floor(remainingSeconds / 100).toString().padStart(2, "0")}:${(remainingSeconds % 100).toString().padStart(2, "0")}`;
+    }
+
+    private SetEvacuationVisible(visible: boolean): void {
+        if (this.Evacuate?.node?.parent) {
+            this.Evacuate.node.parent.active = visible;
+        }
+    }
+
+    private CompleteEvacuation(): void {
+        if (!this._isEvacuating || this._isGameFinished) return;
+
+        this._isEvacuating = false;
+        this._isGameFinished = true;
+        this._battleStarted = false;
+        this.GamePaused = true;
+        this.SetEvacuationVisible(false);
+        ZRSJZ_UIManager.Instance.ShowPanel(
+            ZRSJZ_PANEL.胜利弹窗,
+            this._evacuationMethod,
+            this.GetGameTime(),
+            this.GetKillCount(),
+            this.GetAllGoodsID(),
+        );
+    }
+
+    private FailEvacuationByTimeout(): void {
+        if (this._isGameFinished) return;
+
+        this.CancelEvacuation();
+        this._isGameFinished = true;
+        this._battleStarted = false;
+        this.GamePaused = true;
+        this.RefreshGameTime();
+        ZRSJZ_UIManager.Instance.ShowPanel(
+            ZRSJZ_PANEL.失败弹窗,
+            "撤离失败",
+            this.GetGameTime(),
+            this.GetKillCount(),
+        );
     }
 
     LoadMap() {
@@ -78,7 +286,17 @@ export class ZRSJZ_Game extends Component {
             this._player = player;
             this.Camera.Init(player, this.CurMap.Map);
             this.RefreshMiniMap();
+            this.LoadUI();
+            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
+            ZRSJZ_AudioManager.Instance.PlayMusic("战斗BGM");
         })
+    }
+
+    LoadUI() {
+        this.Drug = [0, 0, 3];
+        this.UI.active = true;
+        this.RefreshGameTime();
+        this._battleStarted = true;
     }
 
     async CreateDieEffect(worldPos: Vec3, cb: Function = null) {
@@ -106,28 +324,55 @@ export class ZRSJZ_Game extends Component {
     private OpenMapPanel(): void {
         ZRSJZ_UIManager.Instance.ShowPanel(
             ZRSJZ_PANEL.地图弹窗,
-            0,
-            this._miniMapIcon.spriteFrame,
+            this._currentMapName,
+            this._miniMapIcon?.spriteFrame ?? null,
         );
     }
 
     private InitMiniMap(): void {
-        this._miniMapContent = find("UICanvas/小地图/Mask/地图");
-        this._miniMapPoint = find("UICanvas/小地图/Mask/地图/我的位置");
-        this._miniMapIcon = find("UICanvas/小地图/Mask/地图/我的位置/Icon")?.getComponent(Sprite);
-        console.error(ZRSJZ_GameData.Instance.HaveRole[0]);
-        ZRSJZ_UIManager.Instance.GetHeroUI(ZRSJZ_GameData.Instance.CurSkin[0]).then((sf: SpriteFrame) => this._miniMapIcon.spriteFrame = sf);
-
-        if (!this._miniMapContent || !this._miniMapPoint) {
-            console.warn("[ZRSJZ_Game] 小地图节点结构不完整");
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
+        const miniMapMask = find("UICanvas/小地图/Mask");
+        if (!mapConfig || !miniMapMask) {
+            console.warn(`[ZRSJZ_Game] 无法初始化小地图: ${ZRSJZ_GameData.Instance.CurMap}`);
             return;
         }
+
+        this._currentMapName = mapConfig.MapName;
+        this._miniMapContent = miniMapMask.getChildByName(this._currentMapName);
+        this._miniMapPoint = miniMapMask.getChildByName("我的位置");
+        this._miniMapIcon = this._miniMapPoint?.getChildByName("Icon")?.getComponent(Sprite) ?? null;
+
+        const mapNames = new Set(Array.from(ZRSJZ_MAP_CONFIG.values()).map(config => config.MapName));
+        miniMapMask.children.forEach(child => {
+            if (mapNames.has(child.name)) {
+                child.active = child === this._miniMapContent;
+            }
+        });
+
+        if (this._miniMapIcon) {
+            ZRSJZ_UIManager.Instance.GetHeroUI(ZRSJZ_GameData.Instance.CurSkin[0])
+                .then((sf: SpriteFrame) => {
+                    if (this._miniMapIcon?.node?.isValid) {
+                        this._miniMapIcon.spriteFrame = sf;
+                    }
+                })
+                .catch(() => undefined);
+        }
+
+        if (!this._miniMapContent || !this._miniMapPoint) {
+            console.warn(`[ZRSJZ_Game] 找不到关卡对应的小地图节点: ${this._currentMapName}`);
+            return;
+        }
+
+        this._miniMapPoint.active = true;
+        this._miniMapPoint.setPosition(0, 0, this._miniMapPoint.position.z);
+        this._miniMapPoint.setSiblingIndex(miniMapMask.children.length - 1);
     }
 
     /**
      * 小地图实时跟随：
-     * “我的位置”在地图底图中使用真实比例定位，再反向移动底图，
-     * 从而让玩家标记始终保持在 Mask 中心。
+     * 根据玩家在世界地图中的比例反向移动底图，
+     * “我的位置”作为底图的同级节点始终固定在 Mask 中心。
      */
     private RefreshMiniMap(): void {
         if (!this._player?.isValid
@@ -165,7 +410,8 @@ export class ZRSJZ_Game extends Component {
             0,
         );
 
-        this._miniMapPoint.setPosition(this._miniMapPointPosition);
+        // “我的位置”与地图底图是 Mask 下的同级节点，固定在遮罩中心并只移动底图。
+        this._miniMapPoint.setPosition(0, 0, this._miniMapPoint.position.z);
         const mapScale = this._miniMapContent.scale;
         this._miniMapContent.setPosition(
             -this._miniMapPointPosition.x * mapScale.x,
@@ -174,4 +420,65 @@ export class ZRSJZ_Game extends Component {
         );
     }
 
+    //#region 获取游戏时间
+    private InitializeBattleTimer(): void {
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
+        const limitMinutes = Number(mapConfig?.TimeLimitMinutes ?? 0);
+        this._timeLimitSeconds = Number.isFinite(limitMinutes)
+            ? Math.max(0, limitMinutes * 60)
+            : 0;
+        this.RefreshGameTime();
+    }
+
+    private RefreshGameTime(): void {
+        if (!this.GameTime) return;
+        this.GameTime.string = this._timeLimitSeconds > 0
+            ? this.GetRemainingGameTime()
+            : this.GetGameTime();
+    }
+
+    private GetRemainingGameTime(): string {
+        const remainingSeconds = Math.max(
+            0,
+            Math.ceil(this._timeLimitSeconds - this._elapsedGameTime),
+        );
+        return this.FormatTime(remainingSeconds);
+    }
+
+    GetGameTime(): string {
+        const totalSeconds = Math.max(0, Math.floor(this._elapsedGameTime));
+        return this.FormatTime(totalSeconds);
+    }
+
+    private FormatTime(totalSeconds: number): string {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    }
+
+    //#region 获取击杀数
+    GetKillCount(): string {
+        return Math.max(0, Math.floor(this._killCount)).toString();
+    }
+
+    /** 敌人首次确认死亡时登记击杀，防止死亡表现或回收流程重复计数。 */
+    RecordKill(count: number = 1): void {
+        if (!Number.isFinite(count) || count <= 0) return;
+        this._killCount += Math.floor(count);
+    }
+
+    //#region 战利品ID（背包跟保险箱）
+    GetAllGoodsID(): string[] {
+        const goodsInventories = new Set<ZRSJZ_INVENTORY>([
+            ZRSJZ_INVENTORY.背包,
+            ZRSJZ_INVENTORY.保险箱,
+        ]);
+
+        return Object.entries(ZRSJZ_GameData.Instance.PropData ?? {})
+            .filter(([id, propData]) => !!id
+                && !!propData
+                && propData.CurCount > 0
+                && goodsInventories.has(propData.CurInventory))
+            .map(([id]) => id);
+    }
 }

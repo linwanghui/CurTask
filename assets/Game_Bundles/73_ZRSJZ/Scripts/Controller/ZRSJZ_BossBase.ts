@@ -71,7 +71,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         };
     }
 
-    /** 使用当前地图配置覆盖 Boss 血量、伤害倍率和掉落箱。 */
+    /** 使用当前地图配置覆盖 Boss 血量、伤害、行动节奏和掉落箱。 */
     protected ApplyMapConfig(enemyName: string): void {
         const mapName = ZRSJZ_GameData.Instance.CurMap;
         const mapConfig = ZRSJZ_MAP_CONFIG.get(mapName);
@@ -85,10 +85,23 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         this.BossConfig = {
             ...this.BossConfig,
             MaxHealth: maxHealth,
+            PatrolSpeed: this.BossConfig.PatrolSpeed * bossConfig.SpeedMultiplier,
+            ChaseSpeed: this.BossConfig.ChaseSpeed * bossConfig.SpeedMultiplier,
+            NormalAttack: {
+                ...this.BossConfig.NormalAttack,
+                Cooldown: this.BossConfig.NormalAttack.Cooldown * bossConfig.CooldownMultiplier,
+            },
+            Skills: this.BossConfig.Skills.map(skill => ({
+                ...skill,
+                Cooldown: skill.Cooldown * bossConfig.CooldownMultiplier,
+            })),
         };
         this.EnemyConfig = {
             ...this.EnemyConfig,
             MaxHealth: maxHealth,
+            PatrolSpeed: this.EnemyConfig.PatrolSpeed * bossConfig.SpeedMultiplier,
+            ChaseSpeed: this.EnemyConfig.ChaseSpeed * bossConfig.SpeedMultiplier,
+            AttackInterval: this.EnemyConfig.AttackInterval * bossConfig.CooldownMultiplier,
         };
         this.DamageMultiplier = Math.max(0, bossConfig.HarmMultiple);
         this.DropBoxConfig = bossConfig.Box;

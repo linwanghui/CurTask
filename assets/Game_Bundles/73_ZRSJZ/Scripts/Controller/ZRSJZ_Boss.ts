@@ -2,6 +2,7 @@ import { _decorator, director, Vec3, Node, setPropertyEnumType } from 'cc';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_BossBase } from './ZRSJZ_BossBase';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_MuzzleEffect } from '../Effect/ZRSJZ_MuzzleEffect';
 
 const { ccclass, property } = _decorator;
 
@@ -31,12 +32,19 @@ export class ZRSJZ_Boss extends ZRSJZ_BossBase {
         if (!attack) {
             return;
         }
+        console.error(eventName, attack.Name);
 
         switch (attack.Name) {
             case "普通攻击":
                 this._attack(this._getStartPos(this.FireBoneName), attack.DamageRange, attack.Damage);
                 break;
             case "超级陀螺":
+                this._attack(this.node.worldPosition, attack.DamageRange, attack.Damage);
+                break;
+            case "死亡剪刀":
+                this._attack(this._getStartPos(this.FireBoneName), attack.DamageRange, attack.Damage);
+                break;
+            case "超级炸弹":
                 this._attack(this.node.worldPosition, attack.DamageRange, attack.Damage);
                 break;
         }
@@ -62,7 +70,7 @@ export class ZRSJZ_Boss extends ZRSJZ_BossBase {
         const players = director.getScene()?.getComponentsInChildren(ZRSJZ_Player) ?? [];
         for (const player of players) {
             if (!player.node.activeInHierarchy) continue;
-            if (Vec3.distance(startPos, player.node.worldPosition) <= damageRange) {
+            if (Vec3.distance(startPos, player.node.worldPosition) <= damageRange || Vec3.distance(startPos, player.Other.worldPosition) <= damageRange) {
                 player.BeHit(damage * this.DamageMultiplier);
             }
         }

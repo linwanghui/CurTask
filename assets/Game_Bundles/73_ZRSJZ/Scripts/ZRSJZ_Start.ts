@@ -1,8 +1,11 @@
-import { _decorator, Component, director, EventTouch, instantiate, Label, Node, Prefab, tween, v3 } from 'cc';
+import { _decorator, Component, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
+import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
+import { ZRSJZ_SignInPanel } from './Panel/ZRSJZ_SignInPanel';
+import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -14,22 +17,36 @@ export class ZRSJZ_Start extends Component {
     @property(Node)
     Confirm: Node = null;
 
+    @property(Node)
+    NameNode: Node = null;
+
     @property(Label)
-    ConfirmName: Label = null;
+    NameLabel: Label = null;
+
+    @property(Node)
+    SignBtn: Node = null;
 
     protected start(): void {
         ZRSJZ_UIManager.Instance;
-        ZRSJZ_AudioManager.Instance.PlayMusic("BGM0");
         tween(this.Checked)
             .to(0.5, { scale: v3(1.2, 1.2, 1.2) }, { easing: "sineInOut" })
             .to(0.5, { scale: v3(1, 1, 1) }, { easing: "sineInOut" })
             .union()
             .repeatForever()
             .start();
+        ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
+        if (ZRSJZ_GameData.Instance.CanClaimSignInReward()) {
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
+        }
+        this.SignBtn.active = !ZRSJZ_GameData.Instance.IsSignInCompleted();
+        ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
     }
 
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHECKED, this.OnMainChecked, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT, () => {
+            ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
+        })
     }
 
     protected onDisable(): void {
@@ -40,6 +57,12 @@ export class ZRSJZ_Start extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Switch":
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON);
+                break;
+            case "Slide":
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE);
+                break;
             case "商店":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.商店界面);
                 break;
@@ -65,17 +88,28 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.升级弹窗, "健身");
                 break;
             case "选择地图":
-                director.loadScene("ZRSJZ_Game");
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.选关界面);
+                break;
+            case "签到":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
                 break;
         }
     }
 
     OnMainChecked(target: Node, isChecked: boolean) {
-        this.ConfirmName.string = target.name;
+        this.NameLabel.string = target.name;
         this.Confirm.active = isChecked;
         this.Checked.setWorldPosition(target.getWorldPosition().clone());
         this.Checked.active = isChecked;
         this.Confirm.name = target.name;
+        this.NameNode.active = isChecked;
+        if (isChecked) {
+            Tween.stopAllByTarget(this.NameNode);
+            this.NameNode.setWorldPosition(target.getWorldPosition().clone());
+            tween(this.NameNode)
+                .to(0.5, { worldPosition: target.getWorldPosition().clone().add3f(0, 300, 0) }, { easing: "backOut" })
+                .start();
+        }
     }
 }
 

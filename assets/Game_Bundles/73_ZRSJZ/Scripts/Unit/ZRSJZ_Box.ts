@@ -27,6 +27,10 @@ export class ZRSJZ_Box extends Component {
     State: ZRSJZ_BOX_STATE = ZRSJZ_BOX_STATE.IDLE;
     /** 根据地图配置预先生成的箱内物品名称。 */
     LootProps: string[] = [];
+    /** 密码箱当前是否已被玩家成功破解。 */
+    private _isPasswordUnlocked: boolean = false;
+    /** 医疗箱是否已成功观看视频解锁。 */
+    private _isMedicalUnlocked: boolean = false;
 
     private _isInit: boolean = false;
     private _nextLootIndex: number = 0;
@@ -38,6 +42,10 @@ export class ZRSJZ_Box extends Component {
     protected start(): void {
         if (this.IsInit) {
             this.Configure(ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap).MapBox.get(this.BoxName), ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap).MapProp);
+        } else {
+            // 地图中直接摆放的医疗箱等静态箱子不走 Configure，
+            // 仍需要初始化 Icon/Checked，否则玩家碰撞时 Check 会空引用。
+            this.Init();
         }
     }
 
@@ -65,6 +73,8 @@ export class ZRSJZ_Box extends Component {
         this._mapProp = mapProp?.map(props => [...props]) ?? [];
         this.BoxName = config.BoxName;
         this.State = ZRSJZ_BOX_STATE.IDLE;
+        this._isPasswordUnlocked = false;
+        this._isMedicalUnlocked = false;
         this._nextLootIndex = 0;
         this._inventoryID = `${this.node.uuid}_${++ZRSJZ_Box._inventorySerial}`;
         this.LootProps = this.GenerateLootProps();
@@ -106,21 +116,62 @@ export class ZRSJZ_Box extends Component {
     }
 
     Check() {
-        this.Checked.node.active = true;
+        this.Init();
+        if (this.Checked?.node?.isValid) {
+            this.Checked.node.active = true;
+        }
     }
 
     CheckCancel() {
-        this.Checked.node.active = false;
+        this.Init();
+        if (this.Checked?.node?.isValid) {
+            this.Checked.node.active = false;
+        }
     }
 
     Open(): boolean {
+        this.Init();
+        if (this.RequiresPassword() && !this._isPasswordUnlocked) {
+            return false;
+        }
+        if (this.RequiresRewardVideo() && !this._isMedicalUnlocked) {
+            return false;
+        }
         if (this.State === ZRSJZ_BOX_STATE.OPENED) {
             return false;
         }
         this.State = ZRSJZ_BOX_STATE.OPENED;
-        this.Icon.spriteFrame = this.IconSF[this.State];
-        this.Checked.spriteFrame = this.CheckedSF[this.State];
+        if (this.Icon) this.Icon.spriteFrame = this.IconSF[this.State];
+        if (this.Checked) this.Checked.spriteFrame = this.CheckedSF[this.State];
         return true;
+    }
+
+    RequiresPassword(): boolean {
+        return this.BoxName === "密码箱";
+    }
+
+    IsPasswordUnlocked(): boolean {
+        return !this.RequiresPassword() || this._isPasswordUnlocked;
+    }
+
+    UnlockPassword(): void {
+        if (this.RequiresPassword()) {
+            this._isPasswordUnlocked = true;
+        }
+    }
+
+    RequiresRewardVideo(): boolean {
+        return this.BoxName === "医疗箱";
+    }
+
+    UnlockMedicalBox(): void {
+        if (this.RequiresRewardVideo()) {
+            this._isMedicalUnlocked = true;
+        }
+    }
+
+    IsOpened(): boolean {
+        return this.State === ZRSJZ_BOX_STATE.OPENED;
     }
 
     /** 返回本次箱子按地图配置生成的物品列表。 */

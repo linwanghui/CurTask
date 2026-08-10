@@ -66,6 +66,7 @@ export class ZRSJZ_Tools {
             case "弹药":
                 return ZRSJZ_INVENTORY.仓库_弹药;
             case "门禁卡":
+            case "房卡":
             case "物品":
                 return ZRSJZ_INVENTORY.仓库_物品;
         }
@@ -106,7 +107,7 @@ export class ZRSJZ_Tools {
     public static IsSlide(inventory: ZRSJZ_INVENTORY): boolean {
         return inventory == ZRSJZ_INVENTORY.仓库_全部 || inventory == ZRSJZ_INVENTORY.仓库_弹药 || inventory == ZRSJZ_INVENTORY.仓库_武器 ||
             inventory == ZRSJZ_INVENTORY.仓库_物品 || inventory == ZRSJZ_INVENTORY.仓库_装备 || inventory == ZRSJZ_INVENTORY.保险箱 ||
-            inventory == ZRSJZ_INVENTORY.物资;
+            inventory == ZRSJZ_INVENTORY.物资 || inventory == ZRSJZ_INVENTORY.背包;
     }
 
     public static ScaleNodeToFit(targetNode: Node, parentWidth: number, parentHeight: number): void {

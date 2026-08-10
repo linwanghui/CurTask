@@ -18,6 +18,11 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
 
     protected onEnable(): void {
         if (this._isAmmoInitialized) this.RebuildView();
+        this.IsVisible = true;
+    }
+
+    protected onDisable(): void {
+        this.IsVisible = false;
     }
 
     async Init(_inventoryType: ZRSJZ_INVENTORY = ZRSJZ_INVENTORY.弹药) {
@@ -37,6 +42,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
     }
 
     async CheckProp(inventory: ZRSJZ_INVENTORY, id: string, worldPos: Vec3, isConfirm: boolean) {
+        if (!this.IsVisible) return;
         if (!this.node.active || this._isChanging) return;
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType);
 
@@ -113,17 +119,54 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
             return;
         }
 
-        // 备战弹药栏内部拖动时交换格子；从外部拖入时，旧弹药退回弹药仓库。
+        // 备战弹药栏内部拖动时交换格子；从外部拖入时，旧弹药回到新弹药原来的位置。
         if (sourceInventory === this.InventoryType && sourceIndex >= 0) {
             ammoIDs[sourceIndex] = targetID;
             ammoIDs[targetIndex] = incomingID;
             this.SaveAmmoPosition(targetID, sourceIndex);
         } else {
+            const sourcePlacements = this.GetInventoryPlacements(incomingID);
+            const sourceGridIndex = sourceInventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+            const sourceGrid = incomingData.GridData[sourceGridIndex];
+            const returnInventory = sourceInventory === ZRSJZ_INVENTORY.仓库_全部
+                ? incomingData.CurInventory
+                : sourceInventory;
+            const sourceBoxID = incomingData.SourceBoxID ?? "";
+
             await this.RemoveFromOtherInventories(incomingID);
             ammoIDs[targetIndex] = incomingID;
-            ZRSJZ_GameData.Instance.MovePropToInventory(targetID, ZRSJZ_INVENTORY.仓库_弹药, 1, -1, -1);
-            await this.RefreshInventory(ZRSJZ_INVENTORY.仓库_弹药);
-            await this.RefreshInventory(ZRSJZ_INVENTORY.仓库_全部);
+            incomingData.SourceBoxID = "";
+            targetData.SourceBoxID = returnInventory === ZRSJZ_INVENTORY.物资
+                ? sourceBoxID
+                : "";
+            ZRSJZ_GameData.Instance.MovePropToInventory(
+                targetID,
+                returnInventory,
+                sourceGridIndex,
+                sourceGrid?.GridX ?? -1,
+                sourceGrid?.GridY ?? -1,
+            );
+            if (sourcePlacements.length > 0) {
+                for (const placement of sourcePlacements) {
+                    ZRSJZ_GameData.Instance.ChangePropGridPos(
+                        targetID,
+                        placement.gridIndex,
+                        placement.gridX,
+                        placement.gridY,
+                    );
+                    await placement.inventory.RestorePropAt(
+                        targetID,
+                        placement.gridX,
+                        placement.gridY,
+                    );
+                }
+            } else {
+                await this.RefreshReturnedAmmoInventories(
+                    sourceInventory,
+                    returnInventory,
+                    sourceBoxID,
+                );
+            }
         }
 
         this.SaveAmmoPosition(incomingID, targetIndex);
@@ -148,6 +191,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
 
         targetData.CurCount += moveCount;
         incomingData.CurCount -= moveCount;
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
 
         if (incomingData.CurCount <= 0) {
             if (sourceIndex >= 0) ZRSJZ_GameData.Instance.AmmoID[sourceIndex] = "";
@@ -178,8 +222,66 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         }
     }
 
-    private async RefreshInventory(inventoryType: ZRSJZ_INVENTORY) {
-        const inventory = ZRSJZ_UIManager.Instance.InventoryMap.get(inventoryType)?.getComponent(ZRSJZ_Inventory);
+    private GetInventoryPlacements(id: string): Array<{
+        inventory: ZRSJZ_Inventory,
+        gridIndex: number,
+        gridX: number,
+        gridY: number,
+    }> {
+        const placements = [];
+        const visitedNodes = new Set<Node>();
+        for (const inventoryNode of ZRSJZ_UIManager.Instance.InventoryMap.values()) {
+            if (visitedNodes.has(inventoryNode)) continue;
+            visitedNodes.add(inventoryNode);
+
+            const inventory = inventoryNode.getComponent(ZRSJZ_Inventory);
+            if (!inventory || inventory === this) continue;
+
+            let gridX = -1;
+            let gridY = -1;
+            for (let row = 0; row < inventory.Grids.length && gridY < 0; row++) {
+                const column = inventory.Grids[row].indexOf(id);
+                if (column >= 0) {
+                    gridX = column;
+                    gridY = row;
+                }
+            }
+            if (gridX < 0 || gridY < 0) continue;
+
+            placements.push({
+                inventory,
+                gridIndex: inventory.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1,
+                gridX,
+                gridY,
+            });
+        }
+        return placements;
+    }
+
+    private async RefreshReturnedAmmoInventories(
+        sourceInventory: ZRSJZ_INVENTORY,
+        returnInventory: ZRSJZ_INVENTORY,
+        sourceBoxID: string,
+    ) {
+        const inventoryKeys = new Set<string>();
+        if (returnInventory === ZRSJZ_INVENTORY.物资 && sourceBoxID) {
+            inventoryKeys.add(`箱子物资_${sourceBoxID}`);
+        } else {
+            inventoryKeys.add(sourceInventory);
+            inventoryKeys.add(returnInventory);
+        }
+
+        if (returnInventory.startsWith("仓库_")) {
+            inventoryKeys.add(ZRSJZ_INVENTORY.仓库_全部);
+        }
+
+        for (const inventoryKey of inventoryKeys) {
+            await this.RefreshInventory(inventoryKey);
+        }
+    }
+
+    private async RefreshInventory(inventoryKey: string) {
+        const inventory = ZRSJZ_UIManager.Instance.InventoryMap.get(inventoryKey)?.getComponent(ZRSJZ_Inventory);
         if (inventory) await inventory.ShowPropItem();
     }
 

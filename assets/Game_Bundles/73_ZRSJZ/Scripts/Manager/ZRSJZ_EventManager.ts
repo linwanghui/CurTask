@@ -11,14 +11,18 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_PLAYER_SLIDE: string = 'ZRSJZ_PLAYER_SLIDE';//滑铲
     public static ZRSJZ_PLAYER_SKILL: string = 'ZRSJZ_PLAYER_SKILL';//玩家技能
     public static ZRSJZ_PLAYER_SEARCH: string = 'ZRSJZ_PLAYER_SEARCH';//玩家搜索显示
-
+    public static ZRSJZ_PLAYER_DOOR: string = 'ZRSJZ_PLAYER_DOOR';//玩家遇到门
+    public static ZRSJZ_PLAYER_RESURGENCE: string = 'ZRSJZ_PLAYER_RESURGENCE';//玩家复活
 
     public static ZRSJZ_CURRENCY_CHANGE: string = 'ZRSJZ_CURRENCY_CHANGE';//货币发生变动
     public static ZRSJZ_PROP_MOVE: string = 'ZRSJZ_PROP_MOVE';//道具拖动
+    public static ZRSJZ_INVENTORY_CHANGE: string = 'ZRSJZ_INVENTORY_CHANGE';//道具所属库存发生变化
     public static ZRSJZ_GRID_SHOW: string = 'ZRSJZ_GRID_SHOW';//格子显示
     public static ZRSJZ_GRID_MOVE: string = 'ZRSJZ_GRID_MOVE';//格子移动
     public static ZRSJZ_EMPTY_GRID_REMOVE: string = 'ZRSJZ_EMPTY_GRID_REMOVE';//删除格子
     public static ZRSJZ_CHECK_PROP: string = 'ZRSJZ_CHECK_PROP';//道具移动判断
+    public static ZRSJZ_PROP_DRAG_ROTATE: string = 'ZRSJZ_PROP_DRAG_ROTATE';//拖动时切换道具横竖方向
+    public static ZRSJZ_CANCEL_PROP_DRAG: string = 'ZRSJZ_CANCEL_PROP_DRAG';//强制取消当前道具拖动
     public static ZRSJZ_SELL_PROP: string = 'ZRSJZ_SELL_PROP';//道具出售 
     public static ZRSJZ_SELL_PROP_ADD: string = 'ZRSJZ_SELL_PROP_ADD';//添加道具出售ID 
     public static ZRSJZ_SELL_PROP_SHOW: string = 'ZRSJZ_SELL_PROP_SHOW';//道具显示出售图标
@@ -28,6 +32,10 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_SHOW_EQUIPMENT: string = 'ZRSJZ_SHOW_EQUIPMENT';//显示皮肤装备
     public static ZRSJZ_MAIN_CHECKED: string = 'ZRSJZ_MAIN_CHECKED';//主界面选中
     public static ZRSJZ_MAIN_CHANGE_SKIN: string = 'ZRSJZ_MAIN_CHANGE_SKIN';//主界面切换皮肤
+    public static ZRSJZ_DRUG_ADD: string = 'ZRSJZ_DRUG_ADD';//药品数量增加
+    public static ZRSJZ_DRUG_CHANGE: string = 'ZRSJZ_DRUG_CHANGE';//药品数量变化
+    public static ZRSJZ_AUDIO_INIT: string = 'ZRSJZ_AUDIO_INIT';//声音初始化完毕
+
 }
 
 export class ZRSJZ_EventManager {

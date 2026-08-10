@@ -1,6 +1,6 @@
 import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, tween, Tween, v2, v3, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER } from '../ZRSJZ_Constant';
+import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -14,10 +14,14 @@ import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_Skill } from '../Skill/ZRSJZ_Skill';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
+import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
 export class ZRSJZ_Player extends Component {
+    public readonly Speed: number = 1000;
+    public readonly InitHP: number = 100;
 
     RigidBody: RigidBody2D = null;
     Collider: CircleCollider2D = null;
@@ -26,16 +30,18 @@ export class ZRSJZ_Player extends Component {
 
     PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
     HP: ZRSJZ_HP = null;
+    Other: Node = null;
 
     MaxHP: number = 100;
     CurHP: number = 100;
+    MaxSpeed: number = 1000;
+    CurSpeed: number = 1000;
 
     TargetEnemy: Node = null;
     TargetRange: number = 2000;
     Reloading: Node = null;
     Loading: Sprite = null;
 
-    private _moveSpeed: number = 1000;
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _moveRadius: number = 0;
@@ -94,38 +100,25 @@ export class ZRSJZ_Player extends Component {
         this.HP = this.node.getChildByName("HP").getComponent(ZRSJZ_HP);
         this.Reloading = this.node.getChildByName("Reloading");
         this.Loading = this.Reloading.getChildByName("Loading").getComponent(Sprite);
+        this.Other = this.node.getChildByName("Other");
     }
 
     protected start(): void {
-        this.MaxHP += ZRSJZ_GameData.Instance.GetResearchMaxHPBonus();
-        this.CurHP = this.MaxHP;
-        this._moveSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
-        this.WeaponType = ZRSJZ_GameData.Instance.WeaponryID[0] != "" ? "枪" : "刀";
-        this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
-        if (ZRSJZ_GameData.Instance.WeaponryID[0]) {
-            this.PlayAni(ZRSJZ_ANI.Idle_Q);
-        } else {
-            this.PlayAni(ZRSJZ_ANI.Idle_D1);
-        }
+        this.Init();
 
         this.Skeleton.setEventListener((trackEntry, event) => {
             if (typeof event !== "number") {
 
                 if ((event.data.name === "kq" || event.data.name === "gj_jjq") && this._isFireing && this.WeaponType === "枪") {
                     void this.Fire();
-                } else if (event.data.name === "dao") {
-                    this.KnifeAttack(200, ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害);
-                } else if (event.data.name === "hui") {
-                    this.KnifeAttack(250, ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害);
+                } else if (event.data.name === "dao" && this._isKnifeAttack) {
+                    this.KnifeAttack(200);
+                } else if (event.data.name === "hui" && this._isKnifeAttack) {
+                    this.KnifeAttack(250);
                 }
 
             }
         });
-
-        this.HP.Init(this.MaxHP);
-        this.HP.Show(this.CurHP);
-        this.PlayerSkeleton.AttackX = 200;
-        this.FillInitialMagazineWhenReady();
     }
 
     protected onEnable(): void {
@@ -135,17 +128,20 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, this.Reload, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SKILL, this.Skill, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESURGENCE, this.Resurgence, this);
         this.Collider.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.on(Contact2DType.END_CONTACT, this.EndContact, this)
     }
 
     protected onDisable(): void {
+        ZRSJZ_Game.Instance?.CancelEvacuation();
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, this.Reload, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SKILL, this.Skill, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESURGENCE, this.Resurgence, this);
         this.Collider.off(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.off(Contact2DType.END_CONTACT, this.EndContact, this)
     }
@@ -163,19 +159,49 @@ export class ZRSJZ_Player extends Component {
             this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
             this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
         }
-        this.RigidBody.linearVelocity = v2(this._moveX * dt * this._moveSpeed * this._moveRadius, this._moveY * dt * this._moveSpeed * this._moveRadius);
+        this.RigidBody.linearVelocity = v2(this._moveX * dt * this.CurSpeed * this._moveRadius, this._moveY * dt * this.CurSpeed * this._moveRadius);
+    }
+
+    Init() {
+        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0];
+        const knifeID = ZRSJZ_GameData.Instance.WeaponryID[4];
+        const hasGun = !!gunID && !!ZRSJZ_GameData.Instance.PropData[gunID];
+        const hasKnife = !!knifeID && !!ZRSJZ_GameData.Instance.PropData[knifeID];
+        this._curKnifeName = hasKnife ? ZRSJZ_GameData.Instance.PropData[knifeID].Name : "";
+        this.CurSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
+        this.WeaponType = hasGun ? "枪" : (hasKnife ? "刀" : "");
+        this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
+        if (hasGun) {
+            this.PlayAni(ZRSJZ_ANI.Idle_Q);
+        } else {
+            this.PlayAni(ZRSJZ_ANI.Idle_D1);
+        }
+
+
+        //血量初始化
+        this.MaxHP = (this.InitHP + ZRSJZ_GameData.Instance.GetResearchMaxHPBonus()) * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("生命") : 0));
+        this.CurHP = this.MaxHP;
+        this.HP.Init(this.MaxHP);
+        this.HP.Show(this.CurHP);
+        this.PlayerSkeleton.AttackX = 200;
+        this.FillInitialMagazineWhenReady();
+
+        //速度初始化
+        this.MaxSpeed = this.Speed * (1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate());
+        this.CurSpeed = this.MaxSpeed;
     }
 
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number) {
         if (this._isSlide) return;
+        this.CancelKnifeAttackState();
         switch (skillName) {
             case "激光":
                 this._isStop = true;
                 const isKnife = this.PlayerSkeleton.IsKnife;
                 if (isKnife) {
                     this.PlayerSkeleton.IsKnife = false;
-                    const weaponName: string = ZRSJZ_GameData.Instance.WeaponryID[0] ? ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name : "突击步枪";
+                    const weaponName: string = ZRSJZ_GameData.Instance.WeaponryID[0] ? ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name : "CN8-突击步枪";
                     this.PlayerSkeleton.ShowEquipment(weaponName);
                 }
                 this.PlayAni(ZRSJZ_ANI.Idle_Q);
@@ -240,6 +266,10 @@ export class ZRSJZ_Player extends Component {
     Attack(fireing: boolean) {
         if (this._isSlide || this._isStop) return;
         if (!fireing) {
+            if (this.WeaponType === "刀" && this._isKnifeAttack) {
+                this._stopAfterCurrentKnifeAttack = true;
+                return;
+            }
             this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
             if (this._isFireing) {
                 this._isFireing = false;
@@ -253,6 +283,13 @@ export class ZRSJZ_Player extends Component {
                 this._isFireing = true;
             }
         } else {
+            // 当前挥刀周期未结束时缓存下一刀，不从头重播当前动画。
+            if (this._isKnifeAttack) {
+                this._queuedKnifeAttack = true;
+                return;
+            }
+            this._stopAfterCurrentKnifeAttack = false;
+            this._queuedKnifeAttack = false;
             this._isKnifeAttack = true;
             this.onKnifeAttack();
         }
@@ -267,10 +304,9 @@ export class ZRSJZ_Player extends Component {
 
 
         const ammoName = ZRSJZ_Game.Instance.UnlimitedFirepower ? this._magazineAmmo.length > 0 ? this._magazineAmmo[0] : "1级子弹" : this._magazineAmmo.length > 0 ? this._magazineAmmo.shift() : "";
-        const gunDamage = this.GetGunProperty("伤害", 0);
-        const bulletDamage = ZRSJZ_PROP_PROPERTY
-            .get(ammoName)?.["增伤"] ?? 0;
-        const firingRangeDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate();
+        const gunDamage = this.GetGunProperty("伤害", 0);//本身伤害
+        const bulletDamage = ZRSJZ_PROP_PROPERTY.get(ammoName)?.["增伤"] ?? 0;//子弹攻击力加成
+        const totalGunDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
         const bulletRange = this.GetGunProperty("射程", 0);
         const bulletLevel = this.GetBulletLevel(ammoName);
 
@@ -284,36 +320,95 @@ export class ZRSJZ_Player extends Component {
             return;
         }
 
+        const attackX = this.PlayerSkeleton.AttackX;
+        const attackY = this.PlayerSkeleton.AttackY;
+        const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + totalGunDamageRate));
+
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
             muzzleEffect.parent = this.node;
-            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
+            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(this.getMuzzlePos(), attackX, attackY);
         })
 
-        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet").then((bullet: Node) => {
-            bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
-            bullet.active = true;
+        const spawnBullet = (dirX: number, dirY: number): void => {
+            ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet").then((bullet: Node) => {
+                bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+                bullet.active = true;
+                bullet.getComponent(ZRSJZ_Bullet).Show(
+                    this.getMuzzlePos(),
+                    dirX,
+                    dirY,
+                    bulletRange,
+                    finalDamage,
+                    bulletLevel,
+                );
+            });
+        };
 
-            const finalDamage = Math.round((gunDamage + bulletDamage) * firingRangeDamageRate);
-            bullet.getComponent(ZRSJZ_Bullet).Show(muzzleWorldPos, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, bulletRange, finalDamage, bulletLevel,);
-        });
+        spawnBullet(attackX, attackY);
+        ZRSJZ_AudioManager.Instance.PlaySound("枪声");
+
+        if (ZRSJZ_WEAPONRY_TYPE.get("散弹枪")?.includes(this.PlayerSkeleton.WeaponryName)) {
+            //散射两个子弹
+            const offsetAnge: number = 10;
+            const offsetRadian = offsetAnge * Math.PI / 180;
+            const cos = Math.cos(offsetRadian);
+            const sin = Math.sin(offsetRadian);
+
+            spawnBullet(
+                attackX * cos - attackY * sin,
+                attackX * sin + attackY * cos,
+            );
+            spawnBullet(
+                attackX * cos + attackY * sin,
+                -attackX * sin + attackY * cos,
+            );
+        }
 
     }
 
     private _isKnifeAttack: boolean = false;
+    private _stopAfterCurrentKnifeAttack: boolean = false;
+    private _queuedKnifeAttack: boolean = false;
     onKnifeAttack() {
+        if (!this._isKnifeAttack) return;
         this._aniName = "";
         this._moveX == 0 && this._moveY == 0 ?
             this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Idle_D2 : ZRSJZ_ANI.Attack_Idle_D3, false, () => {
-                this.onKnifeAttack();
+                this.FinishKnifeAttackCycle();
             }) :
             this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Move_D2 : ZRSJZ_ANI.Attack_Move_D3, false, () => {
-                this.onKnifeAttack();
+                this.FinishKnifeAttackCycle();
             });
     }
 
-    KnifeAttack(skillRange: number, skillDamage: number) {
+    private FinishKnifeAttackCycle(): void {
+        if (!this._isKnifeAttack) return;
+        if (this._queuedKnifeAttack) {
+            this._queuedKnifeAttack = false;
+            this.onKnifeAttack();
+            return;
+        }
+        if (this._stopAfterCurrentKnifeAttack) {
+            this.CancelKnifeAttackState();
+            this.PlayAni(this._moveX == 0 && this._moveY == 0 ? ZRSJZ_ANI.Idle_D1 : ZRSJZ_ANI.Walk_D);
+            return;
+        }
+        this.onKnifeAttack();
+    }
+
+    private CancelKnifeAttackState(): void {
+        this._isKnifeAttack = false;
+        this._stopAfterCurrentKnifeAttack = false;
+        this._queuedKnifeAttack = false;
+    }
+
+    KnifeAttack(skillRange: number) {
+        ZRSJZ_AudioManager.Instance.PlaySound("近战攻击");
+        const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
+
         const finalDamage = Math.round(
-            skillDamage * (1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate())
+            damage * (1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate() +
+                (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("枪械伤害") : 0))
         );
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         enemys = enemys.filter(enemy => !enemy.IsDead);
@@ -329,13 +424,13 @@ export class ZRSJZ_Player extends Component {
 
         targetPosition.x += Math.sign(this.PlayerSkeleton.AttackX) * 150;
 
-        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
-            muzzleEffect.parent = this.node;
-            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(targetPosition, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
-        })
+        // ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
+        //     muzzleEffect.parent = this.node;
+        //     muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(targetPosition, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY);
+        // })
 
         enemys.forEach(enemy => {
-            if (Vec3.distance(targetPosition, enemy.node.worldPosition) < skillRange) {
+            if (Vec3.distance(targetPosition, enemy.node.worldPosition) < skillRange || Vec3.distance(targetPosition, enemy.Other?.worldPosition) < skillRange) {
                 enemy.BeHit(finalDamage);
             }
         })
@@ -350,6 +445,8 @@ export class ZRSJZ_Player extends Component {
 
     //动画切换
     AniSwitch() {
+        // 挥刀周期内移动不覆盖攻击动画，否则 Spine 的伤害事件和完成回调会丢失。
+        if (this._isKnifeAttack) return;
         if (this._moveX == 0 && this._moveY == 0) {
             if (this._aniName == ZRSJZ_ANI.Walk_D) {
                 this.PlayAni(ZRSJZ_ANI.Idle_D1);
@@ -400,6 +497,16 @@ export class ZRSJZ_Player extends Component {
     //#region 武器切换
     private _curKnifeName: string = "";
     SwitchWeapon(weaponType: string) {
+        const weaponryIndex = weaponType === "枪" ? 0 : (weaponType === "刀" ? 4 : -1);
+        const weaponID = weaponryIndex >= 0
+            ? ZRSJZ_GameData.Instance.WeaponryID[weaponryIndex]
+            : "";
+        if (!weaponID || !ZRSJZ_GameData.Instance.PropData[weaponID]) {
+            console.warn(`[ZRSJZ_Player] 未装备${weaponType}，已忽略切换请求`);
+            return;
+        }
+
+        this.CancelKnifeAttackState();
         this.WeaponType = weaponType;
         if (this.WeaponType === "枪") {
             this.EnsureMagazineMatchesGun();
@@ -418,22 +525,38 @@ export class ZRSJZ_Player extends Component {
     async Recover(hp: number) {
         this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
         this.HP.Show(this.CurHP);
-        const effect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect");
-        effect.parent = this.node;
-        effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition, () => {
-            this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
-            this.HP.Show(this.CurHP);
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect").then((effect: Node) => {
+            effect.parent = this.node;
+            effect.active = true;
+            effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition);
         });
     }
 
+    //#region 复活
+    Resurgence() {
+        this.CurHP = this.MaxHP;
+        this.HP.Show(this.CurHP);
+        this.CurSpeed = this.MaxSpeed;
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect").then((effect: Node) => {
+            effect.parent = this.node;
+            effect.active = true;
+            effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition);
+        });
+        this.Skill("护盾");
 
+        if (!this.PlayerSkeleton.IsKnife) {
+            this.PlayAni(ZRSJZ_ANI.Idle_Q);
+        } else {
+            this.PlayAni(ZRSJZ_ANI.Idle_D1);
+        }
+    }
 
     //#region 寻找敌人
     protected FindTarget() {
         // const attackRange = this.WeaponType === "枪"
         //     ? this.GetGunProperty("射程", 500)
         //     : 500;
-        const attackRange = 2000;
+        const attackRange = 1500;
         if (this.TargetEnemy && !this.TargetEnemy.getComponent(ZRSJZ_EnemyBase).IsDead && Vec3.distance(this.TargetEnemy.worldPosition, this.node.worldPosition) <= 500) {
             return;
         }
@@ -457,18 +580,48 @@ export class ZRSJZ_Player extends Component {
 
     //#region 受到打击
     BeHit(harm: number) {
-        this.CurHP -= harm;
+        if (this.CurHP <= 0) return;
+        const incomingHarm = Math.max(0, harm);
+        const damageMultiplier = this._shielding
+            ? 0.1
+            : 1 - this.GetEquippedDamageReductionRate();
+        const madeHarm = incomingHarm > 0
+            ? Math.max(1, Math.round(damageMultiplier * incomingHarm))
+            : 0;
+        this.CurHP -= madeHarm;
         if (this.CurHP <= 0) {
-            console.error("玩家死亡");
+            this.CurHP = 0;
+            this.CancelKnifeAttackState();
+            ZRSJZ_Game.Instance.CancelEvacuation();
+            ZRSJZ_Game.Instance.GamePaused = true;
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0);
+            ZRSJZ_UIManager.Instance.PrepareForDeath();
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗);
+            this.PlayAni(ZRSJZ_ANI.SW, false);
         } else {
             this.beHitEffect();
+            ZRSJZ_AudioManager.Instance.PlaySound("受击");
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
             effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
             effect.active = true;
-            effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), harm);
+            effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), madeHarm);
         })
         this.HP.Show(this.CurHP);
+    }
+
+    /** 头盔与防弹衣减伤相加，最终上限为 50%，避免高阶装备完全免伤。 */
+    private GetEquippedDamageReductionRate(): number {
+        let reductionPercent = 0;
+        for (const equipmentIndex of [1, 2]) {
+            const equipmentID = ZRSJZ_GameData.Instance.WeaponryID[equipmentIndex];
+            const equipmentName = ZRSJZ_GameData.Instance.PropData[equipmentID]?.Name;
+            reductionPercent += equipmentName
+                ? ZRSJZ_PROP_PROPERTY.get(equipmentName)?.["减伤"] ?? 0
+                : 0;
+        }
+        return Math.min(0.5, Math.max(0, reductionPercent / 100));
     }
 
     private beHitEffect() {
@@ -620,12 +773,15 @@ export class ZRSJZ_Player extends Component {
     //#region 滑动
     Slide() {
         if (this._isStop) return;
-        this._moveSpeed += 1500;
+        this.CancelKnifeAttackState();
+        ZRSJZ_AudioManager.Instance.PlaySound("滑铲音效");
+
+        this.CurSpeed += 1500;
         this._isSlide = true;
         const anis: string[] = this.WeaponType === "枪" ? [ZRSJZ_ANI.HC_Q, ZRSJZ_ANI.Idle_Q] : [ZRSJZ_ANI.HC_D, ZRSJZ_ANI.Idle_D1];
         this.PlayAni(anis[0], false, () => {
             this._isSlide = false;
-            this._moveSpeed -= 1500;
+            this.CurSpeed -= 1500;
             this.PlayAni(anis[1]);
         })
     }
@@ -640,11 +796,15 @@ export class ZRSJZ_Player extends Component {
             this._targetBox = otherCollider.node?.getComponent(ZRSJZ_Box);
             this._targetBox.Check();
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox);
+        } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, otherCollider.node?.getComponent(ZRSJZ_Door));
+        } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
+            //开始撤离
+            ZRSJZ_Game.Instance.StartEvacuation(otherCollider.node.name);
         }
     }
 
     EndContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
-        if (!this._targetBox) return;
         if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Box) && otherCollider.node?.getComponent(ZRSJZ_Box) == this._targetBox) {
             const target = otherCollider.node?.getComponent(ZRSJZ_Box);
             if (target && target === this._targetBox) {
@@ -652,6 +812,11 @@ export class ZRSJZ_Player extends Component {
                 this._targetBox = null;
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox);
             }
+        } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, null);
+        } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
+            //撤离中断
+            ZRSJZ_Game.Instance.CancelEvacuation();
         }
     }
 
