@@ -174,10 +174,10 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["除颤器", { Name: "除颤器", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 314000, MaxCount: 1 }],
     ["飞行记录仪", { Name: "飞行记录仪", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 374000, MaxCount: 1 }],
     //2x2 --  红
-    ["反应炉", { Name: "反应炉", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 760000, MaxCount: 1 }],
-    ["呼吸机", { Name: "呼吸机", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 712000, MaxCount: 1 }],
-    ["欧洲之心", { Name: "欧洲之心", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 784000, MaxCount: 1 }],
-    ["步战车", { Name: "步战车", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 712000, MaxCount: 1 }],
+    ["反应炉", { Name: "反应炉", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 1450000, MaxCount: 1 }],
+    ["呼吸机", { Name: "呼吸机", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 1500000, MaxCount: 1 }],
+    ["欧洲之心", { Name: "欧洲之心", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 13140000, MaxCount: 1 }],
+    ["步战车", { Name: "步战车", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 1800000, MaxCount: 1 }],
 
     //2x3 --  白
     ["勇士半身像", { Name: "勇士半身像", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 10000, MaxCount: 1 }],
@@ -200,10 +200,10 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["黄金鳄鱼头", { Name: "黄金鳄鱼头", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 475000, MaxCount: 1 }],
     //2x3 --  红
     ["咖啡豆", { Name: "咖啡豆", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1250000, MaxCount: 1 }],
-    ["医疗机器人", { Name: "医疗机器人", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1224000, MaxCount: 1 }],
-    ["坦克", { Name: "坦克", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1332000, MaxCount: 1 }],
-    ["浮力机器设备", { Name: "浮力机器设备", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1368000, MaxCount: 1 }],
-    ["火箭燃料", { Name: "火箭燃料", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1068000, MaxCount: 1 }],
+    ["医疗机器人", { Name: "医疗机器人", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1550000, MaxCount: 1 }],
+    ["坦克", { Name: "坦克", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1700000, MaxCount: 1 }],
+    ["浮力机器设备", { Name: "浮力机器设备", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1560000, MaxCount: 1 }],
+    ["火箭燃料", { Name: "火箭燃料", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1330000, MaxCount: 1 }],
 
     //房卡
     ["低级房卡", { Name: "低级房卡", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "房卡", UnitPrice: 10000, MaxCount: 1 }],
@@ -240,13 +240,13 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["六级包", { Name: "六级包", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "背包", UnitPrice: 6000000, MaxCount: 1 }],
     //枪
     ["CN8-突击步枪", { Name: "CN8-突击步枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 120000, MaxCount: 1 }],
-    ["DX9-冲锋枪", { Name: "DX9-冲锋枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 160000, MaxCount: 1 }],
-    ["K50-轻机枪", { Name: "K50-轻机枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 220000, MaxCount: 1 }],
-    ["RK77-轻机枪", { Name: "RK77-轻机枪", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 280000, MaxCount: 1 }],
-    ["FS-霰弹枪", { Name: "FS-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 650000, MaxCount: 1 }],
-    ["KK41-霰弹枪", { Name: "KK41-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 850000, MaxCount: 1 }],
-    ["ssv-狙击枪", { Name: "ssv-狙击枪", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 1800000, MaxCount: 1 }],
-    ["W76-狙击枪", { Name: "W76-狙击枪", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 2400000, MaxCount: 1 }],
+    ["DX9-冲锋枪", { Name: "DX9-冲锋枪", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 200000, MaxCount: 1 }],
+    ["K50-轻机枪", { Name: "K50-轻机枪", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 350000, MaxCount: 1 }],
+    ["RK77-轻机枪", { Name: "RK77-轻机枪", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 500000, MaxCount: 1 }],
+    ["FS-霰弹枪", { Name: "FS-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 800000, MaxCount: 1 }],
+    ["KK41-霰弹枪", { Name: "KK41-霰弹枪", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 1500000, MaxCount: 1 }],
+    ["ssv-狙击枪", { Name: "ssv-狙击枪", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 3000000, MaxCount: 1 }],
+    ["W76-狙击枪", { Name: "W76-狙击枪", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 5500000, MaxCount: 1 }],
     //刀
     ["战术匕首", { Name: "战术匕首", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 8400, MaxCount: 1 }],
     ["刺厌", { Name: "刺厌", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 100000, MaxCount: 1 }],
@@ -433,12 +433,12 @@ export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new M
     ["五级甲", { "护甲等级": 5, "减伤": 25, }],
     ["六级甲", { "护甲等级": 6, "减伤": 30, }],
     //背包
-    ["一级包", { "背包等级": 1, "容量": 4 * 4, }],
-    ["二级包", { "背包等级": 2, "容量": 6 * 4, }],
-    ["三级包", { "背包等级": 3, "容量": 9 * 4, }],
-    ["四级包", { "背包等级": 4, "容量": 13 * 4, }],
-    ["五级包", { "背包等级": 5, "容量": 16 * 4, }],
-    ["六级包", { "背包等级": 6, "容量": 20 * 4, }],
+    ["一级包", { "背包等级": 1, "容量": 3 * 4, }],
+    ["二级包", { "背包等级": 2, "容量": 4 * 4, }],
+    ["三级包", { "背包等级": 3, "容量": 6 * 4, }],
+    ["四级包", { "背包等级": 4, "容量": 8 * 4, }],
+    ["五级包", { "背包等级": 5, "容量": 10 * 4, }],
+    ["六级包", { "背包等级": 6, "容量": 13 * 4, }],
     //枪
     ["CN8-突击步枪", { "伤害": 22, "射程": 1200, "射速": 700, "弹夹": 30 }],
     ["DX9-冲锋枪", { "伤害": 24, "射程": 1300, "射速": 700, "弹夹": 35 }],
