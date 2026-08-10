@@ -117,11 +117,29 @@ export class ZRSJZ_Joystick_Attack extends Component {
                 ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD,
                 reloadProgress,
             );
+
+            // 换弹结束时攻击键仍被按住，则从首发开始继续攻击。
+            if (
+                this._reloadingCD <= 0
+                && this._attackTouch != null
+                && player?.WeaponType === "枪"
+                && (ZRSJZ_Game.Instance.UnlimitedFirepower || player.MagazineAmmoCount > 0)
+            ) {
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, true);
+            }
         }
     }
 
     //#region 射击
     OnTouchStart_Attack(event: EventTouch) {
+        let touches = event.getTouches();
+        for (let i = 0; i < touches.length; ++i) {
+            if (!this._attackTouch) {
+                this._attackTouch = touches[i];
+                break;
+            }
+        }
+
         if (this._reloadingCD > 0) return;
         const player = ZRSJZ_Game.Instance?.CurPlayer;
         if (!ZRSJZ_Game.Instance.UnlimitedFirepower && player?.WeaponType === "枪" && player.MagazineAmmoCount <= 0) {
@@ -133,12 +151,16 @@ export class ZRSJZ_Joystick_Attack extends Component {
             return;
         }
 
-        let touches = event.getTouches();
-        for (let i = 0; i < touches.length; ++i) {
-            let touch = touches[i];
-            if (!this._attackTouch) {
-                this._attackTouch = touch;
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, true);
+        if (this._attackTouch) {
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, true);
+            // 首发可能正好耗尽弹匣；首帧 update 尚未记录旧弹量时也要自动换弹。
+            if (
+                !ZRSJZ_Game.Instance.UnlimitedFirepower
+                && player?.WeaponType === "枪"
+                && player.MagazineAmmoCount <= 0
+                && player.WarehouseAmmoCount > 0
+            ) {
+                this.Reload();
             }
         }
     }
@@ -194,9 +216,14 @@ export class ZRSJZ_Joystick_Attack extends Component {
         const normalizedIndex = targetWeaponIndex % 2;
         if (!this.HasWeapon(normalizedIndex)) {
             this.RefreshWeaponSwitchState();
-            if (showTip) ZRSJZ_UIManager.Instance.ShowTip("未装备对应武器，无法切换");
+            if (showTip) {
+                ZRSJZ_UIManager.Instance.ShowTip(
+                    normalizedIndex === 0 ? "未装备枪械" : "未装备近战武器",
+                );
+            }
             return false;
         }
+        if (!ZRSJZ_Game.Instance.CurPlayer?.IsSwitch) return;
 
         this._curWeaponIndex = normalizedIndex;
         if (this._reloadingCD > 0) {
@@ -222,13 +249,13 @@ export class ZRSJZ_Joystick_Attack extends Component {
         return !!propID && !!ZRSJZ_GameData.Instance.PropData[propID];
     }
 
-    /** 只有枪和刀都存在时才有切换目标，因此才显示切换按钮。 */
+    /** 只要仍装备任一武器就显示切换按钮，缺少目标武器时由点击提示说明。 */
     private RefreshWeaponSwitchState(): void {
         if (!this._switchSprite?.node?.isValid) return;
 
         const hasGun = this.HasWeapon(0);
         const hasKnife = this.HasWeapon(1);
-        this._switchSprite.node.active = hasGun && hasKnife;
+        this._switchSprite.node.active = hasGun || hasKnife;
         if (this._attackSprite?.node?.isValid) {
             this._attackSprite.node.active = hasGun || hasKnife;
         }
@@ -259,7 +286,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     Reload() {
         if (this._reloadingCD > 0 || !ZRSJZ_Game.Instance.CurPlayer?.CanReload()) return;
         if (this._attackTouch != null) {
-            this._attackTouch = null;
+            // 暂停射击但保留按住状态，换弹完成后可自动续射。
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
         }
         this._reloadingCD = ZRSJZ_Joystick_Attack.LoadingCD;

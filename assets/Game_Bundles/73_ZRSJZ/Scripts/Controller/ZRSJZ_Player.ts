@@ -1,4 +1,4 @@
-import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, tween, Tween, v2, v3, Vec3 } from 'cc';
+import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, tween, Tween, v2, v3, Vec2, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
@@ -20,7 +20,7 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
 export class ZRSJZ_Player extends Component {
-    public readonly Speed: number = 1000;
+    public readonly Speed: number = 1500;
     public readonly InitHP: number = 100;
 
     RigidBody: RigidBody2D = null;
@@ -92,6 +92,11 @@ export class ZRSJZ_Player extends Component {
         return !this._isSlide;
     }
 
+    //是否能切换武器
+    public get IsSwitch(): boolean {
+        return !this._isSlide;
+    }
+
     protected onLoad(): void {
         this.RigidBody = this.getComponent(RigidBody2D);
         this.Collider = this.getComponent(CircleCollider2D);
@@ -155,11 +160,16 @@ export class ZRSJZ_Player extends Component {
         this.AniSwitch();
         if (this._isSlide) {
             this.PlayerSkeleton.AttackX = Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
+            let moveVec: Vec2 = v2(this._moveX, this._moveY)
+            if (moveVec.x == 0 && moveVec.y == 0) {
+                Vec2.normalize(moveVec, v2(this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY))
+            }
+            this.RigidBody.linearVelocity = v2(moveVec.x * dt * this.CurSpeed * this._moveRadius, moveVec.y * dt * this.CurSpeed * this._moveRadius);
         } else {
             this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
             this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
+            this.RigidBody.linearVelocity = v2(this._moveX * dt * this.CurSpeed * this._moveRadius, this._moveY * dt * this.CurSpeed * this._moveRadius);
         }
-        this.RigidBody.linearVelocity = v2(this._moveX * dt * this.CurSpeed * this._moveRadius, this._moveY * dt * this.CurSpeed * this._moveRadius);
     }
 
     Init() {
@@ -281,6 +291,8 @@ export class ZRSJZ_Player extends Component {
             this._moveX == 0 && this._moveY == 0 ? this.PlayAni(this.PlayerSkeleton.GunType === "步枪" ? ZRSJZ_ANI.Attack_Idle_Q : ZRSJZ_ANI.Attack_Idle_Q2) : this.PlayAni(this.PlayerSkeleton.GunType === "步枪" ? ZRSJZ_ANI.Attack_Move_Q : ZRSJZ_ANI.Attack_Move_Q2);
             if (!this._isFireing) {
                 this._isFireing = true;
+                // 首发不等待 Spine 动画事件，按下攻击键时立即射击。
+                void this.Fire();
             }
         } else {
             // 当前挥刀周期未结束时缓存下一刀，不从头重播当前动画。
