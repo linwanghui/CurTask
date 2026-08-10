@@ -1,4 +1,4 @@
-import { _decorator, Camera, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Sprite, SpriteFrame, UITransform, Vec3, } from 'cc';
+import { _decorator, Camera, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Sprite, SpriteFrame, tween, UITransform, v3, Vec3, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
@@ -33,6 +33,9 @@ export class ZRSJZ_Game extends Component {
 
     @property(Node)
     Direction: Node = null;
+
+    @property(Node)
+    Checked: Node = null;
 
     CurMap: ZRSJZ_Map = null;
     CurPlayer: ZRSJZ_Player = null;
@@ -89,6 +92,7 @@ export class ZRSJZ_Game extends Component {
     protected lateUpdate(): void {
         this.RefreshMiniMap();
         this.RefreshDirectionUI();
+        this.RefreshCheckedUI();
     }
 
     private RefreshDirectionUI(): void {
@@ -143,6 +147,15 @@ export class ZRSJZ_Game extends Component {
         );
         const directionSprite = this.Direction.getComponent(Sprite);
         if (directionSprite) directionSprite.sizeMode = Sprite.SizeMode.RAW;
+    }
+
+    private RefreshCheckedUI() {
+        if (this.CurPlayer?.TargetEnemy) {
+            this.Checked.active = true;
+            this.Checked.setWorldPosition(this.CurPlayer.TargetEnemy.worldPosition.clone().add3f(0, 150, 0));
+        } else {
+            this.Checked.active = false;
+        }
     }
 
     private GetPlayerAttackRange(): number {
@@ -297,6 +310,13 @@ export class ZRSJZ_Game extends Component {
         this.UI.active = true;
         this.RefreshGameTime();
         this._battleStarted = true;
+        tween(this.Checked)
+            .to(0.5, { scale: v3(0.6, 0.6, 0.6) }, { easing: "sineInOut" })
+            .to(0.5, { scale: v3(0.5, 0.5, 0.5) }, { easing: "sineInOut" })
+            .union()
+            .repeatForever()
+            .start();
+        this.Checked.active = false;
     }
 
     async CreateDieEffect(worldPos: Vec3, cb: Function = null) {

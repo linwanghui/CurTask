@@ -28,7 +28,7 @@ export class ZRSJZ_Skill_Button extends Component {
     @property({ min: 1, tooltip: '拖动达到该距离时，技能力度视为 100%' })
     AimRadius: number = 100;
 
-
+    private _icon: Sprite = null;
     private _skillCDSprite: Sprite = null;
     private _touchID: number = -1;
     private _skillCD: number = 0;
@@ -52,6 +52,7 @@ export class ZRSJZ_Skill_Button extends Component {
     }
 
     protected onLoad(): void {
+        this._icon = this.node.getComponent(Sprite);
         this._skillCDSprite = this.node.getChildByName('CD')?.getComponent(Sprite) ?? null;
         this.RefreshCooldownView();
     }
@@ -72,6 +73,7 @@ export class ZRSJZ_Skill_Button extends Component {
     }
 
     protected update(dt: number): void {
+        this._icon.grayscale = this.IsNeedLock && !ZRSJZ_Game.Instance.CurPlayer?.IsLockEnemy;
         if (this._skillCD <= 0) {
             return;
         }
