@@ -28,14 +28,15 @@ export class WZSJZ_Incident extends Component {
         })
     }
 
-    public static Loadprefab(Path: string) {
-        return new Promise((resolve, reject) => {
+    public static Loadprefab(Path: string): Promise<Prefab> {
+        return new Promise<Prefab>((resolve, reject) => {
             BundleManager.GetBundle("74_WZSJZ").load(Path, Prefab, (err, data) => {
                 if (err) {
-                    console.log("没有找到预制体" + Path);
+                    console.error("没有找到预制体" + Path, err);
+                    reject(err);
                     return;
                 }
-                resolve && resolve(data);
+                resolve(data);
             })
         })
     }

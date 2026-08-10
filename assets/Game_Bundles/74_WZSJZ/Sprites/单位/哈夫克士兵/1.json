@@ -1,6 +1,6 @@
 {
 "skeleton": {
-	"hash": "t26uI6JBSMQtpZbHpBYM94C8UIs",
+	"hash": "7FRGhlB81GfHQDDgm+KuovLqJBM",
 	"spine": "3.8.75",
 	"x": -64.38,
 	"y": -2.82,
@@ -21,14 +21,16 @@
 	{ "name": "bone8", "parent": "bone7", "length": 21.89, "rotation": -160.75, "x": 0.98, "y": 13.45 },
 	{ "name": "bone9", "parent": "bone7", "length": 32.76, "rotation": 124.8, "x": 0.33, "y": -22.63 },
 	{ "name": "bone10", "parent": "bone2", "length": 50.17, "rotation": 25.75, "x": -0.32, "y": 38.07 },
-	{ "name": "bone11", "parent": "bone10", "rotation": -117.24, "x": 21.39, "y": -0.16 }
+	{ "name": "bone11", "parent": "bone10", "rotation": -117.24, "x": 21.39, "y": -0.16 },
+	{ "name": "bone12", "parent": "bone3", "x": 26.51, "y": 5.54, "color": "00f4ffff" }
 ],
 "slots": [
 	{ "name": "兵", "bone": "root", "attachment": "兵" },
 	{ "name": "右腿", "bone": "bone6", "attachment": "右腿" },
 	{ "name": "左腿", "bone": "bone5", "attachment": "左腿" },
 	{ "name": "头盔", "bone": "bone4", "attachment": "头盔" },
-	{ "name": "刀", "bone": "bone11", "attachment": "刀" }
+	{ "name": "刀", "bone": "bone11", "attachment": "刀" },
+	{ "name": "眼泪", "bone": "bone12" }
 ],
 "skins": [
 	{
@@ -45,6 +47,9 @@
 			},
 			"右腿": {
 				"右腿": { "x": 10.95, "y": 0.8, "rotation": 40.33, "width": 34, "height": 29 }
+			},
+			"眼泪": {
+				"眼泪": { "x": -9.72, "y": -10.3, "rotation": -81.7, "width": 30, "height": 31 }
 			},
 			"兵": {
 				"兵": {
@@ -140,15 +145,40 @@
 			}
 		}
 	},
+	"shouji": {
+		"slots": {
+			"眼泪": {
+				"attachment": [
+					{ "name": "眼泪" }
+				]
+			}
+		},
+		"bones": {
+			"bone2": {
+				"rotate": [
+					{ "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.2333, "angle": -5.87, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.3333 }
+				]
+			},
+			"bone3": {
+				"rotate": [
+					{ "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.2333, "angle": -5.87, "curve": 0.267, "c2": 0.79, "c3": 0.75 },
+					{ "time": 0.3333 }
+				]
+			}
+		}
+	},
 	"siwang": {
 		"slots": {
-			"右腿": {
+			"刀": {
 				"color": [
 					{ "time": 1, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
 					{ "time": 1.1667, "color": "ffffff00" }
 				]
 			},
-			"头盔": {
+			"左腿": {
 				"color": [
 					{ "time": 1, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
 					{ "time": 1.1667, "color": "ffffff00" }
@@ -160,13 +190,13 @@
 					{ "time": 1.1667, "color": "ffffff00" }
 				]
 			},
-			"刀": {
+			"右腿": {
 				"color": [
 					{ "time": 1, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
 					{ "time": 1.1667, "color": "ffffff00" }
 				]
 			},
-			"左腿": {
+			"头盔": {
 				"color": [
 					{ "time": 1, "color": "ffffffff", "curve": 0.267, "c2": 0.79, "c3": 0.75 },
 					{ "time": 1.1667, "color": "ffffff00" }

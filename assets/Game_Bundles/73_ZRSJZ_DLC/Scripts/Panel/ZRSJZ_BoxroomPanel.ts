@@ -36,6 +36,7 @@ import {
 } from '../ZRSJZ_BoxroomConstant';
 import { ZRSJZ_BoxroomBox } from '../ZRSJZ_BoxroomBox';
 import { ZRSJZ_GameData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
+import { ZRSJZ_AudioManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
 const { ccclass } = _decorator;
 
 type ZRSJZ_BoxroomCategoryView = {
@@ -89,6 +90,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
     }
 
     public OnButtonClick(event: EventTouch): void {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "返回":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.收藏室界面);
@@ -103,6 +105,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
     }
 
     private SelectCategory(category: ZRSJZ_BoxroomCategory): void {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         this._curCategory = category;
         const tab = this.node.getChildByName("Panel")
             ?.getChildByName("左侧栏")

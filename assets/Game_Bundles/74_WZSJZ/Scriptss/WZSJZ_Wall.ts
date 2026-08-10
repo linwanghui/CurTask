@@ -1,14 +1,36 @@
-import { _decorator, Component, director, Label, Sprite } from 'cc';
+import { _decorator, Component, director, Label, Node, Sprite, UITransform } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_Wall')
 export class WZSJZ_Wall extends Component {
+    @property({ displayName: "生命值显示节点", type: Node })
+    public HealthViewNode: Node = null;
+
     private _maxHealth: number = 1;
     private _currentHealth: number = 1;
     private _isDestroyed: boolean = false;
+    private _invincibleRemaining: number = 0;
 
     public get IsAlive(): boolean {
         return !this._isDestroyed && this._currentHealth > 0;
+    }
+
+    public get IsInvincible(): boolean {
+        return this._invincibleRemaining > 0;
+    }
+
+    protected update(deltaTime: number): void {
+        this._invincibleRemaining = Math.max(0, this._invincibleRemaining - deltaTime);
+    }
+
+    /** 返回面向来袭单位一侧的城墙外边缘世界坐标。 */
+    public GetFrontWorldX(attackerWorldX: number): number {
+        const transform = this.getComponent(UITransform);
+        if (!transform) {
+            return this.node.worldPosition.x;
+        }
+        const bounds = transform.getBoundingBoxToWorld();
+        return attackerWorldX >= this.node.worldPosition.x ? bounds.xMax : bounds.xMin;
     }
 
     public SetMaxHealth(maxHealth: number, refill: boolean = false): void {
@@ -26,8 +48,17 @@ export class WZSJZ_Wall extends Component {
         this.RefreshView();
     }
 
+    public SetHealthViewNode(healthViewNode: Node): void {
+        this.HealthViewNode = healthViewNode;
+        this.RefreshView();
+    }
+
+    public SetInvincible(duration: number): void {
+        this._invincibleRemaining = Math.max(this._invincibleRemaining, Math.max(0, duration));
+    }
+
     public TakeDamage(damage: number): void {
-        if (!this.IsAlive || damage <= 0) {
+        if (!this.IsAlive || this.IsInvincible || damage <= 0) {
             return;
         }
         this._currentHealth = Math.max(0, this._currentHealth - damage);
@@ -39,7 +70,7 @@ export class WZSJZ_Wall extends Component {
     }
 
     private RefreshView(): void {
-        const healthNode = this.node.getChildByName("生命值");
+        const healthNode = this.HealthViewNode || this.node.getChildByName("生命值");
         const label = healthNode?.getChildByName("血量文本")?.getComponent(Label);
         if (label) {
             label.string = `${Math.ceil(this._currentHealth)}/${this._maxHealth}`;

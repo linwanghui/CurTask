@@ -1,4 +1,19 @@
-import { _decorator, Component, director, instantiate, isValid, Label, Node, Prefab, tween, v3 } from 'cc';
+import {
+    _decorator,
+    Component,
+    director,
+    EventKeyboard,
+    input,
+    Input,
+    instantiate,
+    isValid,
+    KeyCode,
+    Label,
+    Node,
+    Prefab,
+    tween,
+    v3,
+} from 'cc';
 import Banner from '../../../Scripts/Banner';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { BundleManager } from '../../../Scripts/Framework/Managers/BundleManager';
@@ -11,6 +26,10 @@ export class WZSJZ_UIManager extends Component {
     private _panelDict: any = {}
     private _loadingPanelDict: any = {}
     private static _instance: WZSJZ_UIManager;
+    private static _gameTimeScale: number = 1;
+    private static _originalDirectorTick: ((deltaTime: number) => void) | null = null;
+    private _isFiveTimesSpeed: boolean = false;
+    private _isPKeyPressed: boolean = false;
     public static get Instance() {
         if (!this._instance) {
             this._instance = new WZSJZ_UIManager();
@@ -20,6 +39,8 @@ export class WZSJZ_UIManager extends Component {
     }
     protected onLoad(): void {
         WZSJZ_UIManager._instance = this;
+        this.InstallGlobalTimeScale();
+        this.RegisterHotkeys();
     }
 
     start() {
@@ -169,6 +190,47 @@ export class WZSJZ_UIManager extends Component {
         nd.position = v3(0, 0, 0);
         nd.getChildByName("内容").getComponent(Label).string = txt;
         tween(nd).to(1.5, { position: v3(0, 200, 0) }, { easing: "backOut" }).call(() => { nd.destroy() }).start();
+    }
+
+    /** 全局调试热键：P键在1倍与5倍游戏速度之间切换。 */
+    private RegisterHotkeys(): void {
+        input.on(Input.EventType.KEY_DOWN, this.OnKeyDown, this);
+        input.on(Input.EventType.KEY_UP, this.OnKeyUp, this);
+    }
+
+    private OnKeyDown(event: EventKeyboard): void {
+        if (event.keyCode !== KeyCode.KEY_P || this._isPKeyPressed) {
+            return;
+        }
+        this._isPKeyPressed = true;
+        this._isFiveTimesSpeed = !this._isFiveTimesSpeed;
+        const timeScale = this._isFiveTimesSpeed ? 5 : 1;
+        WZSJZ_UIManager._gameTimeScale = timeScale;
+        this.ShowText(`游戏速度：${timeScale}倍`);
+    }
+
+    private OnKeyUp(event: EventKeyboard): void {
+        if (event.keyCode === KeyCode.KEY_P) {
+            this._isPKeyPressed = false;
+        }
+    }
+
+    /**
+     * Cocos 3.8 的组件update、Spine和系统更新直接使用director.tick的dt，
+     * 不经过Scheduler.timeScale；这里只包装一次主循环，统一缩放整帧时间。
+     */
+    private InstallGlobalTimeScale(): void {
+        if (WZSJZ_UIManager._originalDirectorTick) {
+            return;
+        }
+        // 避免旧的Scheduler倍率与全局dt倍率叠加。
+        director.getScheduler().setTimeScale(1);
+        WZSJZ_UIManager._originalDirectorTick = director.tick.bind(director);
+        director.tick = (deltaTime: number): void => {
+            WZSJZ_UIManager._originalDirectorTick?.(
+                deltaTime * WZSJZ_UIManager._gameTimeScale,
+            );
+        };
     }
     //跨场景监听事件
     public SJZXD_On(type: string, callback: Function, target?: any) {

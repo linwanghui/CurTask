@@ -1,48 +1,55 @@
 
 1.png
-size: 145,133
+size: 295,73
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 兵
   rotate: false
-  xy: 2, 62
+  xy: 2, 2
   size: 93, 69
   orig: 93, 69
   offset: 0, 0
   index: -1
 刀
-  rotate: false
-  xy: 97, 74
+  rotate: true
+  xy: 178, 37
   size: 34, 57
   orig: 36, 59
   offset: 1, 1
   index: -1
 口罩
-  rotate: true
-  xy: 83, 6
+  rotate: false
+  xy: 237, 40
   size: 54, 31
   orig: 54, 31
   offset: 0, 0
   index: -1
 右腿
   rotate: true
-  xy: 116, 2
+  xy: 266, 6
   size: 32, 27
   orig: 34, 29
   offset: 1, 1
   index: -1
 头盔
   rotate: false
-  xy: 2, 7
+  xy: 97, 18
   size: 79, 53
   orig: 80, 54
   offset: 1, 1
   index: -1
 左腿
   rotate: true
-  xy: 116, 36
+  xy: 237, 2
   size: 36, 27
   orig: 38, 29
   offset: 1, 1
+  index: -1
+眼泪
+  rotate: true
+  xy: 178, 5
+  size: 30, 31
+  orig: 30, 31
+  offset: 0, 0
   index: -1
