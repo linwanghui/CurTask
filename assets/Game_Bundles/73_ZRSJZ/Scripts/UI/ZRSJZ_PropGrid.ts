@@ -304,7 +304,7 @@ export class ZRSJZ_PropGrid extends Component {
                     ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
                     this._inventory,
                     this.PropID,
-                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldPosition(),
+                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldCenter(),
                     false,
                 );
             }
@@ -323,7 +323,7 @@ export class ZRSJZ_PropGrid extends Component {
                     ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
                     this._inventory,
                     this.PropID,
-                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldPosition(),
+                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldCenter(),
                     true,
                 );
                 this._isMove = false;
@@ -352,7 +352,7 @@ export class ZRSJZ_PropGrid extends Component {
                     ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
                     this._inventory,
                     this.PropID,
-                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldPosition(),
+                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldCenter(),
                     true,
                 );
                 this._isMove = false;

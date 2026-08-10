@@ -316,7 +316,7 @@ export class ZRSJZ_Inventory extends Component {
         return null;
     }
 
-    private GetDropPlacement(propData: ZRSJZ_PropData, gridX: number, gridY: number, id: string): {
+    private GetDropPlacement(propData: ZRSJZ_PropData, centerX: number, centerY: number, id: string): {
         width: number,
         height: number,
         isRotate: boolean,
@@ -332,32 +332,55 @@ export class ZRSJZ_Inventory extends Component {
         const verticalOrientation = horizontalOrientation === defaultOrientation
             ? rotatedOrientation
             : defaultOrientation;
-        // 当前格只检测横放。
+        const horizontalGrid = this.GetGridPositionByCenter(
+            centerX,
+            centerY,
+            horizontalOrientation.width,
+            horizontalOrientation.height,
+        );
+        // 以道具中心反算横放时的左上格。
         if (
             (!horizontalOrientation.isRotate || this.SupportsAutoRotation())
-            && this.CanPlace(gridX, gridY, horizontalOrientation.width, horizontalOrientation.height, id)
+            && this.CanPlace(horizontalGrid.gridX, horizontalGrid.gridY, horizontalOrientation.width, horizontalOrientation.height, id)
         ) {
             return {
                 ...horizontalOrientation,
-                gridX,
-                gridY,
+                ...horizontalGrid,
             };
         }
 
-        // 当前格横放失败后，先检测当前格竖放；仍然失败才从右侧下一格开始逐列检测竖放。
+        // 横放失败后保持中心点不变，重新按竖放尺寸反算左上格。
         if (!verticalOrientation.isRotate || this.SupportsAutoRotation()) {
-            for (let offsetX = 0; offsetX < horizontalOrientation.width; offsetX++) {
-                const candidateX = gridX + offsetX;
-                if (this.CanPlace(candidateX, gridY, verticalOrientation.width, verticalOrientation.height, id)) {
-                    return {
-                        ...verticalOrientation,
-                        gridX: candidateX,
-                        gridY,
-                    };
-                }
+            const verticalGrid = this.GetGridPositionByCenter(
+                centerX,
+                centerY,
+                verticalOrientation.width,
+                verticalOrientation.height,
+            );
+            if (this.CanPlace(verticalGrid.gridX, verticalGrid.gridY, verticalOrientation.width, verticalOrientation.height, id)) {
+                return {
+                    ...verticalOrientation,
+                    ...verticalGrid,
+                };
             }
         }
         return null;
+    }
+
+    /** 根据道具中心点及实际占格尺寸，计算吸附后的左上格坐标。 */
+    private GetGridPositionByCenter(
+        centerX: number,
+        centerY: number,
+        width: number,
+        height: number,
+    ): { gridX: number, gridY: number } {
+        const step = ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL;
+        const occupiedWidth = width * ZRSJZ_GRID_SIZE + (width - 1) * ZRSJZ_GRID_INTERVAL;
+        const occupiedHeight = height * ZRSJZ_GRID_SIZE + (height - 1) * ZRSJZ_GRID_INTERVAL;
+        return {
+            gridX: Math.round((centerX - occupiedWidth / 2) / step),
+            gridY: Math.round((-centerY - occupiedHeight / 2) / step),
+        };
     }
 
     FindEmptyGrid(width: number, height: number): { x: number, y: number } {
@@ -456,14 +479,11 @@ export class ZRSJZ_Inventory extends Component {
         if (inventory == ZRSJZ_INVENTORY.武器_刀) return;
         if (this.node.active) {
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType);
-            const newPos: Vec3 = v3(worldPos.x + 50, worldPos.y - 50, worldPos.z)
-            if (this.UITransform?.getBoundingBoxToWorld().contains(v2(newPos.x, newPos.y))) {
-                const pos: Vec3 = this.UITransform.convertToNodeSpaceAR(newPos);
-                const gridX: number = Math.floor(pos.x / (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL));
-                const gridY: number = Math.floor(-pos.y / (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL));
+            if (this.UITransform?.getBoundingBoxToWorld().contains(v2(worldPos.x, worldPos.y))) {
+                const pos: Vec3 = this.UITransform.convertToNodeSpaceAR(worldPos);
                 const propData = ZRSJZ_GameData.Instance.PropData[id];
                 if (!propData) return;
-                const placement = this.GetDropPlacement(propData, gridX, gridY, id);
+                const placement = this.GetDropPlacement(propData, pos.x, pos.y, id);
 
                 //确定修改
                 if (isConfirm) {
@@ -486,8 +506,14 @@ export class ZRSJZ_Inventory extends Component {
                     const currentSize = this.GetPlacedSize(propData, gridIndex);
                     const previewWidth = placement?.width ?? currentSize.width;
                     const previewHeight = placement?.height ?? currentSize.height;
-                    const previewGridX = placement?.gridX ?? gridX;
-                    const previewGridY = placement?.gridY ?? gridY;
+                    const previewGrid = this.GetGridPositionByCenter(
+                        pos.x,
+                        pos.y,
+                        previewWidth,
+                        previewHeight,
+                    );
+                    const previewGridX = placement?.gridX ?? previewGrid.gridX;
+                    const previewGridY = placement?.gridY ?? previewGrid.gridY;
                     for (let i = previewGridX; i < previewGridX + previewWidth; i++) {
                         for (let j = previewGridY; j < previewGridY + previewHeight; j++) {
                             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType, i, j, propType);
