@@ -78,6 +78,47 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         }
     }
 
+    public async TryReceiveProp(
+        sourceInventory: ZRSJZ_INVENTORY,
+        id: string,
+        _organizeBeforePlacement: boolean = false,
+    ): Promise<boolean> {
+        if (this._isChanging) return false;
+        const incomingData = ZRSJZ_GameData.Instance.PropData[id];
+        if (!incomingData || incomingData.PropType !== "弹药") return false;
+
+        this._isChanging = true;
+        let changed = false;
+        try {
+            // 优先补充同名且未满的弹药堆叠。
+            for (const targetID of ZRSJZ_GameData.Instance.AmmoID.slice()) {
+                const targetData = ZRSJZ_GameData.Instance.PropData[targetID];
+                if (!targetData || targetID === id || targetData.Name !== incomingData.Name) continue;
+                const maxCount = ZRSJZ_PROP_CONFIG.get(targetData.Name)?.MaxCount ?? targetData.MaxCount;
+                if (targetData.CurCount >= maxCount) continue;
+
+                const beforeCount = incomingData.CurCount;
+                await this.MergeAmmo(id, targetID, ZRSJZ_GameData.Instance.AmmoID.indexOf(id));
+                changed = changed
+                    || !ZRSJZ_GameData.Instance.PropData[id]
+                    || incomingData.CurCount < beforeCount;
+                if (!ZRSJZ_GameData.Instance.PropData[id]) return true;
+            }
+
+            const emptyIndex = ZRSJZ_GameData.Instance.AmmoID.indexOf("");
+            if (emptyIndex < 0) return changed;
+            await this.PlaceAmmo(
+                sourceInventory,
+                id,
+                emptyIndex % ZRSJZ_InventoryAmmo.COL,
+                Math.floor(emptyIndex / ZRSJZ_InventoryAmmo.COL),
+            );
+            return true;
+        } finally {
+            this._isChanging = false;
+        }
+    }
+
     async RemoveProp(id: string, isRemoveProp: boolean = true) {
         let changed = false;
         const ammoIDs = ZRSJZ_GameData.Instance.AmmoID;

@@ -86,6 +86,17 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
         return true;
     }
 
+    public async TryReceiveProp(
+        _sourceInventory: ZRSJZ_INVENTORY,
+        id: string,
+        _organizeBeforePlacement: boolean = false,
+    ): Promise<boolean> {
+        if (!this.IsAdaptive(id)) return false;
+        return this.Grids[0][0] === ""
+            ? this.ChangeGrid(id)
+            : this.ReplaceProp(id);
+    }
+
     async ReplaceProp(id: string) {
         const propData = ZRSJZ_GameData.Instance.PropData[id];
         if (!propData) return false;

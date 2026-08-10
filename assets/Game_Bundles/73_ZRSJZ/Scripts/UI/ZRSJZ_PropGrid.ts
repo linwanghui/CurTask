@@ -49,6 +49,9 @@ export class ZRSJZ_PropGrid extends Component {
     private _isSellCheck: boolean = false;
     private _initVersion: number = 0;
     private _gridStyleVersion: number = 0;
+    private _lastTapTime: number = 0;
+    private _pendingTapPropID: string = "";
+    private _isQuickTransferring: boolean = false;
 
     public get GridX(): number {
         return this._gridX;
@@ -75,8 +78,12 @@ export class ZRSJZ_PropGrid extends Component {
     protected onDisable(): void {
         if (this._isMove || this._isCreatingMove) {
             ZRSJZ_UIManager.Dragging = false;
+            ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(false);
         }
         this._touchID = -1;
+        this.unschedule(this.ShowPendingPropPanel);
+        this._lastTapTime = 0;
+        this._pendingTapPropID = "";
         this.node.off(Node.EventType.TOUCH_START, this.OnTouchStart, this);
         this.node.off(Node.EventType.TOUCH_MOVE, this.OnTouchMove, this);
         this.node.off(Node.EventType.TOUCH_END, this.OnTouchEnd, this);
@@ -125,6 +132,10 @@ export class ZRSJZ_PropGrid extends Component {
         this._dragAxis = 0;
         this._isSelling = false;
         this._isSellCheck = false;
+        this.unschedule(this.ShowPendingPropPanel);
+        this._lastTapTime = 0;
+        this._pendingTapPropID = "";
+        this._isQuickTransferring = false;
         this._propGridSF = null;
         this._propSF = null;
         this.UIOpacity.opacity = 255;
@@ -250,7 +261,11 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     OnTouchStart(event: EventTouch) {
-        if (ZRSJZ_UIManager.Dragging || this.PropID == "" || this.IsSearchLocked()) return;
+        if (
+            ZRSJZ_UIManager.Dragging
+            || this.PropID == ""
+            || this.IsSearchLocked()
+        ) return;
         if (this._touchID == -1) {
             this._touchID = event.getID();
             if (this._isSelling) return;
@@ -318,14 +333,23 @@ export class ZRSJZ_PropGrid extends Component {
             this._touchID = -1;
             if (this._isMove) {
                 ZRSJZ_UIManager.Dragging = false;
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
-                ZRSJZ_EventManager.EmitPersist(
-                    ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
-                    this._inventory,
+                const worldCenter = this._propSFNode.getComponent(ZRSJZ_PropSF)
+                    .GetPlacementWorldCenter();
+                const discardHandled = ZRSJZ_UIManager.Instance.TryDiscardDraggedProp(
                     this.PropID,
-                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldCenter(),
-                    true,
+                    worldCenter,
                 );
+                ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(false);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
+                if (!discardHandled) {
+                    ZRSJZ_EventManager.EmitPersist(
+                        ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
+                        this._inventory,
+                        this.PropID,
+                        worldCenter,
+                        true,
+                    );
+                }
                 this._isMove = false;
                 ZRSJZ_PoolManager.Instance.PutNode(this._propSFNode);
                 this._propSFNode = null;
@@ -335,9 +359,67 @@ export class ZRSJZ_PropGrid extends Component {
                 this._isSellCheck = !this._isSellCheck;
                 this.ShowSellButton();
             } else if (!this._isCreatingMove) {
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.道具弹窗, this.PropID);
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
+                this.HandleTap();
             }
+        }
+    }
+
+    private HandleTap(): void {
+        if (!this.SupportsQuickTransfer()) {
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.道具弹窗, this.PropID);
+            return;
+        }
+
+        const now = Date.now();
+        const isDoubleTap = this._pendingTapPropID === this.PropID
+            && now - this._lastTapTime <= 320;
+        if (isDoubleTap) {
+            this.unschedule(this.ShowPendingPropPanel);
+            this._lastTapTime = 0;
+            this._pendingTapPropID = "";
+            void this.QuickTransfer();
+            return;
+        }
+
+        this.unschedule(this.ShowPendingPropPanel);
+        this._lastTapTime = now;
+        this._pendingTapPropID = this.PropID;
+        this.scheduleOnce(this.ShowPendingPropPanel, 0.32);
+    }
+
+    private readonly ShowPendingPropPanel = (): void => {
+        const propID = this._pendingTapPropID;
+        this._lastTapTime = 0;
+        this._pendingTapPropID = "";
+        if (propID && propID === this.PropID && ZRSJZ_GameData.Instance.PropData[propID]) {
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.道具弹窗, propID);
+        }
+    };
+
+    private SupportsQuickTransfer(): boolean {
+        if (this._inventory === ZRSJZ_INVENTORY.物资) return true;
+        if (this._inventory !== ZRSJZ_INVENTORY.背包 || !this.PropData) return false;
+        return [
+            "枪",
+            "头盔",
+            "防弹衣",
+            "背包",
+            "刀",
+            "房卡",
+            "门禁卡",
+            "弹药",
+        ].includes(this.PropData.PropType);
+    }
+
+    private async QuickTransfer(): Promise<void> {
+        if (this._isQuickTransferring || !this.PropID) return;
+        this._isQuickTransferring = true;
+        const propID = this.PropID;
+        try {
+            await ZRSJZ_UIManager.Instance.QuickTransferProp(this._inventory, propID);
+        } finally {
+            this._isQuickTransferring = false;
         }
     }
 
@@ -347,14 +429,23 @@ export class ZRSJZ_PropGrid extends Component {
             this._touchID = -1;
             if (this._isMove) {
                 ZRSJZ_UIManager.Dragging = false;
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
-                ZRSJZ_EventManager.EmitPersist(
-                    ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
-                    this._inventory,
+                const worldCenter = this._propSFNode.getComponent(ZRSJZ_PropSF)
+                    .GetPlacementWorldCenter();
+                const discardHandled = ZRSJZ_UIManager.Instance.TryDiscardDraggedProp(
                     this.PropID,
-                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldCenter(),
-                    true,
+                    worldCenter,
                 );
+                ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(false);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
+                if (!discardHandled) {
+                    ZRSJZ_EventManager.EmitPersist(
+                        ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
+                        this._inventory,
+                        this.PropID,
+                        worldCenter,
+                        true,
+                    );
+                }
                 this._isMove = false;
                 ZRSJZ_PoolManager.Instance.PutNode(this._propSFNode);
                 this._propSFNode = null;
@@ -373,6 +464,7 @@ export class ZRSJZ_PropGrid extends Component {
         this._dragAxis = 0;
         this._isMove = false;
         ZRSJZ_UIManager.Dragging = false;
+        ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(false);
 
         if (this._propSFNode?.isValid) {
             ZRSJZ_PoolManager.Instance.PutNode(this._propSFNode);
@@ -414,6 +506,7 @@ export class ZRSJZ_PropGrid extends Component {
         } catch (error) {
             this._isCreatingMove = false;
             ZRSJZ_UIManager.Dragging = false;
+            ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(false);
             throw error;
         }
         this._isCreatingMove = false;
@@ -425,11 +518,13 @@ export class ZRSJZ_PropGrid extends Component {
             || this.IsSearchLocked()
         ) {
             ZRSJZ_UIManager.Dragging = false;
+            ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(false);
             ZRSJZ_PoolManager.Instance.PutNode(propSFNode);
             return;
         }
 
         this._isMove = true;
+        ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(true);
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, false);
         this._propSFNode = propSFNode;
         this._propSFNode.active = true;

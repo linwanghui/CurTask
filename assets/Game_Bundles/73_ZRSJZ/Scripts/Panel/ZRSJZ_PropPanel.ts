@@ -102,7 +102,12 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             this.ReplaceBtn.active = false;
             this.SellBtn.active = !ZRSJZ_UIManager.IsBattle;
         } else {
-            if (propData.CurInventory == ZRSJZ_INVENTORY.武器_刀) {
+            const isLockedEquipment = propData.CurInventory === ZRSJZ_INVENTORY.武器_刀
+                || (
+                    ZRSJZ_UIManager.IsBattle
+                    && propData.CurInventory === ZRSJZ_INVENTORY.武器_背包
+                );
+            if (isLockedEquipment) {
                 this.LoadBtn.active = false;
                 this.UnloadBtn.active = false;
                 this.ReplaceBtn.active = false;
@@ -197,11 +202,36 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
 
         const weaponryInventory = ZRSJZ_UIManager.Instance.InventoryMap
             .get(propData.CurInventory)?.getComponent(ZRSJZ_InventoryWeaponry);
-        const targetInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
-        if (!weaponryInventory || !targetInventory) return;
+        if (!weaponryInventory) return;
 
         this._isOperating = true;
         try {
+            if (ZRSJZ_UIManager.IsBattle) {
+                const backpack = ZRSJZ_UIManager.Instance.InventoryMap
+                    .get(ZRSJZ_INVENTORY.背包)?.getComponent(ZRSJZ_Inventory);
+                if (!backpack) return;
+
+                // 由背包先完成容量、旋转和整理判断；成功转移后装备栏才会被清空。
+                const hasEnoughGridCount = backpack.HasEnoughEmptyGridCount(this._propID);
+                const success = await backpack.TryReceiveProp(
+                    propData.CurInventory,
+                    this._propID,
+                    true,
+                );
+                if (!success) {
+                    ZRSJZ_UIManager.Instance.ShowTip(
+                        hasEnoughGridCount
+                            ? "装备无法存放"
+                            : "背包空间不足，无法卸下装备",
+                    );
+                    return;
+                }
+                this.ClosePanel();
+                return;
+            }
+
+            const targetInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
+            if (!targetInventory) return;
             await weaponryInventory.RemoveProp(this._propID);
             ZRSJZ_GameData.Instance.MovePropToInventory(this._propID, targetInventory, 1, -1, -1);
             await this.RefreshWarehouseInventories(targetInventory);
@@ -243,4 +273,3 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
     }
 
 }
-
