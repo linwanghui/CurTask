@@ -15,12 +15,14 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
     BackpackContent: Node = null;
     public ScrollView: ScrollView = null;
     private _totalValue: Label = null;
+    private _discardArea: Node = null;
 
     protected onLoad(): void {
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
         this.BackpackContent = find("Panel/背包/View/Content", this.node);
         this.ScrollView = find("Panel/背包", this.node).getComponent(ScrollView);
         this._totalValue = find("Panel/背包总价值/Count", this.node).getComponent(Label);
+        this._discardArea = find("Panel/丢弃范围", this.node);
     }
 
 
@@ -28,11 +30,14 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
         this.Prepare.Show(true);
         this.ShowBackpack();
         this.RefreshTotalValue();
+        ZRSJZ_UIManager.Instance.RegisterDiscardArea(this._discardArea);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
 
     protected onDisable(): void {
+        if (this._discardArea) this._discardArea.active = false;
+        ZRSJZ_UIManager.Instance.UnregisterDiscardArea(this._discardArea);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }

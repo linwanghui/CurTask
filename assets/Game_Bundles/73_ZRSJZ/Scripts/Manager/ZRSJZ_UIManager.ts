@@ -1,4 +1,4 @@
-import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, SpriteFrame, Texture2D, Widget } from 'cc';
+import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
@@ -41,6 +41,8 @@ export class ZRSJZ_UIManager extends Component {
     RoleSkinIconSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     WeaponryTextureMap: Map<string, Texture2D> = new Map<string, Texture2D>();
     InventoryMap: Map<string, Node> = new Map<string, Node>();
+    private _discardArea: Node = null;
+    private readonly _discardingPropIDs = new Set<string>();
 
     private _panelNode: Node = null;
     private _panelMap: Map<string, Node> = new Map<string, Node>();
@@ -435,6 +437,133 @@ export class ZRSJZ_UIManager extends Component {
             return null;
         }
         return Promise.resolve(this.InventoryMap.get(inventoryName));
+    }
+
+    public RegisterDiscardArea(discardArea: Node): void {
+        this._discardArea = discardArea;
+        if (this._discardArea?.isValid) this._discardArea.active = false;
+    }
+
+    public UnregisterDiscardArea(discardArea: Node): void {
+        if (this._discardArea === discardArea) this._discardArea = null;
+    }
+
+    public SetDiscardAreaVisible(visible: boolean): void {
+        if (this._discardArea?.isValid) this._discardArea.active = visible;
+    }
+
+    /** 返回 true 表示本次松手已被丢弃区域消费，不再执行库存落点。 */
+    public TryDiscardDraggedProp(propID: string, worldPos: Vec3): boolean {
+        const discardArea = this._discardArea;
+        const transform = discardArea?.getComponent(UITransform);
+        if (
+            !discardArea?.isValid
+            || !discardArea.activeInHierarchy
+            || !transform
+            || !transform.getBoundingBoxToWorld().contains(v2(worldPos.x, worldPos.y))
+        ) {
+            return false;
+        }
+
+        const propData = ZRSJZ_GameData.Instance.PropData[propID];
+        if (!propData) return true;
+        if (propData.PropType === "背包" || propData.PropType === "刀") {
+            this.ShowTip("背包和刀无法丢弃");
+            return true;
+        }
+
+        // 等当前触摸结束逻辑归还拖动预览后再删除原道具节点，避免对象池复用竞态。
+        void Promise.resolve().then(() => this.DiscardProp(propID));
+        return true;
+    }
+
+    private async DiscardProp(propID: string): Promise<void> {
+        if (this._discardingPropIDs.has(propID)) return;
+        this._discardingPropIDs.add(propID);
+        try {
+            const visitedNodes = new Set<Node>();
+            for (const inventoryNode of this.InventoryMap.values()) {
+                if (!inventoryNode?.isValid || visitedNodes.has(inventoryNode)) continue;
+                visitedNodes.add(inventoryNode);
+                const inventory = inventoryNode.getComponent(ZRSJZ_Inventory);
+                if (inventory?.Grids.some(row => row.includes(propID))) {
+                    await inventory.RemoveProp(propID);
+                }
+            }
+            ZRSJZ_GameData.Instance.RemovePropID(propID);
+        } finally {
+            this._discardingPropIDs.delete(propID);
+        }
+    }
+
+    /** 处理局内库存道具的双击快捷转移。 */
+    public async QuickTransferProp(
+        sourceInventory: ZRSJZ_INVENTORY,
+        propID: string,
+    ): Promise<boolean> {
+        const propData = ZRSJZ_GameData.Instance.PropData[propID];
+        if (!propData) return false;
+
+        let targetInventory: ZRSJZ_INVENTORY = null;
+        let organizeBeforePlacement = false;
+        if (sourceInventory === ZRSJZ_INVENTORY.物资) {
+            targetInventory = ZRSJZ_INVENTORY.背包;
+            organizeBeforePlacement = true;
+        } else if (sourceInventory === ZRSJZ_INVENTORY.背包) {
+            switch (propData.PropType) {
+                case "枪":
+                    targetInventory = ZRSJZ_INVENTORY.武器_枪;
+                    break;
+                case "头盔":
+                    targetInventory = ZRSJZ_INVENTORY.武器_头盔;
+                    break;
+                case "防弹衣":
+                    targetInventory = ZRSJZ_INVENTORY.武器_防弹衣;
+                    break;
+                case "背包":
+                    targetInventory = ZRSJZ_INVENTORY.武器_背包;
+                    break;
+                case "刀":
+                    targetInventory = ZRSJZ_INVENTORY.武器_刀;
+                    break;
+                case "房卡":
+                case "门禁卡":
+                    targetInventory = ZRSJZ_INVENTORY.卡包;
+                    break;
+                case "弹药":
+                    targetInventory = ZRSJZ_INVENTORY.弹药;
+                    break;
+                default:
+                    return false;
+            }
+        } else {
+            return false;
+        }
+
+        const targetNode = this.InventoryMap.get(targetInventory);
+        const target = targetNode?.getComponent(ZRSJZ_Inventory);
+        if (!target) {
+            console.error("快捷转移目标库存尚未初始化:", targetInventory);
+            return false;
+        }
+
+        const hasEnoughGridCount = targetInventory === ZRSJZ_INVENTORY.背包
+            && target.HasEnoughEmptyGridCount(propID);
+        const success = await target.TryReceiveProp(
+            sourceInventory,
+            propID,
+            organizeBeforePlacement,
+        );
+        if (!success) {
+            this.ShowTip(
+                targetInventory === ZRSJZ_INVENTORY.背包
+                    ? (hasEnoughGridCount
+                        ? "道具无法存放"
+                        : "背包空间不足")
+                    : "目标栏位空间不足",
+            );
+        }
+        return success;
     }
 
     /**

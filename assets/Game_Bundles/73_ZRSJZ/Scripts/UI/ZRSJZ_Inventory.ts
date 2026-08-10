@@ -316,7 +316,7 @@ export class ZRSJZ_Inventory extends Component {
         return null;
     }
 
-    private GetDropPlacement(propData: ZRSJZ_PropData, gridX: number, gridY: number, id: string): {
+    private GetDropPlacement(propData: ZRSJZ_PropData, centerX: number, centerY: number, id: string): {
         width: number,
         height: number,
         isRotate: boolean,
@@ -332,32 +332,55 @@ export class ZRSJZ_Inventory extends Component {
         const verticalOrientation = horizontalOrientation === defaultOrientation
             ? rotatedOrientation
             : defaultOrientation;
-        // 当前格只检测横放。
+        const horizontalGrid = this.GetGridPositionByCenter(
+            centerX,
+            centerY,
+            horizontalOrientation.width,
+            horizontalOrientation.height,
+        );
+        // 以道具中心反算横放时的左上格。
         if (
             (!horizontalOrientation.isRotate || this.SupportsAutoRotation())
-            && this.CanPlace(gridX, gridY, horizontalOrientation.width, horizontalOrientation.height, id)
+            && this.CanPlace(horizontalGrid.gridX, horizontalGrid.gridY, horizontalOrientation.width, horizontalOrientation.height, id)
         ) {
             return {
                 ...horizontalOrientation,
-                gridX,
-                gridY,
+                ...horizontalGrid,
             };
         }
 
-        // 当前格横放失败后，先检测当前格竖放；仍然失败才从右侧下一格开始逐列检测竖放。
+        // 横放失败后保持中心点不变，重新按竖放尺寸反算左上格。
         if (!verticalOrientation.isRotate || this.SupportsAutoRotation()) {
-            for (let offsetX = 0; offsetX < horizontalOrientation.width; offsetX++) {
-                const candidateX = gridX + offsetX;
-                if (this.CanPlace(candidateX, gridY, verticalOrientation.width, verticalOrientation.height, id)) {
-                    return {
-                        ...verticalOrientation,
-                        gridX: candidateX,
-                        gridY,
-                    };
-                }
+            const verticalGrid = this.GetGridPositionByCenter(
+                centerX,
+                centerY,
+                verticalOrientation.width,
+                verticalOrientation.height,
+            );
+            if (this.CanPlace(verticalGrid.gridX, verticalGrid.gridY, verticalOrientation.width, verticalOrientation.height, id)) {
+                return {
+                    ...verticalOrientation,
+                    ...verticalGrid,
+                };
             }
         }
         return null;
+    }
+
+    /** 根据道具中心点及实际占格尺寸，计算吸附后的左上格坐标。 */
+    private GetGridPositionByCenter(
+        centerX: number,
+        centerY: number,
+        width: number,
+        height: number,
+    ): { gridX: number, gridY: number } {
+        const step = ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL;
+        const occupiedWidth = width * ZRSJZ_GRID_SIZE + (width - 1) * ZRSJZ_GRID_INTERVAL;
+        const occupiedHeight = height * ZRSJZ_GRID_SIZE + (height - 1) * ZRSJZ_GRID_INTERVAL;
+        return {
+            gridX: Math.round((centerX - occupiedWidth / 2) / step),
+            gridY: Math.round((-centerY - occupiedHeight / 2) / step),
+        };
     }
 
     FindEmptyGrid(width: number, height: number): { x: number, y: number } {
@@ -416,6 +439,259 @@ export class ZRSJZ_Inventory extends Component {
         node.active = true;
     }
 
+    /** 自动整理当前库存，并按面积从大到小重新紧凑排列。 */
+    public async AutoOrganize(): Promise<boolean> {
+        if (!this.IsInitialized || !this.InventoryConfig) return false;
+
+        const propIDs = Array.from(new Set(this.Grids.flat().filter(id => id !== "")))
+            .filter(id => ZRSJZ_GameData.Instance.PropData[id] != null)
+            .sort((a, b) => {
+                const propA = ZRSJZ_GameData.Instance.PropData[a];
+                const propB = ZRSJZ_GameData.Instance.PropData[b];
+                return propB.Width * propB.Height - propA.Width * propA.Height;
+            });
+        const originalGrids = this.Grids;
+        this.Grids = Array.from(
+            { length: originalGrids.length },
+            () => this.GetEmptyRow(),
+        );
+
+        const placements = new Map<string, {
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+            isRotate: boolean,
+        }>();
+        for (const id of propIDs) {
+            const propData = ZRSJZ_GameData.Instance.PropData[id];
+            const placement = this.FindEmptyGridForProp(propData);
+            if (!placement) {
+                this.Grids = originalGrids;
+                return false;
+            }
+            placements.set(id, placement);
+            for (let row = placement.y; row < placement.y + placement.height; row++) {
+                for (let col = placement.x; col < placement.x + placement.width; col++) {
+                    this.Grids[row][col] = id;
+                }
+            }
+        }
+
+        const gridIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+        for (const [id, placement] of placements) {
+            ZRSJZ_GameData.Instance.ChangePropGridPos(
+                id,
+                gridIndex,
+                placement.x,
+                placement.y,
+                placement.isRotate,
+            );
+        }
+
+        for (const child of this.node.children.slice()) {
+            ZRSJZ_PoolManager.Instance.PutNode(child);
+        }
+        for (const [id, placement] of placements) {
+            await this.OccupyGrid(
+                id,
+                placement.x,
+                placement.y,
+                placement.width,
+                placement.height,
+            );
+        }
+        await this.SyncEmptyGridNodes();
+        return true;
+    }
+
+    /**
+     * 将待加入道具一并纳入布局搜索，为大件预留连续空间。
+     * 返回待加入道具的落点；现有道具会按搜索结果重新排列。
+     */
+    private async AutoOrganizeForIncomingProp(incomingID: string): Promise<{
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        isRotate: boolean,
+    }> {
+        const incomingData = ZRSJZ_GameData.Instance.PropData[incomingID];
+        if (!incomingData) return null;
+
+        const existingIDs = Array.from(new Set(this.Grids.flat().filter(id => id !== "")))
+            .filter(id => id !== incomingID && ZRSJZ_GameData.Instance.PropData[id] != null);
+        const allIDs = [...existingIDs, incomingID].sort((a, b) => {
+            const propA = ZRSJZ_GameData.Instance.PropData[a];
+            const propB = ZRSJZ_GameData.Instance.PropData[b];
+            const areaDifference = propB.Width * propB.Height - propA.Width * propA.Height;
+            if (areaDifference !== 0) return areaDifference;
+            if (a === incomingID) return -1;
+            if (b === incomingID) return 1;
+            return 0;
+        });
+        const workingGrids = Array.from(
+            { length: this.Grids.length },
+            () => this.GetEmptyRow(),
+        );
+        const placements = new Map<string, {
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+            isRotate: boolean,
+        }>();
+        const failedStates = new Set<string>();
+
+        const canPlace = (x: number, y: number, width: number, height: number): boolean => {
+            if (x < 0 || y < 0 || x + width > this.InventoryConfig.Col) return false;
+            if (y + height > workingGrids.length) return false;
+            for (let row = y; row < y + height; row++) {
+                for (let col = x; col < x + width; col++) {
+                    if (workingGrids[row][col] !== "") return false;
+                }
+            }
+            return true;
+        };
+        const fill = (id: string, x: number, y: number, width: number, height: number): void => {
+            for (let row = y; row < y + height; row++) {
+                for (let col = x; col < x + width; col++) {
+                    workingGrids[row][col] = id;
+                }
+            }
+        };
+        const clear = (x: number, y: number, width: number, height: number): void => {
+            for (let row = y; row < y + height; row++) {
+                for (let col = x; col < x + width; col++) {
+                    workingGrids[row][col] = "";
+                }
+            }
+        };
+        const search = (index: number): boolean => {
+            if (index >= allIDs.length) return true;
+            const stateKey = `${index}:${workingGrids.map(row => row.map(id => id ? "1" : "0").join("")).join("")}`;
+            if (failedStates.has(stateKey)) return false;
+
+            const id = allIDs[index];
+            const propData = ZRSJZ_GameData.Instance.PropData[id];
+            const orientations = [{
+                width: propData.Width,
+                height: propData.Height,
+                isRotate: false,
+            }];
+            if (this.SupportsAutoRotation() && propData.Width !== propData.Height) {
+                orientations.push({
+                    width: propData.Height,
+                    height: propData.Width,
+                    isRotate: true,
+                });
+            }
+
+            for (const orientation of orientations) {
+                for (let y = 0; y <= workingGrids.length - orientation.height; y++) {
+                    for (let x = 0; x <= this.InventoryConfig.Col - orientation.width; x++) {
+                        if (!canPlace(x, y, orientation.width, orientation.height)) continue;
+                        fill(id, x, y, orientation.width, orientation.height);
+                        placements.set(id, { x, y, ...orientation });
+                        if (search(index + 1)) return true;
+                        placements.delete(id);
+                        clear(x, y, orientation.width, orientation.height);
+                    }
+                }
+            }
+
+            failedStates.add(stateKey);
+            return false;
+        };
+
+        if (!search(0)) return null;
+        const incomingPlacement = placements.get(incomingID);
+        if (!incomingPlacement) return null;
+
+        // 待加入道具暂不写入目标库存，由后续 ChangeGrid 完成正式转移。
+        clear(
+            incomingPlacement.x,
+            incomingPlacement.y,
+            incomingPlacement.width,
+            incomingPlacement.height,
+        );
+        this.Grids = workingGrids;
+        const gridIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+        for (const id of existingIDs) {
+            const placement = placements.get(id);
+            if (!placement) continue;
+            ZRSJZ_GameData.Instance.ChangePropGridPos(
+                id,
+                gridIndex,
+                placement.x,
+                placement.y,
+                placement.isRotate,
+            );
+        }
+
+        for (const child of this.node.children.slice()) {
+            ZRSJZ_PoolManager.Instance.PutNode(child);
+        }
+        for (const id of existingIDs) {
+            const placement = placements.get(id);
+            if (!placement) continue;
+            await this.OccupyGrid(
+                id,
+                placement.x,
+                placement.y,
+                placement.width,
+                placement.height,
+            );
+        }
+        await this.SyncEmptyGridNodes();
+        return incomingPlacement;
+    }
+
+    /** 仅比较空格总数与道具占格数，不判断这些空格是否连续。 */
+    public HasEnoughEmptyGridCount(id: string): boolean {
+        const propData = ZRSJZ_GameData.Instance.PropData[id];
+        if (!propData) return false;
+        const requiredGridCount = propData.Width * propData.Height;
+        const emptyGridCount = this.Grids.reduce(
+            (count, row) => count + row.filter(gridID => gridID === "").length,
+            0,
+        );
+        return emptyGridCount >= requiredGridCount;
+    }
+
+    /** 使用当前库存规则，把指定道具自动放入一个可用位置。 */
+    public async TryReceiveProp(
+        sourceInventory: ZRSJZ_INVENTORY,
+        id: string,
+        organizeBeforePlacement: boolean = false,
+    ): Promise<boolean> {
+        const propData = ZRSJZ_GameData.Instance.PropData[id];
+        if (!propData || !this.IsAdaptive(id)) return false;
+
+        if (organizeBeforePlacement) {
+            // 总空格数量不足时，任何整理或旋转都无法放入，直接返回空间不足。
+            if (!this.HasEnoughEmptyGridCount(id)) return false;
+        }
+
+        // 优先使用当前布局中的可用位置，只有直接放不下时才整理库存。
+        // FindEmptyGridForProp 会同时尝试原方向和旋转方向，并选择更靠前的可用位置。
+        let placement = this.FindEmptyGridForProp(propData);
+        if (!placement && organizeBeforePlacement) {
+            placement = await this.AutoOrganizeForIncomingProp(id);
+        }
+
+        if (!placement) return false;
+        return this.ChangeGrid(
+            sourceInventory,
+            id,
+            placement.x,
+            placement.y,
+            placement.width,
+            placement.height,
+            placement.isRotate,
+        );
+    }
+
     /** 在已经腾空的原位置恢复道具，用于装备/弹药替换后把旧道具放回来源格。 */
     public async RestorePropAt(id: string, gridX: number, gridY: number): Promise<boolean> {
         const propData = ZRSJZ_GameData.Instance.PropData[id];
@@ -453,17 +729,20 @@ export class ZRSJZ_Inventory extends Component {
     //道具拉动
     async CheckProp(inventory: ZRSJZ_INVENTORY, id: string, worldPos: Vec3, isConfirm: boolean) {
         if (!this.IsVisible) return;
-        if (inventory == ZRSJZ_INVENTORY.武器_刀) return;
+        if (
+            inventory === ZRSJZ_INVENTORY.武器_刀
+            || (
+                ZRSJZ_UIManager.IsBattle
+                && inventory === ZRSJZ_INVENTORY.武器_背包
+            )
+        ) return;
         if (this.node.active) {
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType);
-            const newPos: Vec3 = v3(worldPos.x + 50, worldPos.y - 50, worldPos.z)
-            if (this.UITransform?.getBoundingBoxToWorld().contains(v2(newPos.x, newPos.y))) {
-                const pos: Vec3 = this.UITransform.convertToNodeSpaceAR(newPos);
-                const gridX: number = Math.floor(pos.x / (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL));
-                const gridY: number = Math.floor(-pos.y / (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL));
+            if (this.UITransform?.getBoundingBoxToWorld().contains(v2(worldPos.x, worldPos.y))) {
+                const pos: Vec3 = this.UITransform.convertToNodeSpaceAR(worldPos);
                 const propData = ZRSJZ_GameData.Instance.PropData[id];
                 if (!propData) return;
-                const placement = this.GetDropPlacement(propData, gridX, gridY, id);
+                const placement = this.GetDropPlacement(propData, pos.x, pos.y, id);
 
                 //确定修改
                 if (isConfirm) {
@@ -486,8 +765,14 @@ export class ZRSJZ_Inventory extends Component {
                     const currentSize = this.GetPlacedSize(propData, gridIndex);
                     const previewWidth = placement?.width ?? currentSize.width;
                     const previewHeight = placement?.height ?? currentSize.height;
-                    const previewGridX = placement?.gridX ?? gridX;
-                    const previewGridY = placement?.gridY ?? gridY;
+                    const previewGrid = this.GetGridPositionByCenter(
+                        pos.x,
+                        pos.y,
+                        previewWidth,
+                        previewHeight,
+                    );
+                    const previewGridX = placement?.gridX ?? previewGrid.gridX;
+                    const previewGridY = placement?.gridY ?? previewGrid.gridY;
                     for (let i = previewGridX; i < previewGridX + previewWidth; i++) {
                         for (let j = previewGridY; j < previewGridY + previewHeight; j++) {
                             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType, i, j, propType);

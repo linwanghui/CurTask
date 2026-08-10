@@ -279,8 +279,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 5.457,
-      "y": -5.32,
+      "x": 5,
+      "y": -5,
       "z": 0
     },
     "_lrot": {
@@ -320,8 +320,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 32.27496337890625,
-      "height": 41.8
+      "width": 122,
+      "height": 34.668
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -356,14 +356,14 @@
       "b": 255,
       "a": 255
     },
-    "_string": "111",
+    "_string": "name",
     "_horizontalAlign": 0,
     "_verticalAlign": 0,
-    "_actualFontSize": 25,
+    "_actualFontSize": 26,
     "_fontSize": 25,
     "_fontFamily": "Arial",
     "_lineHeight": 30,
-    "_overflow": 0,
+    "_overflow": 2,
     "_enableWrapText": true,
     "_font": {
       "__uuid__": "7dab8514-b7c5-474c-a721-598a51503397",
@@ -417,11 +417,11 @@
     "__prefab": {
       "__id__": 16
     },
-    "_alignFlags": 9,
+    "_alignFlags": 41,
     "_target": null,
-    "_left": 5.457,
-    "_right": 0,
-    "_top": 5.32,
+    "_left": 5,
+    "_right": 5,
+    "_top": 5,
     "_bottom": 0,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
@@ -431,7 +431,7 @@
     "_isAbsBottom": true,
     "_isAbsHorizontalCenter": true,
     "_isAbsVerticalCenter": true,
-    "_originalWidth": 0,
+    "_originalWidth": 121.42496337890626,
     "_originalHeight": 0,
     "_alignMode": 2,
     "_lockFlags": 0,

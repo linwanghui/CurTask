@@ -10,6 +10,9 @@ const { ccclass, property } = _decorator;
 @ccclass('ZRSJZ_GetGoldPanel')
 export class ZRSJZ_GetGoldPanel extends ZRSJZ_Panel {
 
+    @property({ displayName: "奖励金额" })
+    public Gold: number = 1000000;
+
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
@@ -19,7 +22,7 @@ export class ZRSJZ_GetGoldPanel extends ZRSJZ_Panel {
                 break;
             case "免费领取":
                 Banner.Instance.ShowVideoAd(() => {
-                    ZRSJZ_GameData.Instance.ChangeGold(200000);
+                    ZRSJZ_GameData.Instance.ChangeGold(this.Gold);
                     ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
                     ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.获取金币弹窗);
                 })

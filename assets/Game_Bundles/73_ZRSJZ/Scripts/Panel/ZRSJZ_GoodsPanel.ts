@@ -51,6 +51,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     public ScrollView: ScrollView = null;
     public GoodsScrollView: ScrollView = null;
     private _totalValue: Label = null;
+    private _discardArea: Node = null;
 
     private _revealSerial: number = 0;
     private _arrayInventorySerial: number = 0;
@@ -65,6 +66,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         this.BackpackContent = find("Panel/背包/View/Content", this.node);
         this.ScrollView = find("Panel/背包", this.node).getComponent(ScrollView);
         this._totalValue = find("Panel/背包总价值/Count", this.node).getComponent(Label);
+        this._discardArea = find("Panel/丢弃范围", this.node);
         this.GoodsContent = this.EnsureGoodsContent();
     }
 
@@ -72,11 +74,14 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         this.Prepare.Show(true);
         this.ShowBackpack();
         this.RefreshTotalValue();
+        ZRSJZ_UIManager.Instance.RegisterDiscardArea(this._discardArea);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
 
     protected onDisable(): void {
+        if (this._discardArea) this._discardArea.active = false;
+        ZRSJZ_UIManager.Instance.UnregisterDiscardArea(this._discardArea);
         this.CancelReveal();
         if (this._activeGoodsInventory?.node?.isValid) {
             this._activeGoodsInventory.node.active = false;

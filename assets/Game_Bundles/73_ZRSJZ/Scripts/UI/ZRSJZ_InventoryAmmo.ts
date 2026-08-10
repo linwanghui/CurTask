@@ -1,4 +1,4 @@
-import { _decorator, Node, UITransform, v2, v3, Vec3 } from 'cc';
+import { _decorator, Node, UITransform, v2, Vec3 } from 'cc';
 import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_INVENTORY, ZRSJZ_INVENTORY_CONFIG, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
@@ -46,10 +46,9 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         if (!this.node.active || this._isChanging) return;
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType);
 
-        const checkPos = v3(worldPos.x + 50, worldPos.y - 50, worldPos.z);
-        if (!this.UITransform.getBoundingBoxToWorld().contains(v2(checkPos.x, checkPos.y))) return;
+        if (!this.UITransform.getBoundingBoxToWorld().contains(v2(worldPos.x, worldPos.y))) return;
 
-        const localPos = this.UITransform.convertToNodeSpaceAR(checkPos);
+        const localPos = this.UITransform.convertToNodeSpaceAR(worldPos);
         const gridX = Math.floor(localPos.x / (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL));
         const gridY = Math.floor(-localPos.y / (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL));
         const width: number = ZRSJZ_GameData.Instance.PropData[id].Width;
@@ -74,6 +73,47 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         this._isChanging = true;
         try {
             await this.PlaceAmmo(inventory, id, gridX, gridY);
+        } finally {
+            this._isChanging = false;
+        }
+    }
+
+    public async TryReceiveProp(
+        sourceInventory: ZRSJZ_INVENTORY,
+        id: string,
+        _organizeBeforePlacement: boolean = false,
+    ): Promise<boolean> {
+        if (this._isChanging) return false;
+        const incomingData = ZRSJZ_GameData.Instance.PropData[id];
+        if (!incomingData || incomingData.PropType !== "弹药") return false;
+
+        this._isChanging = true;
+        let changed = false;
+        try {
+            // 优先补充同名且未满的弹药堆叠。
+            for (const targetID of ZRSJZ_GameData.Instance.AmmoID.slice()) {
+                const targetData = ZRSJZ_GameData.Instance.PropData[targetID];
+                if (!targetData || targetID === id || targetData.Name !== incomingData.Name) continue;
+                const maxCount = ZRSJZ_PROP_CONFIG.get(targetData.Name)?.MaxCount ?? targetData.MaxCount;
+                if (targetData.CurCount >= maxCount) continue;
+
+                const beforeCount = incomingData.CurCount;
+                await this.MergeAmmo(id, targetID, ZRSJZ_GameData.Instance.AmmoID.indexOf(id));
+                changed = changed
+                    || !ZRSJZ_GameData.Instance.PropData[id]
+                    || incomingData.CurCount < beforeCount;
+                if (!ZRSJZ_GameData.Instance.PropData[id]) return true;
+            }
+
+            const emptyIndex = ZRSJZ_GameData.Instance.AmmoID.indexOf("");
+            if (emptyIndex < 0) return changed;
+            await this.PlaceAmmo(
+                sourceInventory,
+                id,
+                emptyIndex % ZRSJZ_InventoryAmmo.COL,
+                Math.floor(emptyIndex / ZRSJZ_InventoryAmmo.COL),
+            );
+            return true;
         } finally {
             this._isChanging = false;
         }
