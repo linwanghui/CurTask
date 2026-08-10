@@ -1,6 +1,7 @@
 import { _decorator, Component, isValid, Label, Node, Sprite, UITransform } from 'cc';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
+import { ZRSJZ_AudioManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_BoxroomBox')
@@ -55,6 +56,7 @@ export class ZRSJZ_BoxroomBox extends Component {
     }
 
     private OnClick(): void {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         this._clickCallback?.(this._propName);
     }
 
@@ -73,4 +75,5 @@ export class ZRSJZ_BoxroomBox extends Component {
         }
     }
 }
-
+
+

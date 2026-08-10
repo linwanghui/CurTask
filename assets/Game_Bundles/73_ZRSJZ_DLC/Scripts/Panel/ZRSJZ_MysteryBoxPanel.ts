@@ -82,6 +82,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
     }
 
     public OnButtonClick(event: EventTouch): void {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "返回":
                 if (this._isOpening) {
@@ -103,6 +104,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
     }
 
     private SelectBox(type: ZRSJZ_MysteryBoxType): void {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         this._selectedType = type;
         const purchasePage = this.node.getChildByName("Panel")?.getChildByName("购买界面");
         const boxSelect = purchasePage?.getChildByName("物资箱选择");
@@ -114,6 +116,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
     }
 
     private ConfirmSelection(): void {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         const panel = this.node.getChildByName("Panel");
         const purchasePage = panel?.getChildByName("购买界面");
         const openingPage = panel?.getChildByName("开箱界面");
