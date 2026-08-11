@@ -98,7 +98,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Close":
-                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化弹窗);
+                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化界面);
                 break;
             case "射击训练":
                 this.SelectFacility("射击训练");
@@ -121,7 +121,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
         closeButton.clickEvents.length = 0;
         closeButton.node.on(Button.EventType.CLICK, () => {
             ZRSJZ_AudioManager.Instance.PlaySound("点击");
-            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化弹窗);
+            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化界面);
         }, this);
 
         const displayNames = Object.keys(ZRSJZ_FACILITY_NAME_BY_DISPLAY) as ZRSJZ_UpgradeFacilityDisplayName[];
