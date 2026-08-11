@@ -21,9 +21,9 @@ export class ZRSJZ_LoadingPanel extends ZRSJZ_Panel {
     private _sceneName: string = "";
 
     protected onLoad(): void {
-        this.LoadingSprite = find("Panel/进度2", this.node).getComponent(Sprite);
-        this.LoadingIcon = find("Panel/Icon", this.node).getComponent(Sprite);
-        this.LoadingLabel = find("Panel/LoadingLabel", this.node).getComponent(Label);
+        this.LoadingSprite = find("进度条/进度2", this.node).getComponent(Sprite);
+        this.LoadingIcon = find("进度条/Icon", this.node).getComponent(Sprite);
+        this.LoadingLabel = find("进度条/LoadingLabel", this.node).getComponent(Label);
         this._iconBaseY = this.LoadingIcon.node.position.y;
     }
 
