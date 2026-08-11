@@ -29,8 +29,6 @@ export class ZRSJZ_Joystick extends Component {
 
     }
 
-    onDestroy() { }
-
     //#region 移动
     OnTouchStart_JoystickArea(event: EventTouch) {
         let touches = event.getTouches();
@@ -116,9 +114,6 @@ export class ZRSJZ_Joystick extends Component {
             case KeyCode.KEY_S:
                 this._keysCol.push(keyCode);
                 this.updateDirection();
-                break;
-            case KeyCode.KEY_P:
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.作弊界面);
                 break;
         }
     }

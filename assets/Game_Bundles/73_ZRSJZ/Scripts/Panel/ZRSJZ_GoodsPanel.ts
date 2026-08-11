@@ -6,6 +6,8 @@ import {
     Mask,
     Node,
     ScrollView,
+    Sprite,
+    SpriteFrame,
     UIOpacity,
     UITransform,
 } from 'cc';
@@ -45,6 +47,9 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     @property({ displayName: '每件物资搜索时间（秒）', min: 0.05 })
     SearchInterval: number = 0.5;
 
+    @property(SpriteFrame)
+    DiscardSFs: SpriteFrame[] = [];
+
     Prepare: ZRSJZ_Prepare = null;
     BackpackContent: Node = null;
     GoodsContent: Node = null;
@@ -52,6 +57,8 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     public GoodsScrollView: ScrollView = null;
     private _totalValue: Label = null;
     private _discardArea: Node = null;
+    private _discardSprite: Sprite = null;
+    private _isOrganizing: boolean = false;
 
     private _revealSerial: number = 0;
     private _arrayInventorySerial: number = 0;
@@ -65,8 +72,9 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
         this.BackpackContent = find("Panel/背包/View/Content", this.node);
         this.ScrollView = find("Panel/背包", this.node).getComponent(ScrollView);
-        this._totalValue = find("Panel/背包总价值/Count", this.node).getComponent(Label);
+        this._totalValue = find("Panel/武器装备/背包总价值/Count", this.node).getComponent(Label);
         this._discardArea = find("Panel/丢弃范围", this.node);
+        this._discardSprite = find("Panel/丢弃范围", this.node).getComponent(Sprite);
         this.GoodsContent = this.EnsureGoodsContent();
     }
 
@@ -74,7 +82,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         this.Prepare.Show(true);
         this.ShowBackpack();
         this.RefreshTotalValue();
-        ZRSJZ_UIManager.Instance.RegisterDiscardArea(this._discardArea);
+        ZRSJZ_UIManager.Instance.RegisterDiscardArea(this._discardArea, this.DiscardSFs);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
@@ -112,13 +120,30 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         this.StartReveal(props, interval, box);
     }
 
-    OnButtonClick(event: EventTouch) {
+    async OnButtonClick(event: EventTouch): Promise<void> {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.物资弹窗);
                 break;
+            case "整理背包":
+                await this.OrganizeBackpack();
+                break;
+        }
+    }
+
+    private async OrganizeBackpack(): Promise<void> {
+        if (this._isOrganizing) return;
+        this._isOrganizing = true;
+        try {
+            const backpackNode = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.背包);
+            const organized = await backpackNode?.getComponent(ZRSJZ_Inventory)?.AutoOrganize();
+            if (!organized) {
+                await ZRSJZ_UIManager.Instance.ShowTip("背包整理失败");
+            }
+        } finally {
+            this._isOrganizing = false;
         }
     }
 

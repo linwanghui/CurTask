@@ -79,7 +79,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopSkin = find("Panel/详情/皮肤", this.node);
         this.EffectSkeleton = find("Panel/展示/Effect", this.node).getComponent(sp.Skeleton);
 
-        this.ShopProperty.children.forEach(child => {
+        this.ShopProperty.getChildByName("Layout").children.forEach(child => {
             const shopStats = child.getComponent(ZRSJZ_ShopStats);
             shopStats.Init();
             this._shopPropertyMap.set(child.name, shopStats);
@@ -279,7 +279,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             const skinNode = instantiate(this.WeaponSkin);
             skinNode.name = `WeaponSkin_${index}`;
             skinNode.active = true;
-            skinNode.parent = this.ShopSkin;
+            skinNode.parent = this.ShopSkin.getChildByName("皮肤");
             const iconSpriteFrame = await ZRSJZ_UIManager.Instance.GetPropUI(skinName);
             const icon = skinNode.getChildByName("Icon")?.getComponent(Sprite);
             if (icon) icon.spriteFrame = iconSpriteFrame;

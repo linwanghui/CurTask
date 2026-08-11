@@ -1,4 +1,4 @@
-import { _decorator, EventTouch, find, Label, Node, ScrollView } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, ScrollView, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_Prepare } from '../UI/ZRSJZ_Prepare';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -6,23 +6,30 @@ import { ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_BackpackPanel')
 export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
+
+    @property(SpriteFrame)
+    DiscardSFs: SpriteFrame[] = [];
 
     Prepare: ZRSJZ_Prepare = null;
     BackpackContent: Node = null;
     public ScrollView: ScrollView = null;
     private _totalValue: Label = null;
     private _discardArea: Node = null;
+    private _discardSprite: Sprite = null;
+    private _isOrganizing: boolean = false;
 
     protected onLoad(): void {
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
         this.BackpackContent = find("Panel/背包/View/Content", this.node);
         this.ScrollView = find("Panel/背包", this.node).getComponent(ScrollView);
-        this._totalValue = find("Panel/背包总价值/Count", this.node).getComponent(Label);
+        this._totalValue = find("Panel/武器装备/背包总价值/Count", this.node).getComponent(Label);
         this._discardArea = find("Panel/丢弃范围", this.node);
+        this._discardSprite = find("Panel/丢弃范围", this.node).getComponent(Sprite);
     }
 
 
@@ -30,7 +37,7 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
         this.Prepare.Show(true);
         this.ShowBackpack();
         this.RefreshTotalValue();
-        ZRSJZ_UIManager.Instance.RegisterDiscardArea(this._discardArea);
+        ZRSJZ_UIManager.Instance.RegisterDiscardArea(this._discardArea, this.DiscardSFs);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
@@ -42,13 +49,30 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
 
-    OnButtonClick(event: EventTouch) {
+    async OnButtonClick(event: EventTouch): Promise<void> {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.背包弹窗);
                 break;
+            case "整理背包":
+                await this.OrganizeBackpack();
+                break;
+        }
+    }
+
+    private async OrganizeBackpack(): Promise<void> {
+        if (this._isOrganizing) return;
+        this._isOrganizing = true;
+        try {
+            const backpackNode = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.背包);
+            const organized = await backpackNode?.getComponent(ZRSJZ_Inventory)?.AutoOrganize();
+            if (!organized) {
+                await ZRSJZ_UIManager.Instance.ShowTip("背包整理失败");
+            }
+        } finally {
+            this._isOrganizing = false;
         }
     }
 

@@ -23,11 +23,13 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     IsKnife: boolean = false;
     IsLockEnemy: boolean = false;
     private _mzBone: sp.spine.Bone = null;
+    private _mzBone_Hand: sp.spine.Bone = null;
     private _baseScale = new Vec3();
 
     protected onLoad(): void {
         super.onLoad();
         this._mzBone = this.Skeleton?.findBone('mz');
+        this._mzBone_Hand = this.HandSkeleton?.findBone('mz');
         this._baseScale.set(this.node.scale.x, this.node.scale.y, this.node.scale.z);
     }
 
@@ -88,8 +90,12 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         this._mzBone.x = (localDirX * cos - localDirY * sin) * distance;
         this._mzBone.y = (localDirX * sin + localDirY * cos) * distance;
 
+        this._mzBone_Hand.x = (localDirX * cos - localDirY * sin) * distance;
+        this._mzBone_Hand.y = (localDirX * sin + localDirY * cos) * distance;
+
         // 重新计算 IK 和所有骨骼世界坐标
         this.Skeleton._skeleton.updateWorldTransform();
+        this.HandSkeleton._skeleton.updateWorldTransform();
     }
 
     //显示装备

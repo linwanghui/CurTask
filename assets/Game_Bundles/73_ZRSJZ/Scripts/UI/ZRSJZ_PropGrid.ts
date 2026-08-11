@@ -310,18 +310,20 @@ export class ZRSJZ_PropGrid extends Component {
             if (!this._isMove && this._dragAxis !== 1) return;
 
             if (this._isMove && this._propSFNode != null) {
-                const curPos = this._propSFNode.worldPosition.clone();
                 this._v_2 = event.getUILocation().clone().subtract(this._v_1)
                 const targetPos: Vec3 = new Vec3();
                 Vec3.lerp(targetPos, this._propSFNode.worldPosition, this._propSFNode.worldPosition.clone().add3f(this._v_2.x, this._v_2.y, 0), 1);
                 this._propSFNode.setWorldPosition(targetPos);
+                const placementWorldCenter = this._propSFNode.getComponent(ZRSJZ_PropSF)
+                    .GetPlacementWorldCenter();
                 ZRSJZ_EventManager.EmitPersist(
                     ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
                     this._inventory,
                     this.PropID,
-                    this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldCenter(),
+                    placementWorldCenter,
                     false,
                 );
+                ZRSJZ_UIManager.Instance.UpdateDiscardAreaState(placementWorldCenter);
             }
             this._v_1.set(event.getUILocation().clone());
         }
@@ -487,6 +489,9 @@ export class ZRSJZ_PropGrid extends Component {
             return;
         }
         this._propSFNode.getComponent(ZRSJZ_PropSF).SetOrientation(isRotate);
+        ZRSJZ_UIManager.Instance.UpdateDiscardAreaState(
+            this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldCenter(),
+        );
     }
 
     async PropMove() {
@@ -543,6 +548,9 @@ export class ZRSJZ_PropGrid extends Component {
             this._propGridSF,
             this._propSF,
             isRotate,
+        );
+        ZRSJZ_UIManager.Instance.UpdateDiscardAreaState(
+            this._propSFNode.getComponent(ZRSJZ_PropSF).GetPlacementWorldCenter(),
         );
         this.UIOpacity.opacity = 100;
     }

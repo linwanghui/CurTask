@@ -42,7 +42,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         this.ReplaceBtn = find("Panel/Buttons/替换", this.node);
         this.SellBtn = find("Panel/Buttons/出售", this.node);
 
-        this.PropProperty.children.forEach(child => {
+        this.PropProperty.getChildByName("Layout").children.forEach(child => {
             const shopStats = child.getComponent(ZRSJZ_ShopStats);
             shopStats.Init();
             this._propPropertyMap.set(child.name, shopStats);

@@ -10,7 +10,7 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
 
     SetSkin(skinName: string) {
         super.SetSkin(skinName);
-        this.ShowEquipment("CN8-突击步枪");
+        this.ShowEquipment("DX9-冲锋枪");
     }
 
     //显示装备
@@ -31,9 +31,9 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
                             console.error(`武器纹理不存在: ${weaponSkin}`);
                             return;
                         }
-                        this.Skeleton.findSlot('dao').setAttachment(null);
-                        this.Skeleton.setAttachment(key, key);
-                        this.Skeleton.setSlotTexture(key, texture, true);
+                        this.HandSkeleton.findSlot('dao').setAttachment(null);
+                        this.HandSkeleton.setAttachment(key, key);
+                        this.HandSkeleton.setSlotTexture(key, texture, true);
                     });
 
                     const ani = Math.random() > 0.5 ? ZRSJZ_ANI.Appear1 : ZRSJZ_ANI.Appear2;
@@ -42,10 +42,9 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
                     })
                 }
             } else {
-                this.Skeleton.findSlot(key)?.setAttachment(null);
+                this.HandSkeleton.findSlot(key)?.setAttachment(null);
             }
         }
-
 
     }
 }

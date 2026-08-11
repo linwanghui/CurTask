@@ -1,4 +1,4 @@
-import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
+import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
@@ -29,6 +29,7 @@ export class ZRSJZ_UIManager extends Component {
             ZRSJZ_UIManager.InitAudio();
             ZRSJZ_UIManager.InitUI();
             ZRSJZ_UIManager.InitInventory();
+            ZRSJZ_UIManager.InitEvent();
         }
         return ZRSJZ_UIManager._instance;
     }
@@ -42,6 +43,9 @@ export class ZRSJZ_UIManager extends Component {
     WeaponryTextureMap: Map<string, Texture2D> = new Map<string, Texture2D>();
     InventoryMap: Map<string, Node> = new Map<string, Node>();
     private _discardArea: Node = null;
+    private _discardSprite: Sprite = null;
+    private _discardDefaultSF: SpriteFrame = null;
+    private _discardSelectedSF: SpriteFrame = null;
     private readonly _discardingPropIDs = new Set<string>();
 
     private _panelNode: Node = null;
@@ -185,6 +189,12 @@ export class ZRSJZ_UIManager extends Component {
                     }
                 })
             })
+        });
+    }
+
+    public static InitEvent() {
+        input.on(Input.EventType.KEY_DOWN, (event: EventKeyboard) => {
+            if (event.keyCode == KeyCode.KEY_P) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.作弊界面);
         });
     }
 
@@ -439,29 +449,60 @@ export class ZRSJZ_UIManager extends Component {
         return Promise.resolve(this.InventoryMap.get(inventoryName));
     }
 
-    public RegisterDiscardArea(discardArea: Node): void {
+    public RegisterDiscardArea(discardArea: Node, discardSFs: readonly SpriteFrame[] = []): void {
         this._discardArea = discardArea;
-        if (this._discardArea?.isValid) this._discardArea.active = false;
+        this._discardSprite = discardArea?.getComponent(Sprite);
+        this._discardDefaultSF = discardSFs[0] ?? this._discardSprite?.spriteFrame ?? null;
+        this._discardSelectedSF = discardSFs[1] ?? this._discardDefaultSF;
+        if (this._discardArea?.isValid) {
+            this._discardArea.active = true;
+            this.SetDiscardAreaSelected(false);
+        }
     }
 
     public UnregisterDiscardArea(discardArea: Node): void {
-        if (this._discardArea === discardArea) this._discardArea = null;
+        if (this._discardArea !== discardArea) return;
+        this._discardArea = null;
+        this._discardSprite = null;
+        this._discardDefaultSF = null;
+        this._discardSelectedSF = null;
     }
 
-    public SetDiscardAreaVisible(visible: boolean): void {
-        if (this._discardArea?.isValid) this._discardArea.active = visible;
+    /** 兼容原拖动调用：丢弃区域保持显示，只在拖动结束时恢复默认图标。 */
+    public SetDiscardAreaVisible(_visible: boolean): void {
+        if (!this._discardArea?.isValid) return;
+        this._discardArea.active = true;
+        this.SetDiscardAreaSelected(false);
+    }
+
+    /** 根据拖动道具中心是否进入丢弃范围切换默认/选中图标。 */
+    public UpdateDiscardAreaState(worldPos: Vec3): boolean {
+        const isSelected = this.IsInsideDiscardArea(worldPos);
+        this.SetDiscardAreaSelected(isSelected);
+        return isSelected;
+    }
+
+    private SetDiscardAreaSelected(selected: boolean): void {
+        if (!this._discardSprite?.isValid) return;
+        this._discardSprite.spriteFrame = selected
+            ? this._discardSelectedSF
+            : this._discardDefaultSF;
+    }
+
+    private IsInsideDiscardArea(worldPos: Vec3): boolean {
+        const discardArea = this._discardArea;
+        const transform = discardArea?.getComponent(UITransform);
+        return !!(
+            discardArea?.isValid
+            && discardArea.activeInHierarchy
+            && transform
+            && transform.getBoundingBoxToWorld().contains(v2(worldPos.x, worldPos.y))
+        );
     }
 
     /** 返回 true 表示本次松手已被丢弃区域消费，不再执行库存落点。 */
     public TryDiscardDraggedProp(propID: string, worldPos: Vec3): boolean {
-        const discardArea = this._discardArea;
-        const transform = discardArea?.getComponent(UITransform);
-        if (
-            !discardArea?.isValid
-            || !discardArea.activeInHierarchy
-            || !transform
-            || !transform.getBoundingBoxToWorld().contains(v2(worldPos.x, worldPos.y))
-        ) {
+        if (!this.IsInsideDiscardArea(worldPos)) {
             return false;
         }
 

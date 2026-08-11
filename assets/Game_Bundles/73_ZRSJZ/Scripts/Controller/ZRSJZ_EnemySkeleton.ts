@@ -1,6 +1,6 @@
 import { _decorator, Component, Director, director, Node, sp, Vec3 } from 'cc';
 import { ZRSJZ_Skeleton } from './ZRSJZ_Skeleton';
-import { ZRSJZ_ANI } from '../ZRSJZ_Constant';
+import { ZRSJZ_ANI, ZRSJZ_SKIN_CONFIG } from '../ZRSJZ_Constant';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_EnemySkeleton')
@@ -17,7 +17,7 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
     private _baseScale = new Vec3();
 
     protected onLoad(): void {
-        super.onLoad();
+        this.Skeleton = this.getComponent(sp.Skeleton);
         this._mzBone = this.Skeleton?.findBone('mz');
         this._baseScale.set(this.node.scale.x, this.node.scale.y, this.node.scale.z);
     }
@@ -29,6 +29,25 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
     protected onDisable(): void {
         director.off(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
     }
+
+    SetSkin(skinName: string) {
+        const skinConfig = ZRSJZ_SKIN_CONFIG.get(skinName);
+        if (!skinConfig) {
+            return;
+        }
+
+        this.SkinName = skinName;
+        this.Skeleton.setSkin(skinConfig.Skin);
+    }
+
+    PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
+        this.AniName = aniName;
+        this.Skeleton.setAnimation(0, aniName, loop);
+        this.Skeleton.setCompleteListener(() => {
+            if (cb) cb();
+        });
+    }
+
 
 
     SetPlayerDir(x: number) {
