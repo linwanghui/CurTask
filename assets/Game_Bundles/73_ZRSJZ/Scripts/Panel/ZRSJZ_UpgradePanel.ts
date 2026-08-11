@@ -1,4 +1,4 @@
-import { _decorator, Button, Color, EventTouch, find, Label, Node, Sprite } from 'cc';
+import { _decorator, Button, Color, EventTouch, find, Label, Node, Sprite, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import {
     GetFacilityBonusValue,
@@ -15,6 +15,27 @@ import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 const { ccclass, property } = _decorator;
 
+type ZRSJZ_UpgradeFacilityDisplayName = "射击训练" | "科技研究" | "体能锻炼";
+
+/** 界面使用新名称，配置和存档继续使用旧键，避免已有玩家的升级数据丢失。 */
+const ZRSJZ_FACILITY_DISPLAY_NAME: Readonly<Record<
+    ZRSJZ_UpgradeFacilityName,
+    ZRSJZ_UpgradeFacilityDisplayName
+>> = {
+    "靶场": "射击训练",
+    "研究所": "科技研究",
+    "健身": "体能锻炼",
+};
+
+const ZRSJZ_FACILITY_NAME_BY_DISPLAY: Readonly<Record<
+    ZRSJZ_UpgradeFacilityDisplayName,
+    ZRSJZ_UpgradeFacilityName
+>> = {
+    "射击训练": "靶场",
+    "科技研究": "研究所",
+    "体能锻炼": "健身",
+};
+
 @ccclass('ZRSJZ_UpgradePanel')
 export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
 
@@ -26,6 +47,9 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     private _nextBonus: Label = null;
     private _price: Label = null;
     private _upgradeButton: Button = null;
+    private _checked: Node = null;
+    private _checkedOffset: Vec3 = new Vec3();
+    private _facilityButtons: Map<ZRSJZ_UpgradeFacilityDisplayName, Node> = new Map();
 
     private _materialGrids: Sprite[] = [];
     private _materialIcons: Sprite[] = [];
@@ -41,43 +65,113 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     private static readonly NORMAL_COLOR: Color = new Color(255, 255, 255, 255);
 
     protected onLoad(): void {
-        this._title = find("Panel/PropName", this.node).getComponent(Label);
-        this._attributeName = find("Panel/Tip2", this.node).getComponent(Label);
-        this._currentLevel = find("Panel/当前等级", this.node).getComponent(Label);
-        this._nextLevel = find("Panel/下一等级", this.node).getComponent(Label);
-        this._currentBonus = find("Panel/当前提升", this.node).getComponent(Label);
-        this._nextBonus = find("Panel/下一等级提升", this.node).getComponent(Label);
-        this._price = find("Panel/Buttons/升级/PropPrice/Price", this.node).getComponent(Label);
-        this._upgradeButton = find("Panel/Buttons/升级", this.node).getComponent(Button);
+        const descPath = "Panel/Desc";
+        this._title = find(`${descPath}/PropName`, this.node).getComponent(Label);
+        this._attributeName = find(`${descPath}/Tip2`, this.node).getComponent(Label);
+        this._currentLevel = find(`${descPath}/当前等级`, this.node).getComponent(Label);
+        this._nextLevel = find(`${descPath}/下一等级`, this.node).getComponent(Label);
+        this._currentBonus = find(`${descPath}/当前提升`, this.node).getComponent(Label);
+        this._nextBonus = find(`${descPath}/下一等级提升`, this.node).getComponent(Label);
+        this._price = find(`${descPath}/Buttons/升级/PropPrice/Price`, this.node).getComponent(Label);
+        this._upgradeButton = find(`${descPath}/Buttons/升级`, this.node).getComponent(Button);
+        this._checked = find("Panel/Checked", this.node);
 
         for (let index = 1; index <= 2; index++) {
-            this._materialGrids.push(find(`Panel/道具${index}格子`, this.node).getComponent(Sprite));
-            this._materialIcons.push(find(`Panel/道具${index}Icon`, this.node).getComponent(Sprite));
-            this._materialNames.push(find(`Panel/道具${index}名字`, this.node).getComponent(Label));
-            this._materialCounts.push(find(`Panel/道具${index}数量`, this.node).getComponent(Label));
+            this._materialGrids.push(find(`${descPath}/道具${index}格子`, this.node).getComponent(Sprite));
+            this._materialIcons.push(find(`${descPath}/道具${index}Icon`, this.node).getComponent(Sprite));
+            this._materialNames.push(find(`${descPath}/道具${index}名字`, this.node).getComponent(Label));
+            this._materialCounts.push(find(`${descPath}/道具${index}数量`, this.node).getComponent(Label));
         }
+
+        this.BindButtons();
     }
 
     Show(...args: any[]): void {
-        const facilityName = args[0] as ZRSJZ_UpgradeFacilityName;
-        this._facilityName = (["靶场", "研究所", "健身"] as ZRSJZ_UpgradeFacilityName[]).includes(facilityName)
-            ? facilityName
-            : "靶场";
+        this._facilityName = this.ResolveFacilityName(args[0]);
         // args[0] 是设施名称，不能传给 Panel.Show 当作回调执行。
         super.Show();
+        this.RefreshChecked();
         this.RefreshView();
     }
 
     public async OnButtonClick(event: EventTouch): Promise<void> {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
-            case "Mask":
-                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.升级弹窗);
+            case "Close":
+                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化弹窗);
+                break;
+            case "射击训练":
+                this.SelectFacility("射击训练");
+                break;
+            case "体能锻炼":
+                this.SelectFacility("体能锻炼");
+                break;
+            case "科技研究":
+                this.SelectFacility("科技研究");
                 break;
             case "升级":
                 await this.Upgrade();
                 break;
         }
+    }
+
+    /** 新弹窗按钮不依赖编辑器 ClickEvent，脚本加载后统一绑定。 */
+    private BindButtons(): void {
+        const closeButton = find("Panel/返回/Close", this.node).getComponent(Button);
+        closeButton.clickEvents.length = 0;
+        closeButton.node.on(Button.EventType.CLICK, () => {
+            ZRSJZ_AudioManager.Instance.PlaySound("点击");
+            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化弹窗);
+        }, this);
+
+        const displayNames = Object.keys(ZRSJZ_FACILITY_NAME_BY_DISPLAY) as ZRSJZ_UpgradeFacilityDisplayName[];
+        for (const displayName of displayNames) {
+            const buttonNode = find(`Panel/${displayName}`, this.node);
+            const button = buttonNode.getComponent(Button);
+            button.clickEvents.length = 0;
+            buttonNode.on(Button.EventType.CLICK, () => {
+                ZRSJZ_AudioManager.Instance.PlaySound("点击");
+                this.SelectFacility(displayName);
+            }, this);
+            this._facilityButtons.set(displayName, buttonNode);
+        }
+
+        const firingRangeButton = this._facilityButtons.get("射击训练");
+        if (this._checked && firingRangeButton) {
+            Vec3.subtract(this._checkedOffset, this._checked.position, firingRangeButton.position);
+        }
+
+        this._upgradeButton.clickEvents.length = 0;
+        this._upgradeButton.node.on(Button.EventType.CLICK, async () => {
+            ZRSJZ_AudioManager.Instance.PlaySound("点击");
+            await this.Upgrade();
+        }, this);
+    }
+
+    private SelectFacility(displayName: ZRSJZ_UpgradeFacilityDisplayName): void {
+        const facilityName = ZRSJZ_FACILITY_NAME_BY_DISPLAY[displayName];
+        if (!facilityName || facilityName === this._facilityName) {
+            this.RefreshChecked();
+            return;
+        }
+        this._facilityName = facilityName;
+        this.RefreshChecked();
+        this.RefreshView();
+    }
+
+    private RefreshChecked(): void {
+        const displayName = ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName];
+        const buttonNode = this._facilityButtons.get(displayName);
+        if (!this._checked || !buttonNode) return;
+
+        this._checked.setPosition(buttonNode.position.clone().add(this._checkedOffset));
+    }
+
+    private ResolveFacilityName(name: string): ZRSJZ_UpgradeFacilityName {
+        if (name in ZRSJZ_FACILITY_DISPLAY_NAME) {
+            return name as ZRSJZ_UpgradeFacilityName;
+        }
+        return ZRSJZ_FACILITY_NAME_BY_DISPLAY[name as ZRSJZ_UpgradeFacilityDisplayName] ?? "靶场";
     }
 
     private async Upgrade(): Promise<void> {
@@ -86,7 +180,9 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
         const currentLevel = ZRSJZ_GameData.Instance.GetFacilityLevel(this._facilityName);
         const config = this.GetNextLevelConfig(currentLevel);
         if (!config) {
-            await ZRSJZ_UIManager.Instance.ShowTip(`${this._facilityName}已达到最高等级`);
+            await ZRSJZ_UIManager.Instance.ShowTip(
+                `${ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName]}已达到最高等级`,
+            );
             return;
         }
 
@@ -123,7 +219,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
         const currentLevel = ZRSJZ_GameData.Instance.GetFacilityLevel(this._facilityName);
         const nextConfig = this.GetNextLevelConfig(currentLevel);
 
-        this._title.string = this._facilityName;
+        this._title.string = ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName];
         this._attributeName.string = facilityConfig.AttributeName;
         this._currentLevel.string = `lv.${currentLevel}`;
         this._currentBonus.string = `+${GetFacilityBonusValue(this._facilityName, currentLevel)}${facilityConfig.ValueSuffix}`;
@@ -170,7 +266,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
             : ZRSJZ_UpgradePanel.LACK_COLOR;
 
         if (!propConfig) {
-            console.warn(`[ZRSJZ_FiringRange] 未找到升级物资配置: ${material.PropName}`);
+            console.warn(`[ZRSJZ_UpgradePanel] 未找到升级物资配置: ${material.PropName}`);
             grid.spriteFrame = null;
             icon.spriteFrame = null;
             return;
