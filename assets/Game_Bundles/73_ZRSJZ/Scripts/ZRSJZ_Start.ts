@@ -63,13 +63,13 @@ export class ZRSJZ_Start extends Component {
             case "Slide":
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE);
                 break;
-            case "商店":
+            case "商城":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.商店界面);
                 break;
             case "仓库":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.仓库界面);
                 break;
-            case "干员":
+            case "角色":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.角色界面);
                 break;
             case "收藏室":
@@ -78,16 +78,10 @@ export class ZRSJZ_Start extends Component {
             case "盲盒":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.盲盒界面);
                 break;
-            case "靶场":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.升级弹窗, "靶场");
+            case "强化":
+
                 break;
-            case "研究所":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.升级弹窗, "研究所");
-                break;
-            case "健身":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.升级弹窗, "健身");
-                break;
-            case "选择地图":
+            case "开始游戏":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.选关界面);
                 break;
             case "签到":
