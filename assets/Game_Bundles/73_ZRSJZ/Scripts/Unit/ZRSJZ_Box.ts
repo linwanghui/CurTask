@@ -1,9 +1,24 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, tween, v3, Vec3 } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_BoxConfig, ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG } from '../ZRSJZ_Constant';
+import {
+    ZRSJZ_BoxConfig,
+    ZRSJZ_INVENTORY,
+    ZRSJZ_MAP_CONFIG,
+    ZRSJZ_PROP_CONFIG,
+    ZRSJZ_PROP_QUALITY,
+} from '../ZRSJZ_Constant';
 import { ZRSJZ_BoxInventory } from '../UI/ZRSJZ_BoxInventory';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 const { ccclass, property } = _decorator;
+
+const ZRSJZ_LOOT_QUALITY_ORDER: readonly ZRSJZ_PROP_QUALITY[] = [
+    ZRSJZ_PROP_QUALITY.白色,
+    ZRSJZ_PROP_QUALITY.绿色,
+    ZRSJZ_PROP_QUALITY.蓝色,
+    ZRSJZ_PROP_QUALITY.紫色,
+    ZRSJZ_PROP_QUALITY.金色,
+    ZRSJZ_PROP_QUALITY.红色,
+];
 
 enum ZRSJZ_BOX_STATE {
     IDLE = 0,
@@ -69,6 +84,7 @@ export class ZRSJZ_Box extends Component {
         this._boxConfig = {
             ...config,
             Probability: [...config.Probability],
+            GuaranteedPropTypes: [...(config.GuaranteedPropTypes ?? [])],
         };
         this._mapProp = mapProp?.map(props => [...props]) ?? [];
         this.BoxName = config.BoxName;
@@ -267,6 +283,45 @@ export class ZRSJZ_Box extends Component {
             const props = availableQualities[qualityIndex].props;
             loot.push(props[Math.floor(Math.random() * props.length)]);
         }
+        for (const propType of this._boxConfig.GuaranteedPropTypes ?? []) {
+            const guaranteedProp = this.GenerateGuaranteedProp(propType);
+            if (guaranteedProp) {
+                loot.push(guaranteedProp);
+            }
+        }
         return loot;
+    }
+
+    /** 按箱子的品质权重额外生成一件指定类型装备。 */
+    private GenerateGuaranteedProp(propType: string): string {
+        const candidates = Array.from(ZRSJZ_PROP_CONFIG.values())
+            .filter(prop => prop.PropType === propType);
+        if (candidates.length === 0) {
+            console.warn(`[ZRSJZ_Box] 没有可掉落的保底道具类型: ${propType}`);
+            return null;
+        }
+
+        const qualities = Array.from(new Set(candidates.map(prop => prop.Quality)));
+        const weightedCandidates = qualities.map(quality => {
+            const qualityIndex = ZRSJZ_LOOT_QUALITY_ORDER.indexOf(quality);
+            return {
+                quality,
+                weight: qualityIndex >= 0
+                    ? Math.max(0, this._boxConfig.Probability[qualityIndex] ?? 0)
+                    : 0,
+            };
+        });
+        const totalWeight = weightedCandidates.reduce((sum, item) => sum + item.weight, 0);
+        let selectedQuality = qualities[Math.floor(Math.random() * qualities.length)];
+        if (totalWeight > 0) {
+            let roll = Math.random() * totalWeight;
+            selectedQuality = weightedCandidates.find(item => {
+                roll -= item.weight;
+                return roll < 0;
+            })?.quality ?? weightedCandidates[weightedCandidates.length - 1].quality;
+        }
+
+        const qualityCandidates = candidates.filter(prop => prop.Quality === selectedQuality);
+        return qualityCandidates[Math.floor(Math.random() * qualityCandidates.length)].Name;
     }
 }

@@ -1086,6 +1086,8 @@ export interface ZRSJZ_BoxConfig {
     MinPropCount: number;
     MaxPropCount: number;
     Probability: number[];//各个品质的概率--白色/绿色/蓝色/紫色/金色/红色
+    /** 随机物资之外必定额外生成的道具类型，每种类型生成一件。 */
+    GuaranteedPropTypes?: string[];
 }
 //地图中敌人配置
 export interface ZRSJZ_MapEnemyConfig {
@@ -1165,6 +1167,7 @@ function CreateMapBoxConfig(
     minPropCount: number,
     maxPropCount: number,
     qualityBonus: number = 0,
+    guaranteedPropTypes: readonly string[] = [],
 ): ZRSJZ_BoxConfig {
     const lootIndex = Math.max(
         0,
@@ -1175,6 +1178,7 @@ function CreateMapBoxConfig(
         MinPropCount: minPropCount,
         MaxPropCount: Math.max(minPropCount, maxPropCount),
         Probability: [...ZRSJZ_MAP_LOOT_WEIGHTS[lootIndex]],
+        GuaranteedPropTypes: [...guaranteedPropTypes],
     };
 }
 
@@ -1209,28 +1213,40 @@ function CreateMapModeConfig(
                 Harm: Math.round(10 * harmMultiplier),
                 SpeedMultiplier: speedMultiplier,
                 AttackIntervalMultiplier: attackIntervalMultiplier,
-                Box: CreateMapBoxConfig("物资箱1", modeIndex, commonMin, commonMax),
+                Box: CreateMapBoxConfig(
+                    "物资箱1", modeIndex, commonMin, commonMax, 0,
+                    ["枪", "防弹衣", "头盔"],
+                ),
             }],
             ["持刀小兵", {
                 HP: Math.round(110 * hpMultiplier),
                 Harm: Math.round(12 * harmMultiplier),
                 SpeedMultiplier: speedMultiplier,
                 AttackIntervalMultiplier: attackIntervalMultiplier,
-                Box: CreateMapBoxConfig("物资箱1", modeIndex, commonMin, commonMax),
+                Box: CreateMapBoxConfig(
+                    "物资箱1", modeIndex, commonMin, commonMax, 0,
+                    ["防弹衣", "头盔"],
+                ),
             }],
             ["喷火兵", {
                 HP: Math.round(150 * hpMultiplier),
                 Harm: Math.round(18 * harmMultiplier),
                 SpeedMultiplier: speedMultiplier,
                 AttackIntervalMultiplier: attackIntervalMultiplier,
-                Box: CreateMapBoxConfig("物资箱3", modeIndex, eliteMin, eliteMax, 1),
+                Box: CreateMapBoxConfig(
+                    "物资箱3", modeIndex, eliteMin, eliteMax, 1,
+                    ["防弹衣", "头盔"],
+                ),
             }],
             ["盾牌兵", {
                 HP: Math.round(220 * hpMultiplier),
                 Harm: Math.round(11 * harmMultiplier),
                 SpeedMultiplier: speedMultiplier,
                 AttackIntervalMultiplier: attackIntervalMultiplier,
-                Box: CreateMapBoxConfig("物资箱4", modeIndex, eliteMin, eliteMax, 1),
+                Box: CreateMapBoxConfig(
+                    "物资箱4", modeIndex, eliteMin, eliteMax, 1,
+                    ["防弹衣", "头盔"],
+                ),
             }],
         ]),
         MapBoss: new Map([

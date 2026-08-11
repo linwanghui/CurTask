@@ -157,6 +157,7 @@ export class ZRSJZ_Player extends Component {
             return;
         }
         this.FindTarget();
+        this.PlayerSkeleton.IsLockEnemy = this.TargetEnemy != null;
         this.AniSwitch();
         if (this._isSlide) {
             this.PlayerSkeleton.AttackX = Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;

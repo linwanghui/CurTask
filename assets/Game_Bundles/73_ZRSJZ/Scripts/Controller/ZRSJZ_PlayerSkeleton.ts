@@ -21,6 +21,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     HasDirection: boolean = true;
     Facing: number = 1;
     IsKnife: boolean = false;
+    IsLockEnemy: boolean = false;
     private _mzBone: sp.spine.Bone = null;
     private _baseScale = new Vec3();
 
@@ -73,7 +74,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         // 美术原始朝向为右；向左时只做水平镜像，保持 Y 轴方向不变。
         this.SetPlayerDir(this.Facing);
 
-        if (this.IsKnife) return;
+        if (this.IsKnife || !this.IsLockEnemy) return;
         // BEFORE_DRAW 在 Spine 动画的 postUpdate 之后执行，避免坐标被动画覆盖。
         // 节点镜像后，IK 目标使用角色本地朝前方向，避免 X 方向被翻转两次。
         const localDirX = this.AttackX * this.Facing;
