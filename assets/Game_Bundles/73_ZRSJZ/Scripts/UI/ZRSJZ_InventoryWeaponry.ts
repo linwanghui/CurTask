@@ -49,7 +49,7 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
                         if (this.Grids[0][0] === "") {
                             await this.ChangeGrid(id);
                         } else {
-                            this.ReplaceProp(id);
+                            await this.ReplaceProp(id);
                         }
                     }
                 } else {
@@ -81,7 +81,9 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
             }
         }
 
-        this.createWeapon(id, false);
+        // 必须先等待装备栏与 WeaponryID 更新完成，再广播外观事件。
+        // 局内摇杆收到外观事件后会根据最新装备切换角色武器动画。
+        await this.createWeapon(id, false);
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, ZRSJZ_GameData.Instance.PropData[id].Name);
         return true;
     }
@@ -123,7 +125,8 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
             }
         }
 
-        this.createWeapon(id, false);
+        // 替换武器同样要先提交新装备数据，避免动画刷新时仍读取旧武器。
+        await this.createWeapon(id, false);
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, ZRSJZ_GameData.Instance.PropData[id].Name);
         return true;
     }

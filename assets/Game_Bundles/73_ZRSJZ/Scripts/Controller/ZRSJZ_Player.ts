@@ -57,6 +57,7 @@ export class ZRSJZ_Player extends Component {
     private readonly _magazineAmmo: string[] = [];
     private _isReloading: boolean = false;
     private _initialMagazineRetryCount: number = 0;
+    private _curScale: number = 0.5;
 
     public get MagazineAmmoCount(): number {
         return this._magazineAmmo.length;
@@ -200,6 +201,8 @@ export class ZRSJZ_Player extends Component {
         //速度初始化
         this.MaxSpeed = this.Speed * (1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate());
         this.CurSpeed = this.MaxSpeed;
+
+        this._curScale = this.node.scale.x;
     }
 
     //#region 技能
@@ -641,11 +644,10 @@ export class ZRSJZ_Player extends Component {
         this.unschedule(this.changeColor);
         this.PlayerSkeleton.Skeleton.color = new Color(255, 0, 0, 255);
         this.scheduleOnce(this.changeColor, 0.04);
-        Tween.stopAllByTarget(this.PlayerSkeleton.node);
-        tween(this.PlayerSkeleton.node)
-            .to(0.013, { eulerAngles: v3(0, 0, 5) }, { easing: 'sineInOut' })
-            .to(0.013, { eulerAngles: v3(0, 0, -5) }, { easing: 'sineInOut' })
-            .to(0.013, { eulerAngles: v3(0, 0, 0) }, { easing: 'sineInOut' })
+        Tween.stopAllByTarget(this.node);
+        tween(this.node)
+            .to(0.02, { scale: v3(this._curScale + 0.03, this._curScale + 0.03, 1) }, { easing: 'linear' })
+            .to(0.02, { scale: v3(this._curScale, this._curScale, 1) }, { easing: 'linear' })
             .start();
     }
 

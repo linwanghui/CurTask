@@ -1151,14 +1151,28 @@ const ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.3, 1.55,
 const ZRSJZ_MAP_SPEED_MULTIPLIERS: readonly number[] = [0.95, 1, 1.05, 1.1, 1.15, 1.2];
 const ZRSJZ_MAP_ATTACK_INTERVAL_MULTIPLIERS: readonly number[] = [1.05, 1, 0.95, 0.9, 0.85, 0.8];
 const ZRSJZ_MAP_PROP_TYPES: readonly string[] = ["物品", "房卡", "弹药", "头盔", "防弹衣"];//地图中允许掉落的类型
+/** 宝箱不掉落背包，其他装备最高只允许紫色（四级）；普通物资与弹药不受此限制。 */
+const ZRSJZ_MAP_BOX_EQUIPMENT_TYPES: readonly string[] = ["枪", "刀", "头盔", "防弹衣", "背包"];
+const ZRSJZ_MAP_BOX_EQUIPMENT_QUALITIES: readonly ZRSJZ_PROP_QUALITY[] = [
+    ZRSJZ_PROP_QUALITY.白色,
+    ZRSJZ_PROP_QUALITY.绿色,
+    ZRSJZ_PROP_QUALITY.蓝色,
+    ZRSJZ_PROP_QUALITY.紫色,
+];
+
+function CanEquipmentDropFromMapBox(prop: { PropType: string, Quality: ZRSJZ_PROP_QUALITY }): boolean {
+    return prop.PropType !== "背包"
+        && (!ZRSJZ_MAP_BOX_EQUIPMENT_TYPES.includes(prop.PropType)
+            || ZRSJZ_MAP_BOX_EQUIPMENT_QUALITIES.includes(prop.Quality));
+}
 
 const ZRSJZ_MAP_PROP_POOL: string[][] = [
-    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.白色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
-    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.绿色 && (ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType) || prop.Name == "CN8-突击步枪")).map(prop => prop.Name),
-    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.蓝色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
-    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.紫色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
-    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.金色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
-    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.红色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.白色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType) && CanEquipmentDropFromMapBox(prop)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.绿色 && (ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType) || prop.Name == "CN8-突击步枪") && CanEquipmentDropFromMapBox(prop)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.蓝色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType) && CanEquipmentDropFromMapBox(prop)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.紫色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType) && CanEquipmentDropFromMapBox(prop)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.金色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType) && CanEquipmentDropFromMapBox(prop)).map(prop => prop.Name),
+    Array.from(ZRSJZ_PROP_CONFIG.values()).filter(prop => prop.Quality === ZRSJZ_PROP_QUALITY.红色 && ZRSJZ_MAP_PROP_TYPES.includes(prop.PropType) && CanEquipmentDropFromMapBox(prop)).map(prop => prop.Name),
 ];
 
 function CreateMapBoxConfig(
