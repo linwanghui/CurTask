@@ -79,7 +79,7 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.盲盒界面);
                 break;
             case "强化":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.强化弹窗);
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.强化界面);
                 break;
             case "开始游戏":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.选关界面);
