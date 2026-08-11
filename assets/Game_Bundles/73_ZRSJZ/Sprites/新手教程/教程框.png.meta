@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "bb96d51b-41c3-4cb7-b117-f40fad572170",
+  "uuid": "f553018d-6e9e-4bf9-afb3-ae7f5f86bc94",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "bb96d51b-41c3-4cb7-b117-f40fad572170@6c48a",
-      "displayName": "大按钮-黄",
+      "uuid": "f553018d-6e9e-4bf9-afb3-ae7f5f86bc94@6c48a",
+      "displayName": "教程框",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "bb96d51b-41c3-4cb7-b117-f40fad572170",
+        "imageUuidOrDatabaseUri": "f553018d-6e9e-4bf9-afb3-ae7f5f86bc94",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "bb96d51b-41c3-4cb7-b117-f40fad572170@f9941",
-      "displayName": "大按钮-黄",
+      "uuid": "f553018d-6e9e-4bf9-afb3-ae7f5f86bc94@f9941",
+      "displayName": "教程框",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 388,
-        "height": 114,
-        "rawWidth": 388,
-        "rawHeight": 114,
+        "width": 617,
+        "height": 289,
+        "rawWidth": 617,
+        "rawHeight": 289,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -194,
-            -57,
+            -308.5,
+            -144.5,
             0,
-            194,
-            -57,
+            308.5,
+            -144.5,
             0,
-            -194,
-            57,
+            -308.5,
+            144.5,
             0,
-            194,
-            57,
+            308.5,
+            144.5,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            114,
-            388,
-            114,
+            289,
+            617,
+            289,
             0,
             0,
-            388,
+            617,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -194,
-            -57,
+            -308.5,
+            -144.5,
             0
           ],
           "maxPos": [
-            194,
-            57,
+            308.5,
+            144.5,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "bb96d51b-41c3-4cb7-b117-f40fad572170@6c48a",
+        "imageUuidOrDatabaseUri": "f553018d-6e9e-4bf9-afb3-ae7f5f86bc94@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "bb96d51b-41c3-4cb7-b117-f40fad572170@6c48a"
+    "redirect": "f553018d-6e9e-4bf9-afb3-ae7f5f86bc94@6c48a"
   }
 }
