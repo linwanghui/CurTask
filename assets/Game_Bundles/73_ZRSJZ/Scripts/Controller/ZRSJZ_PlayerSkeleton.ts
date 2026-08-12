@@ -21,7 +21,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     HasDirection: boolean = true;
     Facing: number = 1;
     IsKnife: boolean = false;
-    IsLockEnemy: boolean = false;
+    // IsLockEnemy: boolean = false;
     private _mzBone: sp.spine.Bone = null;
     private _mzBone_Hand: sp.spine.Bone = null;
     private _baseScale = new Vec3();
@@ -55,9 +55,32 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
         this.AniName = aniName;
         this.Skeleton.setAnimation(0, aniName, loop);
-        // if()
         this.HandSkeleton.setAnimation(0, aniName, loop);
+        this.HandSkeleton.setCompleteListener(null);
         this.Skeleton.setCompleteListener(() => {
+            if (cb) cb();
+        });
+    }
+
+    /** 只更新身体 Spine，供持枪时的待机/移动动画使用。 */
+    PlayBodyAni(aniName: string, loop: boolean = true, cb: Function = null) {
+        this.AniName = aniName;
+        this.Skeleton.setAnimation(0, aniName, loop);
+        this.Skeleton.setCompleteListener(() => {
+            if (cb) cb();
+        });
+    }
+
+    /** 只更新手部 Spine，避免开枪动作覆盖身体的移动状态。 */
+    PlayHandAni(aniName: string, loop: boolean = true, cb: Function = null) {
+        if (aniName == "gj_qiang") {
+            aniName = "gj_qiang2";
+        } else if (aniName == "gj_jjq") {
+            aniName = "gj_jjq2";
+        }
+        this.HandSkeleton.setAnimation(0, aniName, loop);
+        this.HandSkeleton.setCompleteListener(() => {
+            if (!loop) this.HandSkeleton.setCompleteListener(null);
             if (cb) cb();
         });
     }
@@ -85,7 +108,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         // 美术原始朝向为右；向左时只做水平镜像，保持 Y 轴方向不变。
         this.SetPlayerDir(this.Facing);
 
-        if (this.IsKnife || !this.IsLockEnemy) return;
+        if (this.IsKnife) return;
         // BEFORE_DRAW 在 Spine 动画的 postUpdate 之后执行，避免坐标被动画覆盖。
         // 节点镜像后，IK 目标使用角色本地朝前方向，避免 X 方向被翻转两次。
         const localDirX = this.AttackX * this.Facing;

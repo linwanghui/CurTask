@@ -31,6 +31,7 @@ export class ZRSJZ_PlayerMain extends Component {
         this._moveSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
         this._weaponType = ZRSJZ_GameData.Instance.WeaponryID[0] ? "枪" : "刀";
         this.ApplyWeaponType(this._weaponType);
+        this.PlayerSkeleton.HasDirection = false;
     }
 
     protected onEnable(): void {

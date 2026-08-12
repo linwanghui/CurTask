@@ -47,11 +47,15 @@ export class ZRSJZ_Player extends Component {
     private _moveRadius: number = 0;
     private _aniName: string = "";
     private _isFireing: boolean = false;
+    private _fireCooldown: number = 0;
+    private _waitingFirstGunShot: boolean = false;
+    private _gunAttackAnimationPlayedOnce: boolean = false;
     private _isSlide: boolean = false;
     private _targetBox: ZRSJZ_Box = null;
     private _isStop: boolean = false;
     private _shielding: boolean = false;
     private _knifeCount: number = 0;
+    private _knifeAttackIndex: number = 2;
     private _magazineGunID: string = "";
     /** 按实际装入顺序保存每一发子弹的名称，射击时从队首取出。 */
     private readonly _magazineAmmo: string[] = [];
@@ -112,17 +116,23 @@ export class ZRSJZ_Player extends Component {
     protected start(): void {
         this.Init();
 
-        this.Skeleton.setEventListener((trackEntry, event) => {
-            if (typeof event !== "number") {
+        this.PlayerSkeleton.HandSkeleton.setEventListener((trackEntry, event) => {
+            if (typeof event === "number") return;
 
-                if ((event.data.name === "kq" || event.data.name === "gj_jjq") && this._isFireing && this.WeaponType === "枪") {
-                    void this.Fire();
-                } else if (event.data.name === "dao" && this._isKnifeAttack) {
+            if (
+                this._waitingFirstGunShot
+                && this.WeaponType === "枪"
+                && (event.data.name === "kq" || event.data.name === "gj_jjq")
+            ) {
+                this._waitingFirstGunShot = false;
+                this._fireCooldown = this.GetFireInterval();
+                void this.Fire();
+            } else if (this._knifeAnimationPlaying) {
+                if (event.data.name === "dao") {
                     this.KnifeAttack(200);
-                } else if (event.data.name === "hui" && this._isKnifeAttack) {
+                } else if (event.data.name === "hui") {
                     this.KnifeAttack(250);
                 }
-
             }
         });
     }
@@ -158,7 +168,7 @@ export class ZRSJZ_Player extends Component {
             return;
         }
         this.FindTarget();
-        this.PlayerSkeleton.IsLockEnemy = this.TargetEnemy != null;
+        this.UpdateAutomaticFire(dt);
         this.AniSwitch();
         if (this._isSlide) {
             this.PlayerSkeleton.AttackX = Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
@@ -208,6 +218,7 @@ export class ZRSJZ_Player extends Component {
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number) {
         if (this._isSlide) return;
+        this.CancelGunAttackState();
         this.CancelKnifeAttackState();
         switch (skillName) {
             case "激光":
@@ -275,39 +286,55 @@ export class ZRSJZ_Player extends Component {
         if (x != 0) {
             this.PlayerSkeleton.SetPlayerDir(x / Math.abs(x))
         }
+        if (this.IsGunAttackVisualActive()) {
+            this.UpdateGunBodyAnimation();
+        } else if ((this._isKnifeAttack || this._knifeAnimationPlaying) && this.WeaponType === "刀") {
+            this.UpdateKnifeBodyAnimation();
+        }
     }
     //#region 攻击
     Attack(fireing: boolean) {
         if (this._isSlide || this._isStop) return;
         if (!fireing) {
-            if (this.WeaponType === "刀" && this._isKnifeAttack) {
-                this._stopAfterCurrentKnifeAttack = true;
+            if (this.WeaponType === "刀") {
+                this._isKnifeAttack = false;
+                if (!this._knifeAnimationPlaying) this.RestoreKnifeLocomotion();
                 return;
             }
-            this.WeaponType === "枪" ? this.PlayAni(ZRSJZ_ANI.Idle_Q) : this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
-            if (this._isFireing) {
+            if (this.WeaponType === "枪") {
                 this._isFireing = false;
+                this._fireCooldown = 0;
+                // 快速单击也要等第一轮开枪动画完整播放后再恢复手部待机。
+                if (this._gunAttackAnimationPlayedOnce) {
+                    this.RestoreGunLocomotion();
+                } else {
+                    this.UpdateGunBodyAnimation();
+                }
+            } else {
+                this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
             }
             this._isKnifeAttack = false;
             return;
         }
         if (this.WeaponType === "枪") {
-            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(this.PlayerSkeleton.GunType === "步枪" ? ZRSJZ_ANI.Attack_Idle_Q : ZRSJZ_ANI.Attack_Idle_Q2) : this.PlayAni(this.PlayerSkeleton.GunType === "步枪" ? ZRSJZ_ANI.Attack_Move_Q : ZRSJZ_ANI.Attack_Move_Q2);
             if (!this._isFireing) {
                 this._isFireing = true;
-                // 首发不等待 Spine 动画事件，按下攻击键时立即射击。
-                void this.Fire();
+                this._waitingFirstGunShot = true;
+                this._gunAttackAnimationPlayedOnce = false;
+                this._fireCooldown = 0;
+                this.UpdateGunBodyAnimation();
+                this.PlayerSkeleton.PlayHandAni(
+                    this.PlayerSkeleton.GunType === "步枪"
+                        ? ZRSJZ_ANI.Attack_Idle_Q
+                        : ZRSJZ_ANI.Attack_Idle_Q2,
+                    true,
+                    () => this.OnGunAttackAnimationComplete(),
+                );
             }
         } else {
-            // 当前挥刀周期未结束时缓存下一刀，不从头重播当前动画。
-            if (this._isKnifeAttack) {
-                this._queuedKnifeAttack = true;
-                return;
-            }
-            this._stopAfterCurrentKnifeAttack = false;
-            this._queuedKnifeAttack = false;
             this._isKnifeAttack = true;
-            this.onKnifeAttack();
+            this.UpdateKnifeBodyAnimation();
+            this.TryStartKnifeAttack();
         }
     }
 
@@ -383,39 +410,32 @@ export class ZRSJZ_Player extends Component {
     }
 
     private _isKnifeAttack: boolean = false;
-    private _stopAfterCurrentKnifeAttack: boolean = false;
-    private _queuedKnifeAttack: boolean = false;
-    onKnifeAttack() {
-        if (!this._isKnifeAttack) return;
-        this._aniName = "";
-        this._moveX == 0 && this._moveY == 0 ?
-            this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Idle_D2 : ZRSJZ_ANI.Attack_Idle_D3, false, () => {
-                this.FinishKnifeAttackCycle();
-            }) :
-            this.PlayAni(this._knifeCount++ % 2 == 0 ? ZRSJZ_ANI.Attack_Move_D2 : ZRSJZ_ANI.Attack_Move_D3, false, () => {
-                this.FinishKnifeAttackCycle();
-            });
+    private _knifeAnimationPlaying: boolean = false;
+
+    private TryStartKnifeAttack(): void {
+        if (!this._isKnifeAttack || this._knifeAnimationPlaying || this.WeaponType !== "刀") return;
+
+        this._knifeAnimationPlaying = true;
+        this._knifeAttackIndex = this._knifeCount++ % 2 === 0 ? 2 : 3;
+        const attackAnimation = this._knifeAttackIndex === 2
+            ? ZRSJZ_ANI.Attack_Idle_D2
+            : ZRSJZ_ANI.Attack_Idle_D3;
+        this.UpdateKnifeBodyAnimation();
+        this.PlayerSkeleton.PlayHandAni(attackAnimation, false, () => this.FinishKnifeAttackCycle());
     }
 
     private FinishKnifeAttackCycle(): void {
-        if (!this._isKnifeAttack) return;
-        if (this._queuedKnifeAttack) {
-            this._queuedKnifeAttack = false;
-            this.onKnifeAttack();
-            return;
+        this._knifeAnimationPlaying = false;
+        if (this._isKnifeAttack) {
+            this.TryStartKnifeAttack();
+        } else if (this.WeaponType === "刀") {
+            this.RestoreKnifeLocomotion();
         }
-        if (this._stopAfterCurrentKnifeAttack) {
-            this.CancelKnifeAttackState();
-            this.PlayAni(this._moveX == 0 && this._moveY == 0 ? ZRSJZ_ANI.Idle_D1 : ZRSJZ_ANI.Walk_D);
-            return;
-        }
-        this.onKnifeAttack();
     }
 
     private CancelKnifeAttackState(): void {
         this._isKnifeAttack = false;
-        this._stopAfterCurrentKnifeAttack = false;
-        this._queuedKnifeAttack = false;
+        this._knifeAnimationPlaying = false;
     }
 
     KnifeAttack(skillRange: number) {
@@ -461,8 +481,16 @@ export class ZRSJZ_Player extends Component {
 
     //动画切换
     AniSwitch() {
-        // 挥刀周期内移动不覆盖攻击动画，否则 Spine 的伤害事件和完成回调会丢失。
-        if (this._isKnifeAttack) return;
+        // 挥刀只占用手部 Spine，身体仍按输入实时切换待机/移动。
+        if ((this._isKnifeAttack || this._knifeAnimationPlaying) && this.WeaponType === "刀") {
+            this.UpdateKnifeBodyAnimation();
+            return;
+        }
+        // 开枪时身体只表现移动/待机；手部攻击动画由 Attack 独立控制。
+        if (this.IsGunAttackVisualActive()) {
+            this.UpdateGunBodyAnimation();
+            return;
+        }
         if (this._moveX == 0 && this._moveY == 0) {
             if (this._aniName == ZRSJZ_ANI.Walk_D) {
                 this.PlayAni(ZRSJZ_ANI.Idle_D1);
@@ -470,13 +498,13 @@ export class ZRSJZ_Player extends Component {
                 this.PlayAni(ZRSJZ_ANI.Idle_Q);
             } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D2) {
                 if (this._isKnifeAttack) {
-                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2, false, () => { this.onKnifeAttack() });
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
                 } else {
                     this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
                 }
             } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D3) {
                 if (this._isKnifeAttack) {
-                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2, false, () => { this.onKnifeAttack() });
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
                 } else {
                     this.PlayAni(ZRSJZ_ANI.Attack_Idle_D3);
                 }
@@ -492,13 +520,13 @@ export class ZRSJZ_Player extends Component {
                 this.PlayAni(ZRSJZ_ANI.Walk_Q);
             } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D2) {
                 if (this._isKnifeAttack) {
-                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2, false, () => { this.onKnifeAttack() });
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
                 } else {
                     this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
                 }
             } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D3) {
                 if (this._isKnifeAttack) {
-                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2, false, () => { this.onKnifeAttack() });
+                    this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
                 } else {
                     this.PlayAni(ZRSJZ_ANI.Attack_Move_D3);
                 }
@@ -523,6 +551,7 @@ export class ZRSJZ_Player extends Component {
         }
 
         this.CancelKnifeAttackState();
+        this.CancelGunAttackState();
         this.WeaponType = weaponType;
         if (this.WeaponType === "枪") {
             this.EnsureMagazineMatchesGun();
@@ -780,14 +809,101 @@ export class ZRSJZ_Player extends Component {
 
     private StopFiring(): void {
         this._isFireing = false;
+        this._waitingFirstGunShot = false;
+        this._fireCooldown = 0;
         if (this.WeaponType === "枪") {
-            this.PlayAni(ZRSJZ_ANI.Idle_Q);
+            if (this._gunAttackAnimationPlayedOnce) {
+                this.RestoreGunLocomotion();
+            } else {
+                this.UpdateGunBodyAnimation();
+            }
         }
+    }
+
+    /** 长按攻击时按武器射速持续开火，不再依赖 Spine 动画事件是否循环。 */
+    private UpdateAutomaticFire(dt: number): void {
+        if (!this._isFireing || this._waitingFirstGunShot || this.WeaponType !== "枪") return;
+
+        this._fireCooldown -= dt;
+        if (this._fireCooldown > 0) return;
+
+        this._fireCooldown += this.GetFireInterval();
+        void this.Fire();
+    }
+
+    private CancelGunAttackState(): void {
+        this._isFireing = false;
+        this._waitingFirstGunShot = false;
+        this._gunAttackAnimationPlayedOnce = true;
+        this._fireCooldown = 0;
+    }
+
+    private OnGunAttackAnimationComplete(): void {
+        this._gunAttackAnimationPlayedOnce = true;
+        // 兼容没有配置开枪事件的动画：完整播放一轮后仍会产生首发。
+        if (this._waitingFirstGunShot && this.WeaponType === "枪") {
+            this._waitingFirstGunShot = false;
+            this._fireCooldown = this.GetFireInterval();
+            void this.Fire();
+        }
+        if (!this._isFireing && this.WeaponType === "枪") {
+            this.RestoreGunLocomotion();
+        }
+    }
+
+    /** 射速配置按每分钟发数计算，并设置下限避免异常配置导致每帧大量发射。 */
+    private GetFireInterval(): number {
+        const roundsPerMinute = Math.max(1, this.GetGunProperty("射速", 600));
+        return Math.max(1 / 60, 60 / roundsPerMinute);
+    }
+
+    private IsGunAttackVisualActive(): boolean {
+        return this.WeaponType === "枪"
+            && (this._isFireing || this._waitingFirstGunShot || !this._gunAttackAnimationPlayedOnce);
+    }
+
+    private UpdateGunBodyAnimation(): void {
+        const isRifle = this.PlayerSkeleton.GunType === "步枪";
+        const bodyAnimation = this._moveX == 0 && this._moveY == 0
+            ? (isRifle ? ZRSJZ_ANI.Attack_Idle_Q : ZRSJZ_ANI.Attack_Idle_Q2)
+            : (isRifle ? ZRSJZ_ANI.Attack_Move_Q : ZRSJZ_ANI.Attack_Move_Q2);
+        if (bodyAnimation === this._aniName) return;
+        this._aniName = bodyAnimation;
+        this.PlayerSkeleton.PlayBodyAni(bodyAnimation);
+    }
+
+    private UpdateKnifeBodyAnimation(): void {
+        const bodyAnimation = this._moveX == 0 && this._moveY == 0
+            ? (this._knifeAttackIndex === 2 ? ZRSJZ_ANI.Attack_Idle_D2 : ZRSJZ_ANI.Attack_Idle_D3)
+            : (this._knifeAttackIndex === 2 ? ZRSJZ_ANI.Attack_Move_D2 : ZRSJZ_ANI.Attack_Move_D3);
+        if (bodyAnimation === this._aniName) return;
+        this._aniName = bodyAnimation;
+        this.PlayerSkeleton.PlayBodyAni(bodyAnimation);
+    }
+
+    private RestoreKnifeLocomotion(): void {
+        const animation = this._moveX == 0 && this._moveY == 0
+            ? ZRSJZ_ANI.Idle_D1
+            : ZRSJZ_ANI.Walk_D;
+        this._aniName = animation;
+        this.PlayerSkeleton.PlayBodyAni(animation);
+        this.PlayerSkeleton.PlayHandAni(animation);
+    }
+
+    /** 停火后让身体和手部重新回到一致的持枪移动状态。 */
+    private RestoreGunLocomotion(): void {
+        const animation = this._moveX == 0 && this._moveY == 0
+            ? ZRSJZ_ANI.Idle_Q
+            : ZRSJZ_ANI.Walk_Q;
+        this._aniName = animation;
+        this.PlayerSkeleton.PlayBodyAni(animation);
+        this.PlayerSkeleton.PlayHandAni(animation);
     }
 
     //#region 滑动
     Slide() {
         if (this._isStop) return;
+        this.CancelGunAttackState();
         this.CancelKnifeAttackState();
         ZRSJZ_AudioManager.Instance.PlaySound("滑铲音效");
 
