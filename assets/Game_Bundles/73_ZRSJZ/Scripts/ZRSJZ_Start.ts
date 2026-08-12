@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
+import { _decorator, Component, director, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
@@ -6,6 +6,7 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager'
 import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
 import { ZRSJZ_SignInPanel } from './Panel/ZRSJZ_SignInPanel';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
+import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -25,6 +26,7 @@ export class ZRSJZ_Start extends Component {
 
     @property(Node)
     SignBtn: Node = null;
+
 
     protected start(): void {
         ZRSJZ_UIManager.Instance;
@@ -87,6 +89,16 @@ export class ZRSJZ_Start extends Component {
             case "签到":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
                 break;
+            case "设置":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.设置界面);
+                break;
+            case "主页":
+                ProjectEventManager.emit(ProjectEvent.返回主页按钮事件, () => {
+                    ProjectEventManager.emit(ProjectEvent.返回主页);
+                    director.loadScene("Start");
+                });
+                break;
+
         }
     }
 
