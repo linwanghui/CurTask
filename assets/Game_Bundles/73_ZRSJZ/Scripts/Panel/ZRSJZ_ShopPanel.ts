@@ -87,7 +87,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     }
 
     protected onEnable(): void {
-        this.SwitchButton(this.ShopTypeNode);
+        this.SwitchButton(this.ShopTypeNode, true);
     }
 
     OnButtonClick(event: EventTouch) {
@@ -159,13 +159,13 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         }
     }
 
-    SwitchButton(shopTypeNode: Node) {
+    SwitchButton(shopTypeNode: Node, isShow: boolean = false) {
         const shopType = shopTypeNode.name;
         this.ShopPurchase.active = false;
         this.ShopVideo.active = false;
         this.ShopLeft.active = false;
         this.ShopRight.active = false;
-        if (this._shopType == shopType) return;
+        if (this._shopType == shopType && !isShow) return;
         this._shopType = shopType;
         Tween.stopAllByTarget(this.CheckedNode);
         tween(this.CheckedNode)
