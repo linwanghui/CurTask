@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "6ccc3fbd-836e-4da5-bc23-71c2fccf9e4f",
+  "uuid": "47ecdc01-dd04-4f1f-8445-b3d9a0f4bfa5",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "6ccc3fbd-836e-4da5-bc23-71c2fccf9e4f@6c48a",
-      "displayName": "返回-地图",
+      "uuid": "47ecdc01-dd04-4f1f-8445-b3d9a0f4bfa5@6c48a",
+      "displayName": "地图",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "6ccc3fbd-836e-4da5-bc23-71c2fccf9e4f",
+        "imageUuidOrDatabaseUri": "47ecdc01-dd04-4f1f-8445-b3d9a0f4bfa5",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,21 +34,21 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "6ccc3fbd-836e-4da5-bc23-71c2fccf9e4f@f9941",
-      "displayName": "返回-地图",
+      "uuid": "47ecdc01-dd04-4f1f-8445-b3d9a0f4bfa5@f9941",
+      "displayName": "地图",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": -0.5,
-        "offsetY": 1,
+        "offsetX": 0,
+        "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 697,
-        "height": 158,
-        "rawWidth": 698,
-        "rawHeight": 160,
+        "width": 319,
+        "height": 111,
+        "rawWidth": 319,
+        "rawHeight": 111,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -348.5,
-            -79,
+            -159.5,
+            -55.5,
             0,
-            348.5,
-            -79,
+            159.5,
+            -55.5,
             0,
-            -348.5,
-            79,
+            -159.5,
+            55.5,
             0,
-            348.5,
-            79,
+            159.5,
+            55.5,
             0
           ],
           "indexes": [
@@ -83,37 +83,37 @@
           ],
           "uv": [
             0,
-            160,
-            697,
-            160,
+            111,
+            319,
+            111,
             0,
-            2,
-            697,
-            2
+            0,
+            319,
+            0
           ],
           "nuv": [
             0,
-            0.0125,
-            0.998567335243553,
-            0.0125,
             0,
             1,
-            0.998567335243553,
+            0,
+            0,
+            1,
+            1,
             1
           ],
           "minPos": [
-            -348.5,
-            -79,
+            -159.5,
+            -55.5,
             0
           ],
           "maxPos": [
-            348.5,
-            79,
+            159.5,
+            55.5,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "6ccc3fbd-836e-4da5-bc23-71c2fccf9e4f@6c48a",
+        "imageUuidOrDatabaseUri": "47ecdc01-dd04-4f1f-8445-b3d9a0f4bfa5@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "6ccc3fbd-836e-4da5-bc23-71c2fccf9e4f@6c48a"
+    "redirect": "47ecdc01-dd04-4f1f-8445-b3d9a0f4bfa5@6c48a"
   }
 }
