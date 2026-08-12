@@ -1,4 +1,4 @@
-import { _decorator, Button, Color, EventTouch, find, Label, Node, Sprite, Vec3 } from 'cc';
+import { _decorator, Button, Color, EventTouch, find, Label, Node, Sprite } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import {
     GetFacilityBonusValue,
@@ -47,8 +47,6 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     private _nextBonus: Label = null;
     private _price: Label = null;
     private _upgradeButton: Button = null;
-    private _checked: Node = null;
-    private _checkedOffset: Vec3 = new Vec3();
     private _facilityButtons: Map<ZRSJZ_UpgradeFacilityDisplayName, Node> = new Map();
 
     private _materialGrids: Sprite[] = [];
@@ -74,7 +72,6 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
         this._nextBonus = find(`${descPath}/下一等级提升`, this.node).getComponent(Label);
         this._price = find(`${descPath}/Buttons/升级/PropPrice/Price`, this.node).getComponent(Label);
         this._upgradeButton = find(`${descPath}/Buttons/升级`, this.node).getComponent(Button);
-        this._checked = find("Panel/Checked", this.node);
 
         for (let index = 1; index <= 2; index++) {
             this._materialGrids.push(find(`${descPath}/道具${index}格子`, this.node).getComponent(Sprite));
@@ -135,11 +132,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
             }, this);
             this._facilityButtons.set(displayName, buttonNode);
         }
-
-        const firingRangeButton = this._facilityButtons.get("射击训练");
-        if (this._checked && firingRangeButton) {
-            Vec3.subtract(this._checkedOffset, this._checked.position, firingRangeButton.position);
-        }
+        this.RefreshChecked();
 
         this._upgradeButton.clickEvents.length = 0;
         this._upgradeButton.node.on(Button.EventType.CLICK, async () => {
@@ -160,11 +153,13 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     }
 
     private RefreshChecked(): void {
-        const displayName = ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName];
-        const buttonNode = this._facilityButtons.get(displayName);
-        if (!this._checked || !buttonNode) return;
-
-        this._checked.setPosition(buttonNode.position.clone().add(this._checkedOffset));
+        const selectedDisplayName = ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName];
+        for (const [displayName, buttonNode] of this._facilityButtons) {
+            const checked = buttonNode.getChildByName("Checked");
+            if (checked) {
+                checked.active = displayName === selectedDisplayName;
+            }
+        }
     }
 
     private ResolveFacilityName(name: string): ZRSJZ_UpgradeFacilityName {

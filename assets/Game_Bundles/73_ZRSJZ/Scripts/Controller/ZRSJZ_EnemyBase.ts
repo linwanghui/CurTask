@@ -73,6 +73,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     private _stuckTime: number = 0;
     private _lastStuckPosition: Vec3 = new Vec3();
     private _avoidanceSide: number = 1;
+    private _curScale: number = 0.5;
 
     public get State(): ZRSJZ_ENEMY_STATE {
         return this._state;
@@ -112,6 +113,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.HP.Init(this._health);
         this._lastStuckPosition.set(this.node.worldPosition);
         this._avoidanceSide = Math.random() < 0.5 ? -1 : 1;
+        this._curScale = this.node.scale.x;
 
         this.EnemySkeleton.Skeleton.setEventListener((trackEntry, event) => {
             if (typeof event !== "number" && event.data.name) {
@@ -800,11 +802,10 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.unschedule(this.changeColor);
         this.EnemySkeleton.Skeleton.color = new Color(255, 0, 0, 255);
         this.scheduleOnce(this.changeColor, 0.04);
-        Tween.stopAllByTarget(this.EnemySkeleton.node);
-        tween(this.EnemySkeleton.node)
-            .to(0.013, { eulerAngles: v3(0, 0, 5) }, { easing: 'sineInOut' })
-            .to(0.013, { eulerAngles: v3(0, 0, -5) }, { easing: 'sineInOut' })
-            .to(0.013, { eulerAngles: v3(0, 0, 0) }, { easing: 'sineInOut' })
+        Tween.stopAllByTarget(this.node);
+        tween(this.node)
+            .to(0.02, { scale: v3(this._curScale + 0.03, this._curScale + 0.03, 1) }, { easing: 'linear' })
+            .to(0.02, { scale: v3(this._curScale, this._curScale, 1) }, { easing: 'linear' })
             .start();
     }
 

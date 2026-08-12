@@ -21,14 +21,12 @@ export class ZRSJZ_Panel extends Component {
 
     Hide(...args: any[]) {
         const Mask: Node | null = find("Panel/Mask", this.node);
-        if (Mask) Mask.active = true;
         Tween.stopAllByTarget(this.Panel);
         tween(this.Panel)
             .to(0, { scale: v3(0, 0, 0) }, { easing: 'backOut' })
             .call(() => {
                 if (args.length > 0) args[0]();
                 this.node.active = false;
-                if (Mask) Mask.active = false;
             })
             .start();
     }

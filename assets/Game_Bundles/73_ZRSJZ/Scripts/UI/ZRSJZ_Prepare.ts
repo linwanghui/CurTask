@@ -13,8 +13,8 @@ export class ZRSJZ_Prepare extends Component {
     ScrollView: ScrollView = null;
 
     protected onLoad(): void {
-        this.CardBag = this.node.getChildByPath("Mask/Content/卡包");
-        this.Ammo = this.node.getChildByPath("Mask/Content/弹药");
+        this.CardBag = this.node.getChildByPath("卡包");
+        this.Ammo = this.node.getChildByPath("弹药");
         this.ScrollView = this.node.getChildByName("保险")?.getComponent(ScrollView);
     }
 

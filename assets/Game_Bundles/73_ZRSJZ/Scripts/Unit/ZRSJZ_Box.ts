@@ -20,6 +20,17 @@ const ZRSJZ_LOOT_QUALITY_ORDER: readonly ZRSJZ_PROP_QUALITY[] = [
     ZRSJZ_PROP_QUALITY.红色,
 ];
 
+/** 不掉落背包；其他装备仅掉落一至四级，并逐级大幅压低原品质权重。 */
+const ZRSJZ_BOX_EQUIPMENT_QUALITY_MULTIPLIERS: readonly number[] = [
+    1,
+    0.1,
+    0.005,
+    0.0005,
+    0,
+    0,
+];
+const ZRSJZ_BOX_EQUIPMENT_TYPES: readonly string[] = ["枪", "刀", "头盔", "防弹衣", "背包"];
+
 enum ZRSJZ_BOX_STATE {
     IDLE = 0,
     OPENED = 1,
@@ -281,7 +292,13 @@ export class ZRSJZ_Box extends Component {
             }
 
             const props = availableQualities[qualityIndex].props;
-            loot.push(props[Math.floor(Math.random() * props.length)]);
+            const propName = this.SelectRandomLootProp(
+                props,
+                availableQualities[qualityIndex].index,
+            );
+            if (propName) {
+                loot.push(propName);
+            }
         }
         for (const propType of this._boxConfig.GuaranteedPropTypes ?? []) {
             const guaranteedProp = this.GenerateGuaranteedProp(propType);
@@ -292,10 +309,40 @@ export class ZRSJZ_Box extends Component {
         return loot;
     }
 
+    /** 普通物资保持原权重，装备按等级额外降权，背包权重固定为零。 */
+    private SelectRandomLootProp(props: readonly string[], qualityIndex: number): string {
+        const weightedProps = props.map(propName => {
+            const propType = ZRSJZ_PROP_CONFIG.get(propName)?.PropType;
+            let weight = 1;
+            if (propType === "背包") {
+                weight = 0;
+            } else if (ZRSJZ_BOX_EQUIPMENT_TYPES.includes(propType)) {
+                weight = ZRSJZ_BOX_EQUIPMENT_QUALITY_MULTIPLIERS[qualityIndex] ?? 0;
+            }
+            return { propName, weight };
+        }).filter(item => item.weight > 0);
+        const totalWeight = weightedProps.reduce((sum, item) => sum + item.weight, 0);
+        if (totalWeight <= 0) return null;
+
+        let roll = Math.random() * totalWeight;
+        return weightedProps.find(item => {
+            roll -= item.weight;
+            return roll < 0;
+        })?.propName ?? weightedProps[weightedProps.length - 1].propName;
+    }
+
     /** 按箱子的品质权重额外生成一件指定类型装备。 */
     private GenerateGuaranteedProp(propType: string): string {
+        if (propType === "背包") {
+            return null;
+        }
         const candidates = Array.from(ZRSJZ_PROP_CONFIG.values())
-            .filter(prop => prop.PropType === propType);
+            .filter(prop => {
+                const qualityIndex = ZRSJZ_LOOT_QUALITY_ORDER.indexOf(prop.Quality);
+                return prop.PropType === propType
+                    && qualityIndex >= 0
+                    && qualityIndex <= 3;
+            });
         if (candidates.length === 0) {
             console.warn(`[ZRSJZ_Box] 没有可掉落的保底道具类型: ${propType}`);
             return null;
@@ -307,7 +354,11 @@ export class ZRSJZ_Box extends Component {
             return {
                 quality,
                 weight: qualityIndex >= 0
-                    ? Math.max(0, this._boxConfig.Probability[qualityIndex] ?? 0)
+                    ? Math.max(
+                        0,
+                        (this._boxConfig.Probability[qualityIndex] ?? 0)
+                        * (ZRSJZ_BOX_EQUIPMENT_QUALITY_MULTIPLIERS[qualityIndex] ?? 0),
+                    )
                     : 0,
             };
         });
