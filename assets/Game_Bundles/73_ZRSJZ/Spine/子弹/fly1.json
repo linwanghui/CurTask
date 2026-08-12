@@ -1,7 +1,7 @@
 {
-"skeleton": { "hash": "7wrO15jKr7Nx11KG+JFPZi7wi/g", "spine": "3.8.75", "images": "./images/", "audio": "C:\\Users\\pro9\\Desktop\\决胜之心01\\ui-spine\\fly1" },
+"skeleton": { "hash": "mNH5RsQKOKOhfMTHXM9Q+Vhmh6Q", "spine": "3.8.75", "images": "./images/", "audio": "C:\\Users\\pro9\\Desktop\\决胜之心01\\ui-spine\\fly1" },
 "bones": [
-	{ "name": "root" },
+	{ "name": "root", "scaleX": 2 },
 	{ "name": "huo", "parent": "root", "x": -36.28, "y": -97.76, "scaleX": -1, "scaleY": -1 },
 	{ "name": "feixingwu", "parent": "root", "x": -151.18, "y": -202.01 },
 	{ "name": "fly18_2", "parent": "root", "x": -18.81, "y": -171.35 },
@@ -319,30 +319,6 @@
 "animations": {
 	"Zd3": {
 		"slots": {
-			"zd2": {
-				"color": [
-					{ "color": "00b0ff9a" }
-				],
-				"attachment": [
-					{ "name": "zd2" }
-				]
-			},
-			"f18_10001": {
-				"color": [
-					{ "color": "00beffff" }
-				],
-				"attachment": [
-					{ "name": "f18_10001" },
-					{ "time": 0.0333, "name": "f18_10002" },
-					{ "time": 0.0667, "name": "f18_10003" },
-					{ "time": 0.1, "name": "f18_10004" },
-					{ "time": 0.1333, "name": "f18_10005" },
-					{ "time": 0.1667, "name": "f18_10006" },
-					{ "time": 0.2, "name": "f18_10007" },
-					{ "time": 0.2333, "name": "f18_10008" },
-					{ "time": 0.2667, "name": null }
-				]
-			},
 			"gq": {
 				"color": [
 					{ "color": "0f9cffff" }
@@ -366,6 +342,30 @@
 					{ "time": 0.2667, "name": "f18_10004" },
 					{ "time": 0.3, "name": "f18_10005" },
 					{ "time": 0.3333, "name": "f18_10006" }
+				]
+			},
+			"zd2": {
+				"color": [
+					{ "color": "00b0ff9a" }
+				],
+				"attachment": [
+					{ "name": "zd2" }
+				]
+			},
+			"f18_10001": {
+				"color": [
+					{ "color": "00beffff" }
+				],
+				"attachment": [
+					{ "name": "f18_10001" },
+					{ "time": 0.0333, "name": "f18_10002" },
+					{ "time": 0.0667, "name": "f18_10003" },
+					{ "time": 0.1, "name": "f18_10004" },
+					{ "time": 0.1333, "name": "f18_10005" },
+					{ "time": 0.1667, "name": "f18_10006" },
+					{ "time": 0.2, "name": "f18_10007" },
+					{ "time": 0.2333, "name": "f18_10008" },
+					{ "time": 0.2667, "name": null }
 				]
 			}
 		},
@@ -414,27 +414,6 @@
 	},
 	"zd1": {
 		"slots": {
-			"zd2": {
-				"color": [
-					{ "color": "ffffff9a" }
-				],
-				"attachment": [
-					{ "name": "zd2" }
-				]
-			},
-			"f18_10001": {
-				"attachment": [
-					{ "name": "f18_10001" },
-					{ "time": 0.0333, "name": "f18_10002" },
-					{ "time": 0.0667, "name": "f18_10003" },
-					{ "time": 0.1, "name": "f18_10004" },
-					{ "time": 0.1333, "name": "f18_10005" },
-					{ "time": 0.1667, "name": "f18_10006" },
-					{ "time": 0.2, "name": "f18_10007" },
-					{ "time": 0.2333, "name": "f18_10008" },
-					{ "time": 0.2667, "name": null }
-				]
-			},
 			"gq": {
 				"color": [
 					{ "color": "717171ff" }
@@ -455,6 +434,27 @@
 					{ "time": 0.2667, "name": "f18_10004" },
 					{ "time": 0.3, "name": "f18_10005" },
 					{ "time": 0.3333, "name": "f18_10006" }
+				]
+			},
+			"zd2": {
+				"color": [
+					{ "color": "ffffff9a" }
+				],
+				"attachment": [
+					{ "name": "zd2" }
+				]
+			},
+			"f18_10001": {
+				"attachment": [
+					{ "name": "f18_10001" },
+					{ "time": 0.0333, "name": "f18_10002" },
+					{ "time": 0.0667, "name": "f18_10003" },
+					{ "time": 0.1, "name": "f18_10004" },
+					{ "time": 0.1333, "name": "f18_10005" },
+					{ "time": 0.1667, "name": "f18_10006" },
+					{ "time": 0.2, "name": "f18_10007" },
+					{ "time": 0.2333, "name": "f18_10008" },
+					{ "time": 0.2667, "name": null }
 				]
 			}
 		},
@@ -503,30 +503,6 @@
 	},
 	"zd2": {
 		"slots": {
-			"zd2": {
-				"color": [
-					{ "color": "86ff009a" }
-				],
-				"attachment": [
-					{ "name": "zd2" }
-				]
-			},
-			"f18_10001": {
-				"color": [
-					{ "color": "70ff2eff" }
-				],
-				"attachment": [
-					{ "name": "f18_10001" },
-					{ "time": 0.0333, "name": "f18_10002" },
-					{ "time": 0.0667, "name": "f18_10003" },
-					{ "time": 0.1, "name": "f18_10004" },
-					{ "time": 0.1333, "name": "f18_10005" },
-					{ "time": 0.1667, "name": "f18_10006" },
-					{ "time": 0.2, "name": "f18_10007" },
-					{ "time": 0.2333, "name": "f18_10008" },
-					{ "time": 0.2667, "name": null }
-				]
-			},
 			"gq": {
 				"color": [
 					{ "color": "21ff00ff" }
@@ -550,6 +526,30 @@
 					{ "time": 0.2667, "name": "f18_10004" },
 					{ "time": 0.3, "name": "f18_10005" },
 					{ "time": 0.3333, "name": "f18_10006" }
+				]
+			},
+			"zd2": {
+				"color": [
+					{ "color": "86ff009a" }
+				],
+				"attachment": [
+					{ "name": "zd2" }
+				]
+			},
+			"f18_10001": {
+				"color": [
+					{ "color": "70ff2eff" }
+				],
+				"attachment": [
+					{ "name": "f18_10001" },
+					{ "time": 0.0333, "name": "f18_10002" },
+					{ "time": 0.0667, "name": "f18_10003" },
+					{ "time": 0.1, "name": "f18_10004" },
+					{ "time": 0.1333, "name": "f18_10005" },
+					{ "time": 0.1667, "name": "f18_10006" },
+					{ "time": 0.2, "name": "f18_10007" },
+					{ "time": 0.2333, "name": "f18_10008" },
+					{ "time": 0.2667, "name": null }
 				]
 			}
 		},
@@ -598,30 +598,6 @@
 	},
 	"zd4": {
 		"slots": {
-			"zd2": {
-				"color": [
-					{ "color": "ff00d49a" }
-				],
-				"attachment": [
-					{ "name": "zd2" }
-				]
-			},
-			"f18_10001": {
-				"color": [
-					{ "color": "df2bffff" }
-				],
-				"attachment": [
-					{ "name": "f18_10001" },
-					{ "time": 0.0333, "name": "f18_10002" },
-					{ "time": 0.0667, "name": "f18_10003" },
-					{ "time": 0.1, "name": "f18_10004" },
-					{ "time": 0.1333, "name": "f18_10005" },
-					{ "time": 0.1667, "name": "f18_10006" },
-					{ "time": 0.2, "name": "f18_10007" },
-					{ "time": 0.2333, "name": "f18_10008" },
-					{ "time": 0.2667, "name": null }
-				]
-			},
 			"gq": {
 				"color": [
 					{ "color": "8a00ffff" }
@@ -645,6 +621,30 @@
 					{ "time": 0.2667, "name": "f18_10004" },
 					{ "time": 0.3, "name": "f18_10005" },
 					{ "time": 0.3333, "name": "f18_10006" }
+				]
+			},
+			"zd2": {
+				"color": [
+					{ "color": "ff00d49a" }
+				],
+				"attachment": [
+					{ "name": "zd2" }
+				]
+			},
+			"f18_10001": {
+				"color": [
+					{ "color": "df2bffff" }
+				],
+				"attachment": [
+					{ "name": "f18_10001" },
+					{ "time": 0.0333, "name": "f18_10002" },
+					{ "time": 0.0667, "name": "f18_10003" },
+					{ "time": 0.1, "name": "f18_10004" },
+					{ "time": 0.1333, "name": "f18_10005" },
+					{ "time": 0.1667, "name": "f18_10006" },
+					{ "time": 0.2, "name": "f18_10007" },
+					{ "time": 0.2333, "name": "f18_10008" },
+					{ "time": 0.2667, "name": null }
 				]
 			}
 		},
@@ -693,6 +693,28 @@
 	},
 	"zd5": {
 		"slots": {
+			"gq": {
+				"attachment": [
+					{ "name": "gq" }
+				]
+			},
+			"f18_10002": {
+				"color": [
+					{ "color": "ffb900ff" }
+				],
+				"attachment": [
+					{ "name": "f18_10006" },
+					{ "time": 0.0333, "name": "f18_10007" },
+					{ "time": 0.0667, "name": "f18_10008" },
+					{ "time": 0.1, "name": null },
+					{ "time": 0.1667, "name": "f18_10001" },
+					{ "time": 0.2, "name": "f18_10002" },
+					{ "time": 0.2333, "name": "f18_10003" },
+					{ "time": 0.2667, "name": "f18_10004" },
+					{ "time": 0.3, "name": "f18_10005" },
+					{ "time": 0.3333, "name": "f18_10006" }
+				]
+			},
 			"zd2": {
 				"color": [
 					{ "color": "ffb2009b" }
@@ -715,28 +737,6 @@
 					{ "time": 0.2, "name": "f18_10007" },
 					{ "time": 0.2333, "name": "f18_10008" },
 					{ "time": 0.2667, "name": null }
-				]
-			},
-			"gq": {
-				"attachment": [
-					{ "name": "gq" }
-				]
-			},
-			"f18_10002": {
-				"color": [
-					{ "color": "ffb900ff" }
-				],
-				"attachment": [
-					{ "name": "f18_10006" },
-					{ "time": 0.0333, "name": "f18_10007" },
-					{ "time": 0.0667, "name": "f18_10008" },
-					{ "time": 0.1, "name": null },
-					{ "time": 0.1667, "name": "f18_10001" },
-					{ "time": 0.2, "name": "f18_10002" },
-					{ "time": 0.2333, "name": "f18_10003" },
-					{ "time": 0.2667, "name": "f18_10004" },
-					{ "time": 0.3, "name": "f18_10005" },
-					{ "time": 0.3333, "name": "f18_10006" }
 				]
 			}
 		},
@@ -785,30 +785,6 @@
 	},
 	"zd6": {
 		"slots": {
-			"zd2": {
-				"color": [
-					{ "color": "ffa8ab9a" }
-				],
-				"attachment": [
-					{ "name": "zd2" }
-				]
-			},
-			"f18_10001": {
-				"color": [
-					{ "color": "ff0034ff" }
-				],
-				"attachment": [
-					{ "name": "f18_10001" },
-					{ "time": 0.0333, "name": "f18_10002" },
-					{ "time": 0.0667, "name": "f18_10003" },
-					{ "time": 0.1, "name": "f18_10004" },
-					{ "time": 0.1333, "name": "f18_10005" },
-					{ "time": 0.1667, "name": "f18_10006" },
-					{ "time": 0.2, "name": "f18_10007" },
-					{ "time": 0.2333, "name": "f18_10008" },
-					{ "time": 0.2667, "name": null }
-				]
-			},
 			"gq": {
 				"color": [
 					{ "color": "ff0000ff" }
@@ -832,6 +808,30 @@
 					{ "time": 0.2667, "name": "f18_10004" },
 					{ "time": 0.3, "name": "f18_10005" },
 					{ "time": 0.3333, "name": "f18_10006" }
+				]
+			},
+			"zd2": {
+				"color": [
+					{ "color": "ffa8ab9a" }
+				],
+				"attachment": [
+					{ "name": "zd2" }
+				]
+			},
+			"f18_10001": {
+				"color": [
+					{ "color": "ff0034ff" }
+				],
+				"attachment": [
+					{ "name": "f18_10001" },
+					{ "time": 0.0333, "name": "f18_10002" },
+					{ "time": 0.0667, "name": "f18_10003" },
+					{ "time": 0.1, "name": "f18_10004" },
+					{ "time": 0.1333, "name": "f18_10005" },
+					{ "time": 0.1667, "name": "f18_10006" },
+					{ "time": 0.2, "name": "f18_10007" },
+					{ "time": 0.2333, "name": "f18_10008" },
+					{ "time": 0.2667, "name": null }
 				]
 			}
 		},
