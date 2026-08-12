@@ -49,7 +49,9 @@ export class ZRSJZ_Player extends Component {
     private _isFireing: boolean = false;
     private _fireCooldown: number = 0;
     private _waitingFirstGunShot: boolean = false;
+    private _gunFireFrameReached: boolean = false;
     private _gunAttackAnimationPlayedOnce: boolean = false;
+    private _gunAttackAnimationActive: boolean = false;
     private _isSlide: boolean = false;
     private _targetBox: ZRSJZ_Box = null;
     private _isStop: boolean = false;
@@ -124,9 +126,8 @@ export class ZRSJZ_Player extends Component {
                 && this.WeaponType === "枪"
                 && (event.data.name === "kq" || event.data.name === "gj_jjq")
             ) {
-                this._waitingFirstGunShot = false;
-                this._fireCooldown = this.GetFireInterval();
-                void this.Fire();
+                this._gunFireFrameReached = true;
+                this.TryFirePendingGunShot();
             } else if (this._knifeAnimationPlaying) {
                 if (event.data.name === "dao") {
                     this.KnifeAttack(200);
@@ -303,9 +304,8 @@ export class ZRSJZ_Player extends Component {
             }
             if (this.WeaponType === "枪") {
                 this._isFireing = false;
-                this._fireCooldown = 0;
                 // 快速单击也要等第一轮开枪动画完整播放后再恢复手部待机。
-                if (this._gunAttackAnimationPlayedOnce) {
+                if (!this._gunAttackAnimationActive || (this._gunAttackAnimationPlayedOnce && !this._waitingFirstGunShot)) {
                     this.RestoreGunLocomotion();
                 } else {
                     this.UpdateGunBodyAnimation();
@@ -319,17 +319,8 @@ export class ZRSJZ_Player extends Component {
         if (this.WeaponType === "枪") {
             if (!this._isFireing) {
                 this._isFireing = true;
-                this._waitingFirstGunShot = true;
-                this._gunAttackAnimationPlayedOnce = false;
-                this._fireCooldown = 0;
-                this.UpdateGunBodyAnimation();
-                this.PlayerSkeleton.PlayHandAni(
-                    this.PlayerSkeleton.GunType === "步枪"
-                        ? ZRSJZ_ANI.Attack_Idle_Q
-                        : ZRSJZ_ANI.Attack_Idle_Q2,
-                    true,
-                    () => this.OnGunAttackAnimationComplete(),
-                );
+                // 冷却期间不播放假开枪动画；持续按住时等冷却结束再开始。
+                if (this._fireCooldown <= 0) this.BeginGunAttackAnimation();
             }
         } else {
             this._isKnifeAttack = true;
@@ -816,7 +807,7 @@ export class ZRSJZ_Player extends Component {
     private StopFiring(): void {
         this._isFireing = false;
         this._waitingFirstGunShot = false;
-        this._fireCooldown = 0;
+        this._gunFireFrameReached = false;
         if (this.WeaponType === "枪") {
             if (this._gunAttackAnimationPlayedOnce) {
                 this.RestoreGunLocomotion();
@@ -828,31 +819,73 @@ export class ZRSJZ_Player extends Component {
 
     /** 长按攻击时按武器射速持续开火，不再依赖 Spine 动画事件是否循环。 */
     private UpdateAutomaticFire(dt: number): void {
-        if (!this._isFireing || this._waitingFirstGunShot || this.WeaponType !== "枪") return;
+        // 冷却跨按键持续计时，松开再点击也不能重置射速限制。
+        this._fireCooldown = Math.max(0, this._fireCooldown - dt);
+        if (this.WeaponType !== "枪") return;
 
-        this._fireCooldown -= dt;
-        if (this._fireCooldown > 0) return;
+        if (this._isFireing && !this._gunAttackAnimationActive) {
+            if (this._fireCooldown <= 0) this.BeginGunAttackAnimation();
+            return;
+        }
 
-        this._fireCooldown += this.GetFireInterval();
+        if (this._waitingFirstGunShot) {
+            this.TryFirePendingGunShot();
+            return;
+        }
+        // 每一发都必须先启动一轮开枪动画，不能由计时器直接生成子弹。
+        if (this._isFireing && !this._gunAttackAnimationActive && this._fireCooldown <= 0) {
+            this.BeginGunAttackAnimation();
+        }
+    }
+
+    private BeginGunAttackAnimation(): void {
+        if (!this._isFireing || this._gunAttackAnimationActive || this.WeaponType !== "枪") return;
+
+        this._gunAttackAnimationActive = true;
+        this._waitingFirstGunShot = true;
+        this._gunFireFrameReached = false;
+        this._gunAttackAnimationPlayedOnce = false;
+        this.UpdateGunBodyAnimation();
+        this.PlayerSkeleton.PlayHandAni(
+            this.PlayerSkeleton.GunType === "步枪"
+                ? ZRSJZ_ANI.Attack_Idle_Q
+                : ZRSJZ_ANI.Attack_Idle_Q2,
+            false,
+            () => this.OnGunAttackAnimationComplete(),
+        );
+    }
+
+    private TryFirePendingGunShot(): void {
+        if (
+            !this._waitingFirstGunShot
+            || !this._gunFireFrameReached
+            || this._fireCooldown > 0
+            || this.WeaponType !== "枪"
+        ) return;
+
+        this._waitingFirstGunShot = false;
+        this._gunFireFrameReached = false;
+        this._fireCooldown = this.GetFireInterval();
         void this.Fire();
     }
 
     private CancelGunAttackState(): void {
         this._isFireing = false;
         this._waitingFirstGunShot = false;
+        this._gunFireFrameReached = false;
         this._gunAttackAnimationPlayedOnce = true;
-        this._fireCooldown = 0;
+        this._gunAttackAnimationActive = false;
     }
 
     private OnGunAttackAnimationComplete(): void {
         this._gunAttackAnimationPlayedOnce = true;
         // 兼容没有配置开枪事件的动画：完整播放一轮后仍会产生首发。
         if (this._waitingFirstGunShot && this.WeaponType === "枪") {
-            this._waitingFirstGunShot = false;
-            this._fireCooldown = this.GetFireInterval();
-            void this.Fire();
+            this._gunFireFrameReached = true;
+            this.TryFirePendingGunShot();
         }
-        if (!this._isFireing && this.WeaponType === "枪") {
+        this._gunAttackAnimationActive = false;
+        if (this.WeaponType === "枪") {
             this.RestoreGunLocomotion();
         }
     }
@@ -865,7 +898,7 @@ export class ZRSJZ_Player extends Component {
 
     private IsGunAttackVisualActive(): boolean {
         return this.WeaponType === "枪"
-            && (this._isFireing || this._waitingFirstGunShot || !this._gunAttackAnimationPlayedOnce);
+            && this._gunAttackAnimationActive;
     }
 
     private UpdateGunBodyAnimation(): void {

@@ -6,6 +6,7 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_PropSF } from './ZRSJZ_PropSF';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PropGrid')
@@ -357,10 +358,12 @@ export class ZRSJZ_PropGrid extends Component {
                 this._propSFNode = null;
                 this.UIOpacity.opacity = 255;
             } else if (this._isSelling) {
+                ZRSJZ_AudioManager.Instance.PlaySound("点击");
                 ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.PropID);
                 this._isSellCheck = !this._isSellCheck;
                 this.ShowSellButton();
             } else if (!this._isCreatingMove) {
+                ZRSJZ_AudioManager.Instance.PlaySound("点击");
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
                 this.HandleTap();
             }

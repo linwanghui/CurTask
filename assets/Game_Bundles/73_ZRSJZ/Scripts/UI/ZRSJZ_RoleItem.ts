@@ -2,6 +2,7 @@ import { _decorator, Component, Node } from 'cc';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_PlayerSwitchButton } from './ZRSJZ_PlayerSwitchButton';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_RoleItem')
@@ -32,6 +33,7 @@ export class ZRSJZ_RoleItem extends Component {
         // const roleIndex = ZRSJZ_PlayerSwitchButton.CurPlayer == "1p" ? 0 : 1;
         // if (this.RoleName == ZRSJZ_GameData.Instance.CurRole[roleIndex]) return;
         // ZRSJZ_GameData.Instance.SetCurRole(this.RoleName, roleIndex);
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_ITEM, this.RoleName);
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.RoleName);
     }
