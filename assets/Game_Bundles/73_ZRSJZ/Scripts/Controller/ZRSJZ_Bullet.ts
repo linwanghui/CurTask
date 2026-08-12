@@ -16,7 +16,7 @@ export class ZRSJZ_Bullet extends Component {
     RotationOffset: number = 0;
 
     Collider: Collider2D = null;
-    Skeleton: sp.Skeleton = null;
+    // Skeleton: sp.Skeleton = null;
 
     private _isInit: boolean = false;
     private _maxRange: number = 0;
@@ -30,7 +30,7 @@ export class ZRSJZ_Bullet extends Component {
     Init() {
         this.Collider = this.getComponent(Collider2D);
         this.Collider?.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this);
-        this.Skeleton = this.node.getChildByName("子弹").getComponent(sp.Skeleton);
+        // this.Skeleton = this.node.getChildByName("子弹").getComponent(sp.Skeleton);
     }
 
     Show(worldPos: Vec3, dirX: number, dirY: number, range: number, harm: number = 0, bulletLevel: number = 1) {
@@ -59,7 +59,7 @@ export class ZRSJZ_Bullet extends Component {
 
         const angle = Math.atan2(this._dirY, this._dirX) * 180 / Math.PI + this.RotationOffset;
         this.node.setWorldRotationFromEuler(0, 0, angle);
-        this.Skeleton.setAnimation(0, `zd${bulletLevel}`, true);
+        // this.Skeleton.setAnimation(0, `zd${bulletLevel}`, true);
     }
 
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {

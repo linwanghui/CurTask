@@ -95,8 +95,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
+      "x": -13.953,
+      "y": 1.912,
       "z": 0
     },
     "_lrot": {
@@ -108,8 +108,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.5,
-      "y": 0.5,
+      "x": 1,
+      "y": 1,
       "z": 1
     },
     "_mobility": 0,
@@ -136,8 +136,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100,
-      "height": 100
+      "width": 182,
+      "height": 96
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -148,10 +148,10 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "60EHAcCnFNDo3WJ6jLehQv"
+    "fileId": "40zkZQBFZH57LeFFoOIrpD"
   },
   {
-    "__type__": "sp.Skeleton",
+    "__type__": "cc.Sprite",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -172,28 +172,28 @@
       "b": 255,
       "a": 255
     },
-    "_skeletonData": {
-      "__uuid__": "a2aeadb8-6914-4c8a-9b25-d37e8e7c2025",
-      "__expectedType__": "sp.SkeletonData"
+    "_spriteFrame": {
+      "__uuid__": "c54f08b7-a69f-4b5f-931f-50de86e99159@f9941",
+      "__expectedType__": "cc.SpriteFrame"
     },
-    "defaultSkin": "default",
-    "defaultAnimation": "zd1",
-    "_premultipliedAlpha": false,
-    "_timeScale": 1,
-    "_preCacheMode": 0,
-    "_cacheMode": 0,
-    "_sockets": [],
-    "_useTint": false,
-    "_debugMesh": false,
-    "_debugBones": false,
-    "_debugSlots": false,
-    "_enableBatch": false,
-    "loop": true,
+    "_type": 0,
+    "_fillType": 0,
+    "_sizeMode": 1,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_useGrayscale": false,
+    "_atlas": null,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "9fSN/c8sBLzbpAiF3Ex1Ox"
+    "fileId": "46IDLiU4FJDL4uSXzUY4ao"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -203,7 +203,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "bcdx8ViHFHUaKjc7wvTlsk",
+    "fileId": "88dJg/6/BGB6JS2Aromls+",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
