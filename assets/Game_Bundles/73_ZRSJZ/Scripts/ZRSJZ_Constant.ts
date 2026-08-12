@@ -96,11 +96,14 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["八宝粥", { Name: "八宝粥", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 2300, MaxCount: 1 }],
     ["切割刀", { Name: "切割刀", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 2100, MaxCount: 1 }],
     ["黑色手表", { Name: "黑色手表", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 2200, MaxCount: 1 }],
+    ["核桃", { Name: "核桃", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 2300, MaxCount: 1 }],
     //1x1 --  绿
+    ["剪刀", { Name: "剪刀", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 6600, MaxCount: 1 }],
     ["地图", { Name: "地图", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 5400, MaxCount: 1 }],
     ["苹果", { Name: "苹果", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 4400, MaxCount: 1 }],
     ["量子U盘", { Name: "量子U盘", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 5600, MaxCount: 1 }],
     //1x1 --  蓝
+    ["手套", { Name: "手套", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 12000, MaxCount: 1 }],
     ["无线便携电钻", { Name: "无线便携电钻", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 11000, MaxCount: 1 }],
     ["手雷", { Name: "手雷", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 11000, MaxCount: 1 }],
     ["鱼子酱", { Name: "鱼子酱", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 13000, MaxCount: 1 }],
@@ -124,7 +127,9 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
 
     //1x2 --  白
     ["哑铃", { Name: "哑铃", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 3600, MaxCount: 1 }],
+    ["营养罐头", { Name: "营养罐头", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 4000, MaxCount: 1 }],
     //1x2 --  绿
+    ["工业图纸", { Name: "工业图纸", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 7100, MaxCount: 1 }],
     ["沙袋", { Name: "沙袋", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 7200, MaxCount: 1 }],
     //1x2 --  蓝
     ["太阳能板", { Name: "太阳能板", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 12000, MaxCount: 1 }],
@@ -133,6 +138,7 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["封存音源卫", { Name: "封存音源卫", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 25000, MaxCount: 1 }],
     ["电动马达", { Name: "电动马达", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 28000, MaxCount: 1 }],
     //1x2 --  金
+    ["磁轴键盘", { Name: "磁轴键盘", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 130000, MaxCount: 1 }],
     ["金玫瑰", { Name: "金玫瑰", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 120000, MaxCount: 1 }],
     //1x2 --  红
     ["终端", { Name: "终端", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 250000, MaxCount: 1 }],
@@ -149,11 +155,14 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["装甲车电池", { Name: "装甲车电池", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 476000, MaxCount: 1 }],
     //2x2 --  白
     ["水泥石砖", { Name: "水泥石砖", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 5000, MaxCount: 1 }],
+    ["垃圾桶", { Name: "垃圾桶", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 4400, MaxCount: 1 }],
     //2x2 --  绿
     ["阿萨拉时尚周刊", { Name: "阿萨拉时尚周刊", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 12000, MaxCount: 1 }],
+    ["海鲜大罐头", { Name: "海鲜大罐头", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 11000, MaxCount: 1 }],
     //2x2 --  蓝
-
+    ["高档座椅", { Name: "高档座椅", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 32000, MaxCount: 1 }],
     //2x2 --  紫
+    ["黑咖啡", { Name: "黑咖啡", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 70000, MaxCount: 1 }],
     ["军用电话", { Name: "军用电话", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 80000, MaxCount: 1 }],
     //2x2 --  金
     ["克小圈玩偶", { Name: "克小圈玩偶", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 180000, MaxCount: 1 }],
@@ -184,11 +193,14 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     //2x3 --  绿
     ["吸尘器", { Name: "吸尘器", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 21000, MaxCount: 1 }],
     //2x3 --  蓝
+    ["油漆桶", { Name: "油漆桶", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 55000, MaxCount: 1 }],
     ["协议箱", { Name: "协议箱", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 50000, MaxCount: 1 }],
     //2x3 --  紫
-    ["机器人", { Name: "机器人", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 90000, MaxCount: 1 }],
+    ["汽车燃油", { Name: "汽车燃油", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 110000, MaxCount: 1 }],
+    ["机器人", { Name: "机器人", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 90000, MaxCount: 1 }],
     //2x3 --  金
-    ["八音盒", { Name: "八音盒", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 210000, MaxCount: 1 }],
+    ["食物粉碎机", { Name: "食物粉碎机", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 240000, MaxCount: 1 }],
+    ["八音盒", { Name: "八音盒", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 210000, MaxCount: 1 }],
     //2x3 --  红
     ["无人机", { Name: "无人机", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 400000, MaxCount: 1 }],
     ["军用雷达", { Name: "军用雷达", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 1200000, MaxCount: 1 }],
@@ -266,6 +278,19 @@ ZRSJZ_PROP_CONFIG.forEach(config => {
 
 // 道具描述：结合道具名称及图标外观，用于详情、商店和仓库界面展示。
 export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
+    ["核桃", "掌间文玩核桃，棱角已被岁月磨圆，转动的每一声轻响，都藏着时光的回音。"],
+    ["剪刀", "裁缝铺的老剪刀，双刃交错间，剪断过愁绪，也裁出过生活崭新的形状。"],
+    ["手套", "沾着机油的芬芳，掌心的破洞处，漏出了守护的暖光。"],
+    ["营养罐头", "密封的铁罐里，封存着浓缩的能量与暖意，拧开时释放出被时间珍藏的营养承诺。"],
+    ["磁轴键盘", "霍尔磁轴静立桌面，触发如蜻蜓点水，每一次指尖轻触都是精准的无声应答。"],
+    ["工业图纸", "泛蓝的卷轴铺展开来，线条与数字交织成建筑的骨骼，画的是钢铁，写的是梦想。"],
+    ["垃圾桶", "角落里的沉默守护者，吞下所有废弃与烦恼，在黎明前清空自己，重获崭新的一天。"],
+    ["高档座椅", "真皮包裹的云端坐感，腰背被温柔托起，伏案时光从此不再疲惫，只有沉浸的从容。"],
+    ["海鲜大罐头", "铁皮掀开的瞬间，海风扑面而来，虾贝鱼肉层层堆叠，一口尝尽深海的馈赠。"],
+    ["黑咖啡", "杯中琥珀色漩涡，苦香氤氲如晨雾，不加修饰的本味，是清醒世界里最诚实的开场。"],
+    ["油漆桶", "铁皮桶身斑驳沾彩，撬开时刺鼻的彩色风暴，刷过的地方，灰白世界重新发芽。"],
+    ["汽车燃油", "透明液体在油箱暗涌，燃烧时爆发的无形之力，一滴千里，是钢铁心脏的血液。"],
+    ["食物粉碎机", "电机轰鸣如野兽低吼，刀盘旋转间残羹化为齑粉，吞下厨余，吐出沃土的种子。"],
     ["八宝粥", "一罐方便携带的八宝粥，密封完好，可在行动间隙快速补充体力。"],
     ["切割刀", "带有防滑握柄的小型切割工具，刀口锋利，适合处理绳索和薄板。"],
     ["实验数据", "记录着关键实验结果的数据文件，内容专业，具有一定研究价值。"],
