@@ -114,7 +114,7 @@ export class ZRSJZ_UIManager extends Component {
         //初始化箱子
         ZRSJZ_Tools.LoadSprites("Sprites/箱子").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.BoxSFMap.set(sf.name, sf)));
         //初始化角色皮肤
-        ZRSJZ_Tools.LoadSprites("Sprites/角色界面/Icon").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.RoleSkinIconSFMap.set(sf.name, sf)));
+        ZRSJZ_Tools.LoadSprites("Sprites/角色界面/皮肤").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.RoleSkinIconSFMap.set(sf.name, sf)));
     }
 
     public static InitDLC() {
@@ -419,7 +419,7 @@ export class ZRSJZ_UIManager extends Component {
             return Promise.resolve(this.RoleSkinIconSFMap.get(SkinName));
         } else {
             return new Promise((resolve, reject) => {
-                BundleManager.GetBundle("73_ZRSJZ").load(`Sprites/角色界面/Icon/${SkinName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
+                BundleManager.GetBundle("73_ZRSJZ").load(`Sprites/角色界面/皮肤/${SkinName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
                     if (err) {
                         reject(err);
                         console.error(`加载 ${SkinName} 失败`);

@@ -2,6 +2,7 @@ import { _decorator, Component, director, Node, sp, Vec3 } from 'cc';
 import { ZRSJZ_Skill } from './ZRSJZ_Skill';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_EnemyBase } from '../Controller/ZRSJZ_EnemyBase';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Bomb')
@@ -40,6 +41,7 @@ export class ZRSJZ_Bomb extends ZRSJZ_Skill {
         this.node.setWorldPosition(worldPos.clone());
         this.Skeleton.setAnimation(0, this.AniName, false);
         this.Skeleton.setCompleteListener(() => {
+            ZRSJZ_AudioManager.Instance.PlaySound("轰炸");
             this.Skeleton.node.active = false;
             this.BombSkeleton.node.active = true;
             this.BombSkeleton.setAnimation(0, this.NextAniName, false);

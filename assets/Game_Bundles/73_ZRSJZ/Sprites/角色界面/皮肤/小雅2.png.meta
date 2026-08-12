@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "130ea658-00d3-4cc1-9b69-63c8758375b1",
+  "uuid": "5f7208aa-749b-4ee3-bbab-107dc7798d03",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "130ea658-00d3-4cc1-9b69-63c8758375b1@6c48a",
-      "displayName": "皮肤3",
+      "uuid": "5f7208aa-749b-4ee3-bbab-107dc7798d03@6c48a",
+      "displayName": "小雅2",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "130ea658-00d3-4cc1-9b69-63c8758375b1",
+        "imageUuidOrDatabaseUri": "5f7208aa-749b-4ee3-bbab-107dc7798d03",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "130ea658-00d3-4cc1-9b69-63c8758375b1@f9941",
-      "displayName": "皮肤3",
+      "uuid": "5f7208aa-749b-4ee3-bbab-107dc7798d03@f9941",
+      "displayName": "小雅2",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "130ea658-00d3-4cc1-9b69-63c8758375b1@6c48a",
+        "imageUuidOrDatabaseUri": "5f7208aa-749b-4ee3-bbab-107dc7798d03@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "130ea658-00d3-4cc1-9b69-63c8758375b1@6c48a"
+    "redirect": "5f7208aa-749b-4ee3-bbab-107dc7798d03@6c48a"
   }
 }

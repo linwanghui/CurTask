@@ -45,7 +45,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     protected onLoad(): void {
         this.Skeleton = find("Panel/Skin", this.node).getComponent(ZRSJZ_Skeleton);
 
-        this.RoleName = find("Panel/详情/RoleName", this.node).getComponent(Label);
+        this.RoleName = find("Panel/角色名字底/RoleName", this.node).getComponent(Label);
         this.RoleDesc = find("Panel/详情/RoleDesc", this.node).getComponent(Label);
         this.SkillIcon = find("Panel/详情/SkillIcon", this.node).getComponent(Sprite);
         this.SkillDesc = find("Panel/详情/SkillDesc", this.node).getComponent(Label);

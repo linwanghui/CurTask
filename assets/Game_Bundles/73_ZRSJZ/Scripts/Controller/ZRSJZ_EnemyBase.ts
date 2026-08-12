@@ -294,6 +294,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             this._health = 0;
             this.Die();
         } else {
+            ZRSJZ_AudioManager.Instance.PlaySound("受击");
             this.beHitEffect();
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {

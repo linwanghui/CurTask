@@ -1,5 +1,6 @@
 import { _decorator, Component, instantiate, math, Node, tween, v3, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_CurrencyEffect')
@@ -46,6 +47,7 @@ export class ZRSJZ_CurrencyEffect extends Component {
             .to(0.1, { position: v3(math.randomRange(-this.Offset, this.Offset), math.randomRange(-this.Offset, this.Offset)) })
             .to(this.Duration, { worldPosition: targetPos })
             .call(() => {
+                ZRSJZ_AudioManager.Instance.PlaySound("获得钞票");
                 targetNode.destroy();
                 if (isLast) ZRSJZ_PoolManager.Instance.PutNode(this.node);
             })

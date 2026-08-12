@@ -388,7 +388,6 @@ export class ZRSJZ_Player extends Component {
         };
 
         spawnBullet(attackX, attackY);
-        ZRSJZ_AudioManager.Instance.PlaySound("枪声");
 
         if (ZRSJZ_WEAPONRY_TYPE.get("散弹枪")?.includes(this.PlayerSkeleton.WeaponryName)) {
             //散射两个子弹
@@ -405,6 +404,9 @@ export class ZRSJZ_Player extends Component {
                 attackX * cos + attackY * sin,
                 -attackX * sin + attackY * cos,
             );
+            ZRSJZ_AudioManager.Instance.PlaySound("狙击枪枪声");
+        } else {
+            ZRSJZ_AudioManager.Instance.PlaySound("枪声");
         }
 
     }
@@ -644,9 +646,13 @@ export class ZRSJZ_Player extends Component {
             ZRSJZ_UIManager.Instance.PrepareForDeath();
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗);
             this.PlayAni(ZRSJZ_ANI.SW, false);
+            ZRSJZ_AudioManager.Instance.PlaySound("击杀");
         } else {
             this.beHitEffect();
-            ZRSJZ_AudioManager.Instance.PlaySound("受击");
+            const audioName = this._shielding
+                ? "格挡"
+                : "受击";
+            ZRSJZ_AudioManager.Instance.PlaySound(audioName);
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
             effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;

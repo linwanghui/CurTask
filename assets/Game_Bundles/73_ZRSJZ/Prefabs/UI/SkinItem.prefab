@@ -139,8 +139,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 191,
-      "height": 212
+      "width": 212,
+      "height": 152
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -234,8 +234,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0.93,
-      "y": 12.091,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -275,8 +275,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 113,
-      "height": 120
+      "width": 204,
+      "height": 144
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -312,7 +312,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "0847c1b6-6551-4f7d-9846-c1d27bf68227@f9941",
+      "__uuid__": "24d1ce10-323e-4446-9510-2f93279fc955@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -371,7 +371,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -71.71,
+      "y": -54.461,
       "z": 0
     },
     "_lrot": {
@@ -411,8 +411,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 64,
-      "height": 41.8
+      "width": 54,
+      "height": 35.5
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -450,10 +450,10 @@
     "_string": "皮肤",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30,
-    "_fontSize": 30,
+    "_actualFontSize": 25,
+    "_fontSize": 25,
     "_fontFamily": "Arial",
-    "_lineHeight": 30,
+    "_lineHeight": 0,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
@@ -523,8 +523,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 177,
-      "height": 198
+      "width": 204,
+      "height": 144
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -619,7 +619,7 @@
     "node": {
       "__id__": 1
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": {
       "__id__": 27
     },
@@ -634,7 +634,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "7de0a5cf-16bd-4c79-ad6d-d2a347e320d1@f9941",
+      "__uuid__": "24d1ce10-323e-4446-9510-2f93279fc955@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -665,6 +665,7 @@
       "__id__": 0
     },
     "fileId": "13tM6TZ/ZMBqo9zBfJPcqk",
+    "instance": null,
     "targetOverrides": null
   }
 ]

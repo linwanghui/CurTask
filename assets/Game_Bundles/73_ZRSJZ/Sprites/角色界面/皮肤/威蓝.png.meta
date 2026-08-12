@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "c045c1e0-1b47-4782-9bf6-aaf425fee08b",
+  "uuid": "24d1ce10-323e-4446-9510-2f93279fc955",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "c045c1e0-1b47-4782-9bf6-aaf425fee08b@6c48a",
-      "displayName": "角色皮肤选中",
+      "uuid": "24d1ce10-323e-4446-9510-2f93279fc955@6c48a",
+      "displayName": "威蓝",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "c045c1e0-1b47-4782-9bf6-aaf425fee08b",
+        "imageUuidOrDatabaseUri": "24d1ce10-323e-4446-9510-2f93279fc955",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "c045c1e0-1b47-4782-9bf6-aaf425fee08b@f9941",
-      "displayName": "角色皮肤选中",
+      "uuid": "24d1ce10-323e-4446-9510-2f93279fc955@f9941",
+      "displayName": "威蓝",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 212,
-        "height": 152,
-        "rawWidth": 212,
-        "rawHeight": 152,
+        "width": 204,
+        "height": 144,
+        "rawWidth": 204,
+        "rawHeight": 144,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -106,
-            -76,
+            -102,
+            -72,
             0,
-            106,
-            -76,
+            102,
+            -72,
             0,
-            -106,
-            76,
+            -102,
+            72,
             0,
-            106,
-            76,
+            102,
+            72,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            152,
-            212,
-            152,
+            144,
+            204,
+            144,
             0,
             0,
-            212,
+            204,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -106,
-            -76,
+            -102,
+            -72,
             0
           ],
           "maxPos": [
-            106,
-            76,
+            102,
+            72,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "c045c1e0-1b47-4782-9bf6-aaf425fee08b@6c48a",
+        "imageUuidOrDatabaseUri": "24d1ce10-323e-4446-9510-2f93279fc955@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "c045c1e0-1b47-4782-9bf6-aaf425fee08b@6c48a"
+    "redirect": "24d1ce10-323e-4446-9510-2f93279fc955@6c48a"
   }
 }
