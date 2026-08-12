@@ -33,6 +33,7 @@ import { WZSJZ_CommonEffectSystem } from './WZSJZ_CommonEffectSystem';
 import { WZSJZ_ShieldBrotherCombatSystem } from './WZSJZ_ShieldBrotherCombatSystem';
 import { WZSJZ_SkillSystem } from './WZSJZ_SkillSystem';
 import { WZSJZ_NodeInspectSystem } from './WZSJZ_NodeInspectSystem';
+import { WZSJZ_DragIndicatorSystem } from './WZSJZ_DragIndicatorSystem';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 const { ccclass, property } = _decorator;
 
@@ -104,6 +105,7 @@ export class WZSJZ_GameManager extends Component {
     private _shieldBrotherCombatSystem: WZSJZ_ShieldBrotherCombatSystem = null;
     private _skillSystem: WZSJZ_SkillSystem = null;
     private _nodeInspectSystem: WZSJZ_NodeInspectSystem = null;
+    private _dragIndicatorSystem: WZSJZ_DragIndicatorSystem = null;
 
     protected onLoad(): void {
         WZSJZ_GameManager._instance = this;
@@ -116,6 +118,9 @@ export class WZSJZ_GameManager extends Component {
         this._nodeInspectSystem.Configure(
             this.FormationZone?.parent?.getChildByName('攻击范围显示') || null,
         );
+        this._dragIndicatorSystem = this.node.getComponent(WZSJZ_DragIndicatorSystem)
+            || this.node.addComponent(WZSJZ_DragIndicatorSystem);
+        this._dragIndicatorSystem.Configure(this.DragLayer);
         this._combatSystem = this.node.getComponent(WZSJZ_CombatSystem)
             || this.node.addComponent(WZSJZ_CombatSystem);
         this._combatSystem.Configure(this.FormationZone?.parent, this.DragLayer);
@@ -315,6 +320,7 @@ export class WZSJZ_GameManager extends Component {
         this._draggingNode = gameNode;
         this.node.emit(WZSJZ_EventManager.拖拽物变化, gameNode);
         this.RefreshUpgradeHints(gameNode);
+        this._dragIndicatorSystem?.Begin(gameNode);
         if (gameNode.Name === "钥匙") {
             this.ShowKeyUnlockHints();
         }
@@ -332,7 +338,43 @@ export class WZSJZ_GameManager extends Component {
         return !!gameNode.CurrentCell && gameNode.CurrentCell.Zone !== "wall";
     }
 
+    public UpdateDragIndicator(uiPosition: Vec2): void {
+        if (!this._draggingNode) return;
+        if (this._draggingNode.Name === '钥匙') {
+            const keyTarget = this.GetAllCells().find((cell) =>
+                ((cell.Zone === 'preparation' && cell.IsItemLocked)
+                    || (cell.Zone === 'formation' && !cell.IsUnlocked))
+                && cell.ContainsUIPosition(uiPosition),
+            ) || null;
+            this._dragIndicatorSystem?.Update(uiPosition, keyTarget);
+            return;
+        }
+        const targetCell = this.FindDropCell(uiPosition);
+        const validTarget = this.IsValidDragPreviewTarget(this._draggingNode, targetCell)
+            ? targetCell : null;
+        this._dragIndicatorSystem?.Update(uiPosition, validTarget);
+    }
+
+    private IsValidDragPreviewTarget(gameNode: WZSJZ_GameNode, targetCell: WZSJZ_Cell): boolean {
+        const sourceCell = gameNode.CurrentCell;
+        if (!sourceCell || !targetCell || targetCell === sourceCell
+            || !this.CanPlaceInCell(gameNode, targetCell)) {
+            return false;
+        }
+        if (targetCell.IsEmpty()) {
+            return !targetCell.IsItemLocked;
+        }
+        const targetNode = targetCell.Occupant.getComponent('WZSJZ_GameNode') as WZSJZ_GameNode;
+        if (this.CanMergeAtCell(gameNode, targetNode, targetCell)) {
+            return true;
+        }
+        return !targetCell.IsItemLocked
+            && !!targetNode
+            && this.CanPlaceInCell(targetNode, sourceCell);
+    }
+
     public EndDrag(gameNode: WZSJZ_GameNode, uiPosition: Vec2): void {
+        this._dragIndicatorSystem?.Clear();
         this.RefreshUpgradeHints(null);
         this.ClearKeyUnlockHints();
         if (this._draggingNode !== gameNode) {
