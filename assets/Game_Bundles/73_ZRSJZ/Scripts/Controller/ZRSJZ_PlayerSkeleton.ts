@@ -52,6 +52,15 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
     }
 
+    PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
+        this.AniName = aniName;
+        this.Skeleton.setAnimation(0, aniName, loop);
+        // if()
+        this.HandSkeleton.setAnimation(0, aniName, loop);
+        this.Skeleton.setCompleteListener(() => {
+            if (cb) cb();
+        });
+    }
 
     SetPlayerDir(x: number) {
         this.node.setScale(

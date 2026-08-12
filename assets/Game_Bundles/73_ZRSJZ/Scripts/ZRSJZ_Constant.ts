@@ -268,13 +268,13 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["魔刀", { Name: "魔刀", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 2000000, MaxCount: 1 }],
 ])
 
-// 搜索物资按品质统一校准，并保留名称之间原有的价值差异。
-ZRSJZ_PROP_CONFIG.forEach(config => {
-    if (config.PropType !== "物品") return;
+// // 搜索物资按品质统一校准，并保留名称之间原有的价值差异。
+// ZRSJZ_PROP_CONFIG.forEach(config => {
+//     if (config.PropType !== "物品") return;
 
-    const multiplier = ZRSJZ_SEARCH_LOOT_PRICE_MULTIPLIER[config.Quality];
-    config.UnitPrice = Math.max(100, Math.round(config.UnitPrice * multiplier / 100) * 100);
-});
+//     const multiplier = ZRSJZ_SEARCH_LOOT_PRICE_MULTIPLIER[config.Quality];
+//     config.UnitPrice = Math.max(100, Math.round(config.UnitPrice * multiplier / 100) * 100);
+// });
 
 // 道具描述：结合道具名称及图标外观，用于详情、商店和仓库界面展示。
 export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
