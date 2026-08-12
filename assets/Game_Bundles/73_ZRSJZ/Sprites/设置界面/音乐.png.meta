@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "ef947402-32b1-4c29-8650-1ed56327c826",
+  "uuid": "8832e75b-8b45-462d-aff8-ac4251286461",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "ef947402-32b1-4c29-8650-1ed56327c826@6c48a",
-      "displayName": "签到",
+      "uuid": "8832e75b-8b45-462d-aff8-ac4251286461@6c48a",
+      "displayName": "音乐",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "ef947402-32b1-4c29-8650-1ed56327c826",
+        "imageUuidOrDatabaseUri": "8832e75b-8b45-462d-aff8-ac4251286461",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "ef947402-32b1-4c29-8650-1ed56327c826@f9941",
-      "displayName": "签到",
+      "uuid": "8832e75b-8b45-462d-aff8-ac4251286461@f9941",
+      "displayName": "音乐",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 518,
-        "height": 208,
-        "rawWidth": 518,
-        "rawHeight": 208,
+        "width": 133,
+        "height": 52,
+        "rawWidth": 133,
+        "rawHeight": 52,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -259,
-            -104,
+            -66.5,
+            -26,
             0,
-            259,
-            -104,
+            66.5,
+            -26,
             0,
-            -259,
-            104,
+            -66.5,
+            26,
             0,
-            259,
-            104,
+            66.5,
+            26,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            208,
-            518,
-            208,
+            52,
+            133,
+            52,
             0,
             0,
-            518,
+            133,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -259,
-            -104,
+            -66.5,
+            -26,
             0
           ],
           "maxPos": [
-            259,
-            104,
+            66.5,
+            26,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "ef947402-32b1-4c29-8650-1ed56327c826@6c48a",
+        "imageUuidOrDatabaseUri": "8832e75b-8b45-462d-aff8-ac4251286461@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "ef947402-32b1-4c29-8650-1ed56327c826@6c48a"
+    "redirect": "8832e75b-8b45-462d-aff8-ac4251286461@6c48a"
   }
 }

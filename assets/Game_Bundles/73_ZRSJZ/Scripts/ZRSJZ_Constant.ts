@@ -26,6 +26,7 @@ export enum ZRSJZ_PANEL {
     加载界面 = "73_ZRSJZ/Prefabs/Panel/加载界面",
     签到弹窗 = "73_ZRSJZ/Prefabs/Panel/签到弹窗",
     获取金币弹窗 = "73_ZRSJZ/Prefabs/Panel/获取金币弹窗",
+    设置界面 = "73_ZRSJZ/Prefabs/Panel/设置界面",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
