@@ -233,7 +233,8 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         if (version !== this._shopDisplayVersion) return;
         this.ShopIcon.spriteFrame = shopIcon;
         const shopData = ZRSJZ_PROP_CONFIG.get(this._curShop);
-        this._shopPrice = shopData.UnitPrice * shopData.MaxCount;
+        // this._shopPrice = shopData.UnitPrice * shopData.MaxCount;
+        this._shopPrice = shopData.UnitPrice;
         this.ShopPrice.string = `${this._shopPrice}`;
         this._curShopsTs[this._curShowIndex].Chekcked.active = true;
         ZRSJZ_Tools.ScaleNodeToFit(this.ShopIcon.node, 500, 200);

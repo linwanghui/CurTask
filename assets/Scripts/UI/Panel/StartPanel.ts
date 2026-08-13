@@ -155,10 +155,11 @@ export default class StartPanel extends Component {
 
         switch (event.target.name) {
             case "StartGameButton":
-                if (Banner.IsShowServerBundle) {
-                    director.loadScene("GameMode");
-                }
-                else UIManager.ShowPanel(Panel.LoadingPanel, [GameManager.GameData, GameManager.GameData.startScene]);
+                // if (Banner.IsShowServerBundle) {
+                //     director.loadScene("GameMode");
+                // }
+                // else UIManager.ShowPanel(Panel.LoadingPanel, [GameManager.GameData, GameManager.GameData.startScene]);
+                UIManager.ShowPanel(Panel.LoadingPanel, [GameManager.GameData, GameManager.GameData.startScene]);
                 break;
 
             case "PrivacyButton":
