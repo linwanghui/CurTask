@@ -27,6 +27,8 @@ export enum ZRSJZ_PANEL {
     签到弹窗 = "73_ZRSJZ/Prefabs/Panel/签到弹窗",
     获取金币弹窗 = "73_ZRSJZ/Prefabs/Panel/获取金币弹窗",
     设置界面 = "73_ZRSJZ/Prefabs/Panel/设置界面",
+    购买子弹弹窗 = "73_ZRSJZ/Prefabs/Panel/购买子弹弹窗",
+    解锁仓库弹窗 = "73_ZRSJZ/Prefabs/Panel/解锁仓库弹窗",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -718,7 +720,7 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
         RoleDesc: "擅长爆破作战的突击手，能够快速清理聚集的敌人。",
         SkillName: "轰炸",
         SkillDesc: "投放炸弹，对范围内的敌人造成爆炸伤害。",
-        Skin: ["威蓝", "威蓝2"],
+        Skin: ["威蓝", "烬猎"],
         SkillPath: "Prefabs/Controller/Bomb",
     }],
     ["小温", {
@@ -726,7 +728,7 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
         RoleDesc: "精通能量武器的远程输出角色，适合持续压制敌人。",
         SkillName: "激光",
         SkillDesc: "发射高能激光，对直线范围内的敌人造成伤害。",
-        Skin: ["小温", "小温2"],
+        Skin: ["小温", "夜喵"],
         SkillPath: "Prefabs/Controller/Laser",
     }],
     ["小雅", {
@@ -734,7 +736,7 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
         RoleDesc: "攻守兼备的支援角色，能够提高队伍的生存能力。",
         SkillName: "护盾",
         SkillDesc: "展开能量护盾，在持续时间内抵挡敌人的攻击。",
-        Skin: ["小雅", "小雅2"],
+        Skin: ["小雅", "星栗"],
         SkillPath: "Prefabs/Controller/Shield",
     }],
 ])
@@ -750,11 +752,11 @@ export interface ZRSJZ_SkinConfig {
 
 export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> = new Map([
     ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.蓝色, UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0000_前刘海_蓝狼"] }],
-    ["威蓝2", { Name: "威蓝2", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"] }],
+    ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"] }],
     ["小温", { Name: "小温", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
-    ["小温2", { Name: "小温2", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
+    ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
     ["小雅", { Name: "小雅", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [] }],
-    ["小雅2", { Name: "小雅2", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: ["wzt"] }],
+    ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: ["wzt"] }],
 ])
 
 //玩家动画

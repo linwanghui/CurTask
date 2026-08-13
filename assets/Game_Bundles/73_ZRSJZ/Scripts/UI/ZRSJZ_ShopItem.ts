@@ -25,7 +25,7 @@ export class ZRSJZ_ShopItem extends Component {
         this.Chekcked.active = false;
         const shopData = ZRSJZ_PROP_CONFIG.get(shopName);
         this.NameLabel.string = shopName;
-        this.PriceLabel.string = `${shopData.UnitPrice * shopData.MaxCount}`;
+        this.PriceLabel.string = `${Math.floor(shopData.UnitPrice)}`;
         this.Sprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropGridUI(`${shopData.Quality}1_2`);
         this.IconSprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropUI(shopName);
         this.ScaleNodeToFit(this.IconSprite.node);

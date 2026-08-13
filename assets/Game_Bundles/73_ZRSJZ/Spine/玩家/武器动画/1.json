@@ -1,6 +1,6 @@
 {
 "skeleton": {
-	"hash": "/Oz5Sdg4jUr+ZR6KqbddkGPw2E0",
+	"hash": "8q96O+47KO0X7k7sVWuy/sNkHvk",
 	"spine": "3.8.75",
 	"x": -102.73,
 	"y": 231.4,
@@ -598,64 +598,10 @@
 "animations": {
 	"cc_1": {
 		"slots": {
-			"effect/danjia3": {
-				"attachment": [
-					{ "time": 0.9333, "name": "effect/danjia" },
-					{ "time": 1.1667, "name": null }
-				]
-			},
-			"effect/danjia4": {
-				"attachment": [
-					{ "time": 1.0333, "name": "effect/danjia" },
-					{ "time": 1.1333, "name": null }
-				]
-			},
-			"effect/shan": {
-				"attachment": [
-					{ "time": 0.7333, "name": "effect/shan" },
-					{ "time": 0.7667, "name": null },
-					{ "time": 0.8333, "name": "effect/shan" },
-					{ "time": 0.8667, "name": null },
-					{ "time": 0.9333, "name": "effect/shan" },
-					{ "time": 0.9667, "name": null },
-					{ "time": 1.0333, "name": "effect/shan" },
-					{ "time": 1.0667, "name": null },
-					{ "time": 1.1333, "name": "effect/shan" },
-					{ "time": 1.1667, "name": null }
-				]
-			},
 			"effect/danjia2": {
 				"attachment": [
 					{ "time": 0.8333, "name": "effect/danjia" },
 					{ "time": 1.0333, "name": null }
-				]
-			},
-			"effect/dian3": {
-				"attachment": [
-					{ "time": 0.8333, "name": "effect/dian01" },
-					{ "time": 0.9333, "name": null },
-					{ "time": 1.0333, "name": "effect/dian01" },
-					{ "time": 1.1333, "name": null }
-				]
-			},
-			"effect/dian2": {
-				"attachment": [
-					{ "time": 0.7667, "name": "effect/dian01" },
-					{ "time": 0.8667, "name": null },
-					{ "time": 0.9333, "name": "effect/dian01" },
-					{ "time": 1.0333, "name": null }
-				]
-			},
-			"effect/dian01": {
-				"attachment": [
-					{ "time": 0.7333, "name": "effect/dian01" },
-					{ "time": 0.8, "name": null },
-					{ "time": 0.8333, "name": "effect/dian01" },
-					{ "time": 0.9, "name": null },
-					{ "time": 0.9333, "name": "effect/dian01" },
-					{ "time": 1, "name": null },
-					{ "time": 1.0667, "name": "effect/dian01" },
-					{ "time": 1.1333, "name": null }
 				]
 			},
 			"effect/yan": {
@@ -684,12 +630,38 @@
 					{ "time": 1.2, "name": null }
 				]
 			},
-			"effect/dian1": {
+			"effect/danjia": {
 				"attachment": [
-					{ "time": 0.7333, "name": "effect/dian01" },
-					{ "time": 0.8333, "name": null },
+					{ "time": 0.7333, "name": "effect/danjia" },
+					{ "time": 0.9667, "name": null }
+				]
+			},
+			"effect/danjia4": {
+				"attachment": [
+					{ "time": 1.0333, "name": "effect/danjia" },
+					{ "time": 1.1333, "name": null }
+				]
+			},
+			"effect/dian3": {
+				"attachment": [
+					{ "time": 0.8333, "name": "effect/dian01" },
+					{ "time": 0.9333, "name": null },
+					{ "time": 1.0333, "name": "effect/dian01" },
+					{ "time": 1.1333, "name": null }
+				]
+			},
+			"effect/dian2": {
+				"attachment": [
+					{ "time": 0.7667, "name": "effect/dian01" },
+					{ "time": 0.8667, "name": null },
 					{ "time": 0.9333, "name": "effect/dian01" },
-					{ "time": 1, "name": null }
+					{ "time": 1.0333, "name": null }
+				]
+			},
+			"effect/danjia3": {
+				"attachment": [
+					{ "time": 0.9333, "name": "effect/danjia" },
+					{ "time": 1.1667, "name": null }
 				]
 			},
 			"effect/danjia5": {
@@ -698,10 +670,38 @@
 					{ "time": 1.2, "name": null }
 				]
 			},
-			"effect/danjia": {
+			"effect/shan": {
 				"attachment": [
-					{ "time": 0.7333, "name": "effect/danjia" },
-					{ "time": 0.9667, "name": null }
+					{ "time": 0.7333, "name": "effect/shan" },
+					{ "time": 0.7667, "name": null },
+					{ "time": 0.8333, "name": "effect/shan" },
+					{ "time": 0.8667, "name": null },
+					{ "time": 0.9333, "name": "effect/shan" },
+					{ "time": 0.9667, "name": null },
+					{ "time": 1.0333, "name": "effect/shan" },
+					{ "time": 1.0667, "name": null },
+					{ "time": 1.1333, "name": "effect/shan" },
+					{ "time": 1.1667, "name": null }
+				]
+			},
+			"effect/dian1": {
+				"attachment": [
+					{ "time": 0.7333, "name": "effect/dian01" },
+					{ "time": 0.8333, "name": null },
+					{ "time": 0.9333, "name": "effect/dian01" },
+					{ "time": 1, "name": null }
+				]
+			},
+			"effect/dian01": {
+				"attachment": [
+					{ "time": 0.7333, "name": "effect/dian01" },
+					{ "time": 0.8, "name": null },
+					{ "time": 0.8333, "name": "effect/dian01" },
+					{ "time": 0.9, "name": null },
+					{ "time": 0.9333, "name": "effect/dian01" },
+					{ "time": 1, "name": null },
+					{ "time": 1.0667, "name": "effect/dian01" },
+					{ "time": 1.1333, "name": null }
 				]
 			}
 		},
@@ -1171,70 +1171,10 @@
 	},
 	"cc_2": {
 		"slots": {
-			"effect/danjia5": {
-				"attachment": [
-					{ "time": 1.0667, "name": "effect/danjia" },
-					{ "time": 1.1333, "name": null }
-				]
-			},
-			"effect/danjia3": {
-				"attachment": [
-					{ "time": 0.8667, "name": "effect/danjia" },
-					{ "time": 1.1, "name": null }
-				]
-			},
-			"effect/danjia4": {
-				"attachment": [
-					{ "time": 0.9667, "name": "effect/danjia" },
-					{ "time": 1.0667, "name": null }
-				]
-			},
-			"effect/shan": {
-				"attachment": [
-					{ "time": 0.6667, "name": "effect/shan" },
-					{ "time": 0.7, "name": null },
-					{ "time": 0.7667, "name": "effect/shan" },
-					{ "time": 0.8, "name": null },
-					{ "time": 0.8667, "name": "effect/shan" },
-					{ "time": 0.9, "name": null },
-					{ "time": 0.9667, "name": "effect/shan" },
-					{ "time": 1, "name": null },
-					{ "time": 1.0667, "name": "effect/shan" },
-					{ "time": 1.1, "name": null }
-				]
-			},
 			"effect/danjia2": {
 				"attachment": [
 					{ "time": 0.7667, "name": "effect/danjia" },
 					{ "time": 0.9667, "name": null }
-				]
-			},
-			"effect/dian3": {
-				"attachment": [
-					{ "time": 0.7667, "name": "effect/dian01" },
-					{ "time": 0.8667, "name": null },
-					{ "time": 0.9667, "name": "effect/dian01" },
-					{ "time": 1.0667, "name": null }
-				]
-			},
-			"effect/dian2": {
-				"attachment": [
-					{ "time": 0.7, "name": "effect/dian01" },
-					{ "time": 0.8, "name": null },
-					{ "time": 0.8667, "name": "effect/dian01" },
-					{ "time": 0.9667, "name": null }
-				]
-			},
-			"effect/dian01": {
-				"attachment": [
-					{ "time": 0.6667, "name": "effect/dian01" },
-					{ "time": 0.7333, "name": null },
-					{ "time": 0.7667, "name": "effect/dian01" },
-					{ "time": 0.8333, "name": null },
-					{ "time": 0.8667, "name": "effect/dian01" },
-					{ "time": 0.9333, "name": null },
-					{ "time": 1, "name": "effect/dian01" },
-					{ "time": 1.0667, "name": null }
 				]
 			},
 			"effect/yan": {
@@ -1263,18 +1203,78 @@
 					{ "time": 1.1333, "name": null }
 				]
 			},
+			"effect/danjia": {
+				"attachment": [
+					{ "time": 0.6667, "name": "effect/danjia" },
+					{ "time": 0.9, "name": null }
+				]
+			},
+			"effect/danjia4": {
+				"attachment": [
+					{ "time": 0.9667, "name": "effect/danjia" },
+					{ "time": 1.0667, "name": null }
+				]
+			},
+			"effect/dian01": {
+				"attachment": [
+					{ "time": 0.6667, "name": "effect/dian01" },
+					{ "time": 0.7333, "name": null },
+					{ "time": 0.7667, "name": "effect/dian01" },
+					{ "time": 0.8333, "name": null },
+					{ "time": 0.8667, "name": "effect/dian01" },
+					{ "time": 0.9333, "name": null },
+					{ "time": 1, "name": "effect/dian01" },
+					{ "time": 1.0667, "name": null }
+				]
+			},
+			"effect/dian2": {
+				"attachment": [
+					{ "time": 0.7, "name": "effect/dian01" },
+					{ "time": 0.8, "name": null },
+					{ "time": 0.8667, "name": "effect/dian01" },
+					{ "time": 0.9667, "name": null }
+				]
+			},
+			"effect/dian3": {
+				"attachment": [
+					{ "time": 0.7667, "name": "effect/dian01" },
+					{ "time": 0.8667, "name": null },
+					{ "time": 0.9667, "name": "effect/dian01" },
+					{ "time": 1.0667, "name": null }
+				]
+			},
+			"effect/danjia3": {
+				"attachment": [
+					{ "time": 0.8667, "name": "effect/danjia" },
+					{ "time": 1.1, "name": null }
+				]
+			},
+			"effect/danjia5": {
+				"attachment": [
+					{ "time": 1.0667, "name": "effect/danjia" },
+					{ "time": 1.1333, "name": null }
+				]
+			},
+			"effect/shan": {
+				"attachment": [
+					{ "time": 0.6667, "name": "effect/shan" },
+					{ "time": 0.7, "name": null },
+					{ "time": 0.7667, "name": "effect/shan" },
+					{ "time": 0.8, "name": null },
+					{ "time": 0.8667, "name": "effect/shan" },
+					{ "time": 0.9, "name": null },
+					{ "time": 0.9667, "name": "effect/shan" },
+					{ "time": 1, "name": null },
+					{ "time": 1.0667, "name": "effect/shan" },
+					{ "time": 1.1, "name": null }
+				]
+			},
 			"effect/dian1": {
 				"attachment": [
 					{ "time": 0.6667, "name": "effect/dian01" },
 					{ "time": 0.7667, "name": null },
 					{ "time": 0.8667, "name": "effect/dian01" },
 					{ "time": 0.9333, "name": null }
-				]
-			},
-			"effect/danjia": {
-				"attachment": [
-					{ "time": 0.6667, "name": "effect/danjia" },
-					{ "time": 0.9, "name": null }
 				]
 			}
 		},
@@ -2440,32 +2440,13 @@
 	},
 	"gj_dao3": {
 		"slots": {
-			"images/skill/zuihouyiji/twtd/twtd_2": {
+			"images/skill/zuihouyiji/twtd/twtd_1": {
 				"attachment": [
-					{ "time": 0.1333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
-					{ "time": 0.1667, "name": "images/skill/zuihouyiji/twtd/twtd_0003" },
-					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
-					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
-					{ "time": 0.2667, "name": null }
-				]
-			},
-			"images/effect/xuanfeng/xuanfeng_45": {
-				"color": [
-					{ "time": 0.1333, "color": "00a0ffff" }
-				],
-				"attachment": [
-					{ "time": 0.1333, "name": "images/effect/xuanfeng/xuanfeng_00045" },
-					{ "time": 0.2, "name": null }
-				]
-			},
-			"images/skill/slj/tc_add/tc_0001": {
-				"attachment": [
-					{ "time": 0.1333, "name": "images/skill/slj/tc_add/tc_0001" },
-					{ "time": 0.2, "name": "images/skill/slj/tc_add/tc_0003" },
-					{ "time": 0.2667, "name": "images/skill/slj/tc_add/tc_0004" },
-					{ "time": 0.3333, "name": "images/skill/slj/tc_add/tc_0005" },
-					{ "time": 0.4, "name": "images/skill/slj/tc_add/tc_0006" },
-					{ "time": 0.4667, "name": null }
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.3667, "name": null }
 				]
 			},
 			"images/skill/zuihouyiji/dtcg_add/dtcg_0001": {
@@ -2487,6 +2468,15 @@
 					{ "time": 0.5, "name": null }
 				]
 			},
+			"images/effect/xuanfeng/xuanfeng_45": {
+				"color": [
+					{ "time": 0.1333, "color": "00a0ffff" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "images/effect/xuanfeng/xuanfeng_00045" },
+					{ "time": 0.2, "name": null }
+				]
+			},
 			"images/skill/baodian_add/js_5_normal/js_5_1": {
 				"attachment": [
 					{ "time": 0.1667, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
@@ -2494,18 +2484,30 @@
 					{ "time": 0.3667, "name": null }
 				]
 			},
-			"images/skill/zuihouyiji/twtd/twtd_0001": {
+			"images/skill/tybg_add/tybg_01": {
+				"color": [
+					{ "time": 0.2333, "color": "0093ffff" },
+					{ "time": 0.5, "color": "00acff00" }
+				],
 				"attachment": [
-					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
-					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
-					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
-					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
-					{ "time": 0.3667, "name": null }
+					{ "time": 0.2333, "name": "images/skill/tybg_add/tybg_01" }
 				]
 			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
+			"images/skill/baodian_add/js_5_normal/js_5_0001": {
 				"attachment": [
-					{ "name": null }
+					{ "time": 0.2, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
+					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
+					{ "time": 0.3333, "name": null }
+				]
+			},
+			"images/skill/slj/tc_add/tc_0001": {
+				"attachment": [
+					{ "time": 0.1333, "name": "images/skill/slj/tc_add/tc_0001" },
+					{ "time": 0.2, "name": "images/skill/slj/tc_add/tc_0003" },
+					{ "time": 0.2667, "name": "images/skill/slj/tc_add/tc_0004" },
+					{ "time": 0.3333, "name": "images/skill/slj/tc_add/tc_0005" },
+					{ "time": 0.4, "name": "images/skill/slj/tc_add/tc_0006" },
+					{ "time": 0.4667, "name": null }
 				]
 			},
 			"images/skill/tybg_add/tybg_1": {
@@ -2517,14 +2519,7 @@
 					{ "time": 0.2, "name": null }
 				]
 			},
-			"images/skill/baodian_add/js_5_normal/js_5_0001": {
-				"attachment": [
-					{ "time": 0.2, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
-					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
-					{ "time": 0.3333, "name": null }
-				]
-			},
-			"images/skill/zuihouyiji/twtd/twtd_1": {
+			"images/skill/zuihouyiji/twtd/twtd_0001": {
 				"attachment": [
 					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
 					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
@@ -2533,13 +2528,18 @@
 					{ "time": 0.3667, "name": null }
 				]
 			},
-			"images/skill/tybg_add/tybg_01": {
-				"color": [
-					{ "time": 0.2333, "color": "0093ffff" },
-					{ "time": 0.5, "color": "00acff00" }
-				],
+			"images/skill/zuihouyiji/twtd/twtd_2": {
 				"attachment": [
-					{ "time": 0.2333, "name": "images/skill/tybg_add/tybg_01" }
+					{ "time": 0.1333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.1667, "name": "images/skill/zuihouyiji/twtd/twtd_0003" },
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.2667, "name": null }
+				]
+			},
+			"ll-_0007_左手3拿枪手2_蓝狼": {
+				"attachment": [
+					{ "name": null }
 				]
 			}
 		},
@@ -2767,24 +2767,6 @@
 	},
 	"gj_dao3_2": {
 		"slots": {
-			"images/skill/zuihouyiji/twtd/twtd_2": {
-				"attachment": [
-					{ "time": 0.1333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
-					{ "time": 0.1667, "name": "images/skill/zuihouyiji/twtd/twtd_0003" },
-					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
-					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
-					{ "time": 0.2667, "name": null }
-				]
-			},
-			"images/effect/xuanfeng/xuanfeng_45": {
-				"color": [
-					{ "time": 0.1333, "color": "00a0ffff" }
-				],
-				"attachment": [
-					{ "time": 0.1333, "name": "images/effect/xuanfeng/xuanfeng_00045" },
-					{ "time": 0.2, "name": null }
-				]
-			},
 			"images/skill/slj/tc_add/tc_0001": {
 				"attachment": [
 					{ "time": 0.1333, "name": "images/skill/slj/tc_add/tc_0001" },
@@ -2795,6 +2777,15 @@
 					{ "time": 0.4667, "name": null }
 				]
 			},
+			"images/skill/zuihouyiji/twtd/twtd_1": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.3667, "name": null }
+				]
+			},
 			"images/skill/zuihouyiji/dtcg_add/dtcg_0001": {
 				"attachment": [
 					{ "time": 0.3, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0003" },
@@ -2802,27 +2793,6 @@
 					{ "time": 0.4, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0006" },
 					{ "time": 0.4667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0008" },
 					{ "time": 0.5, "name": null }
-				]
-			},
-			"小兵1__0006_左手3拿枪手2": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"images/skill/baodian_add/js_5_normal/js_5_1": {
-				"attachment": [
-					{ "time": 0.1667, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
-					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
-					{ "time": 0.3667, "name": null }
-				]
-			},
-			"images/skill/zuihouyiji/twtd/twtd_0001": {
-				"attachment": [
-					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
-					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
-					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
-					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
-					{ "time": 0.3667, "name": null }
 				]
 			},
 			"images/effect/xuanfeng/xuanfeng_00045": {
@@ -2835,7 +2805,39 @@
 					{ "time": 0.5, "name": null }
 				]
 			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
+			"images/effect/xuanfeng/xuanfeng_45": {
+				"color": [
+					{ "time": 0.1333, "color": "00a0ffff" }
+				],
+				"attachment": [
+					{ "time": 0.1333, "name": "images/effect/xuanfeng/xuanfeng_00045" },
+					{ "time": 0.2, "name": null }
+				]
+			},
+			"images/skill/baodian_add/js_5_normal/js_5_1": {
+				"attachment": [
+					{ "time": 0.1667, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
+					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
+					{ "time": 0.3667, "name": null }
+				]
+			},
+			"images/skill/tybg_add/tybg_01": {
+				"color": [
+					{ "time": 0.2333, "color": "0093ffff" },
+					{ "time": 0.5, "color": "00acff00" }
+				],
+				"attachment": [
+					{ "time": 0.2333, "name": "images/skill/tybg_add/tybg_01" }
+				]
+			},
+			"images/skill/baodian_add/js_5_normal/js_5_0001": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
+					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
+					{ "time": 0.3333, "name": null }
+				]
+			},
+			"小兵1__0006_左手3拿枪手2": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -2849,14 +2851,7 @@
 					{ "time": 0.2, "name": null }
 				]
 			},
-			"images/skill/baodian_add/js_5_normal/js_5_0001": {
-				"attachment": [
-					{ "time": 0.2, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
-					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
-					{ "time": 0.3333, "name": null }
-				]
-			},
-			"images/skill/zuihouyiji/twtd/twtd_1": {
+			"images/skill/zuihouyiji/twtd/twtd_0001": {
 				"attachment": [
 					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
 					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
@@ -2865,13 +2860,18 @@
 					{ "time": 0.3667, "name": null }
 				]
 			},
-			"images/skill/tybg_add/tybg_01": {
-				"color": [
-					{ "time": 0.2333, "color": "0093ffff" },
-					{ "time": 0.5, "color": "00acff00" }
-				],
+			"images/skill/zuihouyiji/twtd/twtd_2": {
 				"attachment": [
-					{ "time": 0.2333, "name": "images/skill/tybg_add/tybg_01" }
+					{ "time": 0.1333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.1667, "name": "images/skill/zuihouyiji/twtd/twtd_0003" },
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.2667, "name": null }
+				]
+			},
+			"ll-_0007_左手3拿枪手2_蓝狼": {
+				"attachment": [
+					{ "name": null }
 				]
 			}
 		},
@@ -3109,16 +3109,6 @@
 	},
 	"gj_dao4": {
 		"slots": {
-			"小兵1__0006_左手3拿枪手2": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
 			"dao1": {
 				"attachment": [
 					{ "time": 0.3333, "name": "dg3/1_00031" },
@@ -3127,6 +3117,16 @@
 					{ "time": 0.4667, "name": "dg3/1_00034" },
 					{ "time": 0.5, "name": "dg3/1_00036" },
 					{ "time": 0.5333, "name": null }
+				]
+			},
+			"小兵1__0006_左手3拿枪手2": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"ll-_0007_左手3拿枪手2_蓝狼": {
+				"attachment": [
+					{ "name": null }
 				]
 			}
 		},
@@ -3213,16 +3213,6 @@
 	},
 	"gj_dao4_2": {
 		"slots": {
-			"小兵1__0006_左手3拿枪手2": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
 			"dao1": {
 				"attachment": [
 					{ "time": 0.2667, "name": "dg3/1_00031" },
@@ -3231,6 +3221,16 @@
 					{ "time": 0.4, "name": "dg3/1_00034" },
 					{ "time": 0.4333, "name": "dg3/1_00036" },
 					{ "time": 0.4667, "name": null }
+				]
+			},
+			"小兵1__0006_左手3拿枪手2": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"ll-_0007_左手3拿枪手2_蓝狼": {
+				"attachment": [
+					{ "name": null }
 				]
 			}
 		},

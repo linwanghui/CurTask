@@ -1,7 +1,7 @@
-import { _decorator, EventTouch, find, Label, Node, ScrollView, tween, Tween, UITransform, Vec3 } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, ScrollView, tween, Tween, UITransform, v2, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
@@ -27,6 +27,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     private _curInventory: Node = null;
     private _isSelling: boolean = false;
     private _sellPropID: string[] = [];
+    private _warehouseButtons: Node[] = [];
 
     protected onLoad(): void {
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
@@ -37,12 +38,19 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         this.SellMask = find("Panel/Mask", this.node);
         this.SellValue = find("总价值/Count", this.SellMask).getComponent(Label);
         this._warehouseNode = find("Panel/仓库/物品按键/全部", this.node);
+        const buttonParent = this._warehouseNode?.parent;
+        this._warehouseButtons = ["全部", "装备", "武器", "弹药", "物品"]
+            .map(name => buttonParent?.getChildByName(name))
+            .filter(button => button != null);
+        this.RefreshWarehouseLocks();
     }
 
     protected onEnable(): void {
         this.Prepare.Show();
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP, this.OnWarehouseDrop, this);
+        this.RefreshWarehouseLocks();
     }
 
     protected onDisable(): void {
@@ -61,6 +69,8 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         if (this.ScrollView) this.ScrollView.enabled = true;
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP, this.OnWarehouseDrop, this);
+        this.ClearWarehouseDropFeedback();
     }
 
     protected start(): void {
@@ -125,6 +135,22 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     }
 
     SwitchButton(warehouseNode: Node) {
+        if (!warehouseNode) return;
+        const inventory = this.GetWarehouseInventory(warehouseNode.name);
+        if (!ZRSJZ_GameData.Instance.IsWarehouseUnlocked(inventory)) {
+            ZRSJZ_UIManager.Instance.ShowPanel(
+                ZRSJZ_PANEL.解锁仓库弹窗,
+                warehouseNode.name,
+                inventory,
+                () => {
+                    this.RefreshWarehouseLocks();
+                    if (this.node.activeInHierarchy && warehouseNode.isValid) {
+                        this.SwitchButton(warehouseNode);
+                    }
+                },
+            );
+            return;
+        }
         const warehouseName = warehouseNode.name;
         if (this._warehouseName == warehouseName) return;
         this._warehouseName = warehouseName;
@@ -136,6 +162,127 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
             })
             .start();
         this.ShowInventory(warehouseName);
+    }
+
+    /** 外部解锁系统可直接调用，例如 panel.UnlockWarehouse(ZRSJZ_INVENTORY.仓库_武器)。 */
+    public UnlockWarehouse(inventory: ZRSJZ_INVENTORY): boolean {
+        const unlocked = ZRSJZ_GameData.Instance.UnlockWarehouse(inventory);
+        this.RefreshWarehouseLocks();
+        return unlocked;
+    }
+
+    private GetWarehouseInventory(name: string): ZRSJZ_INVENTORY {
+        return `仓库_${name}` as ZRSJZ_INVENTORY;
+    }
+
+    private RefreshWarehouseLocks(): void {
+        for (const button of this._warehouseButtons) {
+            const inventory = this.GetWarehouseInventory(button.name);
+            const locked = !ZRSJZ_GameData.Instance.IsWarehouseUnlocked(inventory);
+            const lockNode = button.getChildByName("锁");
+            if (lockNode) lockNode.active = locked;
+            const checkedTrue = button.getChildByName("Checked_True");
+            const checkedFalse = button.getChildByName("Checked_False");
+            if (checkedTrue) checkedTrue.active = false;
+            if (checkedFalse) checkedFalse.active = false;
+        }
+    }
+
+    private OnWarehouseDrop(
+        sourceInventory: ZRSJZ_INVENTORY,
+        propID: string,
+        worldPos: Vec3,
+        isConfirm: boolean,
+        setHandled: (handled: boolean) => void,
+    ): void {
+        this.ClearWarehouseDropFeedback();
+        if (!worldPos) return;
+
+        const targetButton = this._warehouseButtons.find(button =>
+            button.getComponent(UITransform)?.getBoundingBoxToWorld().contains(v2(worldPos.x, worldPos.y))
+        );
+        if (!targetButton) return;
+
+        const targetInventory = this.GetWarehouseInventory(targetButton.name);
+        const unlocked = ZRSJZ_GameData.Instance.IsWarehouseUnlocked(targetInventory);
+        const adaptive = this.CanPropEnterWarehouse(propID, targetInventory);
+        const canTransfer = unlocked && adaptive && targetInventory !== sourceInventory;
+        const feedback = targetButton.getChildByName(canTransfer ? "Checked_True" : "Checked_False");
+        if (feedback) feedback.active = true;
+
+        if (!isConfirm) return;
+
+        // 命中按钮区后由仓库面板消费本次松手，锁定或不适配时也不能落入下方库存。
+        setHandled?.(true);
+        this.ClearWarehouseDropFeedback();
+        if (targetInventory === sourceInventory) {
+            ZRSJZ_UIManager.Instance.ShowTip("道具已经在该仓库中");
+            return;
+        }
+        if (!unlocked) {
+            ZRSJZ_UIManager.Instance.ShowTip(`${targetButton.name}仓库尚未解锁`);
+            return;
+        }
+
+        const propData = ZRSJZ_GameData.Instance.PropData[propID];
+        if (!propData) return;
+        if (!adaptive) {
+            ZRSJZ_UIManager.Instance.ShowTip(`该道具不能放入${targetButton.name}仓库`);
+            return;
+        }
+        void this.TransferPropToWarehouse(sourceInventory, targetInventory, targetButton.name, propID);
+    }
+
+    private ClearWarehouseDropFeedback(): void {
+        for (const button of this._warehouseButtons) {
+            const checkedTrue = button.getChildByName("Checked_True");
+            const checkedFalse = button.getChildByName("Checked_False");
+            if (checkedTrue) checkedTrue.active = false;
+            if (checkedFalse) checkedFalse.active = false;
+        }
+    }
+
+    private CanPropEnterWarehouse(propID: string, inventory: ZRSJZ_INVENTORY): boolean {
+        const propType = ZRSJZ_GameData.Instance.PropData[propID]?.PropType;
+        if (!propType) return false;
+        switch (inventory) {
+            case ZRSJZ_INVENTORY.仓库_全部:
+                return true;
+            case ZRSJZ_INVENTORY.仓库_装备:
+                return propType === "头盔" || propType === "防弹衣" || propType === "背包";
+            case ZRSJZ_INVENTORY.仓库_武器:
+                return propType === "枪" || propType === "刀";
+            case ZRSJZ_INVENTORY.仓库_弹药:
+                return propType === "弹药";
+            case ZRSJZ_INVENTORY.仓库_物品:
+                return propType === "物品" || propType === "门禁卡" || propType === "房卡";
+            default:
+                return false;
+        }
+    }
+
+    private async TransferPropToWarehouse(
+        sourceInventory: ZRSJZ_INVENTORY,
+        targetInventory: ZRSJZ_INVENTORY,
+        targetName: string,
+        propID: string,
+    ): Promise<void> {
+        try {
+            const targetNode = await ZRSJZ_UIManager.Instance.GetInventory(targetInventory);
+            const target = targetNode?.getComponent(ZRSJZ_Inventory);
+            if (!target || !target.IsAdaptive(propID)) {
+                await ZRSJZ_UIManager.Instance.ShowTip(`该道具不能放入${targetName}仓库`);
+                return;
+            }
+            const moved = await target.TryReceiveProp(sourceInventory, propID, true);
+            if (!moved) {
+                await ZRSJZ_UIManager.Instance.ShowTip(`${targetName}仓库空间不足`);
+            }
+        } finally {
+            // 成功、失败或异步加载异常都恢复两边仓库的格子显示状态。
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, sourceInventory);
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, targetInventory);
+        }
     }
 
     ShowWarehouseItem(target: Node) {

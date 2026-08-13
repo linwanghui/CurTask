@@ -324,6 +324,15 @@ export class ZRSJZ_PropGrid extends Component {
                     placementWorldCenter,
                     false,
                 );
+                if (String(this._inventory).startsWith("仓库_")) {
+                    ZRSJZ_EventManager.EmitPersist(
+                        ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP,
+                        this._inventory,
+                        this.PropID,
+                        placementWorldCenter,
+                        false,
+                    );
+                }
                 ZRSJZ_UIManager.Instance.UpdateDiscardAreaState(placementWorldCenter);
             }
             this._v_1.set(event.getUILocation().clone());
@@ -344,13 +353,39 @@ export class ZRSJZ_PropGrid extends Component {
                 );
                 ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(false);
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
-                if (!discardHandled) {
+                // 松手落在仓库分类按钮时不会进入 Inventory.CheckProp 的确认分支，
+                // 因此必须主动清掉来源仓库残留的红/绿格子预览。
+                ZRSJZ_EventManager.EmitPersist(
+                    ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW,
+                    this._inventory,
+                );
+                let warehouseHandled = false;
+                if (!discardHandled && String(this._inventory).startsWith("仓库_")) {
+                    ZRSJZ_EventManager.EmitPersist(
+                        ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP,
+                        this._inventory,
+                        this.PropID,
+                        worldCenter,
+                        true,
+                        (handled: boolean) => warehouseHandled = handled,
+                    );
+                }
+                if (!discardHandled && !warehouseHandled) {
                     ZRSJZ_EventManager.EmitPersist(
                         ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
                         this._inventory,
                         this.PropID,
                         worldCenter,
                         true,
+                    );
+                }
+                if (String(this._inventory).startsWith("仓库_")) {
+                    ZRSJZ_EventManager.EmitPersist(
+                        ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP,
+                        this._inventory,
+                        this.PropID,
+                        null,
+                        false,
                     );
                 }
                 this._isMove = false;
@@ -442,13 +477,37 @@ export class ZRSJZ_PropGrid extends Component {
                 );
                 ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(false);
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
-                if (!discardHandled) {
+                ZRSJZ_EventManager.EmitPersist(
+                    ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW,
+                    this._inventory,
+                );
+                let warehouseHandled = false;
+                if (!discardHandled && String(this._inventory).startsWith("仓库_")) {
+                    ZRSJZ_EventManager.EmitPersist(
+                        ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP,
+                        this._inventory,
+                        this.PropID,
+                        worldCenter,
+                        true,
+                        (handled: boolean) => warehouseHandled = handled,
+                    );
+                }
+                if (!discardHandled && !warehouseHandled) {
                     ZRSJZ_EventManager.EmitPersist(
                         ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP,
                         this._inventory,
                         this.PropID,
                         worldCenter,
                         true,
+                    );
+                }
+                if (String(this._inventory).startsWith("仓库_")) {
+                    ZRSJZ_EventManager.EmitPersist(
+                        ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP,
+                        this._inventory,
+                        this.PropID,
+                        null,
+                        false,
                     );
                 }
                 this._isMove = false;
@@ -470,6 +529,19 @@ export class ZRSJZ_PropGrid extends Component {
         this._isMove = false;
         ZRSJZ_UIManager.Dragging = false;
         ZRSJZ_UIManager.Instance.SetDiscardAreaVisible(false);
+        ZRSJZ_EventManager.EmitPersist(
+            ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW,
+            this._inventory,
+        );
+        if (String(this._inventory).startsWith("仓库_")) {
+            ZRSJZ_EventManager.EmitPersist(
+                ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP,
+                this._inventory,
+                this.PropID,
+                null,
+                false,
+            );
+        }
 
         if (this._propSFNode?.isValid) {
             ZRSJZ_PoolManager.Instance.PutNode(this._propSFNode);

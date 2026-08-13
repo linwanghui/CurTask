@@ -234,7 +234,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopIcon.spriteFrame = shopIcon;
         const shopData = ZRSJZ_PROP_CONFIG.get(this._curShop);
         // this._shopPrice = shopData.UnitPrice * shopData.MaxCount;
-        this._shopPrice = shopData.UnitPrice;
+        this._shopPrice = Math.floor(shopData.UnitPrice);
         this.ShopPrice.string = `${this._shopPrice}`;
         this._curShopsTs[this._curShowIndex].Chekcked.active = true;
         ZRSJZ_Tools.ScaleNodeToFit(this.ShopIcon.node, 500, 200);
@@ -396,6 +396,15 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             this.RefreshWeaponSkinState();
             this.RefreshPurchaseState();
             await ZRSJZ_UIManager.Instance.ShowTip("皮肤购买成功");
+            return;
+        }
+
+        const shopData = ZRSJZ_PROP_CONFIG.get(this._curShop);
+        if (shopData?.PropType === "弹药") {
+            ZRSJZ_UIManager.Instance.ShowPanel(
+                ZRSJZ_PANEL.购买子弹弹窗,
+                this._curShop,
+            );
             return;
         }
 
