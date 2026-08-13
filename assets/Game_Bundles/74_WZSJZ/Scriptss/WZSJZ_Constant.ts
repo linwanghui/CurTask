@@ -137,6 +137,21 @@ export class WZSJZ_Constant {
         MaxDisplayedAttackRange: 1500,
     };
 
+    /** 拖拽落点预览的素材和尺寸。 */
+    public static readonly DragIndicator = {
+        OriginSpritePath: "Sprites/游戏内/拖拽指示/起点圆环",
+        DashSpritePath: "Sprites/游戏内/拖拽指示/路径虚线",
+        TargetSpritePath: "Sprites/游戏内/拖拽指示/目的地框",
+        AttackRangeSpritePath: "Sprites/游戏内/攻击范围",
+        OriginSize: 150,
+        TargetSize: 150,
+        DashWidth: 14,
+        DashHeight: 30,
+        DashSpacing: 48,
+        MaxDashCount: 36,
+        MaxDisplayedAttackRange: 1500,
+    };
+
     /** 名字单位与多格名字组合的统一规则。 */
     public static readonly NameUnit = {
         FormationColumns: 5,

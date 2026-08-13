@@ -336,6 +336,7 @@ export class WZSJZ_GameNode extends Component {
             this._dragStartWorldPosition.y + current.y - this._dragStartUIPosition.y,
             this._dragStartWorldPosition.z
         );
+        WZSJZ_GameManager.Instance?.UpdateDragIndicator(current);
     }
 
     private OnTouchEnd(event: EventTouch): void {
