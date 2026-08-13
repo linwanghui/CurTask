@@ -11,12 +11,11 @@ import { WZSJZ_Wall } from './WZSJZ_Wall';
 const { ccclass } = _decorator;
 
 interface WZSJZ_ActiveSkillButton {
-    Owner: WZSJZ_GameNode;
     Config: WZSJZ_SkillConfig;
     ButtonNode: Node;
 }
 
-/** 根据场上的组合角色维护技能栏，每个组合实例拥有独立且可重置的CD。 */
+/** 根据场上的组合角色维护技能栏；多个角色拥有同一技能时只显示一个共享按钮。 */
 @ccclass('WZSJZ_SkillSystem')
 export class WZSJZ_SkillSystem extends Component {
     private _skillBar: Node = null;
@@ -77,12 +76,18 @@ export class WZSJZ_SkillSystem extends Component {
         if (!this._skillBar) {
             return;
         }
-        const desiredOwners = new Set(this._owners.filter((owner) => owner.node?.isValid));
+        const desiredConfigs = new Set<WZSJZ_SkillConfig>();
+        for (const owner of this._owners) {
+            if (!owner?.node?.isValid) {
+                continue;
+            }
+            for (const config of this.GetOwnerSkillConfigs(owner)) {
+                desiredConfigs.add(config);
+            }
+        }
         for (let index = this._activeButtons.length - 1; index >= 0; index--) {
             const entry = this._activeButtons[index];
-            const stillNeeded = desiredOwners.has(entry.Owner)
-                && this.GetOwnerSkillConfigs(entry.Owner).includes(entry.Config);
-            if (stillNeeded) {
+            if (desiredConfigs.has(entry.Config)) {
                 continue;
             }
             if (entry.ButtonNode?.isValid) {
@@ -91,26 +96,22 @@ export class WZSJZ_SkillSystem extends Component {
             this._activeButtons.splice(index, 1);
         }
 
-        for (const owner of desiredOwners) {
-            for (const config of this.GetOwnerSkillConfigs(owner)) {
-                if (this._activeButtons.some((entry) =>
-                    entry.Owner === owner && entry.Config === config,
-                )) {
-                    continue;
-                }
-                const prefab = this._buttonPrefabs.get(this.GetConfigKey(config));
-                if (!prefab) {
-                    continue;
-                }
-                const buttonNode = instantiate(prefab);
-                buttonNode.setParent(this._skillBar);
-                buttonNode.setPosition(0, 0, 0);
-                this.SetLayerRecursively(buttonNode, this._skillBar.layer);
-                const button = buttonNode.getComponent(WZSJZ_SkillButtom)
-                    || buttonNode.addComponent(WZSJZ_SkillButtom);
-                button.Configure(config.Cooldown, () => this.ExecuteSkill(config));
-                this._activeButtons.push({ Owner: owner, Config: config, ButtonNode: buttonNode });
+        for (const config of desiredConfigs) {
+            if (this._activeButtons.some((entry) => entry.Config === config)) {
+                continue;
             }
+            const prefab = this._buttonPrefabs.get(this.GetConfigKey(config));
+            if (!prefab) {
+                continue;
+            }
+            const buttonNode = instantiate(prefab);
+            buttonNode.setParent(this._skillBar);
+            buttonNode.setPosition(0, 0, 0);
+            this.SetLayerRecursively(buttonNode, this._skillBar.layer);
+            const button = buttonNode.getComponent(WZSJZ_SkillButtom)
+                || buttonNode.addComponent(WZSJZ_SkillButtom);
+            button.Configure(config.Cooldown, () => this.ExecuteSkill(config));
+            this._activeButtons.push({ Config: config, ButtonNode: buttonNode });
         }
     }
 

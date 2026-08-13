@@ -34,6 +34,7 @@ import { WZSJZ_ShieldBrotherCombatSystem } from './WZSJZ_ShieldBrotherCombatSyst
 import { WZSJZ_SkillSystem } from './WZSJZ_SkillSystem';
 import { WZSJZ_NodeInspectSystem } from './WZSJZ_NodeInspectSystem';
 import { WZSJZ_DragIndicatorSystem } from './WZSJZ_DragIndicatorSystem';
+import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 const { ccclass, property } = _decorator;
 
@@ -109,6 +110,10 @@ export class WZSJZ_GameManager extends Component {
 
     protected onLoad(): void {
         WZSJZ_GameManager._instance = this;
+        WZSJZ_EventManager.BindSceneEventNode(this.node);
+        this.node.on(WZSJZ_EventManager.修改增加钥匙, this.OnCheatAddKeys, this);
+        this.node.on(WZSJZ_EventManager.修改添加单位, this.OnCheatAddUnit, this);
+        this.node.on(WZSJZ_EventManager.修改城墙无敌, this.OnCheatToggleWallInvincible, this);
     }
 
     protected start(): void {
@@ -299,7 +304,7 @@ export class WZSJZ_GameManager extends Component {
     }
 
     private BindStartButton(): void {
-        const buttonNode = this.PreparationZone?.getChildByName("开始游戏");
+        const buttonNode = this.GetStartButtonNode();
         if (buttonNode) {
             buttonNode.on(Button.EventType.CLICK, this.StartGame, this);
         } else {
@@ -307,11 +312,19 @@ export class WZSJZ_GameManager extends Component {
         }
     }
 
+    private GetStartButtonNode(): Node {
+        return this.FormationZone?.parent?.getChildByName("开始游戏") || null;
+    }
+
     public StartGame(): void {
         if (this._isGameStarted) {
             return;
         }
         this._isGameStarted = true;
+        const startButton = this.GetStartButtonNode();
+        if (startButton) {
+            startButton.active = false;
+        }
         this.InitializeWallHealth(true);
         this.node.emit(WZSJZ_EventManager.游戏开始, this._wallBehavior);
     }
@@ -752,6 +765,43 @@ export class WZSJZ_GameManager extends Component {
 
     private FindMaterialPrefab(materialName: string): Prefab {
         return this.MaterialPrefabs.find((prefab) => prefab?.data?.name === materialName) || null;
+    }
+
+    private OnCheatAddKeys(amount: number): void {
+        const safeAmount = Math.max(0, Math.floor(amount || 0));
+        if (safeAmount <= 0) return;
+        this.ChangeKeyCount(safeAmount);
+        WZSJZ_UIManager.Instance.ShowText(`已增加${safeAmount}把钥匙`);
+    }
+
+    private OnCheatToggleWallInvincible(): void {
+        if (!this._wallBehavior?.node?.isValid) {
+            WZSJZ_UIManager.Instance.ShowText('当前没有可用的城墙');
+            return;
+        }
+        const enabled = this._wallBehavior.TogglePermanentInvincible();
+        WZSJZ_UIManager.Instance.ShowText(enabled ? '城墙无敌已开启' : '城墙无敌已关闭');
+    }
+
+    private OnCheatAddUnit(unitText: string): void {
+        const match = (unitText || '').trim().match(/^(.+?)(?:\s*[：:]?\s*(\d+))?$/);
+        const materialName = match?.[1]?.trim() || '';
+        const prefab = this.FindMaterialPrefab(materialName);
+        if (!prefab) {
+            WZSJZ_UIManager.Instance.ShowText(`没有找到单位：${materialName || unitText}`);
+            return;
+        }
+        const cell = this._preparationCells.find((item) => item.IsUnlocked && item.IsEmpty());
+        if (!cell) {
+            WZSJZ_UIManager.Instance.ShowText('备战框没有空位');
+            return;
+        }
+        const config = WZSJZ_Constant.GetMaterialConfig(materialName);
+        const requestedLevel = Number(match?.[2] || WZSJZ_Constant.Cheat.DefaultUnitLevel);
+        const level = Math.max(1, Math.min(Math.floor(requestedLevel), config?.MaxLevel || 1));
+        if (this.CreateMaterialAtCell(prefab, cell, level, true)) {
+            WZSJZ_UIManager.Instance.ShowText(`已添加${level}级${materialName}`);
+        }
     }
 
     private CreateMaterialAtCell(

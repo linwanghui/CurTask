@@ -10,13 +10,14 @@ export class WZSJZ_Wall extends Component {
     private _currentHealth: number = 1;
     private _isDestroyed: boolean = false;
     private _invincibleRemaining: number = 0;
+    private _permanentInvincible: boolean = false;
 
     public get IsAlive(): boolean {
         return !this._isDestroyed && this._currentHealth > 0;
     }
 
     public get IsInvincible(): boolean {
-        return this._invincibleRemaining > 0;
+        return this._permanentInvincible || this._invincibleRemaining > 0;
     }
 
     protected update(deltaTime: number): void {
@@ -55,6 +56,12 @@ export class WZSJZ_Wall extends Component {
 
     public SetInvincible(duration: number): void {
         this._invincibleRemaining = Math.max(this._invincibleRemaining, Math.max(0, duration));
+    }
+
+    /** 测试面板使用的永久无敌，不影响技能提供的限时无敌。 */
+    public TogglePermanentInvincible(): boolean {
+        this._permanentInvincible = !this._permanentInvincible;
+        return this._permanentInvincible;
     }
 
     public TakeDamage(damage: number): void {
