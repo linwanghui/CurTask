@@ -32,8 +32,6 @@ export class ZRSJZ_Boss extends ZRSJZ_BossBase {
         if (!attack) {
             return;
         }
-        console.error(eventName, attack.Name);
-
         switch (attack.Name) {
             case "普通攻击":
                 this._attack(this._getStartPos(this.FireBoneName), attack.DamageRange, attack.Damage);

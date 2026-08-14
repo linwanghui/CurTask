@@ -65,9 +65,9 @@ export class ZRSJZ_Skeleton extends Component {
                                 console.error(`武器纹理不存在: ${weaponSkin}`);
                                 return;
                             }
-                            this.HandSkeleton.findSlot('dao').setAttachment(null);
-                            this.HandSkeleton.setAttachment(key, key);
-                            this.HandSkeleton.setSlotTexture(key, texture, true);
+                            this.HandSkeleton?.findSlot('dao').setAttachment(null);
+                            this.HandSkeleton?.setAttachment(key, key);
+                            this.HandSkeleton?.setSlotTexture(key, texture, true);
                         });
                         this.PlayAni(ZRSJZ_ANI.Idle_Q);
                     } else {

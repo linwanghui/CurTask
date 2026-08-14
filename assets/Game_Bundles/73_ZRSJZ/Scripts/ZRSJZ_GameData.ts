@@ -40,22 +40,10 @@ export class ZRSJZ_GameData {
     public Init() {
         // this.AddAllProp();
         this.Gold = 100000;
-        this.CurMap = "五号小镇_机密行动";
+        this.CurMap = "新手村";
 
         //初始化装备
-        let propId = this.AddPropByName("CN8-突击步枪");
-        this.WeaponryID[0] = propId;
-        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_枪, 1, 0, 0);
-        propId = this.AddPropByName("一级头");
-        this.WeaponryID[1] = propId;
-        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_头盔, 1, 0, 0);
-        propId = this.AddPropByName("一级甲");
-        this.WeaponryID[2] = propId;
-        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_防弹衣, 1, 0, 0);
-        propId = this.AddPropByName("一级包");
-        this.WeaponryID[3] = propId;
-        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_背包, 1, 0, 0);
-        propId = this.AddPropByName("战术匕首");
+        let propId = this.AddPropByName("战术匕首");
         this.WeaponryID[4] = propId;
         this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_刀, 1, 0, 0);
         //初始化弹药
@@ -72,6 +60,7 @@ export class ZRSJZ_GameData {
 
     public MusicMute: boolean = false;//音乐静音
     public SoundMute: boolean = false;//音效静音
+    public IsTutorial: boolean = false;//是否通过新手教程
 
     public Gold: number = 0;
     public FiringRangeLevel: number = 0;
@@ -98,7 +87,7 @@ export class ZRSJZ_GameData {
     /** 每把武器当前使用的皮肤。 */
     public CurWeaponSkin: { [weaponName: string]: string } = {};
     // public GameTempID: string[] = [];//战斗时的临时ID
-    public CurMap: string = "五号小镇_机密行动";//当前地图
+    public CurMap: string = "新手村";//当前地图
 
     //#region 签到
     public GetSignInClaimedCount(): number {

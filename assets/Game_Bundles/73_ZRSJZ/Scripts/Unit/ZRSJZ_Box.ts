@@ -109,6 +109,30 @@ export class ZRSJZ_Box extends Component {
         this.Init();
     }
 
+    /**
+     * 使用外部指定的物资列表初始化箱子。
+     * 供编辑器自定义箱子等不依赖地图品质池的箱子复用完整开箱流程。
+     */
+    ConfigureFixedLoot(lootProps: readonly string[]): void {
+        this.DisposeInventory();
+        this._boxConfig = null;
+        this._mapProp = [];
+        this.State = ZRSJZ_BOX_STATE.IDLE;
+        this._isPasswordUnlocked = false;
+        this._isMedicalUnlocked = false;
+        this._nextLootIndex = 0;
+        this._inventoryID = `${this.node.uuid}_${++ZRSJZ_Box._inventorySerial}`;
+        this.LootProps = (lootProps ?? []).filter(propName => {
+            const valid = ZRSJZ_PROP_CONFIG.has(propName);
+            if (!valid) {
+                console.warn(`[ZRSJZ_Box] 自定义箱子中不存在道具配置: ${propName}`);
+            }
+            return valid;
+        });
+        this._isInit = false;
+        this.Init();
+    }
+
     Init() {
         if (this._isInit) return;
         this._isInit = true;

@@ -31,6 +31,7 @@ import { ZRSJZ_PropGrid } from '../UI/ZRSJZ_PropGrid';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_SearchPropEffect } from '../Effect/ZRSJZ_SearchPropEffect';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_TutorialPanel } from './ZRSJZ_TutorialPanel';
 const { ccclass, property } = _decorator;
 
 type ZRSJZ_SearchReservation = {
@@ -125,6 +126,12 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
+                if (ZRSJZ_TutorialPanel.IsTipShowing) {
+                    ZRSJZ_UIManager.Instance.ShowTip("请先完成新手引导");
+                    return
+                } else if (ZRSJZ_GameData.Instance.CurMap == "新手村") {
+                    ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 4);
+                }
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.物资弹窗);
                 break;
             case "整理背包":
@@ -276,6 +283,11 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                             placeholder,
                         );
                         propGrid.SetSearchLocked(false);
+                        if (propGrid.PropData.Name === "CN8-突击步枪") {
+                            this.scheduleOnce(() => {
+                                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 2, propGrid.node, propGrid.PropData.InstanceID);
+                            })
+                        }
                         ZRSJZ_GameData.SaveData();
                     } else {
                         ZRSJZ_GameData.Instance.PropData[propID].IsSearchLocked = false;

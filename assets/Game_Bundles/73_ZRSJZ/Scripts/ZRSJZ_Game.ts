@@ -10,6 +10,7 @@ import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -256,6 +257,7 @@ export class ZRSJZ_Game extends Component {
             this.GetKillCount(),
             this.GetAllGoodsID(),
         );
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 5);
     }
 
     private FailEvacuationByTimeout(): void {

@@ -31,11 +31,12 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_SHOW_ROLE_ITEM: string = 'ZRSJZ_SHOW_ROLE_ITEM';//角色选中显示
     public static ZRSJZ_SHOW_ROLE_DESC: string = 'ZRSJZ_SHOW_ROLE_DESC';//显示角色描述
     public static ZRSJZ_SHOW_EQUIPMENT: string = 'ZRSJZ_SHOW_EQUIPMENT';//显示皮肤装备
-    public static ZRSJZ_MAIN_CHECKED: string = 'ZRSJZ_MAIN_CHECKED';//主界面选中
     public static ZRSJZ_MAIN_CHANGE_SKIN: string = 'ZRSJZ_MAIN_CHANGE_SKIN';//主界面切换皮肤
     public static ZRSJZ_DRUG_ADD: string = 'ZRSJZ_DRUG_ADD';//药品数量增加
     public static ZRSJZ_DRUG_CHANGE: string = 'ZRSJZ_DRUG_CHANGE';//药品数量变化
     public static ZRSJZ_AUDIO_INIT: string = 'ZRSJZ_AUDIO_INIT';//声音初始化完毕
+
+    public static ZRSJZ_TUTORIAL: string = 'ZRSJZ_TUTORIAL';//新手教程引导
 
 }
 

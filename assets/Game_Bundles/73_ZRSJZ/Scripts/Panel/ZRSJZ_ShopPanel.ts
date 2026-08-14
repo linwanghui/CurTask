@@ -238,7 +238,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopPrice.string = `${this._shopPrice}`;
         this._curShopsTs[this._curShowIndex].Chekcked.active = true;
         ZRSJZ_Tools.ScaleNodeToFit(this.ShopIcon.node, 500, 200);
-        this.ShopIcon.node.setScale(this._scale, this._scale, 1);
+        // this.ShopIcon.node.setScale(this._scale, this._scale, 1);
         this.ShowShopDesc(this._curShop);
         this.RefreshPurchaseState();
         this.EffectSkeleton.setAnimation(0, "1", false);

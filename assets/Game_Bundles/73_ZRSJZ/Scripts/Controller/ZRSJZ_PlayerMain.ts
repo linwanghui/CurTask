@@ -118,13 +118,11 @@ export class ZRSJZ_PlayerMain extends Component {
         // if (this._targetBox) return;
         if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node != this.Target) {
             this.Target = otherCollider.node;
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHECKED, otherCollider.node, true);
         }
     }
 
     EndContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
         if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node == this.Target) {
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHECKED, otherCollider.node, false);
             this.Target = null;
         }
     }

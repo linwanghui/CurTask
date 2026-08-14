@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "705f8614-0b9a-4395-b388-dd14fccace89",
+  "uuid": "5bb11fce-15e1-41f2-a57a-35ffb17878ba",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "705f8614-0b9a-4395-b388-dd14fccace89@6c48a",
-      "displayName": "保险柜",
+      "uuid": "5bb11fce-15e1-41f2-a57a-35ffb17878ba@6c48a",
+      "displayName": "黄金方苹果",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "705f8614-0b9a-4395-b388-dd14fccace89",
+        "imageUuidOrDatabaseUri": "5bb11fce-15e1-41f2-a57a-35ffb17878ba",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,21 +34,21 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "705f8614-0b9a-4395-b388-dd14fccace89@f9941",
-      "displayName": "保险柜",
+      "uuid": "5bb11fce-15e1-41f2-a57a-35ffb17878ba@f9941",
+      "displayName": "黄金方苹果",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": -3,
-        "offsetY": 1.5,
-        "trimX": 11,
+        "offsetX": 0,
+        "offsetY": 0,
+        "trimX": 0,
         "trimY": 0,
-        "width": 78,
-        "height": 61,
-        "rawWidth": 106,
-        "rawHeight": 64,
+        "width": 97,
+        "height": 106,
+        "rawWidth": 97,
+        "rawHeight": 106,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -39,
-            -30.5,
+            -48.5,
+            -53,
             0,
-            39,
-            -30.5,
+            48.5,
+            -53,
             0,
-            -39,
-            30.5,
+            -48.5,
+            53,
             0,
-            39,
-            30.5,
+            48.5,
+            53,
             0
           ],
           "indexes": [
@@ -82,38 +82,38 @@
             3
           ],
           "uv": [
-            11,
-            64,
-            89,
-            64,
-            11,
-            3,
-            89,
-            3
+            0,
+            106,
+            97,
+            106,
+            0,
+            0,
+            97,
+            0
           ],
           "nuv": [
-            0.10377358490566038,
-            0.046875,
-            0.839622641509434,
-            0.046875,
-            0.10377358490566038,
+            0,
+            0,
             1,
-            0.839622641509434,
+            0,
+            0,
+            1,
+            1,
             1
           ],
           "minPos": [
-            -39,
-            -30.5,
+            -48.5,
+            -53,
             0
           ],
           "maxPos": [
-            39,
-            30.5,
+            48.5,
+            53,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "705f8614-0b9a-4395-b388-dd14fccace89@6c48a",
+        "imageUuidOrDatabaseUri": "5bb11fce-15e1-41f2-a57a-35ffb17878ba@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "705f8614-0b9a-4395-b388-dd14fccace89@6c48a"
+    "redirect": "5bb11fce-15e1-41f2-a57a-35ffb17878ba@6c48a"
   }
 }

@@ -672,22 +672,25 @@ export class ZRSJZ_Player extends Component {
         this.CurHP -= madeHarm;
         if (this.CurHP <= 0) {
             this.CurHP = 0;
-            this.CancelGunAttackState();
-            this.CancelKnifeAttackState();
-            ZRSJZ_Game.Instance.CancelEvacuation();
-            ZRSJZ_Game.Instance.GamePaused = true;
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0);
-            ZRSJZ_UIManager.Instance.PrepareForDeath();
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗);
-            this.PlayAni(ZRSJZ_ANI.SW, false);
-            ZRSJZ_AudioManager.Instance.PlaySound("击杀");
+            if (ZRSJZ_GameData.Instance.CurMap !== "新手村") {
+                this.CancelGunAttackState();
+                this.CancelKnifeAttackState();
+                ZRSJZ_Game.Instance.CancelEvacuation();
+                ZRSJZ_Game.Instance.GamePaused = true;
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0);
+                ZRSJZ_UIManager.Instance.PrepareForDeath();
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗);
+                this.PlayAni(ZRSJZ_ANI.SW, false);
+                ZRSJZ_AudioManager.Instance.PlaySound("击杀");
+            }
         } else {
             this.beHitEffect();
             const audioName = this._shielding
                 ? "格挡"
                 : "受击";
             ZRSJZ_AudioManager.Instance.PlaySound(audioName);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 6);
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
             effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;

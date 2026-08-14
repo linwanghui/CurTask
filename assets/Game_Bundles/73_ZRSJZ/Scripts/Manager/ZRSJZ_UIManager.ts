@@ -23,14 +23,14 @@ export class ZRSJZ_UIManager extends Component {
 
     private static _instance: ZRSJZ_UIManager = null;
     public static get Instance(): ZRSJZ_UIManager {
-        if (!ZRSJZ_UIManager._instance) {
-            ZRSJZ_UIManager.Init();
-            ZRSJZ_UIManager.InitDLC();
-            ZRSJZ_UIManager.InitAudio();
-            ZRSJZ_UIManager.InitUI();
-            ZRSJZ_UIManager.InitInventory();
-            ZRSJZ_UIManager.InitEvent();
-        }
+        // if (!ZRSJZ_UIManager._instance) {
+        //     // ZRSJZ_UIManager.Init();
+        //     ZRSJZ_UIManager.InitDLC();
+        //     ZRSJZ_UIManager.InitAudio();
+        //     ZRSJZ_UIManager.InitUI();
+        //     ZRSJZ_UIManager.InitInventory();
+        //     ZRSJZ_UIManager.InitEvent();
+        // }
         return ZRSJZ_UIManager._instance;
     }
 
@@ -55,6 +55,22 @@ export class ZRSJZ_UIManager extends Component {
     private _panelRequestVersion: number = 0;
     private _finishGameInventoryPromise: Promise<void> = null;
 
+    protected onLoad(): void {
+        if (ZRSJZ_UIManager._instance == null) {
+            ZRSJZ_UIManager._instance = this;
+            ZRSJZ_UIManager.InitDLC();
+            ZRSJZ_UIManager.InitAudio();
+            ZRSJZ_UIManager.InitUI();
+            ZRSJZ_UIManager.InitInventory();
+            ZRSJZ_UIManager.InitEvent();
+            director.addPersistRootNode(this.node);
+        } else {
+            this.node.removeFromParent();
+            return;
+        }
+        this._panelNode = this.node.getChildByName("Panel");
+        this.PropParent = this.node.getChildByName("PropParent");
+    }
     //#region 初始化
     public static Init() {
         const node = new Node("ZRSJZ_UIManager");

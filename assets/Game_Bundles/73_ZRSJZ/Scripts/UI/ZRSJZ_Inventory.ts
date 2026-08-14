@@ -435,6 +435,7 @@ export class ZRSJZ_Inventory extends Component {
         node.setPosition(gridX * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL), -gridY * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL));
         node.getComponent(ZRSJZ_PropGrid).Init(id, gridX, gridY, this.InventoryType);
         node.active = true;
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 3, node, id);
     }
 
     /** 自动整理当前库存，并按面积从大到小重新紧凑排列。 */
