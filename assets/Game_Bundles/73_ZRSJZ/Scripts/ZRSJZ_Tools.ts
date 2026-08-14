@@ -55,21 +55,8 @@ export class ZRSJZ_Tools {
     }
 
     public static GetInventoryByPropType(propType: string): ZRSJZ_INVENTORY {
-        switch (propType) {
-            case "头盔":
-            case "防弹衣":
-            case "背包":
-                return ZRSJZ_INVENTORY.仓库_装备;
-            case "枪":
-            case "刀":
-                return ZRSJZ_INVENTORY.仓库_武器;
-            case "弹药":
-                return ZRSJZ_INVENTORY.仓库_弹药;
-            case "门禁卡":
-            case "房卡":
-            case "物品":
-                return ZRSJZ_INVENTORY.仓库_物品;
-        }
+        // 所有进入仓库的道具默认只放在“全部”。分类由玩家在仓库界面手动整理。
+        return ZRSJZ_INVENTORY.仓库_全部;
     }
 
     public static GetWeaponryIndexByInventory(inventory: ZRSJZ_INVENTORY): number {

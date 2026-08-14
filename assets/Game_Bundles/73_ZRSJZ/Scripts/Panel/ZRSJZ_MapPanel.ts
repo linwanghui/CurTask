@@ -16,6 +16,7 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
     CurPoint: Node = null;
     private _pointWorldPosition: Vec3 = new Vec3();
     private _pointParentPosition: Vec3 = new Vec3();
+    private _playerMapPosition: Vec3 = new Vec3();
 
     protected onLoad(): void {
         this.Icon = find("Panel/我的位置/Icon", this.node)?.getComponent(Sprite) ?? null;
@@ -49,6 +50,9 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         }
 
         this.RefreshPlayerPoint();
+        // Panel 的 Widget/适配组件会在本帧结束时调整地图尺寸与缩放，
+        // 下一帧再校准一次，避免不同屏幕比例下标记产生偏移。
+        this.scheduleOnce(() => this.RefreshPlayerPoint(), 0);
     }
 
     public OnButtonClick(event: EventTouch): void {
@@ -77,14 +81,27 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
             return;
         }
 
-        const worldBounds = worldMapTransform.getBoundingBoxToWorld();
-        if (worldBounds.width <= 0 || worldBounds.height <= 0) {
+        const worldMapSize = worldMapTransform.contentSize;
+        if (worldMapSize.width <= 0 || worldMapSize.height <= 0) {
             this.CurPoint.active = false;
             return;
         }
 
-        const normalizedX = Math.max(0, Math.min(1, (x - worldBounds.xMin) / worldBounds.width));
-        const normalizedY = Math.max(0, Math.min(1, (y - worldBounds.yMin) / worldBounds.height));
+        // 先将玩家世界坐标转换到游戏地图的本地坐标。
+        // 不能用世界轴对齐包围盒计算，否则地图或父节点存在缩放/旋转时会产生偏移。
+        this._pointWorldPosition.set(x, y, gameMap.worldPosition.z);
+        worldMapTransform.convertToNodeSpaceAR(
+            this._pointWorldPosition,
+            this._playerMapPosition,
+        );
+
+        const worldMapAnchor = worldMapTransform.anchorPoint;
+        const normalizedX = Math.max(0, Math.min(1,
+            this._playerMapPosition.x / worldMapSize.width + worldMapAnchor.x,
+        ));
+        const normalizedY = Math.max(0, Math.min(1,
+            this._playerMapPosition.y / worldMapSize.height + worldMapAnchor.y,
+        ));
         const mapSize = popupMapTransform.contentSize;
         const mapAnchor = popupMapTransform.anchorPoint;
         this._pointParentPosition.set(

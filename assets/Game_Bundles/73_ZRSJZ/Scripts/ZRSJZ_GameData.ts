@@ -17,7 +17,15 @@ export class ZRSJZ_GameData {
     public static ReadData(): ZRSJZ_GameData {
         const data = sys.localStorage.getItem("ZRSJZ_GameData");
         if (data) {
-            this._instance = Object.assign(new ZRSJZ_GameData(), JSON.parse(data));
+            const savedData = JSON.parse(data);
+            this._instance = Object.assign(new ZRSJZ_GameData(), savedData);
+            // 类字段默认值会补到旧存档上，因此需根据原始 JSON 判断是否需要迁移。
+            if (savedData.WarehouseStorageVersion === undefined) {
+                this._instance.WarehouseStorageVersion = 0;
+            }
+            if (this._instance.MigrateWarehouseStorage()) {
+                sys.localStorage.setItem("ZRSJZ_GameData", JSON.stringify(this._instance));
+            }
         } else {
             this._instance = new ZRSJZ_GameData();
             this._instance.Init();
@@ -74,6 +82,10 @@ export class ZRSJZ_GameData {
     public CurSkin: string[] = ["威蓝", "小温"];
     public PropID: number = 0;//道具的唯一ID
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};//道具数据
+    /** 已解锁的仓库。全部仓库始终开放，其余仓库默认锁定。 */
+    public UnlockedWarehouses: ZRSJZ_INVENTORY[] = [ZRSJZ_INVENTORY.仓库_全部];
+    /** 单仓库归属存档版本，用于把旧版“全部+分类”双份坐标迁移为唯一归属。 */
+    public WarehouseStorageVersion: number = 1;
     public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
     public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
     public RoomCard: string[] = ["", "", ""];//当前装备的房卡
@@ -151,7 +163,8 @@ export class ZRSJZ_GameData {
         this.PropData[propID].InstanceID = propID;
         this.PropData[propID].Name = propName;
         this.PropData[propID].PropType = propData.PropType;
-        this.PropData[propID].CurInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
+        // 新获得的道具只归属于“全部”，不再同时出现在分类仓库中。
+        this.PropData[propID].CurInventory = ZRSJZ_INVENTORY.仓库_全部;
         this.PropData[propID].UnitPrice = propData.UnitPrice;
         this.PropData[propID].MaxCount = propData.MaxCount;
         this.PropData[propID].CurCount = count;
@@ -171,6 +184,36 @@ export class ZRSJZ_GameData {
         this.PropData[propID].GridData.push(gridData2);
         ZRSJZ_GameData.SaveData();
         return propID;
+    }
+
+    /**
+     * 将购买的子弹按每个道具最多 60 发拆分后放入“全部仓库”。
+     * 例如购买 145 发会生成 60、60、25 三个独立道具。
+     */
+    public AddAmmoToWarehouse(ammoName: string, totalCount: number): string[] {
+        const config = ZRSJZ_PROP_CONFIG.get(ammoName);
+        if (!config || config.PropType !== "弹药") return [];
+
+        const createdIDs: string[] = [];
+        let remaining = Math.max(0, Math.floor(totalCount));
+        while (remaining > 0) {
+            const stackCount = Math.min(ZRSJZ_AMMO_MAX_COUNT, remaining);
+            const propID = this.AddPropByName(ammoName, stackCount);
+            const propData = this.PropData[propID];
+            if (propData) {
+                propData.CurInventory = ZRSJZ_INVENTORY.仓库_全部;
+                propData.CurCount = stackCount;
+                propData.MaxCount = ZRSJZ_AMMO_MAX_COUNT;
+            }
+            createdIDs.push(propID);
+            remaining -= stackCount;
+        }
+
+        if (createdIDs.length > 0) {
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+            ZRSJZ_GameData.SaveData();
+        }
+        return createdIDs;
     }
 
     public RemovePropID(propID: string) {
@@ -266,6 +309,57 @@ export class ZRSJZ_GameData {
         ZRSJZ_GameData.SaveData();
     }
 
+    /** 查询分类仓库是否已解锁。“全部”无条件开放。 */
+    public IsWarehouseUnlocked(inventory: ZRSJZ_INVENTORY): boolean {
+        if (inventory === ZRSJZ_INVENTORY.仓库_全部) return true;
+        return (this.UnlockedWarehouses ?? []).includes(inventory);
+    }
+
+    /**
+     * 供升级、付费或任务系统调用的仓库解锁入口。
+     * 返回 false 表示参数不是仓库或此前已经解锁。
+     */
+    public UnlockWarehouse(inventory: ZRSJZ_INVENTORY): boolean {
+        const warehouses = [
+            ZRSJZ_INVENTORY.仓库_装备,
+            ZRSJZ_INVENTORY.仓库_武器,
+            ZRSJZ_INVENTORY.仓库_弹药,
+            ZRSJZ_INVENTORY.仓库_物品,
+        ];
+        if (!warehouses.includes(inventory) || this.IsWarehouseUnlocked(inventory)) {
+            return false;
+        }
+        if (!this.UnlockedWarehouses) {
+            this.UnlockedWarehouses = [ZRSJZ_INVENTORY.仓库_全部];
+        }
+        this.UnlockedWarehouses.push(inventory);
+        ZRSJZ_GameData.SaveData();
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+        return true;
+    }
+
+    private MigrateWarehouseStorage(): boolean {
+        if ((this.WarehouseStorageVersion ?? 0) >= 1) return false;
+
+        const categoryWarehouses = new Set<ZRSJZ_INVENTORY>([
+            ZRSJZ_INVENTORY.仓库_装备,
+            ZRSJZ_INVENTORY.仓库_武器,
+            ZRSJZ_INVENTORY.仓库_弹药,
+            ZRSJZ_INVENTORY.仓库_物品,
+        ]);
+        for (const propData of Object.values(this.PropData ?? {})) {
+            if (!categoryWarehouses.has(propData.CurInventory)) continue;
+            propData.CurInventory = ZRSJZ_INVENTORY.仓库_全部;
+            for (const gridData of propData.GridData ?? []) {
+                gridData.GridX = -1;
+                gridData.GridY = -1;
+            }
+        }
+        this.UnlockedWarehouses = [ZRSJZ_INVENTORY.仓库_全部];
+        this.WarehouseStorageVersion = 1;
+        return true;
+    }
+
 
     public GetEquippedRoomCardID(roomCardName: string): string {
         if (!roomCardName) return "";
@@ -315,7 +409,7 @@ export class ZRSJZ_GameData {
         const gridIndex = inventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
         for (const propID in this.PropData) {
             const propData = this.PropData[propID];
-            if (inventory !== ZRSJZ_INVENTORY.仓库_全部 && propData.CurInventory !== inventory) {
+            if (propData.CurInventory !== inventory) {
                 continue;
             }
 

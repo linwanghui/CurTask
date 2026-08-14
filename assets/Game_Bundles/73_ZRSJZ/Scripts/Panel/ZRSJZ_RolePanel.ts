@@ -125,12 +125,12 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
             : null;
         this._curRoleSkinIndex = Math.max(0, this._curRoleData.Skin.indexOf(currentSkin));
         this._roleSkins = [];
-        this.RoleName.string = this._curRoleData.Name;
         this.RoleDesc.string = this._curRoleData.RoleDesc;
         this.SkillDesc.string = this._curRoleData.SkillDesc;
         this.ShowRoleSkin(this._curRoleData.Skin);
         this.ShowButton();
         this.Skeleton.SetSkin(this._curRoleData.Skin[this._curRoleSkinIndex]);
+        this.RoleName.string = this._curRoleData.Skin[this._curRoleSkinIndex];
         this.SkillIcon.spriteFrame = this._skillIconMap.get(this._curRoleData.SkillName) ?? null;
     }
 
@@ -180,6 +180,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         this._curRoleSkinIndex = skinIndex;
         this._roleSkins[this._curRoleSkinIndex].Checked.active = true;
         this.Skeleton.SetSkin(this._curRoleData.Skin[this._curRoleSkinIndex]);
+        this.RoleName.string = this._curRoleData.Skin[this._curRoleSkinIndex];
         this.ShowButton();
     }
 

@@ -198,10 +198,8 @@ export class ZRSJZ_Inventory extends Component {
         propData: { CurInventory: ZRSJZ_INVENTORY },
         inventoryType: ZRSJZ_INVENTORY,
     ): boolean {
-        return (
-            inventoryType === ZRSJZ_INVENTORY.仓库_全部
-            && this.checkIsInWarhouse(propData.CurInventory)
-        ) || propData.CurInventory === inventoryType;
+        // 每件道具只属于一个仓库；“全部”不再是分类仓库的聚合视图。
+        return propData.CurInventory === inventoryType;
     }
 
     /** 箱子等需要固定展示位置的库存可关闭自动删除空行。 */
@@ -812,14 +810,11 @@ export class ZRSJZ_Inventory extends Component {
             const propData = ZRSJZ_GameData.Instance.PropData[id];
             if (!propData) return false;
 
-            // 仓库_全部是综合视图，实际归属仍使用道具对应的分类仓库。
-            const targetInventory = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部
-                ? ZRSJZ_Tools.GetInventoryByPropType(propData.PropType)
-                : this.InventoryType;
+            const targetInventory = this.InventoryType;
             if (!targetInventory) return false;
 
 
-            // 道具可能同时显示在“仓库_全部”和分类仓库中，跨仓库时一并清除旧映射。
+            // 跨库存时清除旧库存中的节点和占格；数据层只保留一个 CurInventory。
             const inventoryNodes = Array.from(ZRSJZ_UIManager.Instance.InventoryMap.values());
             for (const inventoryNode of inventoryNodes) {
                 const sourceInventory = inventoryNode.getComponent(ZRSJZ_Inventory);
@@ -929,7 +924,7 @@ export class ZRSJZ_Inventory extends Component {
             ZRSJZ_PoolManager.Instance.PutNode(propNode);
         }
 
-        const targetInventory = ZRSJZ_Tools.GetInventoryByPropType(newPropData.PropType);
+        const targetInventory = this.InventoryType;
         ZRSJZ_GameData.Instance.MovePropToInventory(
             newID,
             targetInventory,

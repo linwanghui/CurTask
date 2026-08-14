@@ -22,6 +22,7 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_Player extends Component {
     public readonly Speed: number = 1500;
     public readonly InitHP: number = 100;
+    /** 普通跑步与攻击跑步的关键姿势存在少量相位差，按 Spine 常用的 30 FPS 偏移两帧。 */
 
     RigidBody: RigidBody2D = null;
     Collider: CircleCollider2D = null;
@@ -41,17 +42,22 @@ export class ZRSJZ_Player extends Component {
     TargetRange: number = 2000;
     Reloading: Node = null;
     Loading: Sprite = null;
+    private _bulletProgressNode: Node = null;
+    private _bulletProgressSprite: Sprite = null;
 
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _moveRadius: number = 0;
     private _aniName: string = "";
     private _isFireing: boolean = false;
-    private _fireCooldown: number = 0;
     private _waitingFirstGunShot: boolean = false;
-    private _gunFireFrameReached: boolean = false;
     private _gunAttackAnimationPlayedOnce: boolean = false;
     private _gunAttackAnimationActive: boolean = false;
+    private _preparingGunAttack: boolean = false;
+    private _reservedGunBullet: Node = null;
+    private _reservedGunAmmoName: string = "";
+    private _gunAttackRequestId: number = 0;
+    private _lastValidMuzzlePos: Vec3 = null;
     private _isSlide: boolean = false;
     private _targetBox: ZRSJZ_Box = null;
     private _isStop: boolean = false;
@@ -110,8 +116,24 @@ export class ZRSJZ_Player extends Component {
         this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
         this.PlayerSkeleton = this.Skeleton.node.getComponent(ZRSJZ_PlayerSkeleton);
         this.HP = this.node.getChildByName("HP").getComponent(ZRSJZ_HP);
+        // Reloading/Loading 只负责显示换弹耗时。
         this.Reloading = this.node.getChildByName("Reloading");
-        this.Loading = this.Reloading.getChildByName("Loading").getComponent(Sprite);
+        this.Loading = this.Reloading?.getChildByName("Loading")?.getComponent(Sprite) ?? null;
+
+        // Bullet 只负责常驻显示当前弹匣数量 / 弹匣容量。
+        this._bulletProgressNode = this.node.getChildByName("Bullet");
+        const bulletProgressChild = this._bulletProgressNode?.getChildByName("Progress")
+            ?? this._bulletProgressNode?.getChildByName("Loading");
+        const bulletProgressRootSprite = this._bulletProgressNode?.getComponent(Sprite);
+        this._bulletProgressSprite = bulletProgressChild?.getComponent(Sprite)
+            ?? (bulletProgressRootSprite?.type === Sprite.Type.FILLED
+                ? bulletProgressRootSprite
+                : null)
+            ?? this._bulletProgressNode?.getComponentsInChildren(Sprite).find(
+                sprite => sprite.type === Sprite.Type.FILLED,
+            )
+            ?? null;
+        if (this._bulletProgressNode) this._bulletProgressNode.active = true;
         this.Other = this.node.getChildByName("Other");
     }
 
@@ -126,8 +148,7 @@ export class ZRSJZ_Player extends Component {
                 && this.WeaponType === "枪"
                 && (event.data.name === "kq" || event.data.name === "gj_jjq")
             ) {
-                this._gunFireFrameReached = true;
-                this.TryFirePendingGunShot();
+                this.FireReservedGunBullet();
             } else if (this._knifeAnimationPlaying) {
                 if (event.data.name === "dao") {
                     this.KnifeAttack(200);
@@ -151,6 +172,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected onDisable(): void {
+        this.CancelGunAttackState();
         ZRSJZ_Game.Instance?.CancelEvacuation();
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
@@ -164,6 +186,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected update(dt: number): void {
+        this.RefreshBulletProgress();
         if (ZRSJZ_Game.Instance.GamePaused || this._isStop) {
             this.RigidBody.linearVelocity = v2(0, 0);
             return;
@@ -207,6 +230,8 @@ export class ZRSJZ_Player extends Component {
         this.HP.Init(this.MaxHP);
         this.HP.Show(this.CurHP);
         this.PlayerSkeleton.AttackX = 200;
+        if (this._bulletProgressNode) this._bulletProgressNode.active = true;
+        this.RefreshBulletProgress();
         this.FillInitialMagazineWhenReady();
 
         //速度初始化
@@ -218,7 +243,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number) {
-        if (this._isSlide) return;
+        if (this._isSlide || this._gunAttackAnimationActive) return;
         this.CancelGunAttackState();
         this.CancelKnifeAttackState();
         switch (skillName) {
@@ -320,7 +345,7 @@ export class ZRSJZ_Player extends Component {
             if (!this._isFireing) {
                 this._isFireing = true;
                 // 冷却期间不播放假开枪动画；持续按住时等冷却结束再开始。
-                if (this._fireCooldown <= 0) this.BeginGunAttackAnimation();
+                void this.BeginGunAttackAnimation();
             }
         } else {
             this._isKnifeAttack = true;
@@ -329,56 +354,74 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
-    async Fire() {
-        this.EnsureMagazineMatchesGun();
-        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && (this.WeaponType !== "枪" || this._magazineAmmo.length <= 0)) {
-            this.StopFiring();
-            return;
+    private FireReservedGunBullet(): void {
+        // 主子弹只能由手部 Spine 的开枪事件调用此方法生成。
+        if (!this._waitingFirstGunShot || !this._reservedGunBullet) return;
+
+        const bullet = this._reservedGunBullet;
+        const ammoName = this._reservedGunAmmoName;
+        this._reservedGunBullet = null;
+        this._reservedGunAmmoName = "";
+        this._waitingFirstGunShot = false;
+
+        const bulletRange = this.GetGunProperty("射程", 0);
+        let attackX = this.PlayerSkeleton.AttackX;
+        let attackY = this.PlayerSkeleton.AttackY;
+        if (attackX === 0 && attackY === 0) {
+            attackX = (this.PlayerSkeleton.Facing || 1) * 200;
+            attackY = 0;
         }
-
-
-        const ammoName = ZRSJZ_Game.Instance.UnlimitedFirepower ? this._magazineAmmo.length > 0 ? this._magazineAmmo[0] : "1级子弹" : this._magazineAmmo.length > 0 ? this._magazineAmmo.shift() : "";
         const gunDamage = this.GetGunProperty("伤害", 0);//本身伤害
         const bulletDamage = ZRSJZ_PROP_PROPERTY.get(ammoName)?.["增伤"] ?? 0;//子弹攻击力加成
         const totalGunDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
-        const bulletRange = this.GetGunProperty("射程", 0);
         const bulletLevel = this.GetBulletLevel(ammoName);
-
-        // 在任何异步资源加载前从队首取弹，防止连续动画事件重复使用同一发子弹。
-        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._magazineAmmo.length <= 0) {
-            this.StopFiring();
-        }
-
-        const muzzleWorldPos = this.getMuzzlePos();
-        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && (!muzzleWorldPos || bulletRange <= 0)) {
-            return;
-        }
-
-        const attackX = this.PlayerSkeleton.AttackX;
-        const attackY = this.PlayerSkeleton.AttackY;
         const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + totalGunDamageRate));
 
-        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
-            muzzleEffect.parent = this.node;
-            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect).Show(this.getMuzzlePos(), attackX, attackY);
-        })
+        const showBullet = (targetBullet: Node, dirX: number, dirY: number): Vec3 | null => {
+            try {
+                const bulletParent = ZRSJZ_Game.Instance?.CurMap?.BulletParent;
+                const bulletComponent = targetBullet?.getComponent(ZRSJZ_Bullet);
+                if (!targetBullet?.isValid || !bulletParent?.isValid || !bulletComponent) return null;
 
-        const spawnBullet = (dirX: number, dirY: number): void => {
-            ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet").then((bullet: Node) => {
-                bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
-                bullet.active = true;
-                bullet.getComponent(ZRSJZ_Bullet).Show(
-                    this.getMuzzlePos(),
+                const spawnWorldPos = this.GetReliableMuzzlePos();
+
+                targetBullet.parent = bulletParent;
+                targetBullet.active = true;
+                bulletComponent.Show(
+                    this.GetReliableMuzzlePos() || spawnWorldPos,
                     dirX,
                     dirY,
                     bulletRange,
                     finalDamage,
                     bulletLevel,
                 );
-            });
+                return spawnWorldPos.clone();
+            } catch (error) {
+                console.error("[ZRSJZ_Player] 玩家子弹创建失败", error);
+                if (targetBullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(targetBullet);
+                return null;
+            }
         };
 
-        spawnBullet(attackX, attackY);
+        const mainBulletSpawnPos = showBullet(bullet, attackX, attackY);
+        if (!mainBulletSpawnPos) {
+            if (!ZRSJZ_Game.Instance.UnlimitedFirepower && ammoName) {
+                this._magazineAmmo.unshift(ammoName);
+            }
+            console.error("[ZRSJZ_Player] 主子弹创建失败，弹药已退回弹匣");
+            return;
+        }
+
+        // 主子弹确认生成后再显示枪口和播放声音，避免出现只有开火表现却没有子弹。
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
+            if (!muzzleEffect?.isValid) return;
+            muzzleEffect.parent = this.node;
+            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect)?.Show(mainBulletSpawnPos, attackX, attackY);
+        }).catch(error => console.error("[ZRSJZ_Player] 枪口特效创建失败", error));
+
+        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._magazineAmmo.length <= 0) {
+            this.StopFiring();
+        }
 
         if (ZRSJZ_WEAPONRY_TYPE.get("散弹枪")?.includes(this.PlayerSkeleton.WeaponryName)) {
             //散射两个子弹
@@ -387,14 +430,8 @@ export class ZRSJZ_Player extends Component {
             const cos = Math.cos(offsetRadian);
             const sin = Math.sin(offsetRadian);
 
-            spawnBullet(
-                attackX * cos - attackY * sin,
-                attackX * sin + attackY * cos,
-            );
-            spawnBullet(
-                attackX * cos + attackY * sin,
-                -attackX * sin + attackY * cos,
-            );
+            void this.SpawnExtraBullet(attackX * cos - attackY * sin, attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
+            void this.SpawnExtraBullet(attackX * cos + attackY * sin, -attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
             ZRSJZ_AudioManager.Instance.PlaySound("狙击枪枪声");
         } else {
             ZRSJZ_AudioManager.Instance.PlaySound("枪声");
@@ -409,6 +446,7 @@ export class ZRSJZ_Player extends Component {
         if (!this._isKnifeAttack || this._knifeAnimationPlaying || this.WeaponType !== "刀") return;
 
         this._knifeAnimationPlaying = true;
+        this.PlayerSkeleton.HandAttackAnimationLocked = true;
         this._knifeAttackIndex = this._knifeCount++ % 2 === 0 ? 2 : 3;
         const attackAnimation = this._knifeAttackIndex === 2
             ? ZRSJZ_ANI.Attack_Idle_D2
@@ -422,6 +460,7 @@ export class ZRSJZ_Player extends Component {
         if (this._isKnifeAttack) {
             this.TryStartKnifeAttack();
         } else if (this.WeaponType === "刀") {
+            this.PlayerSkeleton.HandAttackAnimationLocked = false;
             this.RestoreKnifeLocomotion();
         }
     }
@@ -429,6 +468,7 @@ export class ZRSJZ_Player extends Component {
     private CancelKnifeAttackState(): void {
         this._isKnifeAttack = false;
         this._knifeAnimationPlaying = false;
+        this.PlayerSkeleton.HandAttackAnimationLocked = false;
     }
 
     KnifeAttack(skillRange: number) {
@@ -534,6 +574,7 @@ export class ZRSJZ_Player extends Component {
     //#region 武器切换
     private _curKnifeName: string = "";
     SwitchWeapon(weaponType: string) {
+        if (this._gunAttackAnimationActive) return;
         const weaponryIndex = weaponType === "枪" ? 0 : (weaponType === "刀" ? 4 : -1);
         const weaponID = weaponryIndex >= 0
             ? ZRSJZ_GameData.Instance.WeaponryID[weaponryIndex]
@@ -568,6 +609,7 @@ export class ZRSJZ_Player extends Component {
             effect.active = true;
             effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition);
         });
+        ZRSJZ_AudioManager.Instance.PlaySound("恢复");
     }
 
     //#region 复活
@@ -581,7 +623,8 @@ export class ZRSJZ_Player extends Component {
             effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition);
         });
         this.Skill("护盾");
-
+        this._isSlide = false;
+        this._aniName = "";
         if (!this.PlayerSkeleton.IsKnife) {
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
         } else {
@@ -629,6 +672,7 @@ export class ZRSJZ_Player extends Component {
         this.CurHP -= madeHarm;
         if (this.CurHP <= 0) {
             this.CurHP = 0;
+            this.CancelGunAttackState();
             this.CancelKnifeAttackState();
             ZRSJZ_Game.Instance.CancelEvacuation();
             ZRSJZ_Game.Instance.GamePaused = true;
@@ -685,8 +729,9 @@ export class ZRSJZ_Player extends Component {
     Reload(fill: number, isCancelled: boolean = false) {
         if (isCancelled) {
             this._isReloading = false;
-            this.Reloading.active = false;
-            this.Loading.fillRange = 1;
+            if (this.Reloading) this.Reloading.active = false;
+            if (this.Loading) this.Loading.fillRange = 1;
+            this.RefreshBulletProgress();
             return;
         }
 
@@ -697,13 +742,28 @@ export class ZRSJZ_Player extends Component {
             this._isReloading = true;
         }
 
-        this.Reloading.active = this._isReloading && fill < 1;
-        this.Loading.fillRange = fill;
+        const safeFill = Math.min(1, Math.max(0, fill));
+        if (this.Reloading) {
+            this.Reloading.active = this._isReloading && safeFill < 1;
+        }
+        if (this.Loading) this.Loading.fillRange = safeFill;
+        this.RefreshBulletProgress();
         if (this._isReloading && fill >= 1) {
             this.FillMagazine();
+            this.RefreshBulletProgress();
             this._isReloading = false;
-            this.Reloading.active = false;
+            if (this.Reloading) this.Reloading.active = false;
         }
+    }
+
+    /** 玩家身上的 Bullet 填充只表示真实弹匣占比，不表示换弹耗时。 */
+    private RefreshBulletProgress(): void {
+        if (!this._bulletProgressSprite) return;
+        if (this._bulletProgressNode) this._bulletProgressNode.active = true;
+        const capacity = this.MagazineCapacity;
+        this._bulletProgressSprite.fillRange = capacity > 0
+            ? Math.min(1, Math.max(0, this.MagazineAmmoCount / capacity))
+            : 0;
     }
 
     public CanReload(): boolean {
@@ -807,7 +867,6 @@ export class ZRSJZ_Player extends Component {
     private StopFiring(): void {
         this._isFireing = false;
         this._waitingFirstGunShot = false;
-        this._gunFireFrameReached = false;
         if (this.WeaponType === "枪") {
             if (this._gunAttackAnimationPlayedOnce) {
                 this.RestoreGunLocomotion();
@@ -819,86 +878,144 @@ export class ZRSJZ_Player extends Component {
 
     /** 长按攻击时按武器射速持续开火，不再依赖 Spine 动画事件是否循环。 */
     private UpdateAutomaticFire(dt: number): void {
-        // 冷却跨按键持续计时，松开再点击也不能重置射速限制。
-        this._fireCooldown = Math.max(0, this._fireCooldown - dt);
         if (this.WeaponType !== "枪") return;
 
         if (this._isFireing && !this._gunAttackAnimationActive) {
-            if (this._fireCooldown <= 0) this.BeginGunAttackAnimation();
+            void this.BeginGunAttackAnimation();
             return;
         }
 
         if (this._waitingFirstGunShot) {
-            this.TryFirePendingGunShot();
             return;
         }
         // 每一发都必须先启动一轮开枪动画，不能由计时器直接生成子弹。
-        if (this._isFireing && !this._gunAttackAnimationActive && this._fireCooldown <= 0) {
-            this.BeginGunAttackAnimation();
+        if (this._isFireing && !this._gunAttackAnimationActive) {
+            void this.BeginGunAttackAnimation();
         }
     }
 
-    private BeginGunAttackAnimation(): void {
-        if (!this._isFireing || this._gunAttackAnimationActive || this.WeaponType !== "枪") return;
+    private async SpawnExtraBullet(dirX: number, dirY: number, range: number, harm: number, bulletLevel: number): Promise<void> {
+        let bullet: Node = null;
+        try {
+            bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
+            const bulletParent = ZRSJZ_Game.Instance?.CurMap?.BulletParent;
+            const bulletComponent = bullet?.getComponent(ZRSJZ_Bullet);
+            if (!bullet?.isValid || !bulletParent?.isValid || !bulletComponent) {
+                if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
+                return;
+            }
+            const spawnWorldPos = this.GetReliableMuzzlePos();
+            bullet.parent = bulletParent;
+            bullet.active = true;
+            bulletComponent.Show(this.GetReliableMuzzlePos() || spawnWorldPos, dirX, dirY, range, harm, bulletLevel);
+        } catch (error) {
+            if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
+            console.error("[ZRSJZ_Player] 散弹额外弹丸创建失败", error);
+        }
+    }
+
+    private async BeginGunAttackAnimation(): Promise<void> {
+        if (!this._isFireing || this._gunAttackAnimationActive || this._preparingGunAttack || this.WeaponType !== "枪") return;
+
+        this.EnsureMagazineMatchesGun();
+        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._magazineAmmo.length <= 0) {
+            this.StopFiring();
+            return;
+        }
+        if (this.GetGunProperty("射程", 0) <= 0) {
+            console.warn("[ZRSJZ_Player] 当前枪械射程无效，本轮不播放动画也不消耗弹药");
+            return;
+        }
+
+        this._preparingGunAttack = true;
+        const requestId = ++this._gunAttackRequestId;
+        let bullet: Node = null;
+        try {
+            bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
+        } catch (error) {
+            console.error("[ZRSJZ_Player] 主子弹预取异常，本轮不播放开枪动画", error);
+        } finally {
+            if (requestId === this._gunAttackRequestId) this._preparingGunAttack = false;
+        }
+        if (requestId !== this._gunAttackRequestId) {
+            if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
+            return;
+        }
+        const bulletParent = ZRSJZ_Game.Instance?.CurMap?.BulletParent;
+        if (
+            !bullet?.isValid
+            || !bullet.getComponent(ZRSJZ_Bullet)
+            || !bulletParent?.isValid
+            || !this.PlayerSkeleton?.QKBone
+        ) {
+            if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
+            console.warn("[ZRSJZ_Player] 主子弹预取失败，本轮不播放开枪动画");
+            return;
+        }
+        if (!this._isFireing || this.WeaponType !== "枪") {
+            ZRSJZ_PoolManager.Instance.PutNode(bullet);
+            return;
+        }
+
+        this._reservedGunBullet = bullet;
+        this._reservedGunAmmoName = ZRSJZ_Game.Instance.UnlimitedFirepower
+            ? (this._magazineAmmo[0] ?? "1级子弹")
+            : (this._magazineAmmo.shift() ?? "");
 
         this._gunAttackAnimationActive = true;
+        this.PlayerSkeleton.HandAttackAnimationLocked = true;
         this._waitingFirstGunShot = true;
-        this._gunFireFrameReached = false;
         this._gunAttackAnimationPlayedOnce = false;
         this.UpdateGunBodyAnimation();
-        this.PlayerSkeleton.PlayHandAni(
+        this.PlayerSkeleton.PlayGunHandAni(
             this.PlayerSkeleton.GunType === "步枪"
                 ? ZRSJZ_ANI.Attack_Idle_Q
                 : ZRSJZ_ANI.Attack_Idle_Q2,
-            false,
+            this.GetGunProperty("射速", 600),
             () => this.OnGunAttackAnimationComplete(),
         );
     }
 
-    private TryFirePendingGunShot(): void {
-        if (
-            !this._waitingFirstGunShot
-            || !this._gunFireFrameReached
-            || this._fireCooldown > 0
-            || this.WeaponType !== "枪"
-        ) return;
-
-        this._waitingFirstGunShot = false;
-        this._gunFireFrameReached = false;
-        this._fireCooldown = this.GetFireInterval();
-        void this.Fire();
-    }
-
     private CancelGunAttackState(): void {
+        this._gunAttackRequestId++;
         this._isFireing = false;
         this._waitingFirstGunShot = false;
-        this._gunFireFrameReached = false;
         this._gunAttackAnimationPlayedOnce = true;
         this._gunAttackAnimationActive = false;
+        this.PlayerSkeleton.HandAttackAnimationLocked = false;
+        this.PlayerSkeleton.ResetHandAnimationSpeed();
+        this._preparingGunAttack = false;
+        if (this._reservedGunBullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(this._reservedGunBullet);
+        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._reservedGunAmmoName) {
+            this._magazineAmmo.unshift(this._reservedGunAmmoName);
+        }
+        this._reservedGunBullet = null;
+        this._reservedGunAmmoName = "";
     }
 
     private OnGunAttackAnimationComplete(): void {
         this._gunAttackAnimationPlayedOnce = true;
-        // 兼容没有配置开枪事件的动画：完整播放一轮后仍会产生首发。
-        if (this._waitingFirstGunShot && this.WeaponType === "枪") {
-            this._gunFireFrameReached = true;
-            this.TryFirePendingGunShot();
+        // 子弹只由 Spine 开枪事件生成；动画完成不再补发子弹。
+        if (this._waitingFirstGunShot) {
+            console.error("[ZRSJZ_Player] 开枪动画未触发 kq/gj_jjq 事件，本轮取消且退回弹药");
+            if (this._reservedGunBullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(this._reservedGunBullet);
+            if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._reservedGunAmmoName) {
+                this._magazineAmmo.unshift(this._reservedGunAmmoName);
+            }
+            this._reservedGunBullet = null;
+            this._reservedGunAmmoName = "";
+            this._waitingFirstGunShot = false;
         }
         this._gunAttackAnimationActive = false;
-        if (this.WeaponType === "枪") {
+        this.PlayerSkeleton.HandAttackAnimationLocked = false;
+        if (!this._isFireing && this.WeaponType === "枪") {
             this.RestoreGunLocomotion();
         }
     }
 
-    /** 射速配置按每分钟发数计算，并设置下限避免异常配置导致每帧大量发射。 */
-    private GetFireInterval(): number {
-        const roundsPerMinute = Math.max(1, this.GetGunProperty("射速", 600));
-        return Math.max(1 / 60, 60 / roundsPerMinute);
-    }
-
     private IsGunAttackVisualActive(): boolean {
         return this.WeaponType === "枪"
-            && this._gunAttackAnimationActive;
+            && (this._isFireing || this._gunAttackAnimationActive);
     }
 
     private UpdateGunBodyAnimation(): void {
@@ -907,8 +1024,14 @@ export class ZRSJZ_Player extends Component {
             ? (isRifle ? ZRSJZ_ANI.Attack_Idle_Q : ZRSJZ_ANI.Attack_Idle_Q2)
             : (isRifle ? ZRSJZ_ANI.Attack_Move_Q : ZRSJZ_ANI.Attack_Move_Q2);
         if (bodyAnimation === this._aniName) return;
+        const keepMoveProgress = this.IsGunMoveBodyAnimation(this._aniName)
+            && this.IsGunMoveBodyAnimation(bodyAnimation);
         this._aniName = bodyAnimation;
-        this.PlayerSkeleton.PlayBodyAni(bodyAnimation);
+        if (keepMoveProgress) {
+            this.PlayerSkeleton.PlayBodyAniKeepingProgress(bodyAnimation);
+        } else {
+            this.PlayerSkeleton.PlayBodyAni(bodyAnimation);
+        }
     }
 
     private UpdateKnifeBodyAnimation(): void {
@@ -934,14 +1057,28 @@ export class ZRSJZ_Player extends Component {
         const animation = this._moveX == 0 && this._moveY == 0
             ? ZRSJZ_ANI.Idle_Q
             : ZRSJZ_ANI.Walk_Q;
-        this._aniName = animation;
-        this.PlayerSkeleton.PlayBodyAni(animation);
+        if (animation !== this._aniName) {
+            const keepMoveProgress = this.IsGunMoveBodyAnimation(this._aniName)
+                && this.IsGunMoveBodyAnimation(animation);
+            this._aniName = animation;
+            if (keepMoveProgress) {
+                this.PlayerSkeleton.PlayBodyAniKeepingProgress(animation);
+            } else {
+                this.PlayerSkeleton.PlayBodyAni(animation);
+            }
+        }
         this.PlayerSkeleton.PlayHandAni(animation);
+    }
+
+    private IsGunMoveBodyAnimation(animation: string): boolean {
+        return animation === ZRSJZ_ANI.Walk_Q
+            || animation === ZRSJZ_ANI.Attack_Move_Q
+            || animation === ZRSJZ_ANI.Attack_Move_Q2;
     }
 
     //#region 滑动
     Slide() {
-        if (this._isStop) return;
+        if (this._isStop || this._gunAttackAnimationActive) return;
         this.CancelGunAttackState();
         this.CancelKnifeAttackState();
         ZRSJZ_AudioManager.Instance.PlaySound("滑铲音效");
@@ -991,6 +1128,18 @@ export class ZRSJZ_Player extends Component {
     }
 
     //#region 获取枪口位置
+    private GetReliableMuzzlePos(): Vec3 {
+        const currentMuzzlePos = this.getMuzzlePos();
+        if (currentMuzzlePos) {
+            this._lastValidMuzzlePos = currentMuzzlePos.clone();
+            return currentMuzzlePos;
+        }
+
+        // 已经播放开枪动画并预留子弹时，即使本帧 Spine 骨骼暂时不可读，也必须补出主子弹。
+        if (this._lastValidMuzzlePos) return this._lastValidMuzzlePos.clone();
+        return this.node.worldPosition.clone();
+    }
+
     private getMuzzlePos() {
         const qkBone = this.PlayerSkeleton?.QKBone;
         if (!qkBone) {

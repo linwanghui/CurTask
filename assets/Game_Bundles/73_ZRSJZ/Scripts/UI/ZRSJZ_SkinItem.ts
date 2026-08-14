@@ -27,7 +27,7 @@ export class ZRSJZ_SkinItem extends Component {
         }
         this.SkinName = skinName;
         if (this.QualityFrame && qualityFrame) this.QualityFrame.spriteFrame = qualityFrame;
-        // if (this.NameLabel) this.NameLabel.string = skinName;
+        if (this.NameLabel) this.NameLabel.string = skinName;
         try {
             ZRSJZ_UIManager.Instance.GetHeroSkinIconUI(skinName).then((iconSpriteFrame: SpriteFrame) => {
                 if (version === this._loadVersion && this.SkinName === skinName) {

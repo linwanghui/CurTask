@@ -15,6 +15,8 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     CurPlayerIndex: number = 0;
     QKBone: sp.spine.Bone = null;
     GunType: string = "";
+    /** 开枪/挥刀期间锁住手部，普通全身动画只能更新身体 Spine。 */
+    HandAttackAnimationLocked: boolean = false;
 
     AttackX: number = 0;
     AttackY: number = 0;
@@ -55,8 +57,11 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
         this.AniName = aniName;
         this.Skeleton.setAnimation(0, aniName, loop);
-        this.HandSkeleton.setAnimation(0, aniName, loop);
-        this.HandSkeleton.setCompleteListener(null);
+        if (!this.HandAttackAnimationLocked) {
+            this.HandSkeleton.timeScale = 1;
+            this.HandSkeleton.setAnimation(0, aniName, loop);
+            this.HandSkeleton.setCompleteListener(null);
+        }
         this.Skeleton.setCompleteListener(() => {
             if (cb) cb();
         });
@@ -73,16 +78,58 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
     /** 只更新手部 Spine，避免开枪动作覆盖身体的移动状态。 */
     PlayHandAni(aniName: string, loop: boolean = true, cb: Function = null) {
-        if (aniName == "gj_qiang") {
-            aniName = "gj_qiang2";
-        } else if (aniName == "gj_jjq") {
-            aniName = "gj_jjq2";
-        }
+        this.HandSkeleton.timeScale = 1;
+        aniName = this.GetHandAnimationName(aniName);
         this.HandSkeleton.setAnimation(0, aniName, loop);
         this.HandSkeleton.setCompleteListener(() => {
             if (!loop) this.HandSkeleton.setCompleteListener(null);
             if (cb) cb();
         });
+    }
+
+    /** 切换身体移动动画时继承当前循环进度，并允许微调动画相位。 */
+    PlayBodyAniKeepingProgress(aniName: string, loop: boolean = true) {
+        const previousEntry = this.Skeleton.getCurrent(0);
+        const previousDuration = previousEntry?.animation?.duration ?? 0;
+        const normalizedTime = previousDuration > 0
+            ? (previousEntry.trackTime % previousDuration) / previousDuration
+            : 0;
+        const nextEntry = this.Skeleton.setAnimation(0, aniName, loop);
+        const nextDuration = nextEntry?.animation?.duration ?? 0;
+        if (nextDuration > 0) {
+            nextEntry.trackTime = normalizedTime * nextDuration;
+        }
+        this.AniName = aniName;
+        this.Skeleton.setCompleteListener(null);
+    }
+
+    /** 根据“每分钟发数”调整一轮开枪动画时长，使每轮事件严格对应一发子弹。 */
+    PlayGunHandAni(aniName: string, roundsPerMinute: number, cb: Function = null) {
+        aniName = this.GetHandAnimationName(aniName);
+        const animationDuration = this.HandSkeleton.findAnimation(aniName)?.duration ?? 0;
+        const safeRoundsPerMinute = Math.max(1, roundsPerMinute);
+        this.HandSkeleton.timeScale = animationDuration > 0
+            ? Math.max(0.01, animationDuration * safeRoundsPerMinute / 60)
+            : 1;
+        this.HandSkeleton.setAnimation(0, aniName, false);
+        this.HandSkeleton.setCompleteListener(() => {
+            this.HandSkeleton.setCompleteListener(null);
+            this.HandSkeleton.timeScale = 1;
+            if (cb) cb();
+        });
+    }
+
+    ResetHandAnimationSpeed(): void {
+        this.HandSkeleton.timeScale = 1;
+    }
+
+    private GetHandAnimationName(aniName: string): string {
+        if (aniName == "gj_qiang") {
+            return "gj_qiang2";
+        } else if (aniName == "gj_jjq") {
+            return "gj_jjq2";
+        }
+        return aniName;
     }
 
     SetPlayerDir(x: number) {

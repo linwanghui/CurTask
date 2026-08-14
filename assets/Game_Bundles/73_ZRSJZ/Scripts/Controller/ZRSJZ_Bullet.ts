@@ -4,6 +4,7 @@ import { ZRSJZ_TIER } from '../ZRSJZ_Constant';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_Effect } from '../Effect/ZRSJZ_Effect';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Bullet')
@@ -70,6 +71,7 @@ export class ZRSJZ_Bullet extends Component {
         if (otherCollider.group === ZRSJZ_TIER.地形) {
             this._isRemove = true;
             this.CreateEffect();
+            ZRSJZ_AudioManager.Instance.PlaySound("子弹打到墙上");
             this.scheduleOnce(() => {
                 this.Recycle();
             });
