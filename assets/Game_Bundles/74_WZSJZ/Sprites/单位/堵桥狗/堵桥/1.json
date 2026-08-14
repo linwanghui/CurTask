@@ -1,0 +1,112 @@
+{
+"skeleton": {
+	"hash": "nExm4WWMMaKWpNC6WuIAX04J1c4",
+	"spine": "3.8.75",
+	"x": -60.33,
+	"y": -2.57,
+	"width": 149.45,
+	"height": 100.66,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/角色/盾"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "zi", "parent": "root", "x": 0.52, "y": 17.04 },
+	{ "name": "bone", "parent": "root", "length": 45.18, "rotation": 40.2, "x": 46.82, "y": 54.61 },
+	{ "name": "bone2", "parent": "root", "x": -42.53, "y": 74.73 }
+],
+"slots": [
+	{ "name": "字", "bone": "zi", "attachment": "字" },
+	{ "name": "tx", "bone": "bone", "attachment": "tx" },
+	{ "name": "z", "bone": "bone2" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"tx": {
+				"tx": { "x": 26.08, "y": 4.51, "rotation": -31.4, "width": 45, "height": 40 }
+			},
+			"字": {
+				"字": { "x": -1.85, "y": 20.39, "width": 118, "height": 80 }
+			},
+			"z": {
+				"z": {
+					"x": 0.88,
+					"y": -0.36,
+					"scaleX": 1.1061,
+					"scaleY": 1.1061,
+					"rotation": 9.14,
+					"width": 22,
+					"height": 20
+				}
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {
+		"slots": {
+			"z": {
+				"color": [
+					{ "time": 0.8884, "color": "ffffffff" },
+					{ "time": 1.3326, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "z" }
+				]
+			}
+		},
+		"bones": {
+			"zi": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6663, "y": -1.94, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3326 }
+				],
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6663, "y": 0.869, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3326 }
+				]
+			},
+			"bone": {
+				"rotate": [
+					{ "angle": -3.85, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6663, "angle": 19.69, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3326, "angle": -3.85 }
+				],
+				"translate": [
+					{ "x": -0.34, "y": -6.8, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6663, "x": -1.46, "y": -14.09, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3326, "y": -6.8 }
+				],
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6663, "x": 1.285, "y": 1.285, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3326 }
+				]
+			},
+			"bone2": {
+				"rotate": [
+					{},
+					{ "time": 0.2221, "angle": 12.06 },
+					{ "time": 0.4442, "angle": -3.3 },
+					{ "time": 0.6663, "angle": 21.17 },
+					{ "time": 0.8884, "angle": -14.23 },
+					{ "time": 1.1105, "angle": 18.99 },
+					{ "time": 1.3326, "angle": 8.77 }
+				],
+				"translate": [
+					{},
+					{ "time": 1.3326, "x": -18.95, "y": 20.41 }
+				],
+				"scale": [
+					{},
+					{ "time": 1.3326, "x": 1.436, "y": 1.436 }
+				]
+			}
+		}
+	}
+}
+}
