@@ -33,6 +33,8 @@ export class WZSJZ_CombatSystem extends Component {
     private _dragLayer: Node = null;
     private _enemyArea: Node = null;
     private _projectileLayer: Node = null;
+    private _enemyProjectileLayer: Node = null;
+    private _healthBarLayer: Node = null;
     private _trapLayer: Node = null;
     private _wall: WZSJZ_Wall = null;
     private _enemyPrefabs: Prefab[] = [];
@@ -41,6 +43,7 @@ export class WZSJZ_CombatSystem extends Component {
     private _minePrefab: Prefab = null;
     private _knifeEffectPrefab: Prefab = null;
     private _isGameStarted: boolean = false;
+    private _isBatchEnemySpawning: boolean = false;
     private _pendingEnemySpawnCallback: (() => void) | null = null;
     private _enemyPools: Map<string, NodePool> = new Map();
     private _gunBulletPool: NodePool = new NodePool();
@@ -50,10 +53,18 @@ export class WZSJZ_CombatSystem extends Component {
     private _ownerMines: Map<WZSJZ_GameNode, Set<WZSJZ_Mine>> = new Map();
     private _mineOwners: Map<WZSJZ_Mine, WZSJZ_GameNode> = new Map();
     private _mineUnitsOnField: Set<WZSJZ_GameNode> = new Set();
+    private _pendingWeaponAttacks: Map<WZSJZ_GameNode, number> = new Map();
+    private _weaponAttackToken: number = 0;
 
     protected onLoad(): void {
         WZSJZ_CombatSystem._instance = this;
         this.node.on(WZSJZ_EventManager.游戏开始, this.OnGameStart, this);
+        this.node.on(WZSJZ_EventManager.修改添加敌人, this.OnCheatAddEnemy, this);
+        this.node.on(
+            WZSJZ_EventManager.修改批量生成小怪,
+            this.OnCheatToggleBatchEnemySpawning,
+            this,
+        );
     }
 
     protected onDestroy(): void {
@@ -72,6 +83,7 @@ export class WZSJZ_CombatSystem extends Component {
         this._ownerMines.clear();
         this._mineOwners.clear();
         this._mineUnitsOnField.clear();
+        this._pendingWeaponAttacks.clear();
         if (WZSJZ_CombatSystem._instance === this) {
             WZSJZ_CombatSystem._instance = null;
         }
@@ -82,6 +94,8 @@ export class WZSJZ_CombatSystem extends Component {
         this._dragLayer = dragLayer;
         this._enemyArea = canvas?.getChildByName("敌方单位");
         this.SetupProjectileLayer();
+        this.SetupEnemyProjectileLayer();
+        this._healthBarLayer = this._canvas?.getChildByName("血条区") || null;
         this.SetupTrapLayer();
         void this.PrepareGunBulletPrefab();
         void this.PrepareCannonBulletPrefab();
@@ -95,6 +109,20 @@ export class WZSJZ_CombatSystem extends Component {
         }
         this._isGameStarted = true;
         this._wall = wall;
+    }
+
+    private OnCheatToggleBatchEnemySpawning(): void {
+        if (!this._isGameStarted || !this._wall) {
+            WZSJZ_UIManager.Instance.ShowText('请先开始游戏再生成小怪');
+            return;
+        }
+        this._isBatchEnemySpawning = !this._isBatchEnemySpawning;
+        if (!this._isBatchEnemySpawning) {
+            this.CancelNextEnemySpawn();
+            WZSJZ_UIManager.Instance.ShowText('已停止批量生成小怪');
+            return;
+        }
+        WZSJZ_UIManager.Instance.ShowText('已开启批量生成小怪');
         void this.PrepareEnemySpawning();
     }
 
@@ -110,7 +138,7 @@ export class WZSJZ_CombatSystem extends Component {
             }
             this._enemyPrefabs = loadedPrefabs;
         }
-        if (!this._isGameStarted || !this.node?.isValid) {
+        if (!this._isGameStarted || !this._isBatchEnemySpawning || !this.node?.isValid) {
             return;
         }
         if (!this._enemyArea || !this._wall || this._enemyPrefabs.length === 0) {
@@ -123,7 +151,7 @@ export class WZSJZ_CombatSystem extends Component {
     }
 
     private ScheduleNextEnemySpawn(): void {
-        if (!this._isGameStarted) {
+        if (!this._isGameStarted || !this._isBatchEnemySpawning) {
             return;
         }
         const spawn = WZSJZ_Constant.EnemySpawn;
@@ -141,10 +169,29 @@ export class WZSJZ_CombatSystem extends Component {
     }
 
     private SpawnEnemy(): void {
-        if (!this._isGameStarted || !this._enemyArea || this._enemyPrefabs.length === 0) {
+        if (!this._isGameStarted || !this._isBatchEnemySpawning
+            || !this._enemyArea || this._enemyPrefabs.length === 0) {
             return;
         }
         const prefab = this._enemyPrefabs[Math.floor(Math.random() * this._enemyPrefabs.length)];
+        this.SpawnEnemyFromPrefab(prefab);
+        this.ScheduleNextEnemySpawn();
+    }
+
+    private CancelNextEnemySpawn(): void {
+        if (!this._pendingEnemySpawnCallback) {
+            return;
+        }
+        this.unschedule(this._pendingEnemySpawnCallback);
+        this._pendingEnemySpawnCallback = null;
+    }
+
+    private SpawnEnemyFromPrefab(prefab: Prefab): boolean {
+        if (!prefab || !this._enemyArea || !this._wall) {
+            return false;
+        }
+        const enemyName = prefab.data.name;
+        const enemyConfig = WZSJZ_Constant.GetEnemyConfig(enemyName);
         const pool = this.GetEnemyPool(prefab.data.name);
         const enemyNode = pool.get() || instantiate(prefab);
         enemyNode.active = true;
@@ -159,20 +206,56 @@ export class WZSJZ_CombatSystem extends Component {
             const maxX = size.width * (1 - anchor.x) - padding;
             const minY = -size.height * anchor.y + padding;
             const maxY = size.height * (1 - anchor.y) - padding;
-            enemyNode.setPosition(
-                minX + Math.random() * Math.max(0, maxX - minX),
-                minY + Math.random() * Math.max(0, maxY - minY),
-                0,
-            );
+            if (enemyConfig?.SpawnPositionMode === "center") {
+                enemyNode.setPosition((minX + maxX) * 0.5, (minY + maxY) * 0.5, 0);
+            } else {
+                enemyNode.setPosition(
+                    minX + Math.random() * Math.max(0, maxX - minX),
+                    minY + Math.random() * Math.max(0, maxY - minY),
+                    0,
+                );
+            }
         }
 
         const enemy = enemyNode.getComponent(WZSJZ_Enemy);
-        if (!enemy?.Initialize(this._wall, this.RecycleEnemy)) {
+        if (!enemy?.Initialize(
+            this._wall,
+            this.RecycleEnemy,
+            this._enemyProjectileLayer,
+            this._healthBarLayer,
+        )) {
             pool.put(enemyNode);
+            return false;
         } else {
             this.SortEnemyRenderOrder();
         }
-        this.ScheduleNextEnemySpawn();
+        return true;
+    }
+
+    private OnCheatAddEnemy = async (enemyName: string): Promise<void> => {
+        const name = (enemyName || '').trim();
+        const path = WZSJZ_Constant.EnemyPrefabPathByName[name];
+        if (!path) {
+            WZSJZ_UIManager.Instance.ShowText(`没有找到敌人：${name}`);
+            return;
+        }
+        if (!this._isGameStarted || !this._wall) {
+            WZSJZ_UIManager.Instance.ShowText('请先开始游戏再添加敌人');
+            return;
+        }
+        try {
+            const prefab = await WZSJZ_Incident.Loadprefab(path);
+            if (this.SpawnEnemyFromPrefab(prefab)) {
+                WZSJZ_UIManager.Instance.ShowText(`已添加敌人：${name}`);
+            }
+        } catch (error) {
+            console.error(`[WZSJZ] 手动加载敌人失败：${path}`, error);
+            WZSJZ_UIManager.Instance.ShowText(`敌人加载失败：${name}`);
+        }
+    };
+
+    public GetEnemyProjectileLayer(): Node {
+        return this._enemyProjectileLayer;
     }
 
     /** 俯视遮挡规则：Y越低越靠近镜头，因此放到更大的兄弟索引。 */
@@ -275,46 +358,86 @@ export class WZSJZ_CombatSystem extends Component {
     }
 
     public UpdateGun(gameNode: WZSJZ_GameNode, deltaTime: number): void {
+        if (this.UpdatePendingWeaponAttack(gameNode, deltaTime)) {
+            return;
+        }
         const config = this.GetReadyWeaponConfig(gameNode, deltaTime, true);
         if (!config) {
             return;
         }
         const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
-        if (!target || !this.SpawnGunBullet(gameNode, target, config.AttackDamage, config.BulletSpeed)) {
+        if (!target) {
             return;
         }
-        this.FinishWeaponAttack(gameNode, config.AttackInterval);
+        this.BeginWeaponAttack(gameNode, config.AttackInterval, () => {
+            const currentConfig = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
+            if (!currentConfig?.AttackDamage || !currentConfig.BulletSpeed || !currentConfig.AttackRange) {
+                return;
+            }
+            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, currentConfig.AttackRange);
+            if (currentTarget) {
+                this.SpawnGunBullet(gameNode, currentTarget, currentConfig.AttackDamage, currentConfig.BulletSpeed);
+            }
+        });
     }
 
     public UpdateKnife(gameNode: WZSJZ_GameNode, deltaTime: number): void {
+        if (this.UpdatePendingWeaponAttack(gameNode, deltaTime)) {
+            return;
+        }
         const config = this.GetReadyWeaponConfig(gameNode, deltaTime, false);
         if (!config) {
             return;
         }
         const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
-        if (!target || !this.SpawnKnifeEffect(target)) {
+        if (!target) {
             return;
         }
-        target.TakeDamage(config.AttackDamage);
-        this.FinishWeaponAttack(gameNode, config.AttackInterval);
+        this.BeginWeaponAttack(gameNode, config.AttackInterval, () => {
+            const currentConfig = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
+            if (!currentConfig?.AttackDamage || !currentConfig.AttackRange) {
+                return;
+            }
+            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, currentConfig.AttackRange);
+            if (currentTarget && this.SpawnKnifeEffect(currentTarget)) {
+                currentTarget.TakeDamage(currentConfig.AttackDamage);
+            }
+        });
     }
 
     public UpdateCannon(gameNode: WZSJZ_GameNode, deltaTime: number): void {
+        if (this.UpdatePendingWeaponAttack(gameNode, deltaTime)) {
+            return;
+        }
         const config = this.GetReadyWeaponConfig(gameNode, deltaTime, true);
         if (!config?.AreaRadius) {
             return;
         }
         const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
-        if (!target || !this.SpawnCannonBullet(
-            gameNode,
-            target,
-            config.AttackDamage,
-            config.BulletSpeed,
-            config.AreaRadius,
-        )) {
+        if (!target) {
             return;
         }
-        this.FinishWeaponAttack(gameNode, config.AttackInterval);
+        this.BeginWeaponAttack(gameNode, config.AttackInterval, () => {
+            const currentConfig = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
+            if (!currentConfig?.AttackDamage || !currentConfig.BulletSpeed
+                || !currentConfig.AttackRange || !currentConfig.AreaRadius) {
+                return;
+            }
+            // 前摇期间原目标可能死亡或离开范围，发射帧重新索敌。
+            const currentTarget = this.FindNearestEnemy(
+                gameNode.node.worldPosition,
+                currentConfig.AttackRange,
+            );
+            if (currentTarget) {
+                this.SpawnCannonBullet(
+                    gameNode,
+                    currentTarget,
+                    currentConfig.AttackDamage,
+                    currentConfig.BulletSpeed,
+                    currentConfig.AreaRadius,
+                );
+            }
+        });
     }
 
     public UpdateMineLayer(gameNode: WZSJZ_GameNode, deltaTime: number): void {
@@ -322,11 +445,15 @@ export class WZSJZ_CombatSystem extends Component {
             return;
         }
         if (gameNode.CurrentCell?.Zone !== "formation") {
+            this.CancelPendingWeaponAttack(gameNode);
             this.RemoveMinesByOwner(gameNode);
             return;
         }
         // 拖动过程中先保留已有地雷和当前冷却，落到非布阵区后再统一清理。
         if (gameNode.IsDragging) {
+            return;
+        }
+        if (this.UpdatePendingWeaponAttack(gameNode, deltaTime)) {
             return;
         }
         const config = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
@@ -343,15 +470,18 @@ export class WZSJZ_CombatSystem extends Component {
         if (!gameNode.IsAttackReady()) {
             return;
         }
-        if (!this.SpawnMine(
-            gameNode,
-            config.AttackDamage,
-            config.TriggerRadius,
-            config.AreaRadius,
-        )) {
-            return;
-        }
-        this.FinishWeaponAttack(gameNode, config.AttackInterval);
+        this.BeginWeaponAttack(gameNode, config.AttackInterval, () => {
+            const currentConfig = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
+            if (!currentConfig?.AttackDamage || !currentConfig.TriggerRadius || !currentConfig.AreaRadius) {
+                return;
+            }
+            this.SpawnMine(
+                gameNode,
+                currentConfig.AttackDamage,
+                currentConfig.TriggerRadius,
+                currentConfig.AreaRadius,
+            );
+        });
     }
 
     private GetReadyWeaponConfig(
@@ -380,6 +510,56 @@ export class WZSJZ_CombatSystem extends Component {
             skeleton.setAnimation(0, "attack", false);
             skeleton.addAnimation(0, "daiji", true, 0);
         }
+    }
+
+    private BeginWeaponAttack(
+        gameNode: WZSJZ_GameNode,
+        interval: number,
+        fireAction: () => void,
+    ): void {
+        this.FinishWeaponAttack(gameNode, interval);
+        const delay = WZSJZ_Constant.GetAttackFireDelay(gameNode.Name);
+        if (delay <= 0) {
+            fireAction();
+            return;
+        }
+        const token = ++this._weaponAttackToken;
+        this._pendingWeaponAttacks.set(gameNode, token);
+        this.scheduleOnce(() => {
+            if (this._pendingWeaponAttacks.get(gameNode) !== token) {
+                return;
+            }
+            this._pendingWeaponAttacks.delete(gameNode);
+            if (this.CanCompleteDelayedAttack(gameNode)) {
+                fireAction();
+            }
+        }, delay);
+    }
+
+    private UpdatePendingWeaponAttack(gameNode: WZSJZ_GameNode, deltaTime: number): boolean {
+        if (!this._pendingWeaponAttacks.has(gameNode)) {
+            return false;
+        }
+        if (!this.CanCompleteDelayedAttack(gameNode)) {
+            this.CancelPendingWeaponAttack(gameNode);
+        } else {
+            // 前摇属于本次攻击间隔的一部分，等待实际生效时冷却仍继续流逝。
+            gameNode.ReduceAttackCooldown(deltaTime);
+        }
+        return true;
+    }
+
+    private CancelPendingWeaponAttack(gameNode: WZSJZ_GameNode): void {
+        if (this._pendingWeaponAttacks.delete(gameNode)) {
+            gameNode.ResetAttackCooldown();
+        }
+    }
+
+    private CanCompleteDelayedAttack(gameNode: WZSJZ_GameNode): boolean {
+        return this._isGameStarted
+            && !!gameNode?.node?.isValid
+            && !gameNode.IsDragging
+            && gameNode.CurrentCell?.Zone === "formation";
     }
 
     private FindNearestEnemy(origin: Vec3, attackRange: number): WZSJZ_Enemy {
@@ -623,6 +803,24 @@ export class WZSJZ_CombatSystem extends Component {
             this._projectileLayer.layer = this._canvas.layer;
             this._projectileLayer.setParent(this._canvas);
             const transform = this._projectileLayer.addComponent(UITransform);
+            const canvasTransform = this._canvas.getComponent(UITransform);
+            if (canvasTransform) {
+                transform.setContentSize(canvasTransform.contentSize);
+                transform.setAnchorPoint(canvasTransform.anchorPoint);
+            }
+        }
+    }
+
+    private SetupEnemyProjectileLayer(): void {
+        if (!this._canvas) {
+            return;
+        }
+        this._enemyProjectileLayer = this._canvas.getChildByName("敌人投掷物");
+        if (!this._enemyProjectileLayer) {
+            this._enemyProjectileLayer = new Node("敌人投掷物");
+            this._enemyProjectileLayer.layer = this._canvas.layer;
+            this._enemyProjectileLayer.setParent(this._canvas);
+            const transform = this._enemyProjectileLayer.addComponent(UITransform);
             const canvasTransform = this._canvas.getComponent(UITransform);
             if (canvasTransform) {
                 transform.setContentSize(canvasTransform.contentSize);

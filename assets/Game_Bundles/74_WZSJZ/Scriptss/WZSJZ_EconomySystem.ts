@@ -28,6 +28,7 @@ export class WZSJZ_EconomySystem extends Component {
 
     protected onLoad(): void {
         this.node.on(WZSJZ_EventManager.游戏开始, this.OnGameStart, this);
+        this.node.on(WZSJZ_EventManager.修改增加资源, this.OnCheatAddResources, this);
     }
 
     public Configure(
@@ -97,6 +98,11 @@ export class WZSJZ_EconomySystem extends Component {
         this._money += Math.max(0, money);
         this._food += Math.max(0, food);
         this.RefreshViews();
+    }
+
+    private OnCheatAddResources(money: number, food: number): void {
+        this.AddResources(money, food);
+        WZSJZ_UIManager.Instance.ShowText(`已增加${Math.floor(money)}钞票和${Math.floor(food)}食物`);
     }
 
     public RollMaterialPrefab(weightKey: MaterialWeightKey): Prefab {

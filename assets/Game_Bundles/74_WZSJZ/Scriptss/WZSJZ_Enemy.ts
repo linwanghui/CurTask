@@ -1,4 +1,4 @@
-import { _decorator, Component, sp, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, Node, sp, UITransform, Vec3 } from 'cc';
 import { WZSJZ_Constant, WZSJZ_EnemyConfig } from './WZSJZ_Constant';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 const { ccclass, property } = _decorator;
@@ -19,9 +19,27 @@ export class WZSJZ_Enemy extends Component {
         return !this._isDead && this._currentHealth > 0;
     }
 
+    public get CurrentHealth(): number {
+        return this._currentHealth;
+    }
+
+    public get MaxHealth(): number {
+        return this._config?.MaxHealth || 1;
+    }
+
+    protected get Wall(): WZSJZ_Wall {
+        return this._wall;
+    }
+
+    protected get EnemyConfig(): WZSJZ_EnemyConfig {
+        return this._config;
+    }
+
     public Initialize(
         wall: WZSJZ_Wall,
         recycleCallback: (enemy: WZSJZ_Enemy) => void,
+        enemyProjectileLayer: Node = null,
+        healthBarLayer: Node = null,
     ): boolean {
         this.unscheduleAllCallbacks();
         this._wall = wall;
@@ -46,6 +64,7 @@ export class WZSJZ_Enemy extends Component {
         if (!this._config || !this.IsAlive || !this._wall?.IsAlive) {
             return;
         }
+        this.UpdateEnemyState(deltaTime);
 
         // 受击动画期间暂停当前行为；连续受击会重新播放并刷新硬直时间。
         if (this._hitReactionTimer > 0) {
@@ -74,12 +93,21 @@ export class WZSJZ_Enemy extends Component {
             return;
         }
 
+        this.UpdateAttack(deltaTime);
+    }
+
+    /** 子类可只替换抵达攻击位置后的行为，移动、受击和死亡仍复用基类。 */
+    protected UpdateAttack(deltaTime: number): void {
         this.PlayAnimation(this._config.AttackAnimation);
         this._attackTimer -= deltaTime;
         if (this._attackTimer <= 0) {
             this._wall.TakeDamage(this._config.AttackDamage);
             this._attackTimer = this._config.AttackInterval;
         }
+    }
+
+    /** 子类可更新韧性、护盾等独立于移动和攻击的状态。 */
+    protected UpdateEnemyState(deltaTime: number): void {
     }
 
     /** 返回本次伤害是否刚好击杀，供经验、掉落等系统订阅结果。 */
@@ -89,14 +117,21 @@ export class WZSJZ_Enemy extends Component {
         }
         this._currentHealth = Math.max(0, this._currentHealth - damage);
         if (this._currentHealth > 0) {
-            this._hitReactionTimer = this._config.HitDuration;
-            this.PlayAnimation(this._config.HitAnimation, false, true);
+            if (this.ShouldEnterHitReaction(damage)) {
+                this._hitReactionTimer = this._config.HitDuration;
+                this.PlayAnimation(this._config.HitAnimation, false, true);
+            }
             return false;
         }
         this._isDead = true;
         this._hitReactionTimer = 0;
         this.PlayAnimation(this._config.DeathAnimation, false);
         this.scheduleOnce(() => this._recycleCallback?.(this), this._config.DeathDuration);
+        return true;
+    }
+
+    /** 普通敌人每次受伤都硬直；Boss 可覆盖为韧性清空时才硬直。 */
+    protected ShouldEnterHitReaction(damage: number): boolean {
         return true;
     }
 
@@ -137,7 +172,7 @@ export class WZSJZ_Enemy extends Component {
         return side >= 0 ? bounds.xMin : bounds.xMax;
     }
 
-    private PlayAnimation(
+    protected PlayAnimation(
         animationName: string,
         loop: boolean = true,
         restart: boolean = false,

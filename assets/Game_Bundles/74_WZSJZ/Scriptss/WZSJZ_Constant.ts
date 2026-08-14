@@ -32,6 +32,8 @@ export enum WZSJZ_TIER {
 /** 一类可合成物资的完整配置。 */
 export interface WZSJZ_MaterialConfig {
     Name: string;
+    /** 播放攻击动画后延迟多少秒产生实际攻击；不需要前摇时填0。 */
+    AttackFireDelay: number;
     /** 该物资产出会增加到哪一种玩家资源。 */
     ResourceType: "money" | "food" | "none";
     /** 购买物资时的随机权重。 */
@@ -100,12 +102,21 @@ export interface WZSJZ_EnemyConfig {
     HitDuration: number;
     DeathAnimation: string;
     DeathDuration: number;
+    /** 不填时随机出生；Boss 通常使用敌方区域中心。 */
+    SpawnPositionMode?: "random" | "center";
 }
 
 export class WZSJZ_Constant {
     public static readonly Panel = {
         LoadingPanel: "Panel/LoadingPanel",
-        IntroducePanel: "Panel/IntroducePanel"
+        IntroducePanel: "Panel/IntroducePanel",
+        CheatPanel: "Panel/CheatPanel"
+    };
+
+    public static readonly Cheat = {
+        AddResourceAmount: 9990000,
+        AddKeyAmount: 999,
+        DefaultUnitLevel: 1,
     };
 
     public static readonly PreparationGrid = {
@@ -203,6 +214,7 @@ export class WZSJZ_Constant {
         BlueExplosionPrewarm: 10,
         CellMoveEffectPrewarm: 8,
         CellUpgradeEffectPrewarm: 8,
+        BossLaoSaiArrowPrewarm: 8,
     };
 
     /** 防止单位停在攻击范围临界点时因浮点误差反复进入移动状态。 */
@@ -215,6 +227,13 @@ export class WZSJZ_Constant {
         "Prefabs/单位/哈夫克士兵",
         "Prefabs/单位/阿萨拉士兵",
     ];
+
+    /** 包含手动召唤的敌人；是否自动刷新仍由 EnemyPrefabPaths 决定。 */
+    public static readonly EnemyPrefabPathByName: Record<string, string> = {
+        "哈夫克士兵": "Prefabs/单位/哈夫克士兵",
+        "阿萨拉士兵": "Prefabs/单位/阿萨拉士兵",
+        "牢赛": "Prefabs/单位/牢赛",
+    };
 
     public static readonly EnemyConfigs: Record<string, WZSJZ_EnemyConfig> = {
         "哈夫克士兵": {
@@ -245,6 +264,40 @@ export class WZSJZ_Constant {
             DeathAnimation: "siwang",
             DeathDuration: 1,
         },
+        "牢赛": {
+            MaxHealth: 1200,
+            MoveSpeed: 65,
+            AttackRange: 360,
+            AttackPositionOffset: 0,
+            AttackInterval: 2.4,
+            AttackDamage: 35,
+            MoveAnimation: "zoulu",
+            AttackAnimation: "gongji",
+            HitAnimation: "shouji",
+            HitDuration: 0.4,
+            DeathAnimation: "siwang",
+            DeathDuration: 1.5,
+            SpawnPositionMode: "center",
+        },
+    };
+
+    /** 牢赛专属战斗数值；动画内的具体发箭时间在其专属脚本顶部调整。 */
+    public static readonly BossLaoSai = {
+        ArrowPrefabPath: "Prefabs/投掷物/Boss_牢赛_弓箭",
+        BarPrefabPath: "Prefabs/UI/血条",
+        ArrowSpeed: 1050,
+        ArrowHitDistance: 25,
+        ArrowHitEffectDuration: 0.3,
+        SkillMinInterval: 8,
+        SkillMaxInterval: 15,
+        SkillArrowDamage: 28,
+        SkillAnimation: "jineng",
+        MaxTenacity: 300,
+        /** 伤害转换为韧性伤害的倍率。 */
+        TenacityDamageScale: 1,
+        /** 韧性清空并触发受击后，经过多少秒直接回满。 */
+        TenacityRecoveryDelay: 5,
+        TenacityBarColor: { R: 235, G: 184, B: 55, A: 255 },
     };
 
     public static readonly GunBullet = {
@@ -377,6 +430,7 @@ export class WZSJZ_Constant {
     public static readonly MaterialConfigs: Record<string, WZSJZ_MaterialConfig> = {
         "钞票": {
             Name: "钞票",
+            AttackFireDelay: 0,
             ResourceType: "money",
             PurchaseWeight: 45,
             ItemLockWeight: 45,
@@ -395,6 +449,7 @@ export class WZSJZ_Constant {
         },
         "食物": {
             Name: "食物",
+            AttackFireDelay: 0,
             ResourceType: "food",
             PurchaseWeight: 45,
             ItemLockWeight: 45,
@@ -413,6 +468,7 @@ export class WZSJZ_Constant {
         },
         "围墙": {
             Name: "围墙",
+            AttackFireDelay: 0,
             ResourceType: "none",
             PurchaseWeight: 10,
             ItemLockWeight: 10,
@@ -431,6 +487,7 @@ export class WZSJZ_Constant {
         },
         "钥匙": {
             Name: "钥匙",
+            AttackFireDelay: 0,
             ResourceType: "none",
             PurchaseWeight: 3,
             ItemLockWeight: 0,
@@ -444,6 +501,7 @@ export class WZSJZ_Constant {
         },
         "枪": {
             Name: "枪",
+            AttackFireDelay: 0,
             ResourceType: "none",
             PurchaseWeight: 12,
             ItemLockWeight: 8,
@@ -462,6 +520,7 @@ export class WZSJZ_Constant {
         },
         "刀": {
             Name: "刀",
+            AttackFireDelay: 0,
             ResourceType: "none",
             PurchaseWeight: 12,
             ItemLockWeight: 8,
@@ -480,6 +539,7 @@ export class WZSJZ_Constant {
         },
         "炮": {
             Name: "炮",
+            AttackFireDelay: 0.45,
             ResourceType: "none",
             PurchaseWeight: 8,
             ItemLockWeight: 5,
@@ -498,6 +558,7 @@ export class WZSJZ_Constant {
         },
         "雷": {
             Name: "雷",
+            AttackFireDelay: 0,
             ResourceType: "none",
             PurchaseWeight: 7,
             ItemLockWeight: 4,
@@ -516,6 +577,7 @@ export class WZSJZ_Constant {
         },
         "盾": {
             Name: "盾",
+            AttackFireDelay: 0,
             ResourceType: "none",
             PurchaseWeight: 6,
             ItemLockWeight: 4,
@@ -535,6 +597,7 @@ export class WZSJZ_Constant {
         },
         "哥": {
             Name: "哥",
+            AttackFireDelay: 0,
             ResourceType: "none",
             PurchaseWeight: 6,
             ItemLockWeight: 4,
@@ -554,6 +617,7 @@ export class WZSJZ_Constant {
         },
         "盾哥": {
             Name: "盾哥",
+            AttackFireDelay: 0.4,
             ResourceType: "none",
             PurchaseWeight: 0,
             ItemLockWeight: 0,
@@ -575,6 +639,10 @@ export class WZSJZ_Constant {
 
     public static GetMaterialConfig(name: string): WZSJZ_MaterialConfig | null {
         return this.MaterialConfigs[name] || null;
+    }
+
+    public static GetAttackFireDelay(name: string): number {
+        return Math.max(0, this.GetMaterialConfig(name)?.AttackFireDelay || 0);
     }
 
     public static GetMaterialLevelConfig(

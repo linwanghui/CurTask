@@ -8,6 +8,27 @@ export class WZSJZ_EventManager {
     public static 拖拽物变化 = "文字三角洲_拖拽物变化";//参数为当前拖拽物，拖拽结束时为null
     public static 布阵变化 = "文字三角洲_布阵变化";//拖拽落位、合成、交换或回收后触发
     public static 组合单位变化 = "文字三角洲_组合单位变化";//参数为当前场上的组合单位组件数组
+    public static 修改增加资源 = "文字三角洲_修改增加资源";//参数：钞票数量、食物数量
+    public static 修改增加钥匙 = "文字三角洲_修改增加钥匙";//参数：钥匙数量
+    public static 修改添加单位 = "文字三角洲_修改添加单位";//参数：单位名（可附带等级）
+    public static 修改添加敌人 = "文字三角洲_修改添加敌人";//参数：敌人名
+    public static 修改城墙无敌 = "文字三角洲_修改城墙无敌";//无参数，切换永久无敌状态
+    public static 修改批量生成小怪 = "文字三角洲_修改批量生成小怪";//无参数，切换普通小怪定时生成
+
+    /** 修改面板属于常驻UI，通过当前游戏管理节点向场景模块广播命令。 */
+    private static _sceneEventNode: Node = null;
+
+    public static BindSceneEventNode(node: Node): void {
+        this._sceneEventNode = node;
+    }
+
+    public static EmitScene(type: string, ...args: any[]): boolean {
+        if (!this._sceneEventNode?.isValid) {
+            return false;
+        }
+        this._sceneEventNode.emit(type, ...args);
+        return true;
+    }
 }
 
 

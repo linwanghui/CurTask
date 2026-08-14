@@ -30,6 +30,7 @@ export class WZSJZ_UIManager extends Component {
     private static _originalDirectorTick: ((deltaTime: number) => void) | null = null;
     private _isFiveTimesSpeed: boolean = false;
     private _isPKeyPressed: boolean = false;
+    private _isOKeyPressed: boolean = false;
     public static get Instance() {
         if (!this._instance) {
             this._instance = new WZSJZ_UIManager();
@@ -192,17 +193,26 @@ export class WZSJZ_UIManager extends Component {
         tween(nd).to(1.5, { position: v3(0, 200, 0) }, { easing: "backOut" }).call(() => { nd.destroy() }).start();
     }
 
-    /** 全局调试热键：P键在1倍与5倍游戏速度之间切换。 */
+    /** 全局调试热键：P打开修改界面，O在1倍与5倍游戏速度之间切换。 */
     private RegisterHotkeys(): void {
         input.on(Input.EventType.KEY_DOWN, this.OnKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.OnKeyUp, this);
     }
 
     private OnKeyDown(event: EventKeyboard): void {
-        if (event.keyCode !== KeyCode.KEY_P || this._isPKeyPressed) {
+        if (event.keyCode === KeyCode.KEY_P) {
+            if (this._isPKeyPressed) return;
+            this._isPKeyPressed = true;
+            if (!this.IsPanelVisible(WZSJZ_Constant.Panel.CheatPanel)) {
+                this.ShowPanel(WZSJZ_Constant.Panel.CheatPanel);
+            }
             return;
         }
-        this._isPKeyPressed = true;
+        if (event.keyCode !== KeyCode.KEY_O || this._isOKeyPressed
+            || this.IsPanelVisible(WZSJZ_Constant.Panel.CheatPanel)) {
+            return;
+        }
+        this._isOKeyPressed = true;
         this._isFiveTimesSpeed = !this._isFiveTimesSpeed;
         const timeScale = this._isFiveTimesSpeed ? 5 : 1;
         WZSJZ_UIManager._gameTimeScale = timeScale;
@@ -213,6 +223,14 @@ export class WZSJZ_UIManager extends Component {
         if (event.keyCode === KeyCode.KEY_P) {
             this._isPKeyPressed = false;
         }
+        if (event.keyCode === KeyCode.KEY_O) {
+            this._isOKeyPressed = false;
+        }
+    }
+
+    private IsPanelVisible(panelPath: string): boolean {
+        const panel = this._panelDict[panelPath] as Node;
+        return !!panel && isValid(panel) && !!panel.parent && panel.active;
     }
 
     /**

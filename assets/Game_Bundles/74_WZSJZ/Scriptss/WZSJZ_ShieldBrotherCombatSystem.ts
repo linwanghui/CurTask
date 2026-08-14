@@ -36,6 +36,8 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
     private _shieldPrefab: Prefab = null;
     private _shieldPool: NodePool = new NodePool();
     private _isGameStarted: boolean = false;
+    private _pendingAttacks: Map<WZSJZ_GameNode, number> = new Map();
+    private _attackToken: number = 0;
 
     protected onLoad(): void {
         WZSJZ_ShieldBrotherCombatSystem._instance = this;
@@ -43,6 +45,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
     }
 
     protected onDestroy(): void {
+        this._pendingAttacks.clear();
         this._shieldPool.clear();
         if (WZSJZ_ShieldBrotherCombatSystem._instance === this) {
             WZSJZ_ShieldBrotherCombatSystem._instance = null;
@@ -58,6 +61,16 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
     }
 
     public UpdateShieldBrother(gameNode: WZSJZ_GameNode, deltaTime: number): void {
+        if (this._pendingAttacks.has(gameNode)) {
+            if (!this.CanCompleteDelayedAttack(gameNode)) {
+                this._pendingAttacks.delete(gameNode);
+                gameNode.ResetAttackCooldown();
+            } else {
+                // 前摇属于本次攻击间隔的一部分，等待发射时冷却仍继续流逝。
+                gameNode.ReduceAttackCooldown(deltaTime);
+            }
+            return;
+        }
         if (!this._isGameStarted || gameNode.IsDragging
             || gameNode.CurrentCell?.Zone !== "formation") {
             gameNode.ResetAttackCooldown();
@@ -74,21 +87,44 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             return;
         }
         const target = this.FindNearestEnemy(gameNode.node.worldPosition, levelConfig.AttackRange);
-        if (!target || !this.SpawnShield(
-            gameNode,
-            target,
-            levelConfig.AttackDamage,
-            levelConfig.BulletSpeed,
-        )) {
+        if (!target) {
             return;
         }
 
+        const token = ++this._attackToken;
+        this._pendingAttacks.set(gameNode, token);
         gameNode.StartAttackCooldown(levelConfig.AttackInterval);
         const skeleton = gameNode.node.getChildByName("图像")?.getComponent(sp.Skeleton);
         if (skeleton) {
             skeleton.setAnimation(0, WZSJZ_Constant.ShieldProjectile.AttackAnimation, false);
             skeleton.addAnimation(0, WZSJZ_Constant.ShieldProjectile.IdleAnimation, true, 0);
         }
+        this.scheduleOnce(() => {
+            if (this._pendingAttacks.get(gameNode) !== token) {
+                return;
+            }
+            this._pendingAttacks.delete(gameNode);
+            if (!this.CanCompleteDelayedAttack(gameNode)) {
+                return;
+            }
+            const currentConfig = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
+            if (!currentConfig?.AttackDamage || !currentConfig.BulletSpeed
+                || !currentConfig.AttackRange) {
+                return;
+            }
+            const currentTarget = this.FindNearestEnemy(
+                gameNode.node.worldPosition,
+                currentConfig.AttackRange,
+            );
+            if (currentTarget) {
+                this.SpawnShield(
+                    gameNode,
+                    currentTarget,
+                    currentConfig.AttackDamage,
+                    currentConfig.BulletSpeed,
+                );
+            }
+        }, WZSJZ_Constant.GetAttackFireDelay(gameNode.Name));
     }
 
     private OnGameStart(): void {
@@ -192,6 +228,13 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             }
         }
         return nearest;
+    }
+
+    private CanCompleteDelayedAttack(gameNode: WZSJZ_GameNode): boolean {
+        return this._isGameStarted
+            && !!gameNode?.node?.isValid
+            && !gameNode.IsDragging
+            && gameNode.CurrentCell?.Zone === "formation";
     }
 
     private SetupProjectileLayer(): void {

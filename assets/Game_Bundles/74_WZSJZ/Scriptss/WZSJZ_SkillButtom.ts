@@ -19,7 +19,8 @@ export class WZSJZ_SkillButtom extends Component {
 
     public Configure(cooldown: number, onUse: () => boolean): void {
         this._cooldown = Math.max(0, cooldown);
-        this._remaining = 0;
+        // 技能刚生成（包括组合角色拆开后重新组合）时从完整CD开始。
+        this._remaining = this._cooldown;
         this._onUse = onUse;
         const mask = this._maskNode?.getComponent(Sprite);
         if (mask) {
@@ -64,5 +65,4 @@ export class WZSJZ_SkillButtom extends Component {
     }
 
 }
-
 
