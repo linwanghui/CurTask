@@ -163,7 +163,7 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["155炮弹", { Name: "155炮弹", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 420000, MaxCount: 1 }],
     ["供能单元", { Name: "供能单元", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 412000, MaxCount: 1 }],
     ["装甲车电池", { Name: "装甲车电池", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 476000, MaxCount: 1 }],
-    ["奥薇莉娅香槟", { Name: "奥薇莉娅香槟", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 483000, MaxCount: 1 }],
+    ["特供香槟", { Name: "特供香槟", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 483000, MaxCount: 1 }],
     ["彩金色鲤鱼", { Name: "彩金色鲤鱼", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 498000, MaxCount: 1 }],
     //2x2 --  白
     ["水泥石砖", { Name: "水泥石砖", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 5000, MaxCount: 1 }],
@@ -392,7 +392,7 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["火箭燃料", "装在专用容器中的高能推进剂，是航天与导弹系统的关键物资。"],
 
     ["七彩鸟蛋", "蛋壳流转着七彩光泽的珍稀鸟蛋，保存完好，具有极高的收藏与研究价值。"],
-    ["奥薇莉娅香槟", "奥薇莉娅酒庄限量酿制的年份香槟，酒香细腻优雅，是宴会与收藏市场上的珍品。"],
+    ["特供香槟", "皇家酒庄限量酿制的年份香槟，酒香细腻优雅，是宴会与收藏市场上的珍品。"],
     ["彩金色鲤鱼", "鳞片呈现彩金般绚丽光泽的珍稀鲤鱼，寓意富贵吉祥，深受收藏家追捧。"],
     ["极品平安果", "经过严格甄选与精心培育的极品平安果，果形圆润饱满，象征平安与好运。"],
     ["特供咖啡豆", "产自限定庄园的特供咖啡豆，经过精细处理与烘焙，拥有浓郁而层次丰富的香气。"],

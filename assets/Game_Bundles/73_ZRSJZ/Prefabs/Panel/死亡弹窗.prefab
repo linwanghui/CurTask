@@ -822,8 +822,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 164,
-      "height": 79.6
+      "width": 160,
+      "height": 75.6
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -853,9 +853,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_string": "立即复活",
@@ -878,7 +878,7 @@
     "_isUnderline": false,
     "_underlineHeight": 5,
     "_cacheMode": 0,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -924,7 +924,7 @@
     "_left": 0,
     "_right": 0,
     "_top": 0,
-    "_bottom": 14.161000000000003,
+    "_bottom": 16.161,
     "_horizontalCenter": -4.373,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -979,8 +979,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 102.934,
-      "y": 39.387,
+      "x": 98.731,
+      "y": 43.349,
       "z": 0
     },
     "_lrot": {
@@ -1020,8 +1020,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 89,
-      "height": 55
+      "width": 73,
+      "height": 68
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1057,7 +1057,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "7e3bee9a-3f6e-4711-b748-f1c166289e6c@f9941",
+      "__uuid__": "1dd92615-33e0-4063-9be0-4ec74ed2fdb8@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -1377,8 +1377,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 164,
-      "height": 79.6
+      "width": 160,
+      "height": 75.6
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1408,9 +1408,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_string": "安全撤离",
@@ -1433,7 +1433,7 @@
     "_isUnderline": false,
     "_underlineHeight": 5,
     "_cacheMode": 0,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -1479,7 +1479,7 @@
     "_left": 0,
     "_right": 0,
     "_top": 0,
-    "_bottom": 13.848000000000006,
+    "_bottom": 15.848000000000006,
     "_horizontalCenter": -2.703,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -1534,8 +1534,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 104.226,
-      "y": 41.481,
+      "x": 100.023,
+      "y": 45.443,
       "z": 0
     },
     "_lrot": {
@@ -1575,8 +1575,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 89,
-      "height": 55
+      "width": 73,
+      "height": 68
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1612,7 +1612,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "7e3bee9a-3f6e-4711-b748-f1c166289e6c@f9941",
+      "__uuid__": "1dd92615-33e0-4063-9be0-4ec74ed2fdb8@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,

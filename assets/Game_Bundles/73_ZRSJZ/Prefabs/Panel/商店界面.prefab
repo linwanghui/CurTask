@@ -6472,7 +6472,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -131.626,
-      "y": 5,
+      "y": 2.962,
       "z": 0
     },
     "_lrot": {
@@ -6607,8 +6607,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 55.649,
-      "y": 5,
+      "x": 38.679,
+      "y": 2.785,
       "z": 0
     },
     "_lrot": {
@@ -6648,8 +6648,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 84.64997863769531,
-      "height": 67
+      "width": 53.74998474121094,
+      "height": 84.89200000000001
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -6684,13 +6684,13 @@
       "b": 255,
       "a": 255
     },
-    "_string": "100",
+    "_string": "10",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 50,
     "_fontSize": 50,
     "_fontFamily": "Arial",
-    "_lineHeight": 50,
+    "_lineHeight": 64.2,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
@@ -6760,8 +6760,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 439,
-      "height": 116
+      "width": 388,
+      "height": 114
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -6797,12 +6797,12 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "d65d4b6e-026c-49ed-984a-4b23205ea308@f9941",
+      "__uuid__": "ece452cb-ccec-4353-bf31-7cbc463b4224@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
     "_fillType": 0,
-    "_sizeMode": 0,
+    "_sizeMode": 1,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -6987,7 +6987,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -131.626,
+      "x": 81.243,
       "y": 5,
       "z": 0
     },
@@ -7028,8 +7028,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 89,
-      "height": 55
+      "width": 61,
+      "height": 44
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7065,7 +7065,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "7e3bee9a-3f6e-4711-b748-f1c166289e6c@f9941",
+      "__uuid__": "b6bfd57d-bd64-4620-92d0-70a398b154ca@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -7123,7 +7123,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 55.649,
+      "x": -40.013,
       "y": 5,
       "z": 0
     },
@@ -7164,8 +7164,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 204,
-      "height": 67
+      "width": 168,
+      "height": 63
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7195,16 +7195,16 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_string": "免费获取",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 50,
-    "_fontSize": 50,
+    "_actualFontSize": 42,
+    "_fontSize": 42,
     "_fontFamily": "Arial",
     "_lineHeight": 50,
     "_overflow": 0,
@@ -7220,7 +7220,7 @@
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -7276,8 +7276,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 439,
-      "height": 116
+      "width": 388,
+      "height": 114
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7313,12 +7313,12 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "d65d4b6e-026c-49ed-984a-4b23205ea308@f9941",
+      "__uuid__": "ece452cb-ccec-4353-bf31-7cbc463b4224@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
     "_fillType": 0,
-    "_sizeMode": 0,
+    "_sizeMode": 1,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -7498,7 +7498,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 4.006,
+      "y": 2.783,
       "z": 0
     },
     "_lrot": {
@@ -7538,8 +7538,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 184,
-      "height": 104.8
+      "width": 126,
+      "height": 75.6
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7569,18 +7569,18 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_string": "使用中",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 60,
-    "_fontSize": 60,
+    "_actualFontSize": 42,
+    "_fontSize": 42,
     "_fontFamily": "Arial",
-    "_lineHeight": 80,
+    "_lineHeight": 60,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
@@ -7594,7 +7594,7 @@
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -7800,7 +7800,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 6.307,
+      "y": 2.6,
       "z": 0
     },
     "_lrot": {
@@ -7840,8 +7840,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 124,
-      "height": 104.8
+      "width": 84,
+      "height": 75.6
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7871,18 +7871,18 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_string": "使用",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 60,
-    "_fontSize": 60,
+    "_actualFontSize": 42,
+    "_fontSize": 42,
     "_fontFamily": "Arial",
-    "_lineHeight": 80,
+    "_lineHeight": 60,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
@@ -7896,7 +7896,7 @@
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,

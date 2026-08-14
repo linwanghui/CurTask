@@ -1,4 +1,4 @@
-import { _decorator, Component, isValid, Label, Node, Sprite, UITransform } from 'cc';
+import { _decorator, Component, isValid, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
@@ -6,6 +6,11 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_BoxroomBox')
 export class ZRSJZ_BoxroomBox extends Component {
+
+    /** 下标依次对应 1级铜框、2级银框、3级金框。 */
+    @property([SpriteFrame])
+    GridSFs: SpriteFrame[] = [];
+
     private _propName: string = "";
     private _clickCallback: (propName: string) => void = null;
 
@@ -39,12 +44,19 @@ export class ZRSJZ_BoxroomBox extends Component {
         const maxHeight = Math.max(1, height - 24);
         const sourceWidth = Math.max(1, sourceSize.width);
         const sourceHeight = Math.max(1, sourceSize.height);
-        const scale = Math.min(maxWidth / sourceWidth, maxHeight / sourceHeight) * 0.85;
+        const scale = Math.min(maxWidth / sourceWidth, maxHeight / sourceHeight) * 0.7;
         iconTransform.setContentSize(sourceWidth * scale, sourceHeight * scale);
     }
 
     public RefreshLevel(): void {
         const level = ZRSJZ_GameData.Instance.GetBoxroomPropLevel(this._propName);
+        const gridSprite = this.getComponent(Sprite);
+        if (gridSprite && this.GridSFs.length > 0) {
+            // 未收藏时沿用一级铜框，道具图标则继续通过灰度区分未解锁状态。
+            const frameIndex = Math.max(0, Math.min(2, level - 1));
+            gridSprite.spriteFrame = this.GridSFs[frameIndex] ?? this.GridSFs[0];
+        }
+
         const iconSprite = this.node.getChildByName("图像")?.getComponent(Sprite);
         if (iconSprite) iconSprite.grayscale = level <= 0;
 
