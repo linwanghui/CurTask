@@ -66,6 +66,8 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     private _arrayInventorySerial: number = 0;
     private _revealCallback: () => void = null;
     private _activeGoodsInventory: ZRSJZ_BoxInventory = null;
+    private _activeBox: ZRSJZ_Box = null;
+    private _playerIndex: number = 0;
     private _arrayGoodsInventory: ZRSJZ_BoxInventory = null;
     private readonly _searchPlaceholders: Array<Node | null> = [];
     private readonly _searchReservations = new Map<Node, ZRSJZ_SearchReservation>();
@@ -96,28 +98,40 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         if (this._activeGoodsInventory?.node?.isValid) {
             this._activeGoodsInventory.node.active = false;
         }
+        this._activeBox?.EndSearch(this._playerIndex);
+        this._activeBox = null;
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
 
     Show(...args: any[]): void {
-        super.Show();
-
         const source = args[0];
         const box = source instanceof ZRSJZ_Box ? source : null;
+        this._playerIndex = box
+            ? (args[1] === 1 ? 1 : 0)
+            : (args[2] === 1 ? 1 : 0);
+        ZRSJZ_InventoryService.SetActivePlayerIndex(this._playerIndex);
         // 防止其他入口直接打开物资弹窗而绕过密码验证。
         if (box?.RequiresPassword() && !box.IsPasswordUnlocked()) {
             ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.物资弹窗, () => {
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.密码箱弹窗, box);
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.密码箱弹窗, box, this._playerIndex);
             });
             return;
         }
+        if (box && !box.TryBeginSearch(this._playerIndex)) {
+            ZRSJZ_UIManager.Instance.ShowTip("另一名玩家正在搜索该箱子");
+            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.物资弹窗);
+            return;
+        }
+        this._activeBox = box;
+        super.Show();
         const props = Array.isArray(source)
             ? source.filter(propName => typeof propName === 'string')
             : [];
         box?.Open();
-        const interval = typeof args[1] === 'number'
-            ? Math.max(0.05, args[1])
+        const intervalArg = box ? args[2] : args[1];
+        const interval = typeof intervalArg === 'number'
+            ? Math.max(0.05, intervalArg)
             : Math.max(0.05, this.SearchInterval);
         this.StartReveal(props, interval, box);
     }
@@ -166,12 +180,13 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
         const totalValue = ZRSJZ_InventoryService.GetInventoryTotalValue([
             ZRSJZ_INVENTORY.背包,
             ZRSJZ_INVENTORY.保险箱,
-        ]);
+        ], this._playerIndex);
         this._totalValue.string = `${totalValue}`;
     }
 
     async ShowBackpack(): Promise<ZRSJZ_Inventory> {
         const backpack = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.背包);
+        await backpack.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY.背包);
         backpack.parent = this.BackpackContent;
         backpack.setPosition(0, 0, 0);
         backpack.active = true;

@@ -7,6 +7,7 @@ const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_Joystick_Drug')
 export class ZRSJZ_Joystick_Drug extends Component {
+    PlayerIndex: number = 0;
     /** 与 Drug 数组一致：高级 80%、中级 50%、初级 20%。 */
     private static readonly RECOVER_RATES: readonly number[] = [0.8, 0.5, 0.2];
     private static readonly DRUG_NODE_NAMES: readonly string[] = ["药品3", "药品2", "药品1"];
@@ -39,8 +40,9 @@ export class ZRSJZ_Joystick_Drug extends Component {
 
 
     /** 根据 ZRSJZ_Game 中的当前药品数量刷新摇杆 UI。 */
-    public RefreshDrugCount(force: boolean = false): void {
-        const drug = ZRSJZ_Game.Instance?.Drug;
+    public RefreshDrugCount(force: boolean = false, playerIndex?: number): void {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        const drug = ZRSJZ_Game.Instance?.Drug[this.PlayerIndex];
         if (!drug) return;
 
         for (let index = 0; index < this._countLabels.length; index++) {
@@ -60,7 +62,7 @@ export class ZRSJZ_Joystick_Drug extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         const target = event.getCurrentTarget();
         if (target.name === "背包") {
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.背包弹窗);
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.背包弹窗, this.PlayerIndex);
             return;
         }
 
@@ -72,14 +74,15 @@ export class ZRSJZ_Joystick_Drug extends Component {
 
     private UseDrug(drugIndex: number): void {
         const game = ZRSJZ_Game.Instance;
-        const player = game?.CurPlayer;
+        const player = game?.GetPlayer(this.PlayerIndex);
         if (!game || !player) return;
 
-        const count = Math.max(0, Math.floor(game.Drug[drugIndex] ?? 0));
+        const drug = game.Drug[this.PlayerIndex];
+        const count = Math.max(0, Math.floor(drug[drugIndex] ?? 0));
         if (count <= 0) {
             ZRSJZ_Game.Instance.GamePaused = true;
             // ZRSJZ_UIManager.Instance.ShowTip("药品数量不足");
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.医疗箱弹窗);
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.医疗箱弹窗, null, this.PlayerIndex);
             return;
         }
         if (player.CurHP >= player.MaxHP) {
@@ -87,16 +90,18 @@ export class ZRSJZ_Joystick_Drug extends Component {
             return;
         }
 
-        game.Drug[drugIndex] = count - 1;
+        drug[drugIndex] = count - 1;
         this.RefreshDrugCount(true);
         const recoverHP = player.MaxHP * ZRSJZ_Joystick_Drug.RECOVER_RATES[drugIndex];
         void player.Recover(recoverHP);
     }
 
-    AddDrug() {
-        ZRSJZ_Game.Instance.Drug[0] += 1;
-        ZRSJZ_Game.Instance.Drug[1] += 1;
-        ZRSJZ_Game.Instance.Drug[2] += 1;
+    AddDrug(playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        const drug = ZRSJZ_Game.Instance.Drug[this.PlayerIndex];
+        drug[0] += 1;
+        drug[1] += 1;
+        drug[2] += 1;
 
         this.RefreshDrugCount(true);
     }

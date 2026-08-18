@@ -12,6 +12,7 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_BackpackPanel')
 export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
+    private _playerIndex: number = 0;
 
     @property(SpriteFrame)
     DiscardSFs: SpriteFrame[] = [];
@@ -50,6 +51,12 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshTotalValue, this);
     }
 
+    Show(...args: any[]): void {
+        this._playerIndex = args[0] === 1 ? 1 : 0;
+        ZRSJZ_InventoryService.SetActivePlayerIndex(this._playerIndex);
+        super.Show();
+    }
+
     async OnButtonClick(event: EventTouch): Promise<void> {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
@@ -85,12 +92,13 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
         const totalValue = ZRSJZ_InventoryService.GetInventoryTotalValue([
             ZRSJZ_INVENTORY.背包,
             ZRSJZ_INVENTORY.保险箱,
-        ]);
+        ], this._playerIndex);
         this._totalValue.string = `${totalValue}`;
     }
 
     ShowBackpack() {
-        ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.背包).then(backpack => {
+        ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.背包).then(async backpack => {
+            await backpack.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY.背包);
             backpack.parent = this.BackpackContent;
             backpack.setPosition(0, 0, 0);
             backpack.active = true;

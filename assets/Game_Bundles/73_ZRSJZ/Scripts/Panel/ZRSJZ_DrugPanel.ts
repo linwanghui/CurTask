@@ -14,6 +14,7 @@ export class ZRSJZ_DrugPanel extends ZRSJZ_Panel {
     private _targetBox: ZRSJZ_Box = null;
     private _videoButton: Button = null;
     private _isWatching: boolean = false;
+    private _playerIndex: number = 0;
 
     protected onLoad(): void {
         this._videoButton = find("Panel/观看视频", this.node)?.getComponent(Button) ?? null;
@@ -21,6 +22,7 @@ export class ZRSJZ_DrugPanel extends ZRSJZ_Panel {
 
     Show(...args: any[]): void {
         this._targetBox = args[0] instanceof ZRSJZ_Box ? args[0] : null;
+        this._playerIndex = args[1] === 1 ? 1 : 0;
         this._isWatching = false;
         if (this._videoButton) this._videoButton.interactable = true;
         super.Show();
@@ -39,7 +41,7 @@ export class ZRSJZ_DrugPanel extends ZRSJZ_Panel {
                 if (this._videoButton) this._videoButton.interactable = false;
                 const targetBox = this._targetBox;
                 Banner.Instance.ShowVideoAd(() => {
-                    ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_DRUG_ADD);
+                    ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_DRUG_ADD, this._playerIndex);
                     if (targetBox?.RequiresRewardVideo() && !targetBox.IsOpened()) {
                         targetBox.UnlockMedicalBox();
                         targetBox.Open();
@@ -58,5 +60,4 @@ export class ZRSJZ_DrugPanel extends ZRSJZ_Panel {
     }
 
 }
-
 

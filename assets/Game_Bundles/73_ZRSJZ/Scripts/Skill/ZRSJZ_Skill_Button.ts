@@ -16,6 +16,7 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('ZRSJZ_Skill_Button')
 export class ZRSJZ_Skill_Button extends Component {
+    PlayerIndex: number = 0;
     @property({ tooltip: '发送给玩家的技能名称' })
     SkillName: string = '';
 
@@ -73,7 +74,7 @@ export class ZRSJZ_Skill_Button extends Component {
     }
 
     protected update(dt: number): void {
-        this._icon.grayscale = this.IsNeedLock && !ZRSJZ_Game.Instance.CurPlayer?.IsLockEnemy;
+        this._icon.grayscale = this.IsNeedLock && !ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex)?.IsLockEnemy;
         if (this._skillCD <= 0) {
             return;
         }
@@ -108,6 +109,7 @@ export class ZRSJZ_Skill_Button extends Component {
             dirX,
             dirY,
             clamp01(strength),
+            this.PlayerIndex,
         );
         this.StartCooldown();
         return true;
@@ -126,10 +128,11 @@ export class ZRSJZ_Skill_Button extends Component {
     }
 
     private OnTouchStart(event: EventTouch): void {
-        if (this.IsNeedLock && !ZRSJZ_Game.Instance.CurPlayer.IsLockEnemy) {
+        const player = ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex);
+        if (this.IsNeedLock && !player?.IsLockEnemy) {
             ZRSJZ_UIManager.Instance.ShowTip("请先锁定目标！");
             return;
-        } else if (!ZRSJZ_Game.Instance.CurPlayer.IsSkill) {
+        } else if (!player?.IsSkill) {
             return;
         }
         if (!this.IsReady || this._touchID !== -1) {

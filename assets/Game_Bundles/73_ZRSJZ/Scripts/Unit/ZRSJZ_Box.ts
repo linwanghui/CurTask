@@ -62,6 +62,8 @@ export class ZRSJZ_Box extends Component {
     private _nextLootIndex: number = 0;
     private _inventoryID: string = "";
     private _boxInventory: ZRSJZ_BoxInventory = null;
+    /** 搜索期间的独占玩家；箱内掉落仍由本箱唯一库存持有。 */
+    private _searchingPlayerIndex: number = -1;
     private _boxConfig: Readonly<ZRSJZ_BoxConfig> = null;
     private _mapProp: readonly (readonly string[])[] = [];
 
@@ -102,6 +104,7 @@ export class ZRSJZ_Box extends Component {
         this.State = ZRSJZ_BOX_STATE.IDLE;
         this._isPasswordUnlocked = false;
         this._isMedicalUnlocked = false;
+        this._searchingPlayerIndex = -1;
         this._nextLootIndex = 0;
         this._inventoryID = `${this.node.uuid}_${++ZRSJZ_Box._inventorySerial}`;
         this.LootProps = this.GenerateLootProps();
@@ -120,6 +123,7 @@ export class ZRSJZ_Box extends Component {
         this.State = ZRSJZ_BOX_STATE.IDLE;
         this._isPasswordUnlocked = false;
         this._isMedicalUnlocked = false;
+        this._searchingPlayerIndex = -1;
         this._nextLootIndex = 0;
         this._inventoryID = `${this.node.uuid}_${++ZRSJZ_Box._inventorySerial}`;
         this.LootProps = (lootProps ?? []).filter(propName => {
@@ -223,6 +227,27 @@ export class ZRSJZ_Box extends Component {
 
     IsOpened(): boolean {
         return this.State === ZRSJZ_BOX_STATE.OPENED;
+    }
+
+    TryBeginSearch(playerIndex: number): boolean {
+        const normalizedIndex = playerIndex === 1 ? 1 : 0;
+        if (this._searchingPlayerIndex >= 0 && this._searchingPlayerIndex !== normalizedIndex) {
+            return false;
+        }
+        this._searchingPlayerIndex = normalizedIndex;
+        return true;
+    }
+
+    EndSearch(playerIndex: number): void {
+        const normalizedIndex = playerIndex === 1 ? 1 : 0;
+        if (this._searchingPlayerIndex === normalizedIndex) {
+            this._searchingPlayerIndex = -1;
+        }
+    }
+
+    IsBeingSearchedByOther(playerIndex: number): boolean {
+        return this._searchingPlayerIndex >= 0
+            && this._searchingPlayerIndex !== (playerIndex === 1 ? 1 : 0);
     }
 
     /** 返回本次箱子按地图配置生成的物品列表。 */

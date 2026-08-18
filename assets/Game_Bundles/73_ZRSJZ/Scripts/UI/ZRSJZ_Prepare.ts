@@ -2,6 +2,7 @@ import { _decorator, Component, Node, ScrollView } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_INVENTORY } from '../ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
+import { ZRSJZ_Inventory } from './ZRSJZ_Inventory';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Prepare')
@@ -28,15 +29,18 @@ export class ZRSJZ_Prepare extends Component {
 
     async Show(isShowProtectorCase: boolean = false) {
         const cardBag = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.卡包);
+        await cardBag.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY.卡包);
         cardBag.active = true;
         cardBag.parent = this.CardBag;
 
         const ammo = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.弹药);
+        await ammo.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY.弹药);
         ammo.active = true;
         ammo.parent = this.Ammo;
 
         if (isShowProtectorCase) {
             const protectorCase = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.保险箱);
+            await protectorCase.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY.保险箱);
             protectorCase.active = true;
             protectorCase.parent = this.node.getChildByPath("保险/Mask/安全箱");
         }

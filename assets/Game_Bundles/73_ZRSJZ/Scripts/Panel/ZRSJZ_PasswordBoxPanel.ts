@@ -52,6 +52,7 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
     private _isLockCoolingDown: boolean = false;
     private _roundSerial: number = 0;
     private _isInit: boolean = false;
+    private _playerIndex: number = 0;
 
     protected onLoad(): void {
         this.InitView();
@@ -77,6 +78,7 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
 
     Show(...args: any[]): void {
         this._targetBox = args[0] instanceof ZRSJZ_Box ? args[0] : null;
+        this._playerIndex = args[1] === 1 ? 1 : 0;
         if (!this._targetBox) return;
 
         // ZRSJZ_Panel.Hide 会暂时关闭 Panel/Mask，而这里的 Mask 同时是字母轮盘的裁剪区。
@@ -334,7 +336,7 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
         const box = this._targetBox;
         box.UnlockPassword();
         ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.密码箱弹窗, () => {
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.物资弹窗, box);
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.物资弹窗, box, this._playerIndex);
         });
     }
 

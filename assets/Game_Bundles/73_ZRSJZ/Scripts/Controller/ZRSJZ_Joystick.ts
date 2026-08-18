@@ -1,4 +1,4 @@
-import { _decorator, Component, EventKeyboard, EventTouch, Touch, Input, input, KeyCode, Node, UITransform, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, EventKeyboard, EventTouch, Touch, Input, input, KeyCode, Node, UITransform, Vec2, Vec3, v3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -6,6 +6,7 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Joystick')
 export class ZRSJZ_Joystick extends Component {
+    PlayerIndex: number = 0;
 
     private _cameraArea: UITransform = null;
 
@@ -34,14 +35,13 @@ export class ZRSJZ_Joystick extends Component {
         let touches = event.getTouches();
         for (let i = 0; i < touches.length; ++i) {
             let touch = touches[i];
-            let x = touch.getUILocationX();
-            let y = touch.getUILocationY();
             if (!this._movementTouch) {
-                let halfWidth = this._cameraArea.width / 2;
-                let halfHeight = this._cameraArea.height / 2;
+                const local = this._cameraArea.convertToNodeSpaceAR(v3(
+                    touch.getUILocationX(), touch.getUILocationY(), 0,
+                ));
 
                 this._joystickBase.node.active = true;
-                this._joystickBase.node.setPosition(x - halfWidth, y - halfHeight, 0);
+                this._joystickBase.node.setPosition(local);
                 this._joystickDot.setPosition(0, 0, 0);
                 this._movementTouch = touch;
             }
@@ -53,14 +53,13 @@ export class ZRSJZ_Joystick extends Component {
         for (let i = 0; i < touches.length; ++i) {
             let touch = touches[i];
             if (this._movementTouch && touch.getID() == this._movementTouch.getID()) {
-                let halfWidth = this._cameraArea.width / 2;
-                let halfHeight = this._cameraArea.height / 2;
-                let x = touch.getUILocationX();
-                let y = touch.getUILocationY();
+                const local = this._cameraArea.convertToNodeSpaceAR(v3(
+                    touch.getUILocationX(), touch.getUILocationY(), 0,
+                ));
 
                 let pos = this._joystickBase.node.position;
-                let ox = x - halfWidth - pos.x;
-                let oy = y - halfHeight - pos.y;
+                let ox = local.x - pos.x;
+                let oy = local.y - pos.y;
 
                 let len = Math.sqrt(ox * ox + oy * oy);
                 if (len <= 0) {
@@ -77,7 +76,7 @@ export class ZRSJZ_Joystick extends Component {
                 }
 
                 this._joystickDot.setPosition(ox, oy, 0);
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, dirX, dirY, len / radius);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, dirX, dirY, len / radius, this.PlayerIndex);
             }
         }
     }
@@ -91,7 +90,7 @@ export class ZRSJZ_Joystick extends Component {
                 this._movementTouch = null;
                 // this._joystickBase.node.active = false;
                 this._joystickDot.setPosition(Vec3.ZERO);
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0, this.PlayerIndex);
             }
         }
     }
@@ -103,6 +102,7 @@ export class ZRSJZ_Joystick extends Component {
     dir: Vec2 = new Vec2(0, 0);
 
     onKeyDown(event: EventKeyboard) {
+        if (this.PlayerIndex !== 0) return;
         let keyCode = event.keyCode;
         switch (keyCode) {
             case KeyCode.KEY_A:
@@ -119,6 +119,7 @@ export class ZRSJZ_Joystick extends Component {
     }
 
     onKeyUp(event: EventKeyboard) {
+        if (this.PlayerIndex !== 0) return;
         let keyCode = event.keyCode;
         switch (keyCode) {
             case KeyCode.KEY_A:
@@ -141,7 +142,7 @@ export class ZRSJZ_Joystick extends Component {
             this._keysRow.length == 0 ? 0 : this._keysRow[this._keysRow.length - 1] == KeyCode.KEY_A ? -1 : 1,
             this._keysCol.length == 0 ? 0 : this._keysCol[this._keysCol.length - 1] == KeyCode.KEY_S ? -1 : 1
         )
-        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.dir.x, this.dir.y, 1);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.dir.x, this.dir.y, 1, this.PlayerIndex);
     }
 
 }

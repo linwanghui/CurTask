@@ -36,7 +36,9 @@ export class ZRSJZ_InventoryService {
     }
 
     public static IsPlayerInventory(inventory: ZRSJZ_INVENTORY): boolean {
-        return inventory === ZRSJZ_INVENTORY.卡包
+        return inventory === ZRSJZ_INVENTORY.背包
+            || inventory === ZRSJZ_INVENTORY.保险箱
+            || inventory === ZRSJZ_INVENTORY.卡包
             || inventory === ZRSJZ_INVENTORY.弹药
             || inventory === ZRSJZ_INVENTORY.武器_枪
             || inventory === ZRSJZ_INVENTORY.武器_头盔
@@ -182,24 +184,31 @@ export class ZRSJZ_InventoryService {
         }) ?? "";
     }
 
-    public static HasEquippedRoomCard(roomCardName: string): boolean {
-        return this.GetEquippedRoomCardID(roomCardName) !== "";
+    public static HasEquippedRoomCard(roomCardName: string, playerIndex: number = this._activePlayerIndex): boolean {
+        return this.GetEquippedRoomCardID(roomCardName, playerIndex) !== "";
     }
 
-    public static ConsumeEquippedRoomCard(roomCardName: string): boolean {
-        const roomCardID = this.GetEquippedRoomCardID(roomCardName);
+    public static ConsumeEquippedRoomCard(roomCardName: string, playerIndex: number = this._activePlayerIndex): boolean {
+        const roomCardID = this.GetEquippedRoomCardID(roomCardName, playerIndex);
         if (!roomCardID) return false;
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, roomCardID);
         delete ZRSJZ_GameData.Instance.PropData[roomCardID];
-        this.RefreshRoomCardIDs(this._activePlayerIndex);
+        this.RefreshRoomCardIDs(playerIndex);
         this.NotifyInventoryChanged();
         return true;
     }
 
-    public static GetInventoryTotalValue(inventories: readonly ZRSJZ_INVENTORY[]): number {
+    public static GetInventoryTotalValue(
+        inventories: readonly ZRSJZ_INVENTORY[],
+        playerIndex: number = this._activePlayerIndex,
+    ): number {
         const inventorySet = new Set(inventories);
         return Object.values(ZRSJZ_GameData.Instance.PropData).reduce((total, prop) =>
-            inventorySet.has(prop.CurInventory) ? total + prop.UnitPrice * prop.CurCount : total,
+            inventorySet.has(prop.CurInventory)
+                && (!this.IsPlayerInventory(prop.CurInventory)
+                    || (prop.OwnerPlayerIndex ?? 0) === playerIndex)
+                ? total + prop.UnitPrice * prop.CurCount
+                : total,
         0);
     }
 
