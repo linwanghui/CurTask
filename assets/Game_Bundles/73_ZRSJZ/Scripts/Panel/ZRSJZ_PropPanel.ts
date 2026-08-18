@@ -72,7 +72,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         this._isOperating = false;
         const showVersion = ++this._showVersion;
         this.Name.string = propData.Name;
-        this.Price.string = `${propData.UnitPrice * propData.CurCount}`;
+        this.Price.string = `${Math.floor(propData.UnitPrice * propData.CurCount)}`;
         if (ZRSJZ_PROP_PROPERTY.has(propData.Name)) {
             //有属性
             this.PropDesc1.active = true;

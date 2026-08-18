@@ -15,35 +15,12 @@ export class ZRSJZ_Start extends Component {
 
     protected start(): void {
         if (!ZRSJZ_GameData.Instance.IsTutorial) {
-            //没通过新手教程就跳转新手教程场景
-            ZRSJZ_GameData.Instance.CurMap = "新手村";
-
-            //初始化装备
-            if (ZRSJZ_GameData.Instance.WeaponryID[0] != "") {
-                ZRSJZ_GameData.Instance.RemovePropID(ZRSJZ_GameData.Instance.WeaponryID[0]);
-                ZRSJZ_GameData.Instance.WeaponryID[0] = "";
-            }
-
-            //初始化弹药
-            if (ZRSJZ_GameData.Instance.AmmoID[0] == "") {
-                let propId = ZRSJZ_GameData.Instance.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
-                ZRSJZ_GameData.Instance.AmmoID[0] = propId;
-                ZRSJZ_GameData.Instance.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
-            } else if (ZRSJZ_GameData.Instance.AmmoID[1] == "") {
-                let propId = ZRSJZ_GameData.Instance.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
-                ZRSJZ_GameData.Instance.AmmoID[1] = propId;
-                ZRSJZ_GameData.Instance.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
-            } else if (ZRSJZ_GameData.Instance.AmmoID[2] == "") {
-                let propId = ZRSJZ_GameData.Instance.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
-                ZRSJZ_GameData.Instance.AmmoID[2] = propId;
-                ZRSJZ_GameData.Instance.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
-            }
-            // director.loadScene("ZRSJZ_Tutorial");
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Tutorial");
+            this.InitTutorial();
             return;
         }
+        //关闭所有面板
+        ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
 
-        ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
         if (ZRSJZ_GameData.Instance.CanClaimSignInReward()) {
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
         }
@@ -57,8 +34,6 @@ export class ZRSJZ_Start extends Component {
         })
     }
 
-    protected onDisable(): void {
-    }
 
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
@@ -105,6 +80,34 @@ export class ZRSJZ_Start extends Component {
                 break;
 
         }
+    }
+
+    InitTutorial() {
+        //没通过新手教程就跳转新手教程场景
+        ZRSJZ_GameData.Instance.CurMap = "新手村";
+
+        //初始化装备
+        if (ZRSJZ_GameData.Instance.WeaponryID[0] != "") {
+            ZRSJZ_GameData.Instance.RemovePropID(ZRSJZ_GameData.Instance.WeaponryID[0]);
+            ZRSJZ_GameData.Instance.WeaponryID[0] = "";
+        }
+
+        //初始化弹药
+        if (ZRSJZ_GameData.Instance.AmmoID[0] == "") {
+            let propId = ZRSJZ_GameData.Instance.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            ZRSJZ_GameData.Instance.AmmoID[0] = propId;
+            ZRSJZ_GameData.Instance.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        } else if (ZRSJZ_GameData.Instance.AmmoID[1] == "") {
+            let propId = ZRSJZ_GameData.Instance.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            ZRSJZ_GameData.Instance.AmmoID[1] = propId;
+            ZRSJZ_GameData.Instance.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        } else if (ZRSJZ_GameData.Instance.AmmoID[2] == "") {
+            let propId = ZRSJZ_GameData.Instance.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            ZRSJZ_GameData.Instance.AmmoID[2] = propId;
+            ZRSJZ_GameData.Instance.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        }
+        // director.loadScene("ZRSJZ_Tutorial");
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Tutorial");
     }
 
 }

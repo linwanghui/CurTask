@@ -12,6 +12,15 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     @property({ tooltip: "补偿 Spine 持枪约束的初始角度偏差" })
     AimAngleOffset: number = 17;
 
+    @property({
+        displayName: "移动射击动画混合时间",
+        tooltip: "普通持枪移动与移动射击互相切换时的姿势混合时间（秒）。",
+        min: 0,
+        max: 0.5,
+        step: 0.01,
+    })
+    MoveShootMixDuration: number = 0.12;
+
     CurPlayerIndex: number = 0;
     QKBone: sp.spine.Bone = null;
     GunType: string = "";
@@ -80,6 +89,8 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     PlayHandAni(aniName: string, loop: boolean = true, cb: Function = null) {
         this.HandSkeleton.timeScale = 1;
         aniName = this.GetHandAnimationName(aniName);
+        const previousAnimation = this.HandSkeleton.getCurrent(0)?.animation?.name ?? "";
+        this.SetMoveShootMix(this.HandSkeleton, previousAnimation, aniName);
         this.HandSkeleton.setAnimation(0, aniName, loop);
         this.HandSkeleton.setCompleteListener(() => {
             if (!loop) this.HandSkeleton.setCompleteListener(null);
@@ -90,10 +101,12 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     /** 切换身体移动动画时继承当前循环进度，并允许微调动画相位。 */
     PlayBodyAniKeepingProgress(aniName: string, loop: boolean = true) {
         const previousEntry = this.Skeleton.getCurrent(0);
+        const previousAnimation = previousEntry?.animation?.name ?? "";
         const previousDuration = previousEntry?.animation?.duration ?? 0;
         const normalizedTime = previousDuration > 0
             ? (previousEntry.trackTime % previousDuration) / previousDuration
             : 0;
+        this.SetMoveShootMix(this.Skeleton, previousAnimation, aniName);
         const nextEntry = this.Skeleton.setAnimation(0, aniName, loop);
         const nextDuration = nextEntry?.animation?.duration ?? 0;
         if (nextDuration > 0) {
@@ -111,6 +124,8 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         this.HandSkeleton.timeScale = animationDuration > 0
             ? Math.max(0.01, animationDuration * safeRoundsPerMinute / 60)
             : 1;
+        const previousAnimation = this.HandSkeleton.getCurrent(0)?.animation?.name ?? "";
+        this.SetMoveShootMix(this.HandSkeleton, previousAnimation, aniName);
         this.HandSkeleton.setAnimation(0, aniName, false);
         this.HandSkeleton.setCompleteListener(() => {
             this.HandSkeleton.setCompleteListener(null);
@@ -130,6 +145,39 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
             return "gj_jjq2";
         }
         return aniName;
+    }
+
+    /** 只为持枪移动与移动射击配置混合，避免影响换弹、近战及死亡等一次性动画。 */
+    private SetMoveShootMix(
+        skeleton: sp.Skeleton,
+        fromAnimation: string,
+        toAnimation: string,
+    ): void {
+        if (
+            !skeleton
+            || !fromAnimation
+            || fromAnimation === toAnimation
+            || this.MoveShootMixDuration <= 0
+            || !this.IsMoveShootTransition(fromAnimation, toAnimation)
+        ) {
+            return;
+        }
+        skeleton.setMix(fromAnimation, toAnimation, this.MoveShootMixDuration);
+    }
+
+    private IsMoveShootTransition(fromAnimation: string, toAnimation: string): boolean {
+        const moveAnimation = ZRSJZ_ANI.Walk_Q;
+        const movingShootAnimations: string[] = [
+            ZRSJZ_ANI.Attack_Move_Q,
+            ZRSJZ_ANI.Attack_Move_Q2,
+        ];
+        return (
+            fromAnimation === moveAnimation
+            && movingShootAnimations.includes(toAnimation)
+        ) || (
+            toAnimation === moveAnimation
+            && movingShootAnimations.includes(fromAnimation)
+        );
     }
 
     SetPlayerDir(x: number) {

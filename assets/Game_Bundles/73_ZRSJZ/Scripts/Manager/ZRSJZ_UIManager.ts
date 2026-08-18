@@ -23,14 +23,6 @@ export class ZRSJZ_UIManager extends Component {
 
     private static _instance: ZRSJZ_UIManager = null;
     public static get Instance(): ZRSJZ_UIManager {
-        // if (!ZRSJZ_UIManager._instance) {
-        //     // ZRSJZ_UIManager.Init();
-        //     ZRSJZ_UIManager.InitDLC();
-        //     ZRSJZ_UIManager.InitAudio();
-        //     ZRSJZ_UIManager.InitUI();
-        //     ZRSJZ_UIManager.InitInventory();
-        //     ZRSJZ_UIManager.InitEvent();
-        // }
         return ZRSJZ_UIManager._instance;
     }
 
@@ -290,7 +282,7 @@ export class ZRSJZ_UIManager extends Component {
     /**
      * 立即关闭所有已打开和正在异步加载的弹窗，可选择保留一个最高优先级面板。
      */
-    private CloseAllPanelsImmediately(excludedPanelName: string = ""): void {
+    CloseAllPanelsImmediately(excludedPanelName: string = ""): void {
         this._panelRequestVersion++;
 
         // 先取消拖动，归还跟随手指的临时道具节点，并恢复滚动等交互状态。

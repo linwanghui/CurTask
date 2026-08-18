@@ -38,6 +38,9 @@ export class ZRSJZ_Game extends Component {
     @property(Node)
     Checked: Node = null;
 
+    @property
+    IsTutorial: boolean = false;
+
     CurMap: ZRSJZ_Map = null;
     CurPlayer: ZRSJZ_Player = null;
 
@@ -196,7 +199,7 @@ export class ZRSJZ_Game extends Component {
                 this.CompleteEvacuation();
                 return;
             }
-            if (timeoutReached) {
+            if (timeoutReached && !this.IsTutorial) {
                 this.FailEvacuationByTimeout();
                 return;
             }
