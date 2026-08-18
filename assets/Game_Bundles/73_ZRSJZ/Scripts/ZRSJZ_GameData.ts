@@ -88,6 +88,7 @@ export class ZRSJZ_GameData {
     public CurWeaponSkin: { [weaponName: string]: string } = {};
     // public GameTempID: string[] = [];//战斗时的临时ID
     public CurMap: string = "新手村";//当前地图
+    public CurModel: string = "1p";//当前模式
 
     //#region 签到
     public GetSignInClaimedCount(): number {

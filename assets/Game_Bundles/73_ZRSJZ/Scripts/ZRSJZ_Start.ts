@@ -13,6 +13,9 @@ export class ZRSJZ_Start extends Component {
     @property(Node)
     SignBtn: Node = null;
 
+    @property(Node)
+    Player2: Node = null;
+
     protected start(): void {
         if (!ZRSJZ_GameData.Instance.IsTutorial) {
             this.InitTutorial();
@@ -26,14 +29,19 @@ export class ZRSJZ_Start extends Component {
         }
         // this.SignBtn.active = !ZRSJZ_GameData.Instance.IsSignInCompleted();
         ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
+        this.ModelSwitch();
     }
 
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT, () => {
             ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
         })
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MODEL_SWITCH, this.ModelSwitch, this);
     }
 
+    protected onDisable(): void {
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MODEL_SWITCH, this.ModelSwitch, this);
+    }
 
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
@@ -108,6 +116,10 @@ export class ZRSJZ_Start extends Component {
         }
         // director.loadScene("ZRSJZ_Tutorial");
         ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Tutorial");
+    }
+
+    ModelSwitch() {
+        this.Player2.active = ZRSJZ_GameData.Instance.CurModel == "2p";
     }
 
 }
