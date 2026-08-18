@@ -1,3 +1,4 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import {
     _decorator,
     EventTouch,
@@ -162,7 +163,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     }
 
     private RefreshTotalValue(): void {
-        const totalValue = ZRSJZ_GameData.Instance.GetInventoryTotalValue([
+        const totalValue = ZRSJZ_InventoryService.GetInventoryTotalValue([
             ZRSJZ_INVENTORY.背包,
             ZRSJZ_INVENTORY.保险箱,
         ]);
@@ -227,7 +228,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             }
 
             const count = propConfig.PropType === "弹药" ? propConfig.MaxCount : 1;
-            const propID = ZRSJZ_GameData.Instance.AddPropByName(propName, count);
+            const propID = ZRSJZ_InventoryService.AddPropByName(propName, count);
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
             propData.SourceBoxID = goods.BoxID;
             propData.IsSearchLocked = true;
@@ -245,7 +246,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                     propData.Width,
                     propData.Height,
                 );
-            ZRSJZ_GameData.Instance.MovePropToInventory(
+            ZRSJZ_InventoryService.MovePropToInventory(
                 propID,
                 ZRSJZ_INVENTORY.物资,
                 1,

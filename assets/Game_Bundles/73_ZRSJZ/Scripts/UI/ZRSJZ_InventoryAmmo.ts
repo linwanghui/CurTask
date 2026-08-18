@@ -1,3 +1,4 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, Node, UITransform, v2, Vec3 } from 'cc';
 import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_INVENTORY, ZRSJZ_INVENTORY_CONFIG, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
@@ -128,7 +129,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
                 changed = true;
             }
         }
-        if (changed) ZRSJZ_GameData.Instance.SetAmmoID(ammoIDs);
+        if (changed) ZRSJZ_InventoryService.SetAmmoID(ammoIDs);
         await super.RemoveProp(id, isRemoveProp);
     }
 
@@ -145,7 +146,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
             await this.RemoveFromOtherInventories(incomingID);
             ammoIDs[targetIndex] = incomingID;
             this.SaveAmmoPosition(incomingID, targetIndex);
-            ZRSJZ_GameData.Instance.SetAmmoID(ammoIDs);
+            ZRSJZ_InventoryService.SetAmmoID(ammoIDs);
             await this.RebuildView();
             return;
         }
@@ -179,7 +180,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
             targetData.SourceBoxID = returnInventory === ZRSJZ_INVENTORY.物资
                 ? sourceBoxID
                 : "";
-            ZRSJZ_GameData.Instance.MovePropToInventory(
+            ZRSJZ_InventoryService.MovePropToInventory(
                 targetID,
                 returnInventory,
                 sourceGridIndex,
@@ -188,7 +189,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
             );
             if (sourcePlacements.length > 0) {
                 for (const placement of sourcePlacements) {
-                    ZRSJZ_GameData.Instance.ChangePropGridPos(
+                    ZRSJZ_InventoryService.ChangePropGridPos(
                         targetID,
                         placement.gridIndex,
                         placement.gridX,
@@ -210,7 +211,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         }
 
         this.SaveAmmoPosition(incomingID, targetIndex);
-        ZRSJZ_GameData.Instance.SetAmmoID(ammoIDs);
+        ZRSJZ_InventoryService.SetAmmoID(ammoIDs);
         await this.RebuildView();
     }
 
@@ -236,13 +237,13 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         if (incomingData.CurCount <= 0) {
             if (sourceIndex >= 0) ZRSJZ_GameData.Instance.AmmoID[sourceIndex] = "";
             await this.RemoveFromAllInventories(incomingID);
-            ZRSJZ_GameData.Instance.RemovePropID(incomingID);
+            ZRSJZ_InventoryService.RemovePropID(incomingID);
         } else {
             ZRSJZ_GameData.SaveData();
             this.RefreshPropCount(incomingID);
         }
 
-        ZRSJZ_GameData.Instance.SetAmmoID(ZRSJZ_GameData.Instance.AmmoID);
+        ZRSJZ_InventoryService.SetAmmoID(ZRSJZ_GameData.Instance.AmmoID);
         this.RefreshPropCount(targetID);
         await this.RebuildView();
     }
@@ -428,7 +429,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
             const data = ZRSJZ_GameData.Instance.PropData[ammoIDs[i]];
             if (!data || data.PropType !== "弹药") ammoIDs[i] = "";
         }
-        ZRSJZ_GameData.Instance.SetAmmoID(ammoIDs);
+        ZRSJZ_InventoryService.SetAmmoID(ammoIDs);
     }
 
     private MigrateOldAmmoData() {
@@ -442,7 +443,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
                 : ammoIDs.indexOf("");
             if (index >= 0) ammoIDs[index] = id;
         }
-        ZRSJZ_GameData.Instance.SetAmmoID(ammoIDs);
+        ZRSJZ_InventoryService.SetAmmoID(ammoIDs);
     }
 
     private SyncAmmoDataPosition() {
@@ -453,7 +454,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
     }
 
     private SaveAmmoPosition(id: string, index: number) {
-        ZRSJZ_GameData.Instance.MovePropToInventory(
+        ZRSJZ_InventoryService.MovePropToInventory(
             id,
             this.InventoryType,
             1,

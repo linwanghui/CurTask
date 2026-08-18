@@ -1,3 +1,4 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, Component, Node, Sprite, UITransform, v2, Vec3 } from 'cc';
 import { ZRSJZ_Inventory } from './ZRSJZ_Inventory';
 import { ZRSJZ_INVENTORY, ZRSJZ_INVENTORY_CONFIG } from '../ZRSJZ_Constant';
@@ -170,7 +171,7 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
                 propNode.getComponent(ZRSJZ_PropGrid).CurScale = 1;
                 ZRSJZ_PoolManager.Instance.PutNode(propNode);
             }
-            ZRSJZ_GameData.Instance.SetWeaponry(this._weaponryIndex, "");
+            ZRSJZ_InventoryService.SetWeaponry(this._weaponryIndex, "");
             this._GridSprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropGridUI(this.InventoryType == ZRSJZ_INVENTORY.武器_枪 ? "枪_灰" : "空格子_灰");
             this._Normal.active = true;
             if (propName) {
@@ -189,8 +190,8 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
         node.active = true;
         this.Grids[0][0] = id;
         if (isInit) return;
-        ZRSJZ_GameData.Instance.SetWeaponry(this._weaponryIndex, id);
-        ZRSJZ_GameData.Instance.MovePropToInventory(id, this.InventoryType, 1, 0, 0);
+        ZRSJZ_InventoryService.SetWeaponry(this._weaponryIndex, id);
+        ZRSJZ_InventoryService.MovePropToInventory(id, this.InventoryType, 1, 0, 0);
     }
 
     // 检查是否是同一个ID

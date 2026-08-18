@@ -1,3 +1,6 @@
+import { ZRSJZ_BoxroomService } from "../Service/ZRSJZ_BoxroomService";
+import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, tween, Tween, v2, v3, Vec2, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
@@ -214,7 +217,7 @@ export class ZRSJZ_Player extends Component {
         const hasGun = !!gunID && !!ZRSJZ_GameData.Instance.PropData[gunID];
         const hasKnife = !!knifeID && !!ZRSJZ_GameData.Instance.PropData[knifeID];
         this._curKnifeName = hasKnife ? ZRSJZ_GameData.Instance.PropData[knifeID].Name : "";
-        this.CurSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
+        this.CurSpeed *= 1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate();
         this.WeaponType = hasGun ? "枪" : (hasKnife ? "刀" : "");
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
         if (hasGun) {
@@ -225,7 +228,7 @@ export class ZRSJZ_Player extends Component {
 
 
         //血量初始化
-        this.MaxHP = (this.InitHP + ZRSJZ_GameData.Instance.GetResearchMaxHPBonus()) * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("生命") : 0));
+        this.MaxHP = (this.InitHP + ZRSJZ_FacilityService.GetResearchMaxHPBonus()) * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("生命") : 0));
         this.CurHP = this.MaxHP;
         this.HP.Init(this.MaxHP);
         this.HP.Show(this.CurHP);
@@ -235,7 +238,7 @@ export class ZRSJZ_Player extends Component {
         this.FillInitialMagazineWhenReady();
 
         //速度初始化
-        this.MaxSpeed = this.Speed * (1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate());
+        this.MaxSpeed = this.Speed * (1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate());
         this.CurSpeed = this.MaxSpeed;
 
         this._curScale = this.node.scale.x;
@@ -373,7 +376,7 @@ export class ZRSJZ_Player extends Component {
         }
         const gunDamage = this.GetGunProperty("伤害", 0);//本身伤害
         const bulletDamage = ZRSJZ_PROP_PROPERTY.get(ammoName)?.["增伤"] ?? 0;//子弹攻击力加成
-        const totalGunDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
+        const totalGunDamageRate = 1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
         const bulletLevel = this.GetBulletLevel(ammoName);
         const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + totalGunDamageRate));
 
@@ -476,8 +479,8 @@ export class ZRSJZ_Player extends Component {
         const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
 
         const finalDamage = Math.round(
-            damage * (1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate() +
-                (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("枪械伤害") : 0))
+            damage * (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() +
+                (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0))
         );
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         enemys = enemys.filter(enemy => !enemy.IsDead);
@@ -821,7 +824,7 @@ export class ZRSJZ_Player extends Component {
         }
 
         if (isChanged) {
-            ZRSJZ_GameData.Instance.SetAmmoID(ammoIDs);
+            ZRSJZ_InventoryService.SetAmmoID(ammoIDs);
         }
     }
 

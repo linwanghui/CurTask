@@ -1,3 +1,4 @@
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Component, Node, sp } from 'cc';
 import { ZRSJZ_ANI, ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
@@ -59,7 +60,7 @@ export class ZRSJZ_Skeleton extends Component {
                     isWeaponry = true;
                     if (isEquipment) {
                         this.WeaponryName = equipmentName;
-                        const weaponSkin = ZRSJZ_GameData.Instance.GetWeaponSkin(equipmentName);
+                        const weaponSkin = ZRSJZ_AccountService.GetWeaponSkin(equipmentName);
                         ZRSJZ_UIManager.Instance.GetWeaponryUI(weaponSkin).then(texture => {
                             if (!texture) {
                                 console.error(`武器纹理不存在: ${weaponSkin}`);

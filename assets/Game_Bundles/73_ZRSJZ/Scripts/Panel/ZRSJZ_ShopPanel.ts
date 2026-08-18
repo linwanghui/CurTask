@@ -1,3 +1,5 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Prefab, sp, Sprite, SpriteFrame, Tween, tween } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -146,7 +148,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
                 const clickIndex = Number(event.getCurrentTarget().name);
                 if (clickIndex == this._curShowIndex) {
                     this._isWeaponSkinOperation = false;
-                    this._selectedWeaponSkin = ZRSJZ_GameData.Instance.GetWeaponSkin(this._curShop);
+                    this._selectedWeaponSkin = ZRSJZ_AccountService.GetWeaponSkin(this._curShop);
                     this.ShowShopPreview(this._curShop);
                     this.RefreshWeaponSkinState();
                     this.RefreshPurchaseState();
@@ -303,7 +305,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             this._weaponSkinNodes.push(skinNode);
         }
         if (!this._isWeaponSkinOperation) {
-            this._selectedWeaponSkin = ZRSJZ_GameData.Instance.GetWeaponSkin(weaponName);
+            this._selectedWeaponSkin = ZRSJZ_AccountService.GetWeaponSkin(weaponName);
         }
         this.RefreshWeaponSkinState();
         this.RefreshPurchaseState();
@@ -360,8 +362,8 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             return;
         }
 
-        const owned = ZRSJZ_GameData.Instance.HasWeaponSkin(this._curShop, this._selectedWeaponSkin);
-        const using = ZRSJZ_GameData.Instance.GetWeaponSkin(this._curShop) === this._selectedWeaponSkin;
+        const owned = ZRSJZ_AccountService.HasWeaponSkin(this._curShop, this._selectedWeaponSkin);
+        const using = ZRSJZ_AccountService.GetWeaponSkin(this._curShop) === this._selectedWeaponSkin;
         const skinConfig = ZRSJZ_WEAPON_SKIN.get(this._curShop)
             ?.find(skin => skin.Name === this._selectedWeaponSkin);
         this.ShopPurchase.active = !owned && skinConfig?.UnlockType === "金币";
@@ -374,7 +376,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
 
     private async OnPurchase(): Promise<void> {
         if (this._isWeaponSkinOperation && this._selectedWeaponSkin) {
-            const owned = ZRSJZ_GameData.Instance.HasWeaponSkin(this._curShop, this._selectedWeaponSkin);
+            const owned = ZRSJZ_AccountService.HasWeaponSkin(this._curShop, this._selectedWeaponSkin);
             if (owned) {
                 this.RefreshPurchaseState();
                 return;
@@ -391,8 +393,8 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
                 await ZRSJZ_UIManager.Instance.ShowTip("金币不足");
                 return;
             }
-            ZRSJZ_GameData.Instance.ChangeGold(-skinConfig.Price);
-            ZRSJZ_GameData.Instance.AddWeaponSkin(this._curShop, this._selectedWeaponSkin);
+            ZRSJZ_AccountService.ChangeGold(-skinConfig.Price);
+            ZRSJZ_AccountService.AddWeaponSkin(this._curShop, this._selectedWeaponSkin);
             this.RefreshWeaponSkinState();
             this.RefreshPurchaseState();
             await ZRSJZ_UIManager.Instance.ShowTip("皮肤购买成功");
@@ -412,9 +414,9 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             await ZRSJZ_UIManager.Instance.ShowTip("金币不足");
             return;
         }
-        ZRSJZ_GameData.Instance.ChangeGold(-this._shopPrice);
+        ZRSJZ_AccountService.ChangeGold(-this._shopPrice);
         const count = ZRSJZ_PROP_CONFIG.get(this._curShop)?.MaxCount ?? 1;
-        ZRSJZ_GameData.Instance.AddPropByName(this._curShop, count);
+        ZRSJZ_InventoryService.AddPropByName(this._curShop, count);
         await ZRSJZ_UIManager.Instance.ShowTip("购买成功");
     }
 
@@ -429,13 +431,13 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             await ZRSJZ_UIManager.Instance.ShowTip("该皮肤不能通过视频解锁");
             return;
         }
-        if (ZRSJZ_GameData.Instance.HasWeaponSkin(weaponName, skinName)) {
+        if (ZRSJZ_AccountService.HasWeaponSkin(weaponName, skinName)) {
             this.RefreshPurchaseState();
             return;
         }
 
         Banner.Instance.ShowVideoAd(async () => {
-            ZRSJZ_GameData.Instance.AddWeaponSkin(weaponName, skinName);
+            ZRSJZ_AccountService.AddWeaponSkin(weaponName, skinName);
             this.RefreshWeaponSkinState();
             this.RefreshPurchaseState();
             await ZRSJZ_UIManager.Instance.ShowTip("视频观看完成，皮肤已解锁");
@@ -444,11 +446,11 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
 
     private async OnUseWeaponSkin(): Promise<void> {
         if (!this._isWeaponSkinOperation || !this._selectedWeaponSkin) return;
-        if (!ZRSJZ_GameData.Instance.HasWeaponSkin(this._curShop, this._selectedWeaponSkin)) {
+        if (!ZRSJZ_AccountService.HasWeaponSkin(this._curShop, this._selectedWeaponSkin)) {
             this.RefreshPurchaseState();
             return;
         }
-        if (!ZRSJZ_GameData.Instance.SetWeaponSkin(this._curShop, this._selectedWeaponSkin)) {
+        if (!ZRSJZ_AccountService.SetWeaponSkin(this._curShop, this._selectedWeaponSkin)) {
             await ZRSJZ_UIManager.Instance.ShowTip("皮肤使用失败");
             return;
         }

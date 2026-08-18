@@ -1,3 +1,4 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
@@ -539,7 +540,7 @@ export class ZRSJZ_UIManager extends Component {
                     await inventory.RemoveProp(propID);
                 }
             }
-            ZRSJZ_GameData.Instance.RemovePropID(propID);
+            ZRSJZ_InventoryService.RemovePropID(propID);
         } finally {
             this._discardingPropIDs.delete(propID);
         }

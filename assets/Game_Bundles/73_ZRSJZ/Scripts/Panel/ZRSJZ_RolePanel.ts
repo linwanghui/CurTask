@@ -1,3 +1,4 @@
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, EventHandler, EventTouch, find, instantiate, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -88,8 +89,8 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
             case "金币购买":
                 const price: number = ZRSJZ_SKIN_CONFIG.get(this._curRoleData.Skin[this._curRoleSkinIndex]).UnlockPrice;
                 if (ZRSJZ_GameData.Instance.Gold >= price) {
-                    ZRSJZ_GameData.Instance.ChangeGold(-price);
-                    ZRSJZ_GameData.Instance.AddSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
+                    ZRSJZ_AccountService.ChangeGold(-price);
+                    ZRSJZ_AccountService.AddSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
                     this.ShowButton();
                 } else {
                     //金币不足
@@ -98,12 +99,12 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
                 break;
             case "视频获取":
                 Banner.Instance.ShowVideoAd(() => {
-                    ZRSJZ_GameData.Instance.AddSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
+                    ZRSJZ_AccountService.AddSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
                     this.ShowButton();
                 })
                 break;
             case "上场":
-                ZRSJZ_GameData.Instance.SetCurSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
+                ZRSJZ_AccountService.SetCurSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN);
                 this.ShowButton();
                 break;

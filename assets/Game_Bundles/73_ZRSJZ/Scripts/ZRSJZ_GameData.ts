@@ -1,666 +1,101 @@
 import { sys } from "cc";
-import { GetFacilityBonusValue as GetConfiguredFacilityBonusValue, GetFiringRangeAttackBonusPercent, ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_FACILITY_UPGRADE_CONFIG, ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName, ZRSJZ_WEAPON_SKIN } from "./ZRSJZ_Constant";
-import { ZRSJZ_Tools } from "./ZRSJZ_Tools";
-import { ZRSJZ_PlayerSwitchButton } from "./UI/ZRSJZ_PlayerSwitchButton";
-import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "./Manager/ZRSJZ_EventManager";
+import { ZRSJZ_INVENTORY, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName } from "./ZRSJZ_Constant";
+import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
 
+/**
+ * 游戏存档数据容器。
+ *
+ * 本类只负责：
+ * 1. 声明需要序列化的字段；
+ * 2. 从本地存储读取/写入；
+ * 3. 调用默认值初始化与存档迁移。
+ *
+ * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
+ */
 export class ZRSJZ_GameData {
-
+    private static readonly STORAGE_KEY = "ZRSJZ_GameData";
     private static _instance: ZRSJZ_GameData = null;
+
     public static get Instance(): ZRSJZ_GameData {
-        if (this._instance == null) {
-            this._instance = this.ReadData();
-        }
+        if (!this._instance) this._instance = this.ReadData();
         return this._instance;
     }
 
     public static ReadData(): ZRSJZ_GameData {
-        const data = sys.localStorage.getItem("ZRSJZ_GameData");
-        if (data) {
-            const savedData = JSON.parse(data);
-            this._instance = Object.assign(new ZRSJZ_GameData(), savedData);
-            // 类字段默认值会补到旧存档上，因此需根据原始 JSON 判断是否需要迁移。
-            if (savedData.WarehouseStorageVersion === undefined) {
-                this._instance.WarehouseStorageVersion = 0;
-            }
-            if (this._instance.MigrateWarehouseStorage()) {
-                sys.localStorage.setItem("ZRSJZ_GameData", JSON.stringify(this._instance));
-            }
-        } else {
+        const json = sys.localStorage.getItem(this.STORAGE_KEY);
+        if (!json) {
             this._instance = new ZRSJZ_GameData();
-            this._instance.Init();
+            ZRSJZ_GameDataDefaults.Initialize(this._instance);
+            this.SaveData();
+            return this._instance;
         }
+
+        const savedData = JSON.parse(json);
+        this._instance = Object.assign(new ZRSJZ_GameData(), savedData);
+        if (ZRSJZ_GameDataDefaults.Migrate(this._instance, savedData)) this.SaveData();
         return this._instance;
     }
 
     public static SaveData(): void {
-        sys.localStorage.setItem("ZRSJZ_GameData", JSON.stringify(this._instance));
+        if (!this._instance) return;
+        sys.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._instance));
     }
 
-    public Init() {
-        // this.AddAllProp();
-        this.Gold = 100000;
-        this.CurMap = "新手村";
-
-        //初始化装备
-        let propId = this.AddPropByName("战术匕首");
-        this.WeaponryID[4] = propId;
-        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.武器_刀, 1, 0, 0);
-        //初始化弹药
-        propId = this.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
-        this.AmmoID[0] = propId;
-        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
-        propId = this.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
-        this.AmmoID[1] = propId;
-        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
-        propId = this.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
-        this.AmmoID[2] = propId;
-        this.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
-    }
-
-    public MusicMute: boolean = false;//音乐静音
-    public SoundMute: boolean = false;//音效静音
-    public IsTutorial: boolean = false;//是否通过新手教程
+    public MusicMute: boolean = false;
+    public SoundMute: boolean = false;
+    public IsTutorial: boolean = false;
 
     public Gold: number = 0;
     public FiringRangeLevel: number = 0;
     public FacilityLevel: Partial<Record<ZRSJZ_UpgradeFacilityName, number>> = {};
+
     public HaveRole: string[] = ["威蓝", "小温"];
     public CurRole: string[] = ["威蓝", "小温"];
     public HaveSkin: string[] = ["威蓝", "小温"];
     public CurSkin: string[] = ["威蓝", "小温"];
-    public PropID: number = 0;//道具的唯一ID
-    public PropData: { [ID: string]: ZRSJZ_PropData } = {};//道具数据
-    /** 已解锁的仓库。全部仓库始终开放，其余仓库默认锁定。 */
+
+    public PropID: number = 0;
+    public PropData: { [ID: string]: ZRSJZ_PropData } = {};
     public UnlockedWarehouses: ZRSJZ_INVENTORY[] = [ZRSJZ_INVENTORY.仓库_全部];
-    /** 单仓库归属存档版本，用于把旧版“全部+分类”双份坐标迁移为唯一归属。 */
     public WarehouseStorageVersion: number = 1;
-    public WeaponryID: string[] = ["", "", "", "", ""];//0--枪 、1--头盔、2--防弹衣、3--背包、4--刀
-    public AmmoID: string[] = ["", "", "", "", "", ""];//备战弹药ID
-    public RoomCard: string[] = ["", "", ""];//当前装备的房卡
-    /** 七日签到已经领取的奖励数量，达到 7 后签到永久结束。 */
+
+    /** 0=枪、1=头盔、2=防弹衣、3=背包、4=刀。 */
+    public WeaponryID: string[] = ["", "", "", "", ""];
+    public AmmoID: string[] = ["", "", "", "", ""];
+    public RoomCard: string[] = ["", "", ""];
+
     public SignInClaimedCount: number = 0;
-    /** 上次领取签到奖励的本地日期（YYYY-MM-DD）。 */
     public SignInLastClaimDate: string = "";
-    /** 已购买的非默认武器皮肤；每把武器的首个皮肤始终视为拥有。 */
+
     public HaveWeaponSkin: string[] = [];
-    /** 每把武器当前使用的皮肤。 */
     public CurWeaponSkin: { [weaponName: string]: string } = {};
-    // public GameTempID: string[] = [];//战斗时的临时ID
-    public CurMap: string = "新手村";//当前地图
-    public CurModel: string = "1p";//当前模式
 
-    //#region 签到
-    public GetSignInClaimedCount(): number {
-        return Math.max(0, Math.min(7, Math.floor(this.SignInClaimedCount ?? 0)));
-    }
+    public CurMap: string = "新手村";
+    public CurModel: string = "1p";
 
-    public IsSignInCompleted(): boolean {
-        return this.GetSignInClaimedCount() >= 7;
-    }
-
-    public CanClaimSignInReward(): boolean {
-        return !this.IsSignInCompleted()
-            && this.SignInLastClaimDate !== this.GetLocalDateKey();
-    }
-
-    /** 领取下一天的签到奖励，成功时返回 0～6 的奖励索引。 */
-    public ClaimSignInReward(): number {
-        if (!this.CanClaimSignInReward()) return -1;
-
-        const dayIndex = this.GetSignInClaimedCount();
-        this.SignInClaimedCount = dayIndex + 1;
-        this.SignInLastClaimDate = this.GetLocalDateKey();
-        ZRSJZ_GameData.SaveData();
-        return dayIndex;
-    }
-
-    private GetLocalDateKey(): string {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = `${now.getMonth() + 1}`.padStart(2, "0");
-        const day = `${now.getDate()}`.padStart(2, "0");
-        return `${year}-${month}-${day}`;
-    }
-
-    ChangeGold(gold: number) {
-        this.Gold += gold;
-        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
-        ZRSJZ_GameData.SaveData();
-    }
-
-    AddSkin(role: string, skin: string) {
-        this.HaveSkin.push(skin);
-        if (role === skin) {
-            this.HaveRole.push(role);
-            this.SetCurSkin(role, skin);//只有解锁该角色之后才能设置皮肤
-        } else {
-            ZRSJZ_GameData.SaveData();
-        }
-    }
-
-    SetCurSkin(role: string, skin: string) {
-        const roleIndex = ZRSJZ_PlayerSwitchButton.CurPlayer == "1p" ? 0 : 1;
-        this.CurRole[roleIndex] = role;
-        this.CurSkin[roleIndex] = skin;
-        ZRSJZ_GameData.SaveData();
-    }
-
-    public AddPropByName(propName: string, count: number = 1): string {
-        const propData = ZRSJZ_PROP_CONFIG.get(propName);
-        const propID = this.GetPropID();
-        this.PropData[propID] = new ZRSJZ_PropData();
-        this.PropData[propID].InstanceID = propID;
-        this.PropData[propID].Name = propName;
-        this.PropData[propID].PropType = propData.PropType;
-        // 新获得的道具只归属于“全部”，不再同时出现在分类仓库中。
-        this.PropData[propID].CurInventory = ZRSJZ_INVENTORY.仓库_全部;
-        this.PropData[propID].UnitPrice = propData.UnitPrice;
-        this.PropData[propID].MaxCount = propData.MaxCount;
-        this.PropData[propID].CurCount = count;
-        this.PropData[propID].Width = Number(propData.GridType[2]);
-        this.PropData[propID].Height = Number(propData.GridType[0]);
-        this.PropData[propID].GridData = [];
-        const gridData1 = new ZRSJZ_GridData()
-        gridData1.IsRotate = false;
-        gridData1.GridX = -1;
-        gridData1.GridY = -1;
-        this.PropData[propID].GridData.push(gridData1);
-
-        const gridData2 = new ZRSJZ_GridData()
-        gridData2.IsRotate = false;
-        gridData2.GridX = -1;
-        gridData2.GridY = -1;
-        this.PropData[propID].GridData.push(gridData2);
-        ZRSJZ_GameData.SaveData();
-        return propID;
-    }
-
-    /**
-     * 将购买的子弹按每个道具最多 60 发拆分后放入“全部仓库”。
-     * 例如购买 145 发会生成 60、60、25 三个独立道具。
-     */
-    public AddAmmoToWarehouse(ammoName: string, totalCount: number): string[] {
-        const config = ZRSJZ_PROP_CONFIG.get(ammoName);
-        if (!config || config.PropType !== "弹药") return [];
-
-        const createdIDs: string[] = [];
-        let remaining = Math.max(0, Math.floor(totalCount));
-        while (remaining > 0) {
-            const stackCount = Math.min(ZRSJZ_AMMO_MAX_COUNT, remaining);
-            const propID = this.AddPropByName(ammoName, stackCount);
-            const propData = this.PropData[propID];
-            if (propData) {
-                propData.CurInventory = ZRSJZ_INVENTORY.仓库_全部;
-                propData.CurCount = stackCount;
-                propData.MaxCount = ZRSJZ_AMMO_MAX_COUNT;
-            }
-            createdIDs.push(propID);
-            remaining -= stackCount;
-        }
-
-        if (createdIDs.length > 0) {
-            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
-            ZRSJZ_GameData.SaveData();
-        }
-        return createdIDs;
-    }
-
-    public RemovePropID(propID: string) {
-        if (this.PropData.hasOwnProperty(propID)) {
-            delete this.PropData[propID];
-            this.RefreshRoomCardIDs();
-            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
-            ZRSJZ_GameData.SaveData();
-        }
-    }
-
-    public SetWeaponry(weaponryIndex: number, weaponryID: string) {
-        this.WeaponryID[weaponryIndex] = weaponryID;
-        ZRSJZ_GameData.SaveData();
-    }
-
-    public SetAmmoID(ammoID: string[]) {
-        this.AmmoID = ammoID.slice(0, 6);
-        while (this.AmmoID.length < 6) this.AmmoID.push("");
-        ZRSJZ_GameData.SaveData();
-    }
-
-    public HasWeaponSkin(weaponName: string, skinName: string): boolean {
-        const skins = ZRSJZ_WEAPON_SKIN.get(weaponName);
-        if (!skins?.some(skin => skin.Name === skinName)) return false;
-        return skinName === skins[0].Name || (this.HaveWeaponSkin ?? []).includes(skinName);
-    }
-
-    public AddWeaponSkin(weaponName: string, skinName: string): boolean {
-        if (!ZRSJZ_WEAPON_SKIN.get(weaponName)?.some(skin => skin.Name === skinName)) return false;
-        if (!this.HaveWeaponSkin) this.HaveWeaponSkin = [];
-        if (!this.HaveWeaponSkin.includes(skinName)) {
-            this.HaveWeaponSkin.push(skinName);
-            ZRSJZ_GameData.SaveData();
-        }
-        return true;
-    }
-
-    public GetWeaponSkin(weaponName: string): string {
-        const skins = ZRSJZ_WEAPON_SKIN.get(weaponName);
-        if (!skins?.length) return weaponName;
-
-        const currentSkin = this.CurWeaponSkin?.[weaponName];
-        return currentSkin && this.HasWeaponSkin(weaponName, currentSkin)
-            ? currentSkin
-            : skins[0].Name;
-    }
-
-    public SetWeaponSkin(weaponName: string, skinName: string): boolean {
-        if (!this.HasWeaponSkin(weaponName, skinName)) return false;
-        if (!this.CurWeaponSkin) this.CurWeaponSkin = {};
-        if (this.GetWeaponSkin(weaponName) === skinName) return true;
-
-        this.CurWeaponSkin[weaponName] = skinName;
-        ZRSJZ_GameData.SaveData();
-        const equippedGunName = this.PropData?.[this.WeaponryID?.[0]]?.Name;
-        if (equippedGunName === weaponName) {
-            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, weaponName);
-        }
-        return true;
-    }
-
-
-    public ChangePropGridPos(propID: string, index: number, x: number, y: number, isRotate?: boolean) {
-        if (!this.PropData.hasOwnProperty(propID)) return;
-        this.PropData[propID].GridData[index].GridX = x;
-        this.PropData[propID].GridData[index].GridY = y;
-        if (isRotate !== undefined) {
-            this.PropData[propID].GridData[index].IsRotate = isRotate;
-        }
-        ZRSJZ_GameData.SaveData();
-    }
-
-    public MovePropToInventory(propID: string, inventory: ZRSJZ_INVENTORY, gridIndex: number, x: number, y: number, isRotate?: boolean) {
-        const propData = this.PropData[propID];
-        if (!propData) return;
-
-        propData.CurInventory = inventory;
-        for (const gridData of propData.GridData) {
-            gridData.GridX = -1;
-            gridData.GridY = -1;
-        }
-        propData.GridData[gridIndex].GridX = x;
-        propData.GridData[gridIndex].GridY = y;
-        if (isRotate !== undefined) {
-            propData.GridData[gridIndex].IsRotate = isRotate;
-        }
-        if (this.WeaponryID.includes(propID)) {
-
-        }
-        this.RefreshRoomCardIDs();
-        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
-        ZRSJZ_GameData.SaveData();
-    }
-
-    /** 查询分类仓库是否已解锁。“全部”无条件开放。 */
-    public IsWarehouseUnlocked(inventory: ZRSJZ_INVENTORY): boolean {
-        if (inventory === ZRSJZ_INVENTORY.仓库_全部) return true;
-        return (this.UnlockedWarehouses ?? []).includes(inventory);
-    }
-
-    /**
-     * 供升级、付费或任务系统调用的仓库解锁入口。
-     * 返回 false 表示参数不是仓库或此前已经解锁。
-     */
-    public UnlockWarehouse(inventory: ZRSJZ_INVENTORY): boolean {
-        const warehouses = [
-            ZRSJZ_INVENTORY.仓库_装备,
-            ZRSJZ_INVENTORY.仓库_武器,
-            ZRSJZ_INVENTORY.仓库_弹药,
-            ZRSJZ_INVENTORY.仓库_物品,
-        ];
-        if (!warehouses.includes(inventory) || this.IsWarehouseUnlocked(inventory)) {
-            return false;
-        }
-        if (!this.UnlockedWarehouses) {
-            this.UnlockedWarehouses = [ZRSJZ_INVENTORY.仓库_全部];
-        }
-        this.UnlockedWarehouses.push(inventory);
-        ZRSJZ_GameData.SaveData();
-        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
-        return true;
-    }
-
-    private MigrateWarehouseStorage(): boolean {
-        if ((this.WarehouseStorageVersion ?? 0) >= 1) return false;
-
-        const categoryWarehouses = new Set<ZRSJZ_INVENTORY>([
-            ZRSJZ_INVENTORY.仓库_装备,
-            ZRSJZ_INVENTORY.仓库_武器,
-            ZRSJZ_INVENTORY.仓库_弹药,
-            ZRSJZ_INVENTORY.仓库_物品,
-        ]);
-        for (const propData of Object.values(this.PropData ?? {})) {
-            if (!categoryWarehouses.has(propData.CurInventory)) continue;
-            propData.CurInventory = ZRSJZ_INVENTORY.仓库_全部;
-            for (const gridData of propData.GridData ?? []) {
-                gridData.GridX = -1;
-                gridData.GridY = -1;
-            }
-        }
-        this.UnlockedWarehouses = [ZRSJZ_INVENTORY.仓库_全部];
-        this.WarehouseStorageVersion = 1;
-        return true;
-    }
-
-
-    public GetEquippedRoomCardID(roomCardName: string): string {
-        if (!roomCardName) return "";
-
-        return Object.keys(this.PropData).find(propID => {
-            const propData = this.PropData[propID];
-            return propData?.Name === roomCardName
-                && (propData.PropType === "房卡" || propData.PropType === "门禁卡")
-                && propData.CurInventory === ZRSJZ_INVENTORY.卡包;
-        }) ?? "";
-    }
-
-    public HasEquippedRoomCard(roomCardName: string): boolean {
-        return this.GetEquippedRoomCardID(roomCardName) !== "";
-    }
-
-    public ConsumeEquippedRoomCard(roomCardName: string): boolean {
-        const roomCardID = this.GetEquippedRoomCardID(roomCardName);
-        if (!roomCardID) return false;
-
-        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, roomCardID);
-        delete this.PropData[roomCardID];
-        this.RefreshRoomCardIDs();
-        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
-        ZRSJZ_GameData.SaveData();
-        return true;
-    }
-
-    private RefreshRoomCardIDs(): void {
-        const roomCardNames = ["低级房卡", "中级房卡", "高级房卡"];
-        this.RoomCard = roomCardNames.map(roomCardName =>
-            this.GetEquippedRoomCardID(roomCardName)
-        );
-    }
-
-    public GetInventoryTotalValue(inventories: readonly ZRSJZ_INVENTORY[]): number {
-        const inventorySet = new Set(inventories);
-        return Object.values(this.PropData).reduce((totalValue, propData) => {
-            if (!inventorySet.has(propData.CurInventory)) return totalValue;
-            return totalValue + propData.UnitPrice * propData.CurCount;
-        }, 0);
-    }
-
-    public RemoveInventoryRows(inventory: ZRSJZ_INVENTORY, removedRows: number[]) {
-        if (removedRows.length === 0) return;
-
-        const gridIndex = inventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
-        for (const propID in this.PropData) {
-            const propData = this.PropData[propID];
-            if (propData.CurInventory !== inventory) {
-                continue;
-            }
-
-            const gridData = propData.GridData[gridIndex];
-            if (!gridData || gridData.GridY < 0) {
-                continue;
-            }
-
-            const moveUpRowCount = removedRows.filter(row => row < gridData.GridY).length;
-            gridData.GridY -= moveUpRowCount;
-        }
-
-        ZRSJZ_GameData.SaveData();
-    }
-
-    public ReloadPropData() {
-        for (const key in this.PropData) {
-            if (
-                this.PropData[key].CurInventory === ZRSJZ_INVENTORY.背包
-                || this.PropData[key].CurInventory === ZRSJZ_INVENTORY.物资
-            ) {
-                delete this.PropData[key];
-            }
-        }
-        ZRSJZ_GameData.SaveData();
-    }
-
-    //获取道具数量
-    public GetPropCountByName(propName: string): number {
-        let propCount: number = 0;
-        for (const propID in this.PropData) {
-            if (this.PropData[propID].Name === propName) {
-                propCount += this.PropData[propID].CurCount;
-            }
-        }
-        return propCount;
-    }
-
-    //消耗道具
-    public ConsumeProp(propName: string, count: number = 1): boolean {
-        if (this.GetPropCountByName(propName) < count) {
-            console.error("道具数量不足！");
-            return false;
-        }
-        for (const propID in this.PropData) {
-            if (this.PropData[propID].Name === propName) {
-                if (count < this.PropData[propID].CurCount) {
-                    this.PropData[propID].CurCount -= count;
-                    count = 0;
-                    break;
-                } else {
-                    count -= this.PropData[propID].CurCount;
-                    // 先通知库存清理格子，再删除道具数据。
-                    ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, propID);
-                    delete this.PropData[propID];
-                }
-            }
-        }
-        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
-        ZRSJZ_GameData.SaveData();
-        return count === 0;
-    }
-
-    public GetFiringRangeLevel(): number {
-        return this.GetFacilityLevel("靶场");
-    }
-
-    public SetFiringRangeLevel(level: number): void {
-        this.SetFacilityLevel("靶场", level);
-    }
-
-    public GetFacilityLevel(facilityName: ZRSJZ_UpgradeFacilityName): number {
-        const maxLevel = ZRSJZ_FACILITY_UPGRADE_CONFIG[facilityName].Levels.length;
-        const savedLevel = this.FacilityLevel?.[facilityName]
-            ?? (facilityName === "靶场" ? this.FiringRangeLevel : 0)
-            ?? 0;
-        return Math.max(0, Math.min(maxLevel, Math.floor(savedLevel)));
-    }
-
-    public SetFacilityLevel(facilityName: ZRSJZ_UpgradeFacilityName, level: number): void {
-        if (!Number.isFinite(level)) return;
-
-        const newLevel = Math.max(
-            0,
-            Math.min(ZRSJZ_FACILITY_UPGRADE_CONFIG[facilityName].Levels.length, Math.floor(level)),
-        );
-        if (this.GetFacilityLevel(facilityName) === newLevel) return;
-
-        if (!this.FacilityLevel) this.FacilityLevel = {};
-        this.FacilityLevel[facilityName] = newLevel;
-        // 保留旧字段，使之前版本的靶场存档仍可双向兼容。
-        if (facilityName === "靶场") this.FiringRangeLevel = newLevel;
-        ZRSJZ_GameData.SaveData();
-    }
-
-    public GetFacilityBonusValue(facilityName: ZRSJZ_UpgradeFacilityName): number {
-        return GetConfiguredFacilityBonusValue(facilityName, this.GetFacilityLevel(facilityName));
-    }
-
-    public GetFiringRangeAttackBonusRate(): number {
-        return GetFiringRangeAttackBonusPercent(this.GetFiringRangeLevel()) / 100;
-    }
-
-    public GetResearchMaxHPBonus(): number {
-        return this.GetFacilityBonusValue("研究所");
-    }
-
-    public GetGymMoveSpeedBonusRate(): number {
-        return this.GetFacilityBonusValue("健身") / 100;
-    }
-
-    public GetPropID(): string {
-        this.PropID++;
-        ZRSJZ_GameData.SaveData();
-        return `ZRSJZ_PropID_${this.PropID}`;
-    }
-
-    public AddAllProp() {
-        for (let propID of ZRSJZ_PROP_CONFIG.keys()) {
-            ZRSJZ_GameData.Instance.AddPropByName(propID);
-        }
-    }
-
-    public AddAllAmmo(count: number) {
-        const ammoNames: string[] = ["1级子弹", "2级子弹", "3级子弹", "4级子弹", "5级子弹", "6级子弹"];
-        ammoNames.forEach(name => {
-            ZRSJZ_GameData.Instance.AddPropByName(name, count);
-        })
-    }
-
-    //#region 收藏室数据
     public BoxroomPropLevel: { [propName: string]: number } = {};
     public BoxroomAttributeBonusBasisPoint: { [attributeName: string]: number } = {};
 
-    public GetBoxroomPropLevel(propName: string): number {
-        return Math.max(0, Math.min(3, Math.floor(this.BoxroomPropLevel?.[propName] ?? 0)));
-    }
-
-    public SetBoxroomPropLevel(propName: string, level: number): void {
-        if (!propName || !Number.isFinite(level)) return;
-
-        const newLevel = Math.max(0, Math.min(3, Math.floor(level)));
-        if (!this.BoxroomPropLevel) this.BoxroomPropLevel = {};
-        if (this.GetBoxroomPropLevel(propName) === newLevel) return;
-
-        if (newLevel === 0) {
-            delete this.BoxroomPropLevel[propName];
-        } else {
-            this.BoxroomPropLevel[propName] = newLevel;
-        }
-        ZRSJZ_GameData.SaveData();
-    }
-
-    public SetBoxroomAttributeBonusBasisPoints(
-        bonusBasisPoints: { [attributeName: string]: number }
-    ): void {
-        const safeBonus: { [attributeName: string]: number } = {};
-        for (const attributeName in bonusBasisPoints) {
-            const value = bonusBasisPoints[attributeName];
-            safeBonus[attributeName] = Number.isFinite(value)
-                ? Math.max(0, Math.floor(value))
-                : 0;
-        }
-
-        if (JSON.stringify(this.BoxroomAttributeBonusBasisPoint ?? {}) === JSON.stringify(safeBonus)) {
-            return;
-        }
-        this.BoxroomAttributeBonusBasisPoint = safeBonus;
-        ZRSJZ_GameData.SaveData();
-    }
-
-    /**
-     * 返回收藏室提供的属性增幅比例，例如 5.00% 返回 0.05。
-     */
-    public GetBoxroomAttributeBonusRate(attributeName: string): number {
-        const basisPoint = this.BoxroomAttributeBonusBasisPoint?.[attributeName] ?? 0;
-        return Math.max(0, Math.floor(basisPoint)) / 10000;
-    }
-
-    /**
-     * 根据传入的基础属性返回收藏室额外增加的实际数值，不修改游戏属性。
-     */
-    public GetBoxroomAttributeIncrease(attributeName: string, baseValue: number): number {
-        if (!Number.isFinite(baseValue)) return 0;
-        return baseValue * this.GetBoxroomAttributeBonusRate(attributeName);
-    }
-
-    /** 靶场与收藏室共同提供的枪械伤害总加成比例。 */
-    public GetTotalGunDamageBonusRate(): number {
-        return this.GetFiringRangeAttackBonusRate()
-            + this.GetBoxroomAttributeBonusRate("枪械伤害");
-    }
-
-    /** 靶场与收藏室共同提供的近战伤害总加成比例。 */
-    public GetTotalMeleeDamageBonusRate(): number {
-        return this.GetFiringRangeAttackBonusRate()
-            + this.GetBoxroomAttributeBonusRate("近战伤害");
-    }
-
-    //盲盒数据
     public MysteryBoxTotalCost: number = 0;
     public MysteryBoxTotalValue: number = 0;
     public MysteryBoxOpenCount: number = 0;
     public MysteryBoxRedCount: number = 0;
 
-    public RecordMysteryBoxOpen(cost: number, value: number, redCount: number): void {
-        this.MysteryBoxTotalCost = Math.max(
-            0,
-            Math.floor((this.MysteryBoxTotalCost ?? 0) + Math.max(0, cost))
-        );
-        this.MysteryBoxTotalValue = Math.max(
-            0,
-            Math.floor((this.MysteryBoxTotalValue ?? 0) + Math.max(0, value))
-        );
-        this.MysteryBoxOpenCount = Math.max(0, Math.floor((this.MysteryBoxOpenCount ?? 0) + 1));
-        this.MysteryBoxRedCount = Math.max(
-            0,
-            Math.floor((this.MysteryBoxRedCount ?? 0) + Math.max(0, redCount))
-        );
-        ZRSJZ_GameData.SaveData();
-    }
-
-
-    //DLC存档数据
-    public BNS_Property: { 木材: number, 矿石: number, 食物: number, 宝石: number, 电力: number, 繁荣度: number } =
-        { 木材: 0, 矿石: 0, 食物: 0, 宝石: 0, 电力: 0, 繁荣度: 0 };
-
-    /**
-     * DLC 在运行时注入资源变化回调，基础包不直接依赖 DLC 脚本。
-     * 静态字段不会进入存档 JSON。
-     */
-    public static BNS_PropertyChangeCallback:
-        ((propertyName: keyof ZRSJZ_GameData["BNS_Property"], value: number) => void) | null = null;
-    public static BNS_BuildingChangeCallback:
-        ((buildingName: string, level: number) => void) | null = null;
-
-    public GetBNSProperty(propertyName: keyof ZRSJZ_GameData["BNS_Property"]): number {
-        // 兼容添加“宝石”字段之前生成的旧存档。
-        return this.BNS_Property[propertyName] ?? 0;
-    }
-
-    public SetBNSProperty(
-        propertyName: keyof ZRSJZ_GameData["BNS_Property"],
-        value: number
-    ): void {
-        if (!Number.isFinite(value)) return;
-
-        const newValue = Math.max(0, Math.floor(value));
-        if (this.GetBNSProperty(propertyName) === newValue) return;
-
-        this.BNS_Property[propertyName] = newValue;
-        ZRSJZ_GameData.SaveData();
-        ZRSJZ_GameData.BNS_PropertyChangeCallback?.(propertyName, newValue);
-    }
-
-    public ChangeBNSProperty(
-        propertyName: keyof ZRSJZ_GameData["BNS_Property"],
-        changeValue: number
-    ): void {
-        this.SetBNSProperty(propertyName, this.GetBNSProperty(propertyName) + changeValue);
-    }
+    public BNS_Property: {
+        木材: number;
+        矿石: number;
+        食物: number;
+        宝石: number;
+        电力: number;
+        繁荣度: number;
+    } = {
+        木材: 0,
+        矿石: 0,
+        食物: 0,
+        宝石: 0,
+        电力: 0,
+        繁荣度: 0,
+    };
 
     public BNS_Building: { name: string, Level: number }[] = [
         { name: "主基地", Level: 1 },
@@ -673,29 +108,4 @@ export class ZRSJZ_GameData {
         { name: "防御塔", Level: 0 },
         { name: "果园", Level: 0 },
     ];
-
-    public GetBNSBuildingLevel(buildingName: string): number {
-        return this.BNS_Building.find(building => building.name === buildingName)?.Level ?? 0;
-    }
-
-    public SetBNSBuildingLevel(buildingName: string, level: number): void {
-        if (!Number.isFinite(level)) return;
-
-        const newLevel = Math.max(0, Math.floor(level));
-        let building = this.BNS_Building.find(buildingData => buildingData.name === buildingName);
-        if (!building) {
-            building = { name: buildingName, Level: 0 };
-            this.BNS_Building.push(building);
-        }
-        if (building.Level === newLevel) return;
-
-        building.Level = newLevel;
-        ZRSJZ_GameData.SaveData();
-        ZRSJZ_GameData.BNS_BuildingChangeCallback?.(buildingName, newLevel);
-    }
-
-    public ChangeBNSBuildingLevel(buildingName: string, changeValue: number): void {
-        this.SetBNSBuildingLevel(buildingName, this.GetBNSBuildingLevel(buildingName) + changeValue);
-    }
-
 }

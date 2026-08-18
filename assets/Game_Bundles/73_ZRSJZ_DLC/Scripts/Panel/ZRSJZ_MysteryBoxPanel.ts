@@ -1,3 +1,6 @@
+import { ZRSJZ_BoxroomService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_BoxroomService";
+import { ZRSJZ_InventoryService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_AccountService";
 import {
     _decorator,
     AudioClip,
@@ -183,7 +186,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
         }
 
         this.SetOpenButtonText("开启中");
-        ZRSJZ_GameData.Instance.ChangeGold(-config.price);
+        ZRSJZ_AccountService.ChangeGold(-config.price);
 
         const rewards = this.GenerateRewards(config);
         await this.BuildBoard(config, rewards);
@@ -213,7 +216,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
         const redCount = rewards.reduce((count, reward) =>
             count + (reward.quality === ZRSJZ_PROP_QUALITY.红色 ? 1 : 0), 0
         );
-        ZRSJZ_GameData.Instance.RecordMysteryBoxOpen(
+        ZRSJZ_BoxroomService.RecordMysteryBoxOpen(
             config.price,
             revealedValue,
             redCount
@@ -485,7 +488,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
 
     private GrantRewards(rewards: ZRSJZ_MysteryBoxReward[]): void {
         for (const reward of rewards) {
-            ZRSJZ_GameData.Instance.AddPropByName(reward.name);
+            ZRSJZ_InventoryService.AddPropByName(reward.name);
         }
     }
 

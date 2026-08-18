@@ -1,3 +1,4 @@
+import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
 import { _decorator, CircleCollider2D, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, v2 } from 'cc';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
@@ -28,7 +29,7 @@ export class ZRSJZ_PlayerMain extends Component {
     }
 
     protected start(): void {
-        this._moveSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
+        this._moveSpeed *= 1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate();
         this._weaponType = ZRSJZ_GameData.Instance.WeaponryID[0] ? "枪" : "刀";
         this.ApplyWeaponType(this._weaponType);
         this.PlayerSkeleton.HasDirection = false;

@@ -1,3 +1,5 @@
+import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
 import { _decorator, Component, director, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_PANEL } from './ZRSJZ_Constant';
@@ -24,10 +26,10 @@ export class ZRSJZ_Start extends Component {
         //关闭所有面板
         ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
 
-        if (ZRSJZ_GameData.Instance.CanClaimSignInReward()) {
+        if (ZRSJZ_AccountService.CanClaimSignInReward()) {
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
         }
-        // this.SignBtn.active = !ZRSJZ_GameData.Instance.IsSignInCompleted();
+        // this.SignBtn.active = !ZRSJZ_AccountService.IsSignInCompleted();
         ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
         this.ModelSwitch();
     }
@@ -96,23 +98,23 @@ export class ZRSJZ_Start extends Component {
 
         //初始化装备
         if (ZRSJZ_GameData.Instance.WeaponryID[0] != "") {
-            ZRSJZ_GameData.Instance.RemovePropID(ZRSJZ_GameData.Instance.WeaponryID[0]);
+            ZRSJZ_InventoryService.RemovePropID(ZRSJZ_GameData.Instance.WeaponryID[0]);
             ZRSJZ_GameData.Instance.WeaponryID[0] = "";
         }
 
         //初始化弹药
         if (ZRSJZ_GameData.Instance.AmmoID[0] == "") {
-            let propId = ZRSJZ_GameData.Instance.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            let propId = ZRSJZ_InventoryService.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
             ZRSJZ_GameData.Instance.AmmoID[0] = propId;
-            ZRSJZ_GameData.Instance.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+            ZRSJZ_InventoryService.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
         } else if (ZRSJZ_GameData.Instance.AmmoID[1] == "") {
-            let propId = ZRSJZ_GameData.Instance.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            let propId = ZRSJZ_InventoryService.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
             ZRSJZ_GameData.Instance.AmmoID[1] = propId;
-            ZRSJZ_GameData.Instance.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+            ZRSJZ_InventoryService.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
         } else if (ZRSJZ_GameData.Instance.AmmoID[2] == "") {
-            let propId = ZRSJZ_GameData.Instance.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            let propId = ZRSJZ_InventoryService.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
             ZRSJZ_GameData.Instance.AmmoID[2] = propId;
-            ZRSJZ_GameData.Instance.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+            ZRSJZ_InventoryService.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
         }
         // director.loadScene("ZRSJZ_Tutorial");
         ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Tutorial");

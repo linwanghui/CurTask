@@ -1,3 +1,5 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Component, EventTouch, find, Label, Node, Sprite } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_ShopStats } from '../UI/ZRSJZ_ShopStats';
@@ -233,7 +235,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             const targetInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
             if (!targetInventory) return;
             await weaponryInventory.RemoveProp(this._propID);
-            ZRSJZ_GameData.Instance.MovePropToInventory(this._propID, targetInventory, 1, -1, -1);
+            ZRSJZ_InventoryService.MovePropToInventory(this._propID, targetInventory, 1, -1, -1);
             await this.RefreshWarehouseInventories(targetInventory);
             this.ClosePanel();
         } finally {
@@ -255,8 +257,8 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                     await inventory.RemoveProp(this._propID);
                 }
             }
-            ZRSJZ_GameData.Instance.ChangeGold(propData.UnitPrice * propData.CurCount);
-            ZRSJZ_GameData.Instance.RemovePropID(this._propID);
+            ZRSJZ_AccountService.ChangeGold(propData.UnitPrice * propData.CurCount);
+            ZRSJZ_InventoryService.RemovePropID(this._propID);
             this.ClosePanel();
         } finally {
             this._isOperating = false;

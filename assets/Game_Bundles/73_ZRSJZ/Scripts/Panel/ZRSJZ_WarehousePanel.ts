@@ -1,3 +1,5 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, EventTouch, find, Label, Node, ScrollView, tween, Tween, UITransform, v2, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -137,7 +139,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     SwitchButton(warehouseNode: Node) {
         if (!warehouseNode) return;
         const inventory = this.GetWarehouseInventory(warehouseNode.name);
-        if (!ZRSJZ_GameData.Instance.IsWarehouseUnlocked(inventory)) {
+        if (!ZRSJZ_InventoryService.IsWarehouseUnlocked(inventory)) {
             ZRSJZ_UIManager.Instance.ShowPanel(
                 ZRSJZ_PANEL.解锁仓库弹窗,
                 warehouseNode.name,
@@ -166,7 +168,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
 
     /** 外部解锁系统可直接调用，例如 panel.UnlockWarehouse(ZRSJZ_INVENTORY.仓库_武器)。 */
     public UnlockWarehouse(inventory: ZRSJZ_INVENTORY): boolean {
-        const unlocked = ZRSJZ_GameData.Instance.UnlockWarehouse(inventory);
+        const unlocked = ZRSJZ_InventoryService.UnlockWarehouse(inventory);
         this.RefreshWarehouseLocks();
         return unlocked;
     }
@@ -178,7 +180,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     private RefreshWarehouseLocks(): void {
         for (const button of this._warehouseButtons) {
             const inventory = this.GetWarehouseInventory(button.name);
-            const locked = !ZRSJZ_GameData.Instance.IsWarehouseUnlocked(inventory);
+            const locked = !ZRSJZ_InventoryService.IsWarehouseUnlocked(inventory);
             const lockNode = button.getChildByName("锁");
             if (lockNode) lockNode.active = locked;
             const checkedTrue = button.getChildByName("Checked_True");
@@ -204,7 +206,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         if (!targetButton) return;
 
         const targetInventory = this.GetWarehouseInventory(targetButton.name);
-        const unlocked = ZRSJZ_GameData.Instance.IsWarehouseUnlocked(targetInventory);
+        const unlocked = ZRSJZ_InventoryService.IsWarehouseUnlocked(targetInventory);
         const adaptive = this.CanPropEnterWarehouse(propID, targetInventory);
         const canTransfer = unlocked && adaptive && targetInventory !== sourceInventory;
         const feedback = targetButton.getChildByName(canTransfer ? "Checked_True" : "Checked_False");
@@ -312,10 +314,10 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
 
             totalValue += propData.UnitPrice * propData.CurCount;
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, propID);
-            ZRSJZ_GameData.Instance.RemovePropID(propID);
+            ZRSJZ_InventoryService.RemovePropID(propID);
         });
         if (totalValue > 0) {
-            ZRSJZ_GameData.Instance.ChangeGold(totalValue);
+            ZRSJZ_AccountService.ChangeGold(totalValue);
             ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
         }
         this._sellPropID = [];

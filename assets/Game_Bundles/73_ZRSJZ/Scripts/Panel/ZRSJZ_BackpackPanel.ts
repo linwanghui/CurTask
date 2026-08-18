@@ -1,3 +1,4 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, EventTouch, find, Label, Node, ScrollView, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_Prepare } from '../UI/ZRSJZ_Prepare';
@@ -81,7 +82,7 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
     }
 
     private RefreshTotalValue() {
-        const totalValue = ZRSJZ_GameData.Instance.GetInventoryTotalValue([
+        const totalValue = ZRSJZ_InventoryService.GetInventoryTotalValue([
             ZRSJZ_INVENTORY.背包,
             ZRSJZ_INVENTORY.保险箱,
         ]);

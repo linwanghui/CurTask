@@ -32,6 +32,7 @@ export class ZRSJZ_Tutorial extends Component {
             this.TipFlag[1] = true;
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.新手引导弹窗, "Tip", target, "双击或者拖动装备武器");
         } else if (index == 4 && !this.TipFlag[2]) {
+            this.TipFlag[2] = true;
             this.TutorialNodes[4].active = true;
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.新手引导弹窗, "MaskTip", this.TutorialNodes[1], "背包里面可以切换装备", [
                 this.TutorialNodes[3]], ["可以通过切换来更换当前武器"]);

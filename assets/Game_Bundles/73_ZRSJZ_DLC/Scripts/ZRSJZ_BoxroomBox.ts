@@ -1,3 +1,4 @@
+import { ZRSJZ_BoxroomService } from "../../73_ZRSJZ/Scripts/Service/ZRSJZ_BoxroomService";
 import { _decorator, Component, isValid, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
@@ -49,7 +50,7 @@ export class ZRSJZ_BoxroomBox extends Component {
     }
 
     public RefreshLevel(): void {
-        const level = ZRSJZ_GameData.Instance.GetBoxroomPropLevel(this._propName);
+        const level = ZRSJZ_BoxroomService.GetBoxroomPropLevel(this._propName);
         const gridSprite = this.getComponent(Sprite);
         if (gridSprite && this.GridSFs.length > 0) {
             // 未收藏时沿用一级铜框，道具图标则继续通过灰度区分未解锁状态。

@@ -1,3 +1,4 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame, UITransform, UIOpacity, v3, Vec2, Vec3, Widget } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PROP_CONFIG, ZRSJZ_GRID_TYPE, ZRSJZ_PropData, ZRSJZ_INVENTORY, ZRSJZ_GRID_SIZE, ZRSJZ_GRID_INTERVAL, ZRSJZ_INVENTORY_CONFIG, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -660,7 +661,7 @@ export class ZRSJZ_PropGrid extends Component {
             }
             //同一个库存直接移动
             if (inventory == this._inventory) {
-                ZRSJZ_GameData.Instance.ChangePropGridPos(id, inventory == ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1, gridX, gridY, isRotate);
+                ZRSJZ_InventoryService.ChangePropGridPos(id, inventory == ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1, gridX, gridY, isRotate);
             } else {
 
             }
