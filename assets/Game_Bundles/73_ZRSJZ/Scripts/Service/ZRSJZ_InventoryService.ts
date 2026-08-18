@@ -10,6 +10,46 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager
 
 /** 道具、装备、仓库、弹药及房卡相关业务。 */
 export class ZRSJZ_InventoryService {
+    private static _activePlayerIndex: number = 0;
+
+    public static SetActivePlayerIndex(playerIndex: number): void {
+        this._activePlayerIndex = playerIndex === 1 ? 1 : 0;
+    }
+
+    public static GetActivePlayerIndex(): number {
+        return this._activePlayerIndex;
+    }
+
+    public static GetWeaponryIDs(playerIndex: number = this._activePlayerIndex): string[] {
+        const data = ZRSJZ_GameData.Instance;
+        return playerIndex === 1 ? data.Player2WeaponryID : data.WeaponryID;
+    }
+
+    public static GetAmmoIDs(playerIndex: number = this._activePlayerIndex): string[] {
+        const data = ZRSJZ_GameData.Instance;
+        return playerIndex === 1 ? data.Player2AmmoID : data.AmmoID;
+    }
+
+    public static GetRoomCardIDs(playerIndex: number = this._activePlayerIndex): string[] {
+        const data = ZRSJZ_GameData.Instance;
+        return playerIndex === 1 ? data.Player2RoomCard : data.RoomCard;
+    }
+
+    public static IsPlayerInventory(inventory: ZRSJZ_INVENTORY): boolean {
+        return inventory === ZRSJZ_INVENTORY.卡包
+            || inventory === ZRSJZ_INVENTORY.弹药
+            || inventory === ZRSJZ_INVENTORY.武器_枪
+            || inventory === ZRSJZ_INVENTORY.武器_头盔
+            || inventory === ZRSJZ_INVENTORY.武器_防弹衣
+            || inventory === ZRSJZ_INVENTORY.武器_背包
+            || inventory === ZRSJZ_INVENTORY.武器_刀;
+    }
+
+    public static IsPropOwnedByActivePlayer(prop: ZRSJZ_PropData): boolean {
+        if (!this.IsPlayerInventory(prop.CurInventory)) return true;
+        return (prop.OwnerPlayerIndex ?? 0) === this._activePlayerIndex;
+    }
+
     public static AddPropByName(propName: string, count: number = 1): string {
         const config = ZRSJZ_PROP_CONFIG.get(propName);
         if (!config) return "";
@@ -57,19 +97,23 @@ export class ZRSJZ_InventoryService {
         const data = ZRSJZ_GameData.Instance;
         if (!data.PropData.hasOwnProperty(propID)) return;
         delete data.PropData[propID];
-        this.RefreshRoomCardIDs();
+        this.RemoveLoadoutReference(propID);
+        this.RefreshRoomCardIDs(0);
+        this.RefreshRoomCardIDs(1);
         this.NotifyInventoryChanged();
     }
 
-    public static SetWeaponry(weaponryIndex: number, weaponryID: string): void {
-        ZRSJZ_GameData.Instance.WeaponryID[weaponryIndex] = weaponryID;
+    public static SetWeaponry(weaponryIndex: number, weaponryID: string, playerIndex: number = this._activePlayerIndex): void {
+        this.GetWeaponryIDs(playerIndex)[weaponryIndex] = weaponryID;
         ZRSJZ_GameData.SaveData();
     }
 
-    public static SetAmmoID(ammoID: string[]): void {
+    public static SetAmmoID(ammoID: string[], playerIndex: number = this._activePlayerIndex): void {
         const data = ZRSJZ_GameData.Instance;
-        data.AmmoID = ammoID.slice(0, 6);
-        while (data.AmmoID.length < 6) data.AmmoID.push("");
+        const normalizedIDs = ammoID.slice(0, 6);
+        while (normalizedIDs.length < 6) normalizedIDs.push("");
+        if (playerIndex === 1) data.Player2AmmoID = normalizedIDs;
+        else data.AmmoID = normalizedIDs;
         ZRSJZ_GameData.SaveData();
     }
 
@@ -93,6 +137,7 @@ export class ZRSJZ_InventoryService {
         const prop = ZRSJZ_GameData.Instance.PropData[propID];
         if (!prop?.GridData?.[gridIndex]) return;
         prop.CurInventory = inventory;
+        prop.OwnerPlayerIndex = this.IsPlayerInventory(inventory) ? this._activePlayerIndex : -1;
         for (const gridData of prop.GridData) {
             gridData.GridX = -1;
             gridData.GridY = -1;
@@ -100,7 +145,8 @@ export class ZRSJZ_InventoryService {
         prop.GridData[gridIndex].GridX = x;
         prop.GridData[gridIndex].GridY = y;
         if (isRotate !== undefined) prop.GridData[gridIndex].IsRotate = isRotate;
-        this.RefreshRoomCardIDs();
+        this.RefreshRoomCardIDs(0);
+        this.RefreshRoomCardIDs(1);
         this.NotifyInventoryChanged();
     }
 
@@ -124,14 +170,15 @@ export class ZRSJZ_InventoryService {
         return true;
     }
 
-    public static GetEquippedRoomCardID(roomCardName: string): string {
+    public static GetEquippedRoomCardID(roomCardName: string, playerIndex: number = this._activePlayerIndex): string {
         if (!roomCardName) return "";
         const data = ZRSJZ_GameData.Instance;
         return Object.keys(data.PropData).find(propID => {
             const prop = data.PropData[propID];
             return prop?.Name === roomCardName
                 && (prop.PropType === "房卡" || prop.PropType === "门禁卡")
-                && prop.CurInventory === ZRSJZ_INVENTORY.卡包;
+                && prop.CurInventory === ZRSJZ_INVENTORY.卡包
+                && (prop.OwnerPlayerIndex ?? 0) === playerIndex;
         }) ?? "";
     }
 
@@ -144,7 +191,7 @@ export class ZRSJZ_InventoryService {
         if (!roomCardID) return false;
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, roomCardID);
         delete ZRSJZ_GameData.Instance.PropData[roomCardID];
-        this.RefreshRoomCardIDs();
+        this.RefreshRoomCardIDs(this._activePlayerIndex);
         this.NotifyInventoryChanged();
         return true;
     }
@@ -198,8 +245,11 @@ export class ZRSJZ_InventoryService {
             }
             count -= prop.CurCount;
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, propID);
+            this.RemoveLoadoutReference(propID);
             delete data.PropData[propID];
         }
+        this.RefreshRoomCardIDs(0);
+        this.RefreshRoomCardIDs(1);
         this.NotifyInventoryChanged();
         return count === 0;
     }
@@ -229,9 +279,24 @@ export class ZRSJZ_InventoryService {
         return gridData;
     }
 
-    private static RefreshRoomCardIDs(): void {
-        ZRSJZ_GameData.Instance.RoomCard = ["低级房卡", "中级房卡", "高级房卡"]
-            .map(roomCardName => this.GetEquippedRoomCardID(roomCardName));
+    private static RefreshRoomCardIDs(playerIndex: number): void {
+        const roomCardIDs = ["低级房卡", "中级房卡", "高级房卡"]
+            .map(roomCardName => this.GetEquippedRoomCardID(roomCardName, playerIndex));
+        if (playerIndex === 1) ZRSJZ_GameData.Instance.Player2RoomCard = roomCardIDs;
+        else ZRSJZ_GameData.Instance.RoomCard = roomCardIDs;
+    }
+
+    private static RemoveLoadoutReference(propID: string): void {
+        for (const playerIndex of [0, 1]) {
+            const weaponryIDs = this.GetWeaponryIDs(playerIndex);
+            const ammoIDs = this.GetAmmoIDs(playerIndex);
+            for (let index = 0; index < weaponryIDs.length; index++) {
+                if (weaponryIDs[index] === propID) weaponryIDs[index] = "";
+            }
+            for (let index = 0; index < ammoIDs.length; index++) {
+                if (ammoIDs[index] === propID) ammoIDs[index] = "";
+            }
+        }
     }
 
     private static NotifyInventoryChanged(): void {

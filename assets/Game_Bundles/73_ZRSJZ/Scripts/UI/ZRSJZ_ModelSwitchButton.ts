@@ -26,6 +26,7 @@ export class ZRSJZ_ModelSwitchButton extends Component {
         const buttonName = event.getCurrentTarget().name;
         if (buttonName == ZRSJZ_GameData.Instance.CurModel) return;
         ZRSJZ_GameData.Instance.CurModel = buttonName;
+        ZRSJZ_GameData.SaveData();
         switch (buttonName) {
             case "1p":
                 this.ButtonTween(-1);

@@ -196,11 +196,12 @@ export class ZRSJZ_Inventory extends Component {
 
     /** 子类可覆写库存归属规则，例如箱子库存按 SourceBoxID 隔离。 */
     protected BelongsToInventory(
-        propData: { CurInventory: ZRSJZ_INVENTORY },
+        propData: ZRSJZ_PropData,
         inventoryType: ZRSJZ_INVENTORY,
     ): boolean {
         // 每件道具只属于一个仓库；“全部”不再是分类仓库的聚合视图。
-        return propData.CurInventory === inventoryType;
+        return propData.CurInventory === inventoryType
+            && ZRSJZ_InventoryService.IsPropOwnedByActivePlayer(propData);
     }
 
     /** 箱子等需要固定展示位置的库存可关闭自动删除空行。 */
@@ -975,5 +976,4 @@ export class ZRSJZ_Inventory extends Component {
     }
 
 }
-
 

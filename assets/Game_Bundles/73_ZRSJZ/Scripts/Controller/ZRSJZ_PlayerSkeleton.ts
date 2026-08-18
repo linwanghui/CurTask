@@ -4,6 +4,7 @@ import { ZRSJZ_ANI, ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Cons
 import { ZRSJZ_Skeleton } from './ZRSJZ_Skeleton';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PlayerSkeleton')
@@ -37,30 +38,47 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     private _mzBone_Hand: sp.spine.Bone = null;
     private _baseScale = new Vec3();
 
+    protected GetEquippedWeaponryIDs(): string[] {
+        return ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex);
+    }
+
     protected onLoad(): void {
         super.onLoad();
+        if (this.node.parent?.name === "Player2" || this.node.parent?.name === "玩家2") {
+            this.CurPlayerIndex = 1;
+        }
         this._mzBone = this.Skeleton?.findBone('mz');
         this._mzBone_Hand = this.HandSkeleton?.findBone('mz');
         this._baseScale.set(this.node.scale.x, this.node.scale.y, this.node.scale.z);
     }
 
-    protected start(): void {
-        this.SetSkin(ZRSJZ_GameData.Instance.CurSkin[this.CurPlayerIndex]);
-        for (let i = ZRSJZ_GameData.Instance.WeaponryID.length - 1; i >= 0; i--) {
-            if (ZRSJZ_GameData.Instance.WeaponryID[i]) {
-                this.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[i]].Name);
-            }
-        }
-    }
-
     protected onEnable(): void {
+        this.Show();
         director.on(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
-        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
     }
 
     protected onDisable(): void {
         director.off(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
-        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
+    }
+
+    Show() {
+        this.SetSkin(ZRSJZ_GameData.Instance.CurSkin[this.CurPlayerIndex]);
+        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex);
+        for (let i = weaponryIDs.length - 1; i >= 0; i--) {
+            const prop = ZRSJZ_GameData.Instance.PropData[weaponryIDs[i]];
+            if (prop) this.ShowEquipment(prop.Name);
+        }
+    }
+
+    private OnEquipmentChanged(
+        equipmentName: string,
+        isEquipment: boolean = true,
+        playerIndex?: number,
+    ): void {
+        if (playerIndex !== undefined && playerIndex !== this.CurPlayerIndex) return;
+        this.ShowEquipment(equipmentName, isEquipment);
     }
 
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
@@ -175,9 +193,9 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
             fromAnimation === moveAnimation
             && movingShootAnimations.includes(toAnimation)
         ) || (
-            toAnimation === moveAnimation
-            && movingShootAnimations.includes(fromAnimation)
-        );
+                toAnimation === moveAnimation
+                && movingShootAnimations.includes(fromAnimation)
+            );
     }
 
     SetPlayerDir(x: number) {

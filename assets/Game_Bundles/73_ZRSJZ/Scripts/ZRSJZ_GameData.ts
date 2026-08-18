@@ -58,11 +58,17 @@ export class ZRSJZ_GameData {
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};
     public UnlockedWarehouses: ZRSJZ_INVENTORY[] = [ZRSJZ_INVENTORY.仓库_全部];
     public WarehouseStorageVersion: number = 1;
+    public LoadoutStorageVersion: number = 1;
 
     /** 0=枪、1=头盔、2=防弹衣、3=背包、4=刀。 */
     public WeaponryID: string[] = ["", "", "", "", ""];
     public AmmoID: string[] = ["", "", "", "", ""];
     public RoomCard: string[] = ["", "", ""];
+
+    /** 玩家2的随身配置；玩家1继续使用上面的旧字段以兼容已有存档和单人模式。 */
+    public Player2WeaponryID: string[] = ["", "", "", "", ""];
+    public Player2AmmoID: string[] = ["", "", "", "", "", ""];
+    public Player2RoomCard: string[] = ["", "", ""];
 
     public SignInClaimedCount: number = 0;
     public SignInLastClaimDate: string = "";

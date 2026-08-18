@@ -1,6 +1,6 @@
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, EventTouch, find, Label, Node, ScrollView, tween, Tween, UITransform, v2, Vec3 } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, ScrollView, tween, Tween, UIOpacity, UITransform, v2, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -14,6 +14,8 @@ const { ccclass, property } = _decorator;
 const GridCol: number = 7;
 @ccclass('ZRSJZ_WarehousePanel')
 export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
+
+    PanelUIOpacity: UIOpacity = null;
 
     public Prepare: ZRSJZ_Prepare = null;
     public Content: Node = null;
@@ -30,6 +32,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     private _isSelling: boolean = false;
     private _sellPropID: string[] = [];
     private _warehouseButtons: Node[] = [];
+    private _playerLoadoutRefreshTask: Promise<void> = Promise.resolve();
 
     protected onLoad(): void {
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
@@ -52,6 +55,8 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP, this.OnWarehouseDrop, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_PLAYER_CHANGE, this.OnLoadoutPlayerChange, this);
+        this.OnLoadoutPlayerChange();
         this.RefreshWarehouseLocks();
     }
 
@@ -72,11 +77,49 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP, this.OnWarehouseDrop, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_PLAYER_CHANGE, this.OnLoadoutPlayerChange, this);
         this.ClearWarehouseDropFeedback();
     }
 
     protected start(): void {
         this.SwitchButton(this._warehouseNode);
+    }
+
+    // Show(...args: any[]) {
+    //     if (!this.PanelUIOpacity) {
+    //         this.Panel = find("Panel", this.node);
+    //         this.PanelUIOpacity = this.Panel.getComponent(UIOpacity);
+    //     }
+    //     Tween.stopAllByTarget(this.PanelUIOpacity);
+    //     this.PanelUIOpacity.opacity = 0;
+    //     this.node.active = true;
+    //     tween(this.PanelUIOpacity)
+    //         .to(0.3, { opacity: 255 }, { easing: 'backOut' })
+    //         .start();
+    // }
+
+    private OnLoadoutPlayerChange(): void {
+        this._playerLoadoutRefreshTask = this._playerLoadoutRefreshTask.then(
+            () => this.RefreshPlayerLoadout(),
+            () => this.RefreshPlayerLoadout(),
+        );
+    }
+
+    private async RefreshPlayerLoadout(): Promise<void> {
+        const playerInventories = [
+            ZRSJZ_INVENTORY.卡包,
+            ZRSJZ_INVENTORY.弹药,
+            ZRSJZ_INVENTORY.武器_枪,
+            ZRSJZ_INVENTORY.武器_头盔,
+            ZRSJZ_INVENTORY.武器_防弹衣,
+            ZRSJZ_INVENTORY.武器_背包,
+            ZRSJZ_INVENTORY.武器_刀,
+        ];
+        for (const inventoryType of playerInventories) {
+            const inventoryNode = await ZRSJZ_UIManager.Instance.GetInventory(inventoryType);
+            await inventoryNode?.getComponent(ZRSJZ_Inventory)?.Init(inventoryType);
+        }
+        if (this.node.activeInHierarchy) await this.Prepare.Show();
     }
 
     //#region 仓库

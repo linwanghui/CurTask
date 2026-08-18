@@ -661,6 +661,8 @@ export class ZRSJZ_PropData {
     public Name: string;//道具名称
     public PropType: string;//道具分类
     public CurInventory: ZRSJZ_INVENTORY;
+    /** -1 表示共享/非角色库存，0 和 1 分别表示玩家1、玩家2的随身库存。 */
+    public OwnerPlayerIndex: number = -1;
     /** 道具仍在箱子中时，记录所属箱子的唯一 ID。 */
     public SourceBoxID: string = "";
     /** 搜索动画尚未完成时禁止显示和拖动；普通道具默认为 false。 */

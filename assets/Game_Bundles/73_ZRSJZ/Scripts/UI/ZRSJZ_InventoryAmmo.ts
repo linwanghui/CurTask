@@ -36,6 +36,8 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         this.MigrateOldAmmoData();
         this.SyncAmmoDataPosition();
 
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
         this._isAmmoInitialized = true;
@@ -92,21 +94,21 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         let changed = false;
         try {
             // 优先补充同名且未满的弹药堆叠。
-            for (const targetID of ZRSJZ_GameData.Instance.AmmoID.slice()) {
+            for (const targetID of ZRSJZ_InventoryService.GetAmmoIDs().slice()) {
                 const targetData = ZRSJZ_GameData.Instance.PropData[targetID];
                 if (!targetData || targetID === id || targetData.Name !== incomingData.Name) continue;
                 const maxCount = ZRSJZ_PROP_CONFIG.get(targetData.Name)?.MaxCount ?? targetData.MaxCount;
                 if (targetData.CurCount >= maxCount) continue;
 
                 const beforeCount = incomingData.CurCount;
-                await this.MergeAmmo(id, targetID, ZRSJZ_GameData.Instance.AmmoID.indexOf(id));
+                await this.MergeAmmo(id, targetID, ZRSJZ_InventoryService.GetAmmoIDs().indexOf(id));
                 changed = changed
                     || !ZRSJZ_GameData.Instance.PropData[id]
                     || incomingData.CurCount < beforeCount;
                 if (!ZRSJZ_GameData.Instance.PropData[id]) return true;
             }
 
-            const emptyIndex = ZRSJZ_GameData.Instance.AmmoID.indexOf("");
+            const emptyIndex = ZRSJZ_InventoryService.GetAmmoIDs().indexOf("");
             if (emptyIndex < 0) return changed;
             await this.PlaceAmmo(
                 sourceInventory,
@@ -122,7 +124,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
 
     async RemoveProp(id: string, isRemoveProp: boolean = true) {
         let changed = false;
-        const ammoIDs = ZRSJZ_GameData.Instance.AmmoID;
+        const ammoIDs = ZRSJZ_InventoryService.GetAmmoIDs();
         for (let i = 0; i < ammoIDs.length; i++) {
             if (ammoIDs[i] === id) {
                 ammoIDs[i] = "";
@@ -135,7 +137,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
 
     private async PlaceAmmo(sourceInventory: ZRSJZ_INVENTORY, incomingID: string, gridX: number, gridY: number) {
         const targetIndex = this.GetIndex(gridX, gridY);
-        const ammoIDs = ZRSJZ_GameData.Instance.AmmoID;
+        const ammoIDs = ZRSJZ_InventoryService.GetAmmoIDs();
         const targetID = ammoIDs[targetIndex];
         const sourceIndex = ammoIDs.indexOf(incomingID);
 
@@ -235,7 +237,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
 
         if (incomingData.CurCount <= 0) {
-            if (sourceIndex >= 0) ZRSJZ_GameData.Instance.AmmoID[sourceIndex] = "";
+            if (sourceIndex >= 0) ZRSJZ_InventoryService.GetAmmoIDs()[sourceIndex] = "";
             await this.RemoveFromAllInventories(incomingID);
             ZRSJZ_InventoryService.RemovePropID(incomingID);
         } else {
@@ -243,7 +245,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
             this.RefreshPropCount(incomingID);
         }
 
-        ZRSJZ_InventoryService.SetAmmoID(ZRSJZ_GameData.Instance.AmmoID);
+        ZRSJZ_InventoryService.SetAmmoID(ZRSJZ_InventoryService.GetAmmoIDs());
         this.RefreshPropCount(targetID);
         await this.RebuildView();
     }
@@ -346,7 +348,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
     }
 
     private async DoRebuildView() {
-        const ammoIDs = ZRSJZ_GameData.Instance.AmmoID;
+        const ammoIDs = ZRSJZ_InventoryService.GetAmmoIDs();
         const desiredGrids = Array.from({ length: ZRSJZ_InventoryAmmo.ROW }, () =>
             Array(ZRSJZ_InventoryAmmo.COL).fill(""),
         );
@@ -421,22 +423,30 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
     }
 
     private NormalizeAmmoIDs() {
-        const ammoIDs = Array.isArray(ZRSJZ_GameData.Instance.AmmoID)
-            ? ZRSJZ_GameData.Instance.AmmoID.slice(0, 6)
+        const activeAmmoIDs = ZRSJZ_InventoryService.GetAmmoIDs();
+        const ammoIDs = Array.isArray(activeAmmoIDs)
+            ? activeAmmoIDs.slice(0, 6)
             : [];
         while (ammoIDs.length < 6) ammoIDs.push("");
         for (let i = 0; i < ammoIDs.length; i++) {
             const data = ZRSJZ_GameData.Instance.PropData[ammoIDs[i]];
-            if (!data || data.PropType !== "弹药") ammoIDs[i] = "";
+            if (!data || data.PropType !== "弹药" || !ZRSJZ_InventoryService.IsPropOwnedByActivePlayer(data)) {
+                ammoIDs[i] = "";
+            }
         }
         ZRSJZ_InventoryService.SetAmmoID(ammoIDs);
     }
 
     private MigrateOldAmmoData() {
-        const ammoIDs = ZRSJZ_GameData.Instance.AmmoID;
+        const ammoIDs = ZRSJZ_InventoryService.GetAmmoIDs();
         for (const id in ZRSJZ_GameData.Instance.PropData) {
             const data = ZRSJZ_GameData.Instance.PropData[id];
-            if (data.PropType !== "弹药" || data.CurInventory !== this.InventoryType || ammoIDs.includes(id)) continue;
+            if (
+                data.PropType !== "弹药"
+                || data.CurInventory !== this.InventoryType
+                || !ZRSJZ_InventoryService.IsPropOwnedByActivePlayer(data)
+                || ammoIDs.includes(id)
+            ) continue;
             const preferred = data.GridData[1]?.GridY * 3 + data.GridData[1]?.GridX;
             const index = preferred >= 0 && preferred < 6 && !ammoIDs[preferred]
                 ? preferred
@@ -447,7 +457,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
     }
 
     private SyncAmmoDataPosition() {
-        ZRSJZ_GameData.Instance.AmmoID.forEach((id, index) => {
+        ZRSJZ_InventoryService.GetAmmoIDs().forEach((id, index) => {
             if (id) this.SaveAmmoPosition(id, index);
         });
         ZRSJZ_GameData.SaveData();

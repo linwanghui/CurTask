@@ -13,6 +13,7 @@ import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_RoleItem } from '../UI/ZRSJZ_RoleItem';
 import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_RolePanel')
@@ -105,7 +106,10 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
                 break;
             case "上场":
                 ZRSJZ_AccountService.SetCurSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN);
+                ZRSJZ_EventManager.Emit(
+                    ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN,
+                    ZRSJZ_InventoryService.GetActivePlayerIndex(),
+                );
                 this.ShowButton();
                 break;
             default:
@@ -230,5 +234,3 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     }
 
 }
-
-

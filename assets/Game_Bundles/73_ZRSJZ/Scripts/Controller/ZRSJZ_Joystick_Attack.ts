@@ -332,7 +332,9 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     //装备切换
-    ShowEquipment(equipmentName: string, isEquipment: boolean = true) {
+    ShowEquipment(equipmentName: string, isEquipment: boolean = true, playerIndex?: number) {
+        const currentPlayerIndex = ZRSJZ_Game.Instance?.CurPlayer?.PlayerSkeleton?.CurPlayerIndex;
+        if (playerIndex !== undefined && playerIndex !== currentPlayerIndex) return;
         //枪
         for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
             const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);

@@ -4,6 +4,7 @@ import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_ANI, ZRSJZ_TIER } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PlayerMain')
@@ -28,14 +29,8 @@ export class ZRSJZ_PlayerMain extends Component {
         this.PlayerSkeleton = this.node.getChildByName("Spine").getComponent(ZRSJZ_PlayerSkeleton);
     }
 
-    protected start(): void {
-        this._moveSpeed *= 1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate();
-        this._weaponType = ZRSJZ_GameData.Instance.WeaponryID[0] ? "枪" : "刀";
-        this.ApplyWeaponType(this._weaponType);
-        this.PlayerSkeleton.HasDirection = false;
-    }
-
     protected onEnable(): void {
+        this.Show();
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
@@ -63,6 +58,15 @@ export class ZRSJZ_PlayerMain extends Component {
         this.RigidBody.linearVelocity = v2(moveX * dt * speed, 0);
     }
 
+    Show() {
+        this._moveSpeed *= 1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate();
+        this._weaponType = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerSkeleton.CurPlayerIndex)[0]
+            ? "枪"
+            : "刀";
+        this.ApplyWeaponType(this._weaponType);
+        this.PlayerSkeleton.HasDirection = false;
+    }
+
     Move(x: number, y: number, radius: number) {
         this._moveX = x;
         this._moveY = y;
@@ -76,7 +80,7 @@ export class ZRSJZ_PlayerMain extends Component {
         if (this._isSliding) return;
         const targetType = this._weaponType === "枪" ? "刀" : "枪";
         const targetIndex = targetType === "枪" ? 0 : 4;
-        const targetID = ZRSJZ_GameData.Instance.WeaponryID[targetIndex];
+        const targetID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerSkeleton.CurPlayerIndex)[targetIndex];
         if (!targetID || !ZRSJZ_GameData.Instance.PropData[targetID]) return;
         this._weaponType = targetType;
         this.ApplyWeaponType(targetType);
@@ -84,7 +88,7 @@ export class ZRSJZ_PlayerMain extends Component {
 
     private ApplyWeaponType(weaponType: string): void {
         const targetIndex = weaponType === "枪" ? 0 : 4;
-        const targetID = ZRSJZ_GameData.Instance.WeaponryID[targetIndex];
+        const targetID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerSkeleton.CurPlayerIndex)[targetIndex];
         const propData = ZRSJZ_GameData.Instance.PropData[targetID];
         if (!propData) return;
 
@@ -167,12 +171,13 @@ export class ZRSJZ_PlayerMain extends Component {
         }
     }
 
-    ChangeSkin() {
+    ChangeSkin(playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerSkeleton.CurPlayerIndex) return;
         this.PlayerSkeleton.SetSkin(ZRSJZ_GameData.Instance.CurSkin[this.PlayerSkeleton.CurPlayerIndex]);
-        for (let i = ZRSJZ_GameData.Instance.WeaponryID.length - 1; i >= 0; i--) {
-            if (ZRSJZ_GameData.Instance.WeaponryID[i]) {
-                this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[i]].Name);
-            }
+        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerSkeleton.CurPlayerIndex);
+        for (let i = weaponryIDs.length - 1; i >= 0; i--) {
+            const prop = ZRSJZ_GameData.Instance.PropData[weaponryIDs[i]];
+            if (prop) this.PlayerSkeleton.ShowEquipment(prop.Name);
         }
     }
 

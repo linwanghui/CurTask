@@ -2,6 +2,7 @@ import { ZRSJZ_WEAPON_SKIN } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
 import { ZRSJZ_PlayerSwitchButton } from "../UI/ZRSJZ_PlayerSwitchButton";
+import { ZRSJZ_InventoryService } from "./ZRSJZ_InventoryService";
 
 /** 账号、签到、角色与皮肤相关业务。存档字段本身仍由 ZRSJZ_GameData 持有。 */
 export class ZRSJZ_AccountService {
@@ -85,9 +86,14 @@ export class ZRSJZ_AccountService {
         if (this.GetWeaponSkin(weaponName) === skinName) return true;
         data.CurWeaponSkin[weaponName] = skinName;
         ZRSJZ_GameData.SaveData();
-        const equippedGunName = data.PropData?.[data.WeaponryID?.[0]]?.Name;
+        const equippedGunName = data.PropData?.[ZRSJZ_InventoryService.GetWeaponryIDs()[0]]?.Name;
         if (equippedGunName === weaponName) {
-            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, weaponName);
+            ZRSJZ_EventManager.EmitPersist(
+                ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT,
+                weaponName,
+                true,
+                ZRSJZ_InventoryService.GetActivePlayerIndex(),
+            );
         }
         return true;
     }

@@ -4,6 +4,7 @@ import { ZRSJZ_GRID_INTERVAL, ZRSJZ_GRID_SIZE, ZRSJZ_INVENTORY, ZRSJZ_INVENTORY_
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_InventoryBackpack')
@@ -54,7 +55,7 @@ export class ZRSJZ_InventoryBackpack extends ZRSJZ_Inventory {
         return true;
     }
     private GetCurrentBackpackRow(): number {
-        const backpackID = ZRSJZ_GameData.Instance.WeaponryID[3];
+        const backpackID = ZRSJZ_InventoryService.GetWeaponryIDs()[3];
         if (!backpackID) return ZRSJZ_InventoryBackpack.DEFAULT_ROW;
 
         const backpackData = ZRSJZ_GameData.Instance.PropData[backpackID];
@@ -70,4 +71,3 @@ export class ZRSJZ_InventoryBackpack extends ZRSJZ_Inventory {
     }
 
 }
-

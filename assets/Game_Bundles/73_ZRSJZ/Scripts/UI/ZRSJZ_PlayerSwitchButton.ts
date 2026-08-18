@@ -2,6 +2,7 @@ import { _decorator, Component, EventTouch, find, Node, tween, Tween, Vec3 } fro
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PlayerSwitchButton')
@@ -20,6 +21,8 @@ export class ZRSJZ_PlayerSwitchButton extends Component {
 
     protected onEnable(): void {
         ZRSJZ_PlayerSwitchButton.CurPlayer = "1p";
+        ZRSJZ_InventoryService.SetActivePlayerIndex(0);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_PLAYER_CHANGE, 0);
         this.ButtonTween(-1);
     }
 
@@ -28,6 +31,9 @@ export class ZRSJZ_PlayerSwitchButton extends Component {
         const buttonName = event.getCurrentTarget().name;
         if (buttonName == ZRSJZ_PlayerSwitchButton.CurPlayer) return;
         ZRSJZ_PlayerSwitchButton.CurPlayer = buttonName;
+        const playerIndex = buttonName === "2p" ? 1 : 0;
+        ZRSJZ_InventoryService.SetActivePlayerIndex(playerIndex);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_PLAYER_CHANGE, playerIndex);
         switch (buttonName) {
             case "1p":
                 this.ButtonTween(-1);

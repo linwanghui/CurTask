@@ -14,6 +14,11 @@ export class ZRSJZ_Skeleton extends Component {
     WeaponryName: string = "";
     HandSkeleton: sp.Skeleton = null;
 
+    /** 子类可按自己的玩家索引返回装备栏。 */
+    protected GetEquippedWeaponryIDs(): string[] {
+        return ZRSJZ_GameData.Instance.WeaponryID;
+    }
+
     protected onLoad(): void {
         this.Skeleton = this.getComponent(sp.Skeleton);
         this.HandSkeleton = this.node.getChildByName("Hand").getComponent(sp.Skeleton);
@@ -74,7 +79,9 @@ export class ZRSJZ_Skeleton extends Component {
                     } else {
                         this.WeaponryName = "";
                         this.HandSkeleton.findSlot(key)?.setAttachment(null);
-                        this.HandSkeleton.setAttachment('dao', ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
+                        const knifeID = this.GetEquippedWeaponryIDs()[4];
+                        const knifeName = ZRSJZ_GameData.Instance.PropData[knifeID]?.Name;
+                        if (knifeName) this.HandSkeleton.setAttachment('dao', knifeName);
                         this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
                             this.PlayAni(ZRSJZ_ANI.Idle_D1);
                         })

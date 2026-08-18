@@ -121,6 +121,8 @@ export class ZRSJZ_PropGrid extends Component {
         }
 
         // 对象池节点每次复用时都必须清理上一次道具留下的交互和显示状态。
+        // 装备栏会按槽位缩放 PropGrid；回收到公共对象池后，卡包等库存再次取用时必须恢复原尺寸。
+        this.CurScale = 1;
         this.PropID = propID;
         this.PropName = "";
         this.PropData = null;

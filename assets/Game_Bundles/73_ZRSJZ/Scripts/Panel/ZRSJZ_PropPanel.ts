@@ -115,10 +115,11 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 this.ReplaceBtn.active = false;
                 this.SellBtn.active = false;
             } else {
-                const isLoading = ZRSJZ_GameData.Instance.WeaponryID.includes(propID);
+                const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs();
+                const isLoading = weaponryIDs.includes(propID);
                 this.UnloadBtn.active = isLoading;
                 const weaponIndex = ZRSJZ_Tools.GetWeaponryIndexByType(propConfig.PropType);
-                const isHaveWeapon = ZRSJZ_GameData.Instance.WeaponryID[weaponIndex] != "";
+                const isHaveWeapon = weaponryIDs[weaponIndex] != "";
                 this.LoadBtn.active = !isLoading && !isHaveWeapon;
                 this.ReplaceBtn.active = !isLoading && isHaveWeapon;
                 this.SellBtn.active = !ZRSJZ_UIManager.IsBattle;
