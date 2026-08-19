@@ -135,11 +135,14 @@ export class ZRSJZ_InventoryService {
         x: number,
         y: number,
         isRotate?: boolean,
+        playerIndex: number = this._activePlayerIndex,
     ): void {
         const prop = ZRSJZ_GameData.Instance.PropData[propID];
         if (!prop?.GridData?.[gridIndex]) return;
         prop.CurInventory = inventory;
-        prop.OwnerPlayerIndex = this.IsPlayerInventory(inventory) ? this._activePlayerIndex : -1;
+        prop.OwnerPlayerIndex = this.IsPlayerInventory(inventory)
+            ? (playerIndex === 1 ? 1 : 0)
+            : -1;
         for (const gridData of prop.GridData) {
             gridData.GridX = -1;
             gridData.GridY = -1;

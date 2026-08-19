@@ -62,7 +62,11 @@ export class ZRSJZ_Joystick_Drug extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         const target = event.getCurrentTarget();
         if (target.name === "背包") {
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.背包弹窗, this.PlayerIndex);
+            ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+                ZRSJZ_PANEL.背包弹窗,
+                this.PlayerIndex,
+                this.PlayerIndex,
+            );
             return;
         }
 
@@ -80,9 +84,13 @@ export class ZRSJZ_Joystick_Drug extends Component {
         const drug = game.Drug[this.PlayerIndex];
         const count = Math.max(0, Math.floor(drug[drugIndex] ?? 0));
         if (count <= 0) {
-            ZRSJZ_Game.Instance.GamePaused = true;
             // ZRSJZ_UIManager.Instance.ShowTip("药品数量不足");
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.医疗箱弹窗, null, this.PlayerIndex);
+            ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+                ZRSJZ_PANEL.医疗箱弹窗,
+                this.PlayerIndex,
+                null,
+                this.PlayerIndex,
+            );
             return;
         }
         if (player.CurHP >= player.MaxHP) {

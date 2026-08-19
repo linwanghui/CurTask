@@ -22,11 +22,14 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
         const players = director.getScene()?.getComponentsInChildren(ZRSJZ_Player) ?? [];
         const currentPosition = this.node.worldPosition;
 
-        players.sort((a, b) => (
-            Vec3.distance(a.node.worldPosition, currentPosition)
-            - Vec3.distance(b.node.worldPosition, currentPosition)
-        ));
-        return players[0]?.node ?? null;
+        players.sort((a, b) => (Vec3.distance(a.node.worldPosition, currentPosition) - Vec3.distance(b.node.worldPosition, currentPosition)));
+        for (let i = 0; i < players.length; i++) {
+            const player = players[i];
+            if (!player.getComponent(ZRSJZ_Player)?.IsDead) {
+                return player.node;
+            }
+        }
+        return null;
     }
 
     protected OnAttack(attack: string): void {

@@ -23,6 +23,8 @@ export enum ZRSJZ_PANEL {
     密码箱弹窗 = "73_ZRSJZ/Prefabs/Panel/密码箱弹窗",
     医疗箱弹窗 = "73_ZRSJZ/Prefabs/Panel/医疗箱弹窗",
     死亡弹窗 = "73_ZRSJZ/Prefabs/Panel/死亡弹窗",
+    双人模式死亡弹窗 = "73_ZRSJZ/Prefabs/Panel/双人模式死亡弹窗",
+    死亡状态弹窗 = "73_ZRSJZ/Prefabs/Panel/死亡状态弹窗",
     加载界面 = "73_ZRSJZ/Prefabs/Panel/加载界面",
     签到弹窗 = "73_ZRSJZ/Prefabs/Panel/签到弹窗",
     获取金币弹窗 = "73_ZRSJZ/Prefabs/Panel/获取金币弹窗",

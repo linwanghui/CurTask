@@ -1,5 +1,5 @@
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
-import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, input, Input, instantiate, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
+import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, find, input, Input, instantiate, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
@@ -20,6 +20,8 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_UIManager extends Component {
     public static ZRSJZ_DLC: boolean = false;
     public static Dragging: boolean = false;//是否正在拖动道具
+    /** 当前拖动所属玩家；通过上下文隔离库存，避免改变旧事件的参数结构。 */
+    public static DraggingPlayerIndex: number = -1;
     public static IsBattle: boolean = false;//是否正在战斗界面
 
     private static _instance: ZRSJZ_UIManager = null;
@@ -39,11 +41,25 @@ export class ZRSJZ_UIManager extends Component {
     private _discardSprite: Sprite = null;
     private _discardDefaultSF: SpriteFrame = null;
     private _discardSelectedSF: SpriteFrame = null;
+    private _playerDiscardAreas = new Map<number, {
+        area: Node,
+        sprite: Sprite,
+        defaultSF: SpriteFrame,
+        selectedSF: SpriteFrame,
+    }>();
     private readonly _discardingPropIDs = new Set<string>();
 
     private _panelNode: Node = null;
     private _panelMap: Map<string, Node> = new Map<string, Node>();
     private _curPanel: string[] = [];
+    /** 双人局内弹窗必须每名玩家各有一个实例，不能复用全局面板节点。 */
+    private readonly _playerPanelMap = new Map<string, Node>();
+    private readonly _curPlayerPanels = new Set<string>();
+    private readonly _playerPanelRequestVersions: number[] = [0, 0];
+    /** 双人同时打开背包时，各自使用独立的库存视图节点。 */
+    private readonly _playerInventoryMap = new Map<string, Node>();
+    /** 同一玩家库存正在创建时复用同一个任务，避免返回尚未初始化的节点。 */
+    private readonly _playerInventoryTasks = new Map<string, Promise<Node>>();
     /** 关闭全部弹窗时递增，使之前尚未完成的异步加载不再自动显示。 */
     private _panelRequestVersion: number = 0;
     private _finishGameInventoryPromise: Promise<void> = null;
@@ -261,6 +277,68 @@ export class ZRSJZ_UIManager extends Component {
         showPanel();
     }
 
+    /** 在指定玩家的 UICanvas/.../PlayerX/Panel 下显示一份独立弹窗。 */
+    public ShowPlayerPanel(panel: string, playerIndex: number, ...args: any[]): void {
+        const normalizedIndex = playerIndex === 1 ? 1 : 0;
+        // 只有局内双人模式才使用玩家独立弹窗。仓库等局外界面即使已经
+        // 选择了 2p，也仍然使用全局 Panel，否则打开和关闭会落入两套缓存。
+        if (!ZRSJZ_UIManager.IsBattle || ZRSJZ_GameData.Instance.CurModel !== "2p") {
+            this.ShowPanel(panel, ...args);
+            return;
+        }
+
+        const parent = this.GetPlayerPanelRoot(normalizedIndex);
+        if (!parent) {
+            console.warn(`[ZRSJZ_UIManager] 未找到玩家${normalizedIndex + 1}的 Panel 节点`);
+            this.ShowPanel(panel, ...args);
+            return;
+        }
+
+        const panelName = panel.split('/').pop() || panel;
+        const panelKey = this.GetPlayerPanelKey(panelName, normalizedIndex);
+        if (this._curPlayerPanels.has(panelKey)) return;
+
+        this._curPlayerPanels.add(panelKey);
+        const requestVersion = this._playerPanelRequestVersions[normalizedIndex];
+        const showPanel = (): void => {
+            const panelNode = this._playerPanelMap.get(panelKey);
+            if (!panelNode?.isValid || !parent?.isValid) return;
+            panelNode.parent = parent;
+            panelNode.setPosition(0, 0, 0);
+            panelNode.setSiblingIndex(parent.children.length - 1);
+            const panelComponent = panelNode.getComponent(ZRSJZ_Panel);
+            panelComponent.PlayerIndex = normalizedIndex;
+            panelComponent.Show(...args);
+        };
+
+        const cachedPanel = this._playerPanelMap.get(panelKey);
+        if (cachedPanel?.isValid) {
+            showPanel();
+            return;
+        }
+        if (cachedPanel) this._playerPanelMap.delete(panelKey);
+
+        const bundlePath = panel.split('/')[0];
+        const resPath = panel.replace(bundlePath, '');
+        BundleManager.GetBundle(bundlePath).load(resPath, Prefab, (err: any, prefab: Prefab) => {
+            if (err) {
+                this._curPlayerPanels.delete(panelKey);
+                console.error(`加载玩家弹窗失败 Path: ${resPath}`, err);
+                return;
+            }
+            const panelNode = instantiate(prefab);
+            parent.addChild(panelNode);
+            panelNode.active = false;
+            this._playerPanelMap.set(panelKey, panelNode);
+            if (
+                requestVersion === this._playerPanelRequestVersions[normalizedIndex]
+                && this._curPlayerPanels.has(panelKey)
+            ) {
+                showPanel();
+            }
+        });
+    }
+
     //隐藏面板
     public HidePanel(panel: string, ...args: any[]) {
         if (ZRSJZ_UIManager.Dragging) return;
@@ -272,12 +350,60 @@ export class ZRSJZ_UIManager extends Component {
         this._panelMap.get(panelName).getComponent(ZRSJZ_Panel).Hide(...args);
     }
 
+    public HidePlayerPanel(panel: string, playerIndex: number, ...args: any[]): void {
+        const normalizedIndex = playerIndex === 1 ? 1 : 0;
+        if (!ZRSJZ_UIManager.IsBattle || ZRSJZ_GameData.Instance.CurModel !== "2p") {
+            this.HidePanel(panel, ...args);
+            return;
+        }
+        const panelName = panel.split('/').pop() || panel;
+        const panelKey = this.GetPlayerPanelKey(panelName, normalizedIndex);
+        if (!this._curPlayerPanels.delete(panelKey)) {
+            // ShowPlayerPanel 在场景缺少玩家容器时会回退到全局 Panel，关闭时
+            // 也必须做同样的回退，保证回调与面板状态能够正常结束。
+            if (this._curPanel.includes(panelName)) this.HidePanel(panel, ...args);
+            return;
+        }
+        this._playerPanelMap.get(panelKey)?.getComponent(ZRSJZ_Panel)?.Hide(...args);
+    }
+
+    private GetPlayerPanelKey(panelName: string, playerIndex: number): string {
+        return `${panelName}@Player${playerIndex + 1}`;
+    }
+
+    private GetPlayerPanelRoot(playerIndex: number): Node {
+        const scene = director.getScene();
+        return find(
+            `UICanvas/TwoPlayerModel/${playerIndex === 1 ? "Player2" : "Player1"}/Panel`,
+            scene,
+        );
+    }
+
     /**
      * 玩家死亡前统一终止 UI 操作并立即关闭全部弹窗。
      * 这里不走 HidePanel，避免拖动锁和关闭动画阻止死亡弹窗显示。
      */
-    public PrepareForDeath(): void {
-        this.CloseAllPanelsImmediately();
+    public PrepareForDeath(playerIndex: number = 0): void {
+        if (ZRSJZ_GameData.Instance.CurModel === "2p") {
+            this.CloseAllPlayerPanelsImmediately(playerIndex);
+        } else {
+            this.CloseAllPanelsImmediately();
+        }
+    }
+
+    public CloseAllPlayerPanelsImmediately(playerIndex: number): void {
+        const normalizedIndex = playerIndex === 1 ? 1 : 0;
+        this._playerPanelRequestVersions[normalizedIndex]++;
+        for (const panelKey of Array.from(this._curPlayerPanels)) {
+            if (panelKey.endsWith(`@Player${normalizedIndex + 1}`)) {
+                this._curPlayerPanels.delete(panelKey);
+            }
+        }
+        for (const [panelKey, panelNode] of this._playerPanelMap) {
+            if (panelKey.endsWith(`@Player${normalizedIndex + 1}`) && panelNode?.isValid) {
+                panelNode.active = false;
+            }
+        }
     }
 
     /**
@@ -285,9 +411,13 @@ export class ZRSJZ_UIManager extends Component {
      */
     CloseAllPanelsImmediately(excludedPanelName: string = ""): void {
         this._panelRequestVersion++;
+        this._playerPanelRequestVersions[0]++;
+        this._playerPanelRequestVersions[1]++;
+        this._curPlayerPanels.clear();
 
         // 先取消拖动，归还跟随手指的临时道具节点，并恢复滚动等交互状态。
         ZRSJZ_UIManager.Dragging = false;
+        ZRSJZ_UIManager.DraggingPlayerIndex = -1;
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CANCEL_PROP_DRAG);
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, true);
 
@@ -309,6 +439,9 @@ export class ZRSJZ_UIManager extends Component {
             if (panelName !== excludedPanelName && panelNode?.isValid) {
                 panelNode.active = false;
             }
+        }
+        for (const panelNode of this._playerPanelMap.values()) {
+            if (panelNode?.isValid) panelNode.active = false;
         }
     }
 
@@ -442,32 +575,124 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     //获取仓库
-    public GetInventory(inventoryName: string): Promise<Node> {
+    public async GetInventory(
+        inventoryName: string,
+        playerIndex?: number,
+        forcePlayerInstance: boolean = false,
+    ): Promise<Node> {
         if (this.InventoryMap.size === 0) {
-            return new Promise(resolve => {
-                setTimeout(async () => {
-                    resolve(await this.GetInventory(inventoryName));
-                }, 100);
-            });
+            await new Promise<void>(resolve => setTimeout(resolve, 100));
+            return this.GetInventory(inventoryName, playerIndex, forcePlayerInstance);
         }
 
         if (!this.InventoryMap.has(inventoryName)) {
             console.error("没找到仓库:", inventoryName);
             return null;
         }
-        return Promise.resolve(this.InventoryMap.get(inventoryName));
+        if (
+            playerIndex !== undefined
+            && (
+                forcePlayerInstance
+                || (
+                    ZRSJZ_UIManager.IsBattle
+                    && ZRSJZ_GameData.Instance.CurModel === "2p"
+                )
+            )
+            && ZRSJZ_InventoryService.IsPlayerInventory(inventoryName as ZRSJZ_INVENTORY)
+        ) {
+            const normalizedIndex = playerIndex === 1 ? 1 : 0;
+            const inventoryKey = `${inventoryName}@Player${normalizedIndex + 1}`;
+            const existing = this._playerInventoryMap.get(inventoryKey);
+            if (
+                existing?.isValid
+                && existing.getComponent(ZRSJZ_Inventory)?.PlayerViewIndex === normalizedIndex
+            ) {
+                return existing;
+            }
+            if (existing) this._playerInventoryMap.delete(inventoryKey);
+
+            const creating = this._playerInventoryTasks.get(inventoryKey);
+            if (creating) return creating;
+
+            const createTask = (async (): Promise<Node> => {
+                const inventory = instantiate(this.InventoryMap.get(inventoryName));
+                inventory.name = inventoryKey;
+                inventory.active = false;
+                await inventory.getComponent(ZRSJZ_Inventory).Init(
+                    inventoryName as ZRSJZ_INVENTORY,
+                    normalizedIndex,
+                );
+                inventory.active = false;
+                this._playerInventoryMap.set(inventoryKey, inventory);
+                return inventory;
+            })();
+            this._playerInventoryTasks.set(inventoryKey, createTask);
+            try {
+                return await createTask;
+            } finally {
+                if (this._playerInventoryTasks.get(inventoryKey) === createTask) {
+                    this._playerInventoryTasks.delete(inventoryKey);
+                }
+            }
+        }
+
+        return this.InventoryMap.get(inventoryName);
     }
 
     /** 面板激活前先停用玩家库存，防止旧视图的 onEnable 与新玩家 Init 并发。 */
-    public DeactivatePlayerInventoryNodes(): void {
+    public DeactivatePlayerInventoryNodes(playerIndex?: number): void {
         for (const [inventoryName, inventoryNode] of this.InventoryMap) {
-            if (ZRSJZ_InventoryService.IsPlayerInventory(inventoryName as ZRSJZ_INVENTORY)) {
+            if (
+                inventoryNode?.isValid
+                && ZRSJZ_InventoryService.IsPlayerInventory(inventoryName as ZRSJZ_INVENTORY)
+            ) {
+                inventoryNode.active = false;
+            }
+        }
+        for (const [inventoryKey, inventoryNode] of this._playerInventoryMap) {
+            if (!inventoryNode?.isValid) {
+                this._playerInventoryMap.delete(inventoryKey);
+                continue;
+            }
+            if (
+                playerIndex === undefined
+                || inventoryKey.endsWith(`@Player${(playerIndex === 1 ? 1 : 0) + 1}`)
+            ) {
                 inventoryNode.active = false;
             }
         }
     }
 
-    public RegisterDiscardArea(discardArea: Node, discardSFs: readonly SpriteFrame[] = []): void {
+    public GetAllInventoryNodes(): Node[] {
+        for (const [inventoryKey, inventoryNode] of this._playerInventoryMap) {
+            if (!inventoryNode?.isValid) this._playerInventoryMap.delete(inventoryKey);
+        }
+        return Array.from(new Set<Node>([
+            ...Array.from(this.InventoryMap.values()).filter(node => node?.isValid),
+            ...Array.from(this._playerInventoryMap.values()).filter(node => node?.isValid),
+        ]));
+    }
+
+    public RegisterDiscardArea(
+        discardArea: Node,
+        discardSFs: readonly SpriteFrame[] = [],
+        playerIndex: number = -1,
+    ): void {
+        if (playerIndex >= 0) {
+            this._playerDiscardAreas ??= new Map();
+            const normalizedIndex = playerIndex === 1 ? 1 : 0;
+            const sprite = discardArea?.getComponent(Sprite);
+            const context = {
+                area: discardArea,
+                sprite,
+                defaultSF: discardSFs[0] ?? sprite?.spriteFrame ?? null,
+                selectedSF: discardSFs[1] ?? discardSFs[0] ?? sprite?.spriteFrame ?? null,
+            };
+            this._playerDiscardAreas.set(normalizedIndex, context);
+            if (context.area?.isValid) context.area.active = true;
+            this.SetDiscardAreaSelected(false, normalizedIndex);
+            return;
+        }
         this._discardArea = discardArea;
         this._discardSprite = discardArea?.getComponent(Sprite);
         this._discardDefaultSF = discardSFs[0] ?? this._discardSprite?.spriteFrame ?? null;
@@ -478,7 +703,15 @@ export class ZRSJZ_UIManager extends Component {
         }
     }
 
-    public UnregisterDiscardArea(discardArea: Node): void {
+    public UnregisterDiscardArea(discardArea: Node, playerIndex: number = -1): void {
+        if (playerIndex >= 0) {
+            this._playerDiscardAreas ??= new Map();
+            const normalizedIndex = playerIndex === 1 ? 1 : 0;
+            if (this._playerDiscardAreas.get(normalizedIndex)?.area === discardArea) {
+                this._playerDiscardAreas.delete(normalizedIndex);
+            }
+            return;
+        }
         if (this._discardArea !== discardArea) return;
         this._discardArea = null;
         this._discardSprite = null;
@@ -487,28 +720,28 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     /** 兼容原拖动调用：丢弃区域保持显示，只在拖动结束时恢复默认图标。 */
-    public SetDiscardAreaVisible(_visible: boolean): void {
-        if (!this._discardArea?.isValid) return;
-        this._discardArea.active = true;
-        this.SetDiscardAreaSelected(false);
+    public SetDiscardAreaVisible(_visible: boolean, playerIndex: number = -1): void {
+        const context = this.GetDiscardAreaContext(playerIndex);
+        if (!context.area?.isValid) return;
+        context.area.active = true;
+        this.SetDiscardAreaSelected(false, playerIndex);
     }
 
     /** 根据拖动道具中心是否进入丢弃范围切换默认/选中图标。 */
-    public UpdateDiscardAreaState(worldPos: Vec3): boolean {
-        const isSelected = this.IsInsideDiscardArea(worldPos);
-        this.SetDiscardAreaSelected(isSelected);
+    public UpdateDiscardAreaState(worldPos: Vec3, playerIndex: number = -1): boolean {
+        const isSelected = this.IsInsideDiscardArea(worldPos, playerIndex);
+        this.SetDiscardAreaSelected(isSelected, playerIndex);
         return isSelected;
     }
 
-    private SetDiscardAreaSelected(selected: boolean): void {
-        if (!this._discardSprite?.isValid) return;
-        this._discardSprite.spriteFrame = selected
-            ? this._discardSelectedSF
-            : this._discardDefaultSF;
+    private SetDiscardAreaSelected(selected: boolean, playerIndex: number = -1): void {
+        const context = this.GetDiscardAreaContext(playerIndex);
+        if (!context.sprite?.isValid) return;
+        context.sprite.spriteFrame = selected ? context.selectedSF : context.defaultSF;
     }
 
-    private IsInsideDiscardArea(worldPos: Vec3): boolean {
-        const discardArea = this._discardArea;
+    private IsInsideDiscardArea(worldPos: Vec3, playerIndex: number = -1): boolean {
+        const discardArea = this.GetDiscardAreaContext(playerIndex).area;
         const transform = discardArea?.getComponent(UITransform);
         return !!(
             discardArea?.isValid
@@ -519,8 +752,8 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     /** 返回 true 表示本次松手已被丢弃区域消费，不再执行库存落点。 */
-    public TryDiscardDraggedProp(propID: string, worldPos: Vec3): boolean {
-        if (!this.IsInsideDiscardArea(worldPos)) {
+    public TryDiscardDraggedProp(propID: string, worldPos: Vec3, playerIndex: number = -1): boolean {
+        if (!this.IsInsideDiscardArea(worldPos, playerIndex)) {
             return false;
         }
 
@@ -534,6 +767,25 @@ export class ZRSJZ_UIManager extends Component {
         // 等当前触摸结束逻辑归还拖动预览后再删除原道具节点，避免对象池复用竞态。
         void Promise.resolve().then(() => this.DiscardProp(propID));
         return true;
+    }
+
+    private GetDiscardAreaContext(playerIndex: number): {
+        area: Node,
+        sprite: Sprite,
+        defaultSF: SpriteFrame,
+        selectedSF: SpriteFrame,
+    } {
+        if (playerIndex >= 0) {
+            this._playerDiscardAreas ??= new Map();
+            return this._playerDiscardAreas.get(playerIndex === 1 ? 1 : 0)
+                ?? { area: null, sprite: null, defaultSF: null, selectedSF: null };
+        }
+        return {
+            area: this._discardArea,
+            sprite: this._discardSprite,
+            defaultSF: this._discardDefaultSF,
+            selectedSF: this._discardSelectedSF,
+        };
     }
 
     private async DiscardProp(propID: string): Promise<void> {
@@ -559,6 +811,7 @@ export class ZRSJZ_UIManager extends Component {
     public async QuickTransferProp(
         sourceInventory: ZRSJZ_INVENTORY,
         propID: string,
+        playerIndex: number = ZRSJZ_InventoryService.GetActivePlayerIndex(),
     ): Promise<boolean> {
         const propData = ZRSJZ_GameData.Instance.PropData[propID];
         if (!propData) return false;
@@ -599,7 +852,7 @@ export class ZRSJZ_UIManager extends Component {
             return false;
         }
 
-        const targetNode = this.InventoryMap.get(targetInventory);
+        const targetNode = await this.GetInventory(targetInventory, playerIndex);
         const target = targetNode?.getComponent(ZRSJZ_Inventory);
         if (!target) {
             console.error("快捷转移目标库存尚未初始化:", targetInventory);

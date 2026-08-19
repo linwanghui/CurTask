@@ -28,17 +28,17 @@
     "_active": true,
     "_components": [
       {
+        "__id__": 258
+      },
+      {
         "__id__": 260
       },
       {
         "__id__": 262
-      },
-      {
-        "__id__": 264
       }
     ],
     "_prefab": {
-      "__id__": 266
+      "__id__": 264
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -379,13 +379,10 @@
       },
       {
         "__id__": 255
-      },
-      {
-        "__id__": 257
       }
     ],
     "_prefab": {
-      "__id__": 259
+      "__id__": 257
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -4634,44 +4631,6 @@
     "fileId": "26aOzhZGNAO6umeSLrPEsS"
   },
   {
-    "__type__": "cc.Layout",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 15
-    },
-    "_enabled": false,
-    "__prefab": {
-      "__id__": 256
-    },
-    "_resizeMode": 0,
-    "_layoutType": 1,
-    "_cellSize": {
-      "__type__": "cc.Size",
-      "width": 40,
-      "height": 40
-    },
-    "_startAxis": 0,
-    "_paddingLeft": 50,
-    "_paddingRight": 0,
-    "_paddingTop": 0,
-    "_paddingBottom": 0,
-    "_spacingX": 20,
-    "_spacingY": 0,
-    "_verticalDirection": 1,
-    "_horizontalDirection": 0,
-    "_constraint": 0,
-    "_constraintNum": 2,
-    "_affectedByScale": false,
-    "_isAlign": false,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "860nJuVAlL2o53RFSSE/qy"
-  },
-  {
     "__type__": "41cbewN/OFFUYk4khrwfDM+",
     "_name": "",
     "_objFlags": 0,
@@ -4681,11 +4640,12 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 258
+      "__id__": 256
     },
     "AllowUpscale": true,
     "HorizontalPadding": 0,
     "VerticalPadding": 0,
+    "IsView": false,
     "_id": ""
   },
   {
@@ -4715,7 +4675,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 261
+      "__id__": 259
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -4743,7 +4703,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 263
+      "__id__": 261
     },
     "_alignFlags": 45,
     "_target": null,
@@ -4779,7 +4739,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 265
+      "__id__": 263
     },
     "SearchInterval": 0.5,
     "DiscardSFs": [

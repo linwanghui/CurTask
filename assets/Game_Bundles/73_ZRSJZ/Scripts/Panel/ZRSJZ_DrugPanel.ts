@@ -20,6 +20,10 @@ export class ZRSJZ_DrugPanel extends ZRSJZ_Panel {
         this._videoButton = find("Panel/观看视频", this.node)?.getComponent(Button) ?? null;
     }
 
+    protected onDisable(): void {
+        this._targetBox?.EndSearch(this._playerIndex);
+    }
+
     Show(...args: any[]): void {
         this._targetBox = args[0] instanceof ZRSJZ_Box ? args[0] : null;
         this._playerIndex = args[1] === 1 ? 1 : 0;
@@ -53,11 +57,12 @@ export class ZRSJZ_DrugPanel extends ZRSJZ_Panel {
     }
 
     Close() {
+        this._targetBox?.EndSearch(this._playerIndex);
         this._targetBox = null;
-        ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.医疗箱弹窗, () => {
-            ZRSJZ_Game.Instance.GamePaused = false;
-        });
+        ZRSJZ_UIManager.Instance.HidePlayerPanel(
+            ZRSJZ_PANEL.医疗箱弹窗,
+            this._playerIndex,
+        );
     }
 
 }
-

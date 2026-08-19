@@ -51,7 +51,6 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     }
 
     protected onEnable(): void {
-        this.Prepare.Show();
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_ADD, this.AddSellProp, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PROP_MOVE, this.PropMove, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_WAREHOUSE_DROP, this.OnWarehouseDrop, this);
@@ -106,20 +105,8 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     }
 
     private async RefreshPlayerLoadout(): Promise<void> {
-        const playerInventories = [
-            ZRSJZ_INVENTORY.卡包,
-            ZRSJZ_INVENTORY.弹药,
-            ZRSJZ_INVENTORY.武器_枪,
-            ZRSJZ_INVENTORY.武器_头盔,
-            ZRSJZ_INVENTORY.武器_防弹衣,
-            ZRSJZ_INVENTORY.武器_背包,
-            ZRSJZ_INVENTORY.武器_刀,
-        ];
-        for (const inventoryType of playerInventories) {
-            const inventoryNode = await ZRSJZ_UIManager.Instance.GetInventory(inventoryType);
-            await inventoryNode?.getComponent(ZRSJZ_Inventory)?.Init(inventoryType);
-        }
-        if (this.node.activeInHierarchy) await this.Prepare.Show();
+        const playerIndex = ZRSJZ_InventoryService.GetActivePlayerIndex();
+        if (this.node.activeInHierarchy) await this.Prepare.Show(false, playerIndex);
     }
 
     //#region 仓库

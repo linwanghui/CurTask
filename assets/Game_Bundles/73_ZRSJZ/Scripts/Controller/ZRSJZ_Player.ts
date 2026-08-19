@@ -80,6 +80,10 @@ export class ZRSJZ_Player extends Component {
         return this._magazineAmmo.length;
     }
 
+    public get IsDead(): boolean {
+        return this.CurHP <= 0;
+    }
+
     public get MagazineCapacity(): number {
         return Math.max(0, Math.floor(this.GetGunProperty("弹夹", 0)));
     }
@@ -179,7 +183,7 @@ export class ZRSJZ_Player extends Component {
 
     protected onDisable(): void {
         this.CancelGunAttackState();
-        ZRSJZ_Game.Instance?.CancelEvacuation();
+        ZRSJZ_Game.Instance?.CancelEvacuation(this.PlayerIndex);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
@@ -631,6 +635,7 @@ export class ZRSJZ_Player extends Component {
     Resurgence(playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         this.CurHP = this.MaxHP;
+        this._isStop = false;
         this.HP.Show(this.CurHP);
         this.CurSpeed = this.MaxSpeed;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect").then((effect: Node) => {
@@ -646,6 +651,7 @@ export class ZRSJZ_Player extends Component {
         } else {
             this.PlayAni(ZRSJZ_ANI.Idle_D1);
         }
+        ZRSJZ_Game.Instance?.OnPlayerResurrected(this.PlayerIndex);
     }
 
     //#region 寻找敌人
@@ -691,12 +697,17 @@ export class ZRSJZ_Player extends Component {
             if (ZRSJZ_GameData.Instance.CurMap !== "新手村") {
                 this.CancelGunAttackState();
                 this.CancelKnifeAttackState();
-                ZRSJZ_Game.Instance.CancelEvacuation();
-                ZRSJZ_Game.Instance.GamePaused = true;
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0);
-                ZRSJZ_UIManager.Instance.PrepareForDeath();
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗);
+                this._isStop = true;
+                ZRSJZ_Game.Instance.OnPlayerDied(this.PlayerIndex);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex,);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0, this.PlayerIndex,);
+                ZRSJZ_UIManager.Instance.PrepareForDeath(this.PlayerIndex);
+                if (ZRSJZ_GameData.Instance.CurModel == "2p") {
+                    //双人模式
+                    ZRSJZ_UIManager.Instance.ShowPlayerPanel(ZRSJZ_PANEL.双人模式死亡弹窗, this.PlayerIndex, this.PlayerIndex);
+                } else {
+                    ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗, this.PlayerIndex);
+                }
                 this.PlayAni(ZRSJZ_ANI.SW, false);
                 ZRSJZ_AudioManager.Instance.PlaySound("击杀");
             }
@@ -1128,7 +1139,7 @@ export class ZRSJZ_Player extends Component {
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, otherCollider.node?.getComponent(ZRSJZ_Door), this.PlayerIndex);
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
             //开始撤离
-            ZRSJZ_Game.Instance.StartEvacuation(otherCollider.node.name);
+            ZRSJZ_Game.Instance.StartEvacuation(otherCollider.node.name, this.PlayerIndex);
         }
     }
 
@@ -1144,7 +1155,7 @@ export class ZRSJZ_Player extends Component {
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, null, this.PlayerIndex);
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
             //撤离中断
-            ZRSJZ_Game.Instance.CancelEvacuation();
+            ZRSJZ_Game.Instance.CancelEvacuation(this.PlayerIndex);
         }
     }
 

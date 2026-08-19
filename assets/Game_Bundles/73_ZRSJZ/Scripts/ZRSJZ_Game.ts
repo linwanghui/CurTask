@@ -1,4 +1,4 @@
-import { _decorator, Camera, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, } from 'cc';
+import { _decorator, Camera, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
@@ -93,6 +93,12 @@ export class ZRSJZ_Game extends Component {
     private _isEvacuating: boolean = false;
     private _isGameFinished: boolean = false;
     private _evacuationMethod: string = "固定撤离点";
+    /** 记录每名玩家当前所在的撤离点；只有所有存活玩家位于同一撤离点才开始倒计时。 */
+    private readonly _playerEvacuationPoints = new Map<number, string>();
+    /** 双人模式中已经明确放弃复活的玩家。 */
+    private readonly _playersGivenUpResurrection = new Set<number>();
+    /** -1 表示左右分屏，0/1 表示当前由对应玩家独占全屏。 */
+    private _fullscreenPlayerIndex: number = -1;
     private _directionEndWorld: Vec3 = new Vec3();
     private readonly _directions: Node[] = [];
     private readonly _checkedNodes: Node[] = [];
@@ -109,6 +115,9 @@ export class ZRSJZ_Game extends Component {
         this._battleStarted = false;
         this._evacuationElapsed = 0;
         this._isEvacuating = false;
+        this._playerEvacuationPoints.clear();
+        this._playersGivenUpResurrection.clear();
+        this._fullscreenPlayerIndex = -1;
         this._isGameFinished = false;
         this.InitializeBattleTimer();
         this.SetEvacuationVisible(false);
@@ -153,6 +162,10 @@ export class ZRSJZ_Game extends Component {
         const player = this.GetPlayer(playerIndex);
         const gameCamera = this.Cameras[playerIndex];
         if (!direction || !player?.node?.isValid || !this.UI?.isValid) return;
+        if (player.IsDead || !gameCamera?.node.activeInHierarchy) {
+            direction.active = false;
+            return;
+        }
         const worldCamera = gameCamera?.getComponent(Camera);
         const skeleton = player.PlayerSkeleton;
         if (!worldCamera || !skeleton) {
@@ -227,7 +240,7 @@ export class ZRSJZ_Game extends Component {
         const halfCanvasHeight = canvasTransform.height * 0.5;
         const directionHalfWidth = (directionTransform?.width ?? 0) * Math.abs(direction.scale.x) * 0.5;
         const directionHalfHeight = (directionTransform?.height ?? 0) * Math.abs(direction.scale.y) * 0.5;
-        const isTwoPlayer = this.Players.length > 1;
+        const isTwoPlayer = this.Players.length > 1 && this._fullscreenPlayerIndex < 0;
         const minX = isTwoPlayer && playerIndex === 1
             ? padding + directionHalfWidth
             : -halfCanvasWidth + padding + directionHalfWidth;
@@ -248,7 +261,8 @@ export class ZRSJZ_Game extends Component {
         const player = this.GetPlayer(playerIndex);
         const checked = this._checkedNodes[playerIndex];
         if (!checked) return;
-        if (player?.TargetEnemy) {
+        const gameCamera = this.Cameras[playerIndex];
+        if (!player?.IsDead && gameCamera?.node.activeInHierarchy && player.TargetEnemy) {
             checked.active = true;
             checked.setWorldPosition(player.TargetEnemy.worldPosition.clone().add3f(0, 150, 0));
         } else {
@@ -304,20 +318,48 @@ export class ZRSJZ_Game extends Component {
         }
     }
 
-    /** 玩家进入撤离点后开始计时；必须在区域内连续停留满 10 秒。 */
-    StartEvacuation(evacuationPointName: string = "固定撤离点"): void {
+    /** 玩家进入撤离点；所有存活玩家都在同一撤离点时才开始计时。 */
+    StartEvacuation(
+        evacuationPointName: string = "固定撤离点",
+        playerIndex: number = 0,
+    ): void {
         if (!this._battleStarted || this.GamePaused || this._isGameFinished) return;
-        if (this._isEvacuating) return;
-
-        this._evacuationMethod = evacuationPointName || "固定撤离点";
-        this._evacuationElapsed = 0;
-        this._isEvacuating = true;
-        this.SetEvacuationVisible(true);
-        this.RefreshEvacuationTime();
+        this._playerEvacuationPoints.set(
+            playerIndex === 1 ? 1 : 0,
+            evacuationPointName || "固定撤离点",
+        );
+        this.RefreshEvacuationEligibility();
     }
 
-    /** 玩家提前离开撤离点时取消并重置倒计时。 */
-    CancelEvacuation(): void {
+    /** 指定玩家离开撤离点；不传玩家索引时清空整场撤离状态。 */
+    CancelEvacuation(playerIndex?: number): void {
+        if (playerIndex === undefined) {
+            this._playerEvacuationPoints.clear();
+        } else {
+            this._playerEvacuationPoints.delete(playerIndex === 1 ? 1 : 0);
+        }
+        this.RefreshEvacuationEligibility();
+    }
+
+    private RefreshEvacuationEligibility(): void {
+        const livingPlayers = this.Players.filter(player => !player.IsDead);
+        const evacuationPoint = livingPlayers.length > 0
+            ? this._playerEvacuationPoints.get(livingPlayers[0].PlayerIndex)
+            : "";
+        const canEvacuate = !!evacuationPoint && livingPlayers.every(player =>
+            this._playerEvacuationPoints.get(player.PlayerIndex) === evacuationPoint
+        );
+
+        if (canEvacuate) {
+            if (this._isEvacuating && this._evacuationMethod === evacuationPoint) return;
+            this._evacuationMethod = evacuationPoint;
+            this._evacuationElapsed = 0;
+            this._isEvacuating = true;
+            this.SetEvacuationVisible(true);
+            this.RefreshEvacuationTime();
+            return;
+        }
+
         if (!this._isEvacuating) return;
 
         this._isEvacuating = false;
@@ -462,6 +504,155 @@ export class ZRSJZ_Game extends Component {
 
     GetPlayer(playerIndex: number = 0): ZRSJZ_Player {
         return this.Players[playerIndex === 1 ? 1 : 0] ?? this.CurPlayer;
+    }
+
+    public IsTwoPlayerMode(): boolean {
+        return ZRSJZ_GameData.Instance.CurModel === "2p" && this.Players.length > 1;
+    }
+
+    /** 返回分屏中指定玩家用于承载局内弹窗的 Panel 节点。 */
+    public GetPlayerPanelRoot(playerIndex: number): Node {
+        if (!this.IsTwoPlayerMode()) return null;
+        const playerRoot = this.TwoPlayerModel?.getChildByName(
+            playerIndex === 1 ? "Player2" : "Player1",
+        );
+        return playerRoot?.getChildByName("Panel") ?? null;
+    }
+
+    /** 玩家死亡只冻结自己；两名玩家均死亡后才暂停整场游戏。 */
+    public OnPlayerDied(playerIndex: number): void {
+        const normalizedIndex = playerIndex === 1 ? 1 : 0;
+        this._playersGivenUpResurrection.delete(normalizedIndex);
+        this._playerEvacuationPoints.delete(normalizedIndex);
+        this.RefreshEvacuationEligibility();
+        this.GamePaused = this.Players.length > 0
+            && this.Players.every(player => player.IsDead);
+    }
+
+    /** 复活只恢复指定玩家，并重新校验双人撤离条件。 */
+    public OnPlayerResurrected(playerIndex: number): void {
+        const normalizedIndex = playerIndex === 1 ? 1 : 0;
+        this._playersGivenUpResurrection.delete(normalizedIndex);
+        this.GamePaused = false;
+        this._playerEvacuationPoints.delete(normalizedIndex);
+        this.RefreshEvacuationEligibility();
+        this.RefreshPlayerViewportLayout();
+    }
+
+    /**
+     * 双人模式玩家明确放弃复活：有队友存活时由队友接管全屏，
+     * 两名玩家都死亡且都放弃后结束本局。
+     */
+    public OnPlayerGiveUpResurrection(playerIndex: number): void {
+        if (!this.IsTwoPlayerMode() || this._isGameFinished) return;
+
+        const normalizedIndex = playerIndex === 1 ? 1 : 0;
+        const player = this.GetPlayer(normalizedIndex);
+        if (!player?.IsDead) return;
+        this._playersGivenUpResurrection.add(normalizedIndex);
+
+        const allPlayersGaveUp = this.Players.length > 0
+            && this.Players.every(currentPlayer =>
+                currentPlayer.IsDead
+                && this._playersGivenUpResurrection.has(currentPlayer.PlayerIndex)
+            );
+        if (allPlayersGaveUp) {
+            this.FinishGameByDeath();
+            return;
+        }
+
+        this.RefreshPlayerViewportLayout();
+    }
+
+    private FinishGameByDeath(): void {
+        if (this._isGameFinished) return;
+
+        this.CancelEvacuation();
+        this._isGameFinished = true;
+        this._battleStarted = false;
+        this.GamePaused = true;
+        this.RefreshGameTime();
+        ZRSJZ_UIManager.Instance.ShowPanel(
+            ZRSJZ_PANEL.失败弹窗,
+            "死亡",
+            this.GetGameTime(),
+            this.GetKillCount(),
+        );
+    }
+
+    /** 根据存活和放弃复活状态，在左右分屏与单玩家全屏之间切换。 */
+    private RefreshPlayerViewportLayout(): void {
+        if (!this.IsTwoPlayerMode()) return;
+
+        const livingPlayers = this.Players.filter(player => !player.IsDead);
+        const fullscreenPlayerIndex = this._playersGivenUpResurrection.size > 0
+            && livingPlayers.length === 1
+            ? livingPlayers[0].PlayerIndex
+            : -1;
+        this.ApplyPlayerViewportLayout(fullscreenPlayerIndex);
+    }
+
+    private ApplyPlayerViewportLayout(fullscreenPlayerIndex: number): void {
+        this._fullscreenPlayerIndex = fullscreenPlayerIndex === 0 || fullscreenPlayerIndex === 1
+            ? fullscreenPlayerIndex
+            : -1;
+        const splitLine = this.TwoPlayerModel?.getChildByName("Mask");
+        if (splitLine) splitLine.active = this._fullscreenPlayerIndex < 0;
+
+        for (let playerIndex = 0; playerIndex < 2; playerIndex++) {
+            const playerRoot = this.TwoPlayerModel?.getChildByName(
+                playerIndex === 1 ? "Player2" : "Player1",
+            );
+            if (!playerRoot) continue;
+
+            playerRoot.active = this._fullscreenPlayerIndex < 0
+                || playerIndex === this._fullscreenPlayerIndex;
+            const widget = playerRoot.getComponent(Widget);
+            if (!widget) continue;
+
+            widget.isAlignLeft = true;
+            widget.isAlignRight = true;
+            if (this._fullscreenPlayerIndex >= 0) {
+                widget.isAbsoluteLeft = true;
+                widget.isAbsoluteRight = true;
+                widget.left = 0;
+                widget.right = 0;
+            } else if (playerIndex === 0) {
+                widget.isAbsoluteLeft = true;
+                widget.isAbsoluteRight = false;
+                widget.left = 0;
+                widget.right = 0.5;
+            } else {
+                widget.isAbsoluteLeft = false;
+                widget.isAbsoluteRight = true;
+                widget.left = 0.5;
+                widget.right = 0;
+            }
+            widget.updateAlignment();
+        }
+
+        const firstCamera = this.Camera_Player1?.getComponent(Camera);
+        const secondCamera = this.Camera_Player2?.getComponent(Camera);
+        if (this._fullscreenPlayerIndex < 0) {
+            if (firstCamera) firstCamera.rect = new Rect(0, 0, 0.5, 1);
+            if (secondCamera) secondCamera.rect = new Rect(0.5, 0, 0.5, 1);
+            if (this.Camera_Player1) this.Camera_Player1.node.active = true;
+            if (this.Camera_Player2) this.Camera_Player2.node.active = true;
+            this.CurPlayer = this.Players[0];
+        } else {
+            const survivorCamera = this._fullscreenPlayerIndex === 1
+                ? this.Camera_Player2
+                : this.Camera_Player1;
+            const hiddenCamera = this._fullscreenPlayerIndex === 1
+                ? this.Camera_Player1
+                : this.Camera_Player2;
+            const camera = survivorCamera?.getComponent(Camera);
+            if (camera) camera.rect = new Rect(0, 0, 1, 1);
+            if (survivorCamera) survivorCamera.node.active = true;
+            if (hiddenCamera) hiddenCamera.node.active = false;
+            this.CurPlayer = this.Players[this._fullscreenPlayerIndex];
+        }
+        this._player = this.CurPlayer?.node ?? null;
     }
 
     /** 使用场景中已有的 Camera_Player1 / Camera_Player2，不再运行时复制相机。 */

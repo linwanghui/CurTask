@@ -308,21 +308,40 @@ export class ZRSJZ_Joystick_Attack extends Component {
             ZRSJZ_UIManager.Instance.ShowTip("另一名玩家正在搜索该箱子");
             return;
         }
+        if (!this._targetBox.TryBeginSearch(this.PlayerIndex)) {
+            ZRSJZ_UIManager.Instance.ShowTip("另一名玩家正在搜索该箱子");
+            return;
+        }
         ZRSJZ_InventoryService.SetActivePlayerIndex(this.PlayerIndex);
         if (this._targetBox?.RequiresRewardVideo()) {
             if (this._targetBox.IsOpened()) {
                 ZRSJZ_UIManager.Instance.ShowTip("医疗箱已经打开");
+                this._targetBox.EndSearch(this.PlayerIndex);
             } else {
-                ZRSJZ_Game.Instance.GamePaused = true;
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.医疗箱弹窗, this._targetBox, this.PlayerIndex);
+                ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+                    ZRSJZ_PANEL.医疗箱弹窗,
+                    this.PlayerIndex,
+                    this._targetBox,
+                    this.PlayerIndex,
+                );
             }
             return;
         }
         if (this._targetBox?.RequiresPassword() && !this._targetBox.IsPasswordUnlocked()) {
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.密码箱弹窗, this._targetBox, this.PlayerIndex);
+            ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+                ZRSJZ_PANEL.密码箱弹窗,
+                this.PlayerIndex,
+                this._targetBox,
+                this.PlayerIndex,
+            );
             return;
         }
-        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.物资弹窗, this._targetBox, this.PlayerIndex);
+        ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+            ZRSJZ_PANEL.物资弹窗,
+            this.PlayerIndex,
+            this._targetBox,
+            this.PlayerIndex,
+        );
     }
 
     //加载技能按钮
