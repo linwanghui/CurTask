@@ -18,6 +18,8 @@ export class ZRSJZ_Inventory extends Component {
 
     public InventoryConfig: { Row: number, Col: number, IsDilatation: boolean };
     public IsInitialized: boolean = false;
+    /** 当前库存节点正在展示的玩家，避免异步重建期间读取到变化后的全局玩家。 */
+    public PlayerViewIndex: number = -1;
     private _newAddPropID: string[] = [];
     private _isShowingPropItem: boolean = false;
     IsVisible: boolean = true;
@@ -33,7 +35,11 @@ export class ZRSJZ_Inventory extends Component {
         this.IsVisible = false;
     }
 
-    async Init(inventoryType: ZRSJZ_INVENTORY) {
+    async Init(
+        inventoryType: ZRSJZ_INVENTORY,
+        playerIndex: number = ZRSJZ_InventoryService.GetActivePlayerIndex(),
+    ) {
+        this.PlayerViewIndex = playerIndex === 1 ? 1 : 0;
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
         for (let i = this.node.children.length - 1; i >= 0; i--) {
@@ -45,7 +51,7 @@ export class ZRSJZ_Inventory extends Component {
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
         this.InventoryType = inventoryType;
-        this.InventoryConfig = ZRSJZ_INVENTORY_CONFIG.get(inventoryType);
+        this.InventoryConfig = this.GetInventoryConfig(inventoryType);
         for (let i = 0; i < this.InventoryConfig.Row; i++) {
             const row = [];
             for (let j = 0; j < this.InventoryConfig.Col; j++) {
@@ -97,6 +103,28 @@ export class ZRSJZ_Inventory extends Component {
         if (this.node.active) {
             this.ShowPropItem();
         }
+    }
+
+    /** 同一玩家重复打开只刷新；只有切换玩家时才清空并重建格子节点。 */
+    public async ShowForPlayer(
+        inventoryType: ZRSJZ_INVENTORY,
+        playerIndex: number,
+    ): Promise<void> {
+        const normalizedIndex = playerIndex === 1 ? 1 : 0;
+        if (
+            this.IsInitialized
+            && this.InventoryType === inventoryType
+            && this.PlayerViewIndex === normalizedIndex
+        ) {
+            await this.ShowPropItem();
+            return;
+        }
+
+        // 等待上一次显示结束，避免 ShowPropItem 与 Init 同时修改 Grids。
+        while (this._isShowingPropItem) {
+            await new Promise<void>(resolve => setTimeout(resolve, 0));
+        }
+        await this.Init(inventoryType, normalizedIndex);
     }
 
     async ShowPropItem() {
@@ -200,13 +228,21 @@ export class ZRSJZ_Inventory extends Component {
         inventoryType: ZRSJZ_INVENTORY,
     ): boolean {
         // 每件道具只属于一个仓库；“全部”不再是分类仓库的聚合视图。
-        return propData.CurInventory === inventoryType
-            && ZRSJZ_InventoryService.IsPropOwnedByActivePlayer(propData);
+        if (propData.CurInventory !== inventoryType) return false;
+        if (!ZRSJZ_InventoryService.IsPlayerInventory(inventoryType)) return true;
+        return (propData.OwnerPlayerIndex ?? 0) === this.PlayerViewIndex;
     }
 
     /** 箱子等需要固定展示位置的库存可关闭自动删除空行。 */
     protected ShouldRemoveEmptyRows(): boolean {
         return true;
+    }
+
+    /** 子类可覆写库存尺寸，例如战斗背包按当前装备动态计算容量。 */
+    protected GetInventoryConfig(
+        inventoryType: ZRSJZ_INVENTORY,
+    ): { Row: number, Col: number, IsDilatation: boolean } {
+        return ZRSJZ_INVENTORY_CONFIG.get(inventoryType);
     }
 
     private async SyncEmptyGridNodes() {
@@ -976,4 +1012,3 @@ export class ZRSJZ_Inventory extends Component {
     }
 
 }
-

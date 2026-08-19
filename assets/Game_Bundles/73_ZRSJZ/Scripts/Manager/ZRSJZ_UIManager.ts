@@ -458,6 +458,15 @@ export class ZRSJZ_UIManager extends Component {
         return Promise.resolve(this.InventoryMap.get(inventoryName));
     }
 
+    /** 面板激活前先停用玩家库存，防止旧视图的 onEnable 与新玩家 Init 并发。 */
+    public DeactivatePlayerInventoryNodes(): void {
+        for (const [inventoryName, inventoryNode] of this.InventoryMap) {
+            if (ZRSJZ_InventoryService.IsPlayerInventory(inventoryName as ZRSJZ_INVENTORY)) {
+                inventoryNode.active = false;
+            }
+        }
+    }
+
     public RegisterDiscardArea(discardArea: Node, discardSFs: readonly SpriteFrame[] = []): void {
         this._discardArea = discardArea;
         this._discardSprite = discardArea?.getComponent(Sprite);
@@ -781,7 +790,10 @@ export class ZRSJZ_UIManager extends Component {
             this.WaitForInventory(ZRSJZ_INVENTORY.背包),
             this.WaitForInventory(ZRSJZ_INVENTORY.保险箱),
         ]);
-        await backpackNode.getComponent(ZRSJZ_InventoryBackpack).Init();
+        await backpackNode.getComponent(ZRSJZ_InventoryBackpack).Init(
+            ZRSJZ_INVENTORY.背包,
+            ZRSJZ_InventoryService.GetActivePlayerIndex(),
+        );
         await protectorCaseNode.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY.保险箱);
     }
 

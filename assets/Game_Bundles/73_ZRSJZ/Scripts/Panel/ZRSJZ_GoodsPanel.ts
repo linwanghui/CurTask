@@ -124,6 +124,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             return;
         }
         this._activeBox = box;
+        ZRSJZ_UIManager.Instance.DeactivatePlayerInventoryNodes();
         super.Show();
         const props = Array.isArray(source)
             ? source.filter(propName => typeof propName === 'string')
@@ -186,7 +187,10 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
     async ShowBackpack(): Promise<ZRSJZ_Inventory> {
         const backpack = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.背包);
-        await backpack.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY.背包);
+        await backpack.getComponent(ZRSJZ_Inventory).ShowForPlayer(
+            ZRSJZ_INVENTORY.背包,
+            this._playerIndex,
+        );
         backpack.parent = this.BackpackContent;
         backpack.setPosition(0, 0, 0);
         backpack.active = true;

@@ -54,6 +54,7 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
     Show(...args: any[]): void {
         this._playerIndex = args[0] === 1 ? 1 : 0;
         ZRSJZ_InventoryService.SetActivePlayerIndex(this._playerIndex);
+        ZRSJZ_UIManager.Instance.DeactivatePlayerInventoryNodes();
         super.Show();
     }
 
@@ -98,7 +99,10 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
 
     ShowBackpack() {
         ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.背包).then(async backpack => {
-            await backpack.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY.背包);
+            await backpack.getComponent(ZRSJZ_Inventory).ShowForPlayer(
+                ZRSJZ_INVENTORY.背包,
+                this._playerIndex,
+            );
             backpack.parent = this.BackpackContent;
             backpack.setPosition(0, 0, 0);
             backpack.active = true;
