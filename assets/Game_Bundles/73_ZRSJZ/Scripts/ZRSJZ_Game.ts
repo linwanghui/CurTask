@@ -82,7 +82,11 @@ export class ZRSJZ_Game extends Component {
     private _miniMapContent: Node = null;
     private _miniMapPoint: Node = null;
     private _miniMapIcon: Sprite = null;
+    private _miniMapPlayer2Point: Node = null;
+    private _miniMapPlayer2Icon: Sprite = null;
     private _miniMapPointPosition: Vec3 = new Vec3();
+    private _miniMapPlayer1Position: Vec3 = new Vec3();
+    private _miniMapPlayer2Position: Vec3 = new Vec3();
     private _currentMapName: string = "";
     private _elapsedGameTime: number = 0;
     private _timeLimitSeconds: number = 0;
@@ -118,6 +122,7 @@ export class ZRSJZ_Game extends Component {
         this._playerEvacuationPoints.clear();
         this._playersGivenUpResurrection.clear();
         this._fullscreenPlayerIndex = -1;
+        ZRSJZ_UIManager.SinglePlayerBattleIndex = -1;
         this._isGameFinished = false;
         this.InitializeBattleTimer();
         this.SetEvacuationVisible(false);
@@ -147,6 +152,7 @@ export class ZRSJZ_Game extends Component {
     protected onDisable(): void {
         this.CancelEvacuation();
         ZRSJZ_UIManager.IsBattle = false;
+        ZRSJZ_UIManager.SinglePlayerBattleIndex = -1;
     }
 
     protected lateUpdate(): void {
@@ -510,6 +516,12 @@ export class ZRSJZ_Game extends Component {
         return ZRSJZ_GameData.Instance.CurModel === "2p" && this.Players.length > 1;
     }
 
+    public IsUsingSinglePlayerLayout(playerIndex?: number): boolean {
+        if (this._fullscreenPlayerIndex < 0) return false;
+        return playerIndex === undefined
+            || this._fullscreenPlayerIndex === (playerIndex === 1 ? 1 : 0);
+    }
+
     /** 返回分屏中指定玩家用于承载局内弹窗的 Panel 节点。 */
     public GetPlayerPanelRoot(playerIndex: number): Node {
         if (!this.IsTwoPlayerMode()) return null;
@@ -596,6 +608,7 @@ export class ZRSJZ_Game extends Component {
         this._fullscreenPlayerIndex = fullscreenPlayerIndex === 0 || fullscreenPlayerIndex === 1
             ? fullscreenPlayerIndex
             : -1;
+        ZRSJZ_UIManager.SinglePlayerBattleIndex = this._fullscreenPlayerIndex;
         const splitLine = this.TwoPlayerModel?.getChildByName("Mask");
         if (splitLine) splitLine.active = this._fullscreenPlayerIndex < 0;
 
@@ -653,6 +666,19 @@ export class ZRSJZ_Game extends Component {
             this.CurPlayer = this.Players[this._fullscreenPlayerIndex];
         }
         this._player = this.CurPlayer?.node ?? null;
+
+        // 最后一名存活玩家使用真正的单人操作布局，而不是拉伸半屏操作节点。
+        const useSinglePlayerControls = this._fullscreenPlayerIndex >= 0;
+        if (useSinglePlayerControls) {
+            this.ConfigureControlRoot(this.OnePlayerModel, this._fullscreenPlayerIndex);
+            if (this.TwoPlayerModel) this.TwoPlayerModel.active = false;
+            if (this.OnePlayerModel) this.OnePlayerModel.active = true;
+        } else {
+            this.ConfigureControlRoot(this.TwoPlayerModel?.getChildByName("Player1"), 0);
+            this.ConfigureControlRoot(this.TwoPlayerModel?.getChildByName("Player2"), 1);
+            if (this.OnePlayerModel) this.OnePlayerModel.active = false;
+            if (this.TwoPlayerModel) this.TwoPlayerModel.active = true;
+        }
     }
 
     /** 使用场景中已有的 Camera_Player1 / Camera_Player2，不再运行时复制相机。 */
@@ -814,12 +840,14 @@ export class ZRSJZ_Game extends Component {
             ZRSJZ_PANEL.地图弹窗,
             this._currentMapName,
             this._miniMapIcon?.spriteFrame ?? null,
+            this._miniMapPlayer2Icon?.spriteFrame ?? null,
         );
     }
 
     private InitMiniMap(): void {
         const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
         const miniMapMask = find("UICanvas/小地图/Mask");
+        const isConfiguredTwoPlayer = ZRSJZ_GameData.Instance.CurModel === "2p";
         if (!mapConfig || !miniMapMask) {
             console.warn(`[ZRSJZ_Game] 无法初始化小地图: ${ZRSJZ_GameData.Instance.CurMap}`);
             return;
@@ -829,6 +857,10 @@ export class ZRSJZ_Game extends Component {
         this._miniMapContent = miniMapMask.getChildByName(this._currentMapName);
         this._miniMapPoint = miniMapMask.getChildByName("我的位置");
         this._miniMapIcon = this._miniMapPoint?.getChildByName("Icon")?.getComponent(Sprite) ?? null;
+        this._miniMapPlayer2Point = miniMapMask.getChildByName("玩家2");
+        this._miniMapPlayer2Icon = this._miniMapPlayer2Point
+            ?.getChildByName("Icon")
+            ?.getComponent(Sprite) ?? null;
 
         const mapNames = new Set(Array.from(ZRSJZ_MAP_CONFIG.values()).map(config => config.MapName));
         miniMapMask.children.forEach(child => {
@@ -846,6 +878,18 @@ export class ZRSJZ_Game extends Component {
                 })
                 .catch(() => undefined);
         }
+        if (this._miniMapPlayer2Icon && isConfiguredTwoPlayer) {
+            ZRSJZ_UIManager.Instance.GetHeroUI(
+                ZRSJZ_GameData.Instance.CurSkin[1]
+                ?? ZRSJZ_GameData.Instance.CurSkin[0],
+            )
+                .then((sf: SpriteFrame) => {
+                    if (this._miniMapPlayer2Icon?.node?.isValid) {
+                        this._miniMapPlayer2Icon.spriteFrame = sf;
+                    }
+                })
+                .catch(() => undefined);
+        }
 
         if (!this._miniMapContent || !this._miniMapPoint) {
             console.warn(`[ZRSJZ_Game] 找不到关卡对应的小地图节点: ${this._currentMapName}`);
@@ -855,6 +899,10 @@ export class ZRSJZ_Game extends Component {
         this._miniMapPoint.active = true;
         this._miniMapPoint.setPosition(0, 0, this._miniMapPoint.position.z);
         this._miniMapPoint.setSiblingIndex(miniMapMask.children.length - 1);
+        if (this._miniMapPlayer2Point) {
+            this._miniMapPlayer2Point.active = isConfiguredTwoPlayer;
+            this._miniMapPlayer2Point.setSiblingIndex(miniMapMask.children.length - 1);
+        }
     }
 
     /**
@@ -863,7 +911,9 @@ export class ZRSJZ_Game extends Component {
      * “我的位置”作为底图的同级节点始终固定在 Mask 中心。
      */
     private RefreshMiniMap(): void {
-        if (!this._player?.isValid
+        const centerPlayerIndex = this._fullscreenPlayerIndex === 1 ? 1 : 0;
+        const centerPlayer = this.GetPlayer(centerPlayerIndex)?.node;
+        if (!centerPlayer?.isValid
             || !this.CurMap?.Map?.isValid
             || !this._miniMapContent?.isValid
             || !this._miniMapPoint?.isValid) {
@@ -881,7 +931,7 @@ export class ZRSJZ_Game extends Component {
             return;
         }
 
-        const playerPosition = this._player.worldPosition;
+        const playerPosition = centerPlayer.worldPosition;
         const normalizedX = Math.max(
             0,
             Math.min(1, (playerPosition.x - worldBounds.xMin) / worldBounds.width),
@@ -905,6 +955,69 @@ export class ZRSJZ_Game extends Component {
             -this._miniMapPointPosition.x * mapScale.x,
             -this._miniMapPointPosition.y * mapScale.y,
             this._miniMapContent.position.z,
+        );
+
+        const player1 = this.GetPlayer(0)?.node;
+        if (player1?.isValid) {
+            this.UpdateMiniMapPlayerPoint(
+                this._miniMapPoint,
+                player1.worldPosition,
+                worldBounds,
+                mapSize.width,
+                mapSize.height,
+                mapAnchor.x,
+                mapAnchor.y,
+                mapScale,
+                this._miniMapPointPosition,
+                this._miniMapPlayer1Position,
+            );
+            this._miniMapPoint.active = !this._playersGivenUpResurrection.has(0);
+        }
+        const player2 = this.GetPlayer(1)?.node;
+        if (this._miniMapPlayer2Point && player2?.isValid && this.IsTwoPlayerMode()) {
+            this.UpdateMiniMapPlayerPoint(
+                this._miniMapPlayer2Point,
+                player2.worldPosition,
+                worldBounds,
+                mapSize.width,
+                mapSize.height,
+                mapAnchor.x,
+                mapAnchor.y,
+                mapScale,
+                this._miniMapPointPosition,
+                this._miniMapPlayer2Position,
+            );
+            this._miniMapPlayer2Point.active = !this._playersGivenUpResurrection.has(1);
+        }
+    }
+
+    private UpdateMiniMapPlayerPoint(
+        point: Node,
+        worldPosition: Vec3,
+        worldBounds: Rect,
+        mapWidth: number,
+        mapHeight: number,
+        anchorX: number,
+        anchorY: number,
+        mapScale: Vec3,
+        centerMapPosition: Vec3,
+        output: Vec3 = new Vec3(),
+    ): void {
+        const normalizedX = Math.max(0, Math.min(1,
+            (worldPosition.x - worldBounds.xMin) / worldBounds.width,
+        ));
+        const normalizedY = Math.max(0, Math.min(1,
+            (worldPosition.y - worldBounds.yMin) / worldBounds.height,
+        ));
+        output.set(
+            (normalizedX - anchorX) * mapWidth,
+            (normalizedY - anchorY) * mapHeight,
+            0,
+        );
+        point.setPosition(
+            (output.x - centerMapPosition.x) * mapScale.x,
+            (output.y - centerMapPosition.y) * mapScale.y,
+            point.position.z,
         );
     }
 

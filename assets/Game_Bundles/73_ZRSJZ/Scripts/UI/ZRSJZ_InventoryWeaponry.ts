@@ -64,7 +64,25 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
         this.InventoryType = inventoryType;
         this._weaponryIndex = ZRSJZ_Tools.GetWeaponryIndexByInventory(inventoryType);
         this.Grids = [[""]];
-        const id = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerViewIndex)[this._weaponryIndex];
+        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerViewIndex);
+        let id = weaponryIDs[this._weaponryIndex];
+        const propData = ZRSJZ_GameData.Instance.PropData[id];
+        if (
+            id
+            && (
+                !propData
+                || propData.CurInventory !== inventoryType
+                || (propData.OwnerPlayerIndex ?? 0) !== this.PlayerViewIndex
+            )
+        ) {
+            // 修复旧数据：装备已经移回仓库，但对应玩家的 WeaponryID 仍引用它。
+            ZRSJZ_InventoryService.SetWeaponry(
+                this._weaponryIndex,
+                "",
+                this.PlayerViewIndex,
+            );
+            id = "";
+        }
         if (id != "") {
             await this.createWeapon(id);
         }
@@ -83,6 +101,15 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
     ) {
         const dragPlayerIndex = ZRSJZ_UIManager.DraggingPlayerIndex;
         await this._initTask;
+        if (
+            dragPlayerIndex >= 0
+            && !ZRSJZ_UIManager.IsBattle
+            && this.PlayerViewIndex !== dragPlayerIndex
+        ) {
+            // 仓库界面复用装备槽；刚切换玩家就开始拖动时，主动同步到本次
+            // 拖动所属玩家，避免仍按上一名玩家的槽位占用情况显示高亮。
+            await this.Init(this.InventoryType, dragPlayerIndex);
+        }
         if (dragPlayerIndex >= 0 && this.PlayerViewIndex !== dragPlayerIndex) return;
         if (!this.IsVisible || !worldPos || !this.UITransform || !this.Grids[0] || this.checkID(id)) return;
         if (this.node.active) {
@@ -230,10 +257,30 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
         propGrid.CurScale = Math.max(0.01, scale / 100);
     }
 
-    async RemoveProp(id: string, isRemoveProp: boolean = true) {
+    async RemoveProp(
+        id: string,
+        isRemoveProp: boolean = true,
+        playerIndex: number = this.PlayerViewIndex,
+    ) {
         await this._initTask;
-        if (this.Grids[0][0] == id) {
-            const propName = ZRSJZ_GameData.Instance.PropData[id]?.Name;
+        const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
+        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(normalizedPlayerIndex);
+        const isEquippedByPlayer = weaponryIDs[this._weaponryIndex] === id;
+        const isDisplayedForPlayer = this.PlayerViewIndex === normalizedPlayerIndex
+            && this.Grids[0]?.[0] === id;
+        if (!isEquippedByPlayer && !isDisplayedForPlayer) return;
+
+        const propName = ZRSJZ_GameData.Instance.PropData[id]?.Name;
+        // 数据归属以操作面板明确传入的玩家为准，不能依赖可能被异步切换的共享装备槽。
+        if (isEquippedByPlayer) {
+            ZRSJZ_InventoryService.SetWeaponry(
+                this._weaponryIndex,
+                "",
+                normalizedPlayerIndex,
+            );
+        }
+
+        if (isDisplayedForPlayer) {
             this.Grids[0][0] = "";
             const propNode = this.node.children.find(child => {
                 const propGrid = child.getComponent(ZRSJZ_PropGrid);
@@ -243,17 +290,16 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
                 propNode.getComponent(ZRSJZ_PropGrid).CurScale = 1;
                 ZRSJZ_PoolManager.Instance.PutNode(propNode);
             }
-            ZRSJZ_InventoryService.SetWeaponry(this._weaponryIndex, "", this.PlayerViewIndex);
             this._GridSprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropGridUI(this.InventoryType == ZRSJZ_INVENTORY.武器_枪 ? "枪_灰" : "空格子_灰");
             this._Normal.active = true;
-            if (propName) {
-                ZRSJZ_EventManager.EmitPersist(
-                    ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT,
-                    propName,
-                    false,
-                    this.PlayerViewIndex,
-                );
-            }
+        }
+        if (propName) {
+            ZRSJZ_EventManager.EmitPersist(
+                ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT,
+                propName,
+                false,
+                normalizedPlayerIndex,
+            );
         }
     }
 
