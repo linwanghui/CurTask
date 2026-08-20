@@ -1,0 +1,95 @@
+{
+"skeleton": {
+	"hash": "5Uv7Xx3ydH5lMBcA+EqyKT3rsMM",
+	"spine": "3.8.75",
+	"x": -24.67,
+	"y": 979.62,
+	"width": 38,
+	"height": 140.16,
+	"images": "./images/",
+	"audio": ""
+},
+"bones": [
+	{ "name": "root", "x": -4.63, "y": -2.65 },
+	{ "name": "qing0001", "parent": "root", "x": -9.81, "y": 57.01, "scaleX": 2.8404, "scaleY": 2.8404 },
+	{ "name": "bone", "parent": "root", "x": -1.17, "y": 1034.39 },
+	{ "name": "bone2", "parent": "bone", "x": 0.69, "y": 57.78 }
+],
+"slots": [
+	{ "name": "qing0001", "bone": "qing0001" },
+	{ "name": "导弹", "bone": "bone", "attachment": "导弹" },
+	{ "name": "尾气", "bone": "bone2", "attachment": "尾气" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"qing0001": {
+				"qing0001": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0003": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0004": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0005": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0006": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0007": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0009": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0010": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0011": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0012": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0013": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0015": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0017": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 },
+				"qing0019": { "x": -1.13, "y": 54.08, "width": 350, "height": 336 }
+			},
+			"尾气": {
+				"尾气": { "x": -0.06, "y": 2.25, "width": 35, "height": 56 }
+			},
+			"导弹": {
+				"导弹": { "x": 0.13, "y": -1.63, "width": 38, "height": 101 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {
+		"slots": {
+			"qing0001": {
+				"attachment": [
+					{ "time": 0.2, "name": "qing0001" },
+					{ "time": 0.2667, "name": "qing0003" },
+					{ "time": 0.3, "name": "qing0004" },
+					{ "time": 0.3333, "name": "qing0005" },
+					{ "time": 0.3667, "name": "qing0006" },
+					{ "time": 0.4, "name": "qing0007" },
+					{ "time": 0.4667, "name": "qing0009" },
+					{ "time": 0.5, "name": "qing0010" },
+					{ "time": 0.5333, "name": "qing0011" },
+					{ "time": 0.5667, "name": "qing0012" },
+					{ "time": 0.6, "name": "qing0013" },
+					{ "time": 0.6667, "name": "qing0015" },
+					{ "time": 0.7333, "name": "qing0017" },
+					{ "time": 0.8, "name": "qing0019" },
+					{ "time": 0.8667, "name": null }
+				]
+			},
+			"尾气": {
+				"attachment": [
+					{ "time": 0.2, "name": null }
+				]
+			},
+			"导弹": {
+				"attachment": [
+					{ "time": 0.2, "name": null }
+				]
+			}
+		},
+		"bones": {
+			"bone": {
+				"translate": [
+					{},
+					{ "time": 0.2, "y": -991.43 }
+				]
+			}
+		}
+	}
+}
+}

@@ -50,6 +50,8 @@ export interface WZSJZ_MaterialConfig {
     MergeSameLevelCount: number;
     /** 名字单位可通过经验升级，并在单独存在时播放待机动画。 */
     IsNameUnit?: boolean;
+    /** Spine待机动画名；未填写时使用 daiji。 */
+    IdleAnimation?: string;
     Levels: WZSJZ_MaterialLevelConfig[];
 }
 
@@ -179,6 +181,17 @@ export class WZSJZ_Constant {
             Parts: ["盾", "哥"],
             PrefabPath: "Prefabs/节点/盾哥",
         },
+        {
+            Name: "堵桥狗",
+            Parts: ["堵桥", "狗"],
+            PrefabPath: "Prefabs/节点/堵桥狗",
+        },
+    ];
+
+    /** 未在场景 MaterialPrefabs 数组中绑定的新物资，可在这里动态补充。 */
+    public static readonly RuntimeMaterialPrefabPaths: string[] = [
+        "Prefabs/节点/堵桥",
+        "Prefabs/节点/狗",
     ];
 
     /** 角色技能配置；同一个角色可以配置多条技能。 */
@@ -215,6 +228,7 @@ export class WZSJZ_Constant {
         CellMoveEffectPrewarm: 8,
         CellUpgradeEffectPrewarm: 8,
         BossLaoSaiArrowPrewarm: 8,
+        BlockBridgeDogBulletPrewarm: 12,
     };
 
     /** 防止单位停在攻击范围临界点时因浮点误差反复进入移动状态。 */
@@ -352,6 +366,16 @@ export class WZSJZ_Constant {
         IdleAnimation: "daiji",
     };
 
+    public static readonly BlockBridgeDogProjectile = {
+        PrefabPath: "Prefabs/投掷物/堵桥狗子弹",
+        LaunchNodeName: "子弹发射点位",
+        AttackAnimation: "gongji",
+        IdleAnimation: "daiji",
+        HitDistance: 20,
+        HitEffectDuration: 0.2,
+        KillExperience: 1,
+    };
+
     public static readonly CellEffect = {
         MovePrefabPath: "Prefabs/特效/移动特效",
         UpgradePrefabPath: "Prefabs/特效/升级特效",
@@ -418,6 +442,14 @@ export class WZSJZ_Constant {
             { Money: 16, Food: 16 }, { Money: 32, Food: 32 }, { Money: 64, Food: 64 },
         ],
         "哥": [
+            { Money: 2, Food: 2 }, { Money: 4, Food: 4 }, { Money: 8, Food: 8 },
+            { Money: 16, Food: 16 }, { Money: 32, Food: 32 }, { Money: 64, Food: 64 },
+        ],
+        "堵桥": [
+            { Money: 2, Food: 2 }, { Money: 4, Food: 4 }, { Money: 8, Food: 8 },
+            { Money: 16, Food: 16 }, { Money: 32, Food: 32 }, { Money: 64, Food: 64 },
+        ],
+        "狗": [
             { Money: 2, Food: 2 }, { Money: 4, Food: 4 }, { Money: 8, Food: 8 },
             { Money: 16, Food: 16 }, { Money: 32, Food: 32 }, { Money: 64, Food: 64 },
         ],
@@ -633,6 +665,69 @@ export class WZSJZ_Constant {
                 { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 100, AttackInterval: 3.4, AttackRange: 960, BulletSpeed: 900 },
                 { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 150, AttackInterval: 3.2, AttackRange: 960, BulletSpeed: 940 },
                 { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 220, AttackInterval: 3, AttackRange: 960, BulletSpeed: 980 },
+            ],
+        },
+        "堵桥": {
+            Name: "堵桥",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "狗": {
+            Name: "狗",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "堵桥狗": {
+            Name: "堵桥狗",
+            AttackFireDelay: 0.2,
+            ResourceType: "none",
+            PurchaseWeight: 0,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 0,
+            IsNameUnit: true,
+            IdleAnimation: "daiji",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 25, AttackInterval: 2.5, AttackRange: 950, BulletSpeed: 1050 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 42, AttackInterval: 2.3, AttackRange: 980, BulletSpeed: 1100 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 70, AttackInterval: 2.1, AttackRange: 1010, BulletSpeed: 1150 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 115, AttackInterval: 1.9, AttackRange: 1040, BulletSpeed: 1200 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 185, AttackInterval: 1.7, AttackRange: 1070, BulletSpeed: 1250 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 300, AttackInterval: 1.5, AttackRange: 1100, BulletSpeed: 1300 },
             ],
         },
     };

@@ -219,6 +219,8 @@ export class WZSJZ_GameNode extends Component {
             WZSJZ_CombatSystem.Instance?.UpdateMineLayer(this, deltaTime);
         } else if (this.Name === "盾哥") {
             WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateShieldBrother(this, deltaTime);
+        } else if (this.Name === "堵桥狗") {
+            WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateBlockBridgeDog(this, deltaTime);
         }
     }
 
@@ -246,7 +248,7 @@ export class WZSJZ_GameNode extends Component {
     }
 
     public RefreshView(): void {
-        const levelNode = this.node.getChildByName(`${this.Name}等级`);
+        const levelNode = this.node.getChildByName("等级");
         const label = levelNode ? levelNode.getComponentInChildren(Label) : this.node.getComponentInChildren(Label);
         if (label) {
             label.string = this.Level.toString();
@@ -263,7 +265,7 @@ export class WZSJZ_GameNode extends Component {
         }
         this.node.getChildByName("图像")
             ?.getComponent(sp.Skeleton)
-            ?.setAnimation(0, "daiji", true);
+            ?.setAnimation(0, materialConfig?.IdleAnimation || "daiji", true);
     }
 
     private async RefreshMaterialSprite(): Promise<void> {

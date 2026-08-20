@@ -35,6 +35,8 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
     private _projectileLayer: Node = null;
     private _shieldPrefab: Prefab = null;
     private _shieldPool: NodePool = new NodePool();
+    private _blockBridgeDogBulletPrefab: Prefab = null;
+    private _blockBridgeDogBulletPool: NodePool = new NodePool();
     private _isGameStarted: boolean = false;
     private _pendingAttacks: Map<WZSJZ_GameNode, number> = new Map();
     private _attackToken: number = 0;
@@ -47,6 +49,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
     protected onDestroy(): void {
         this._pendingAttacks.clear();
         this._shieldPool.clear();
+        this._blockBridgeDogBulletPool.clear();
         if (WZSJZ_ShieldBrotherCombatSystem._instance === this) {
             WZSJZ_ShieldBrotherCombatSystem._instance = null;
         }
@@ -58,6 +61,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         this._enemyArea = canvas?.getChildByName("敌方单位");
         this.SetupProjectileLayer();
         void this.PrepareShieldPrefab();
+        void this.PrepareBlockBridgeDogBulletPrefab();
     }
 
     public UpdateShieldBrother(gameNode: WZSJZ_GameNode, deltaTime: number): void {
@@ -127,6 +131,54 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }, WZSJZ_Constant.GetAttackFireDelay(gameNode.Name));
     }
 
+    public UpdateBlockBridgeDog(gameNode: WZSJZ_GameNode, deltaTime: number): void {
+        if (this._pendingAttacks.has(gameNode)) {
+            if (!this.CanCompleteDelayedAttack(gameNode)) {
+                this._pendingAttacks.delete(gameNode);
+                gameNode.ResetAttackCooldown();
+            } else {
+                gameNode.ReduceAttackCooldown(deltaTime);
+            }
+            return;
+        }
+        if (!this.CanCompleteDelayedAttack(gameNode)) {
+            gameNode.ResetAttackCooldown();
+            return;
+        }
+        const levelConfig = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
+        if (!levelConfig?.AttackDamage || !levelConfig.AttackInterval
+            || !levelConfig.AttackRange || !levelConfig.BulletSpeed) {
+            return;
+        }
+        gameNode.ReduceAttackCooldown(deltaTime);
+        if (!gameNode.IsAttackReady()) {
+            return;
+        }
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, levelConfig.AttackRange);
+        if (!target) {
+            return;
+        }
+
+        gameNode.StartAttackCooldown(levelConfig.AttackInterval);
+        this.PlayBlockBridgeDogAttackAnimation(gameNode);
+        const delay = WZSJZ_Constant.GetAttackFireDelay(gameNode.Name);
+        if (delay <= 0) {
+            this.FireBlockBridgeDogBullet(gameNode);
+            return;
+        }
+        const token = ++this._attackToken;
+        this._pendingAttacks.set(gameNode, token);
+        this.scheduleOnce(() => {
+            if (this._pendingAttacks.get(gameNode) !== token) {
+                return;
+            }
+            this._pendingAttacks.delete(gameNode);
+            if (this.CanCompleteDelayedAttack(gameNode)) {
+                this.FireBlockBridgeDogBullet(gameNode);
+            }
+        }, delay);
+    }
+
     private OnGameStart(): void {
         this._isGameStarted = true;
     }
@@ -144,6 +196,23 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }
         while (this._shieldPool.size() < WZSJZ_Constant.ObjectPool.ShieldProjectilePrewarm) {
             this._shieldPool.put(this.CreateShieldNode());
+        }
+    }
+
+    private async PrepareBlockBridgeDogBulletPrefab(): Promise<void> {
+        try {
+            this._blockBridgeDogBulletPrefab = await WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.BlockBridgeDogProjectile.PrefabPath,
+            );
+        } catch (error) {
+            console.error("[WZSJZ] 堵桥狗子弹预制体加载失败。", error);
+        }
+        if (!this.node?.isValid || !this._blockBridgeDogBulletPrefab) {
+            return;
+        }
+        while (this._blockBridgeDogBulletPool.size()
+            < WZSJZ_Constant.ObjectPool.BlockBridgeDogBulletPrewarm) {
+            this._blockBridgeDogBulletPool.put(instantiate(this._blockBridgeDogBulletPrefab));
         }
     }
 
@@ -207,6 +276,62 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         if (projectile?.node?.isValid) {
             projectile.node.getComponentInChildren(Animation)?.stop();
             this._shieldPool.put(projectile.node);
+        }
+    };
+
+    private PlayBlockBridgeDogAttackAnimation(gameNode: WZSJZ_GameNode): void {
+        const config = WZSJZ_Constant.BlockBridgeDogProjectile;
+        const skeleton = gameNode.node.getChildByName("图像")?.getComponent(sp.Skeleton);
+        if (skeleton) {
+            skeleton.setAnimation(0, config.AttackAnimation, false);
+            skeleton.addAnimation(0, config.IdleAnimation, true, 0);
+        }
+    }
+
+    private FireBlockBridgeDogBullet(owner: WZSJZ_GameNode): void {
+        const levelConfig = WZSJZ_Constant.GetMaterialLevelConfig(owner.Name, owner.Level);
+        if (!levelConfig?.AttackDamage || !levelConfig.AttackRange || !levelConfig.BulletSpeed) {
+            return;
+        }
+        const target = this.FindNearestEnemy(owner.node.worldPosition, levelConfig.AttackRange);
+        if (!target || !this._blockBridgeDogBulletPrefab || !this._projectileLayer) {
+            return;
+        }
+        const bulletNode = this._blockBridgeDogBulletPool.get()
+            || instantiate(this._blockBridgeDogBulletPrefab);
+        bulletNode.active = true;
+        bulletNode.setParent(this._projectileLayer);
+        const launchNode = owner.node.getChildByName(
+            WZSJZ_Constant.BlockBridgeDogProjectile.LaunchNodeName,
+        ) || owner.node;
+        bulletNode.setWorldPosition(launchNode.worldPosition);
+        this.SetLayerRecursively(bulletNode, this._projectileLayer.layer);
+
+        const receiveExperience = owner.CreateExperienceReceiver();
+        const bullet = bulletNode.getComponent(WZSJZ_Bullet);
+        if (!bullet?.Initialize(
+            target,
+            levelConfig.AttackDamage,
+            levelConfig.BulletSpeed,
+            this.RecycleBlockBridgeDogBullet,
+            (_position, hitDamage) => {
+                if (target.TakeDamage(hitDamage)) {
+                    receiveExperience(WZSJZ_Constant.BlockBridgeDogProjectile.KillExperience);
+                }
+            },
+            WZSJZ_Constant.BlockBridgeDogProjectile.HitDistance,
+            WZSJZ_Constant.BlockBridgeDogProjectile.HitEffectDuration,
+        )) {
+            this._blockBridgeDogBulletPool.put(bulletNode);
+            return;
+        }
+        this.KeepProjectileLayerOnTop();
+    }
+
+    private RecycleBlockBridgeDogBullet = (bullet: WZSJZ_Bullet): void => {
+        if (bullet?.node?.isValid) {
+            bullet.unscheduleAllCallbacks();
+            this._blockBridgeDogBulletPool.put(bullet.node);
         }
     };
 

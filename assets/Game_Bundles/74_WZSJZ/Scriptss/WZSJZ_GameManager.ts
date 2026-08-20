@@ -118,6 +118,7 @@ export class WZSJZ_GameManager extends Component {
 
     protected start(): void {
         this.InitBoard();
+        void this.PrepareRuntimeMaterialPrefabs();
         this._nodeInspectSystem = this.node.getComponent(WZSJZ_NodeInspectSystem)
             || this.node.addComponent(WZSJZ_NodeInspectSystem);
         this._nodeInspectSystem.Configure(
@@ -162,6 +163,20 @@ export class WZSJZ_GameManager extends Component {
         this.RefreshPreparationItemLocks();
         this.BindStartButton();
         this.SetupToolArea();
+    }
+
+    private async PrepareRuntimeMaterialPrefabs(): Promise<void> {
+        for (const path of WZSJZ_Constant.RuntimeMaterialPrefabPaths) {
+            try {
+                const prefab = await WZSJZ_Incident.Loadprefab(path);
+                if (this.node?.isValid
+                    && !this.MaterialPrefabs.some((item) => item?.data?.name === prefab.data.name)) {
+                    this.MaterialPrefabs.push(prefab);
+                }
+            } catch (error) {
+                console.error(`[WZSJZ] 动态物资预制体加载失败：${path}`, error);
+            }
+        }
     }
 
     protected onDestroy(): void {
