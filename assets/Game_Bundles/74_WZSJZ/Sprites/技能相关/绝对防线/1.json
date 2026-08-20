@@ -1,0 +1,96 @@
+{
+"skeleton": {
+	"hash": "Hp6vGLW1pyxBO/egQAgikW7Vcjk",
+	"spine": "3.8.75",
+	"x": -230.76,
+	"y": -246.5,
+	"width": 312.76,
+	"height": 493,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/角色/技能/盾哥技能"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "椭圆 1", "parent": "root", "length": 100 },
+	{ "name": "护盾技能", "parent": "root", "length": 100, "rotation": 180 },
+	{ "name": "护盾技能2", "parent": "root", "length": 100, "rotation": 180, "x": -148.76 }
+],
+"slots": [
+	{ "name": "护盾技能", "bone": "护盾技能", "color": "00eeffff", "attachment": "护盾技能" },
+	{ "name": "护盾技能2", "bone": "护盾技能2", "color": "00ffffff", "attachment": "护盾技能" },
+	{ "name": "椭圆 1", "bone": "椭圆 1" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"椭圆 1": {
+				"椭圆 1": { "width": 183, "height": 472 }
+			},
+			"护盾技能": {
+				"护盾技能": { "rotation": 180, "width": 164, "height": 493 }
+			},
+			"护盾技能2": {
+				"护盾技能": { "rotation": 180, "width": 164, "height": 493 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {
+		"slots": {
+			"护盾技能2": {
+				"color": [
+					{ "color": "00ffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "00ffffff" }
+				],
+				"attachment": [
+					{ "time": 0.3333, "name": null }
+				]
+			},
+			"护盾技能": {
+				"color": [
+					{ "color": "00eeffa8", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "00eeffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "00eeffa8" }
+				]
+			},
+			"椭圆 1": {
+				"color": [
+					{ "time": 0.2, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5333, "color": "ffffff73", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8667, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.2, "name": "椭圆 1" }
+				]
+			}
+		},
+		"bones": {
+			"护盾技能2": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "x": 148.76 }
+				],
+				"scale": [
+					{ "x": 0.822, "y": 0.822 },
+					{ "time": 0.3333 }
+				]
+			},
+			"椭圆 1": {
+				"translate": [
+					{ "time": 0.2, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8667, "x": 28.15 }
+				]
+			},
+			"护盾技能": {
+				"scale": [
+					{ "x": 0.837, "y": 0.837, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 0.837, "y": 0.837 }
+				]
+			}
+		}
+	}
+}
+}

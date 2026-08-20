@@ -124,14 +124,15 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
                 this.SpawnShield(
                     gameNode,
                     currentTarget,
-                    currentConfig.AttackDamage,
+                    gameNode.GetAttackDamage(),
                     currentConfig.BulletSpeed,
                 );
             }
         }, WZSJZ_Constant.GetAttackFireDelay(gameNode.Name));
     }
 
-    public UpdateBlockBridgeDog(gameNode: WZSJZ_GameNode, deltaTime: number): void {
+    /** 使用堵桥狗普通子弹的组合角色共用此入口，角色数值仍分别读取Constant。 */
+    public UpdateSharedBulletCharacter(gameNode: WZSJZ_GameNode, deltaTime: number): void {
         if (this._pendingAttacks.has(gameNode)) {
             if (!this.CanCompleteDelayedAttack(gameNode)) {
                 this._pendingAttacks.delete(gameNode);
@@ -160,10 +161,10 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }
 
         gameNode.StartAttackCooldown(levelConfig.AttackInterval);
-        this.PlayBlockBridgeDogAttackAnimation(gameNode);
+        this.PlaySharedBulletAttackAnimation(gameNode);
         const delay = WZSJZ_Constant.GetAttackFireDelay(gameNode.Name);
         if (delay <= 0) {
-            this.FireBlockBridgeDogBullet(gameNode);
+            this.FireSharedCharacterBullet(gameNode);
             return;
         }
         const token = ++this._attackToken;
@@ -174,7 +175,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             }
             this._pendingAttacks.delete(gameNode);
             if (this.CanCompleteDelayedAttack(gameNode)) {
-                this.FireBlockBridgeDogBullet(gameNode);
+                this.FireSharedCharacterBullet(gameNode);
             }
         }, delay);
     }
@@ -279,7 +280,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }
     };
 
-    private PlayBlockBridgeDogAttackAnimation(gameNode: WZSJZ_GameNode): void {
+    private PlaySharedBulletAttackAnimation(gameNode: WZSJZ_GameNode): void {
         const config = WZSJZ_Constant.BlockBridgeDogProjectile;
         const skeleton = gameNode.node.getChildByName("图像")?.getComponent(sp.Skeleton);
         if (skeleton) {
@@ -288,7 +289,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }
     }
 
-    private FireBlockBridgeDogBullet(owner: WZSJZ_GameNode): void {
+    private FireSharedCharacterBullet(owner: WZSJZ_GameNode): void {
         const levelConfig = WZSJZ_Constant.GetMaterialLevelConfig(owner.Name, owner.Level);
         if (!levelConfig?.AttackDamage || !levelConfig.AttackRange || !levelConfig.BulletSpeed) {
             return;
@@ -311,7 +312,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         const bullet = bulletNode.getComponent(WZSJZ_Bullet);
         if (!bullet?.Initialize(
             target,
-            levelConfig.AttackDamage,
+            owner.GetAttackDamage(),
             levelConfig.BulletSpeed,
             this.RecycleBlockBridgeDogBullet,
             (_position, hitDamage) => {

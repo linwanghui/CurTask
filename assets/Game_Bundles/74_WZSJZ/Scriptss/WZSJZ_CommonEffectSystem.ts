@@ -1,4 +1,4 @@
-import { _decorator, Animation, Component, instantiate, Node, NodePool, Prefab, UITransform, Vec3 } from 'cc';
+import { _decorator, Animation, Component, instantiate, Node, NodePool, Prefab, sp, UITransform, Vec3 } from 'cc';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 
@@ -66,16 +66,65 @@ export class WZSJZ_CommonEffectSystem extends Component {
             || effectNode.getComponentInChildren(Animation);
         animation?.stop();
         animation?.play();
+        const skeleton = effectNode.getComponent(sp.Skeleton)
+            || effectNode.getComponentInChildren(sp.Skeleton);
+        if (skeleton) {
+            skeleton.clearTracks();
+            skeleton.setAnimation(0, skeleton.defaultAnimation || "animation", false);
+        }
         const duration = durationOverride && durationOverride > 0
             ? durationOverride
             : animation?.defaultClip?.duration || runtime.FallbackDuration;
         this.scheduleOnce(() => {
             if (effectNode?.isValid) {
                 animation?.stop();
+                skeleton?.clearTracks();
+                effectNode.active = false;
                 runtime.Pool.put(effectNode);
             }
         }, duration);
         this.KeepEffectLayerOnTop();
+        return true;
+    }
+
+    /** 循环特效挂在目标节点上，移动或拖拽时会跟随目标，时间到自动回池。 */
+    public PlayAttached(
+        effectName: string,
+        target: Node,
+        duration: number,
+        loopSpine: boolean = true,
+    ): boolean {
+        const runtime = this._effects.get(effectName);
+        if (!runtime || !target?.isValid || duration <= 0) {
+            return false;
+        }
+        const effectNode = runtime.Pool.get() || instantiate(runtime.Prefab);
+        effectNode.active = true;
+        effectNode.setParent(target);
+        effectNode.setPosition(0, 0, 0);
+        effectNode.angle = 0;
+        effectNode.setSiblingIndex(target.children.length - 1);
+        this.SetLayerRecursively(effectNode, target.layer);
+
+        const animation = effectNode.getComponent(Animation)
+            || effectNode.getComponentInChildren(Animation);
+        animation?.stop();
+        animation?.play();
+        const skeleton = effectNode.getComponent(sp.Skeleton)
+            || effectNode.getComponentInChildren(sp.Skeleton);
+        if (skeleton) {
+            skeleton.clearTracks();
+            skeleton.setAnimation(0, skeleton.defaultAnimation || "animation", loopSpine);
+        }
+        this.scheduleOnce(() => {
+            if (!effectNode?.isValid) {
+                return;
+            }
+            animation?.stop();
+            skeleton?.clearTracks();
+            effectNode.active = false;
+            runtime.Pool.put(effectNode);
+        }, duration);
         return true;
     }
 

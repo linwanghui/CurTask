@@ -13,6 +13,7 @@ export class WZSJZ_Enemy extends Component {
     private _currentHealth: number = 1;
     private _isDead: boolean = false;
     private _hitReactionTimer: number = 0;
+    private _tremorTimer: number = 0;
     private _recycleCallback: ((enemy: WZSJZ_Enemy) => void) | null = null;
 
     public get IsAlive(): boolean {
@@ -55,6 +56,10 @@ export class WZSJZ_Enemy extends Component {
         this._isDead = false;
         this._attackTimer = 0;
         this._hitReactionTimer = 0;
+        this._tremorTimer = 0;
+        if (this._skeleton) {
+            this._skeleton.timeScale = 1;
+        }
         this._currentAnimation = "";
         this.PlayAnimation(this._config.MoveAnimation);
         return true;
@@ -65,6 +70,14 @@ export class WZSJZ_Enemy extends Component {
             return;
         }
         this.UpdateEnemyState(deltaTime);
+
+        if (this._tremorTimer > 0) {
+            this._tremorTimer = Math.max(0, this._tremorTimer - deltaTime);
+            if (this._tremorTimer <= 0 && this._skeleton) {
+                this._skeleton.timeScale = 1;
+            }
+            return;
+        }
 
         // 受击动画期间暂停当前行为；连续受击会重新播放并刷新硬直时间。
         if (this._hitReactionTimer > 0) {
@@ -110,6 +123,27 @@ export class WZSJZ_Enemy extends Component {
     protected UpdateEnemyState(deltaTime: number): void {
     }
 
+    /** 声波震颤期间冻结表现，并由update统一暂停移动、攻击和攻击计时。 */
+    public ApplyTremor(duration: number): void {
+        if (!this.IsAlive || duration <= 0) {
+            return;
+        }
+        const wasTremoring = this._tremorTimer > 0;
+        this._tremorTimer = Math.max(this._tremorTimer, duration);
+        if (!wasTremoring) {
+            this._hitReactionTimer = 0;
+            this.PlayAnimation(this._config.MoveAnimation, true, true);
+            this.OnTremorStarted();
+        }
+        if (this._skeleton) {
+            this._skeleton.timeScale = 0;
+        }
+    }
+
+    /** Boss等拥有独立攻击状态机的敌人可在这里取消正在蓄力的攻击。 */
+    protected OnTremorStarted(): void {
+    }
+
     /** 返回本次伤害是否刚好击杀，供经验、掉落等系统订阅结果。 */
     public TakeDamage(damage: number): boolean {
         if (!this.IsAlive || damage <= 0) {
@@ -117,7 +151,13 @@ export class WZSJZ_Enemy extends Component {
         }
         this._currentHealth = Math.max(0, this._currentHealth - damage);
         if (this._currentHealth > 0) {
-            if (this.ShouldEnterHitReaction(damage)) {
+            // Boss会在这里同步扣除韧性；即使正在震颤也不能跳过该数值结算。
+            const shouldEnterHitReaction = this.ShouldEnterHitReaction(damage);
+            // 震颤优先级高于普通受击，不用受击动画打断冻结表现。
+            if (this._tremorTimer > 0) {
+                return false;
+            }
+            if (shouldEnterHitReaction) {
                 this._hitReactionTimer = this._config.HitDuration;
                 this.PlayAnimation(this._config.HitAnimation, false, true);
             }
@@ -125,6 +165,10 @@ export class WZSJZ_Enemy extends Component {
         }
         this._isDead = true;
         this._hitReactionTimer = 0;
+        this._tremorTimer = 0;
+        if (this._skeleton) {
+            this._skeleton.timeScale = 1;
+        }
         this.PlayAnimation(this._config.DeathAnimation, false);
         this.scheduleOnce(() => this._recycleCallback?.(this), this._config.DeathDuration);
         return true;

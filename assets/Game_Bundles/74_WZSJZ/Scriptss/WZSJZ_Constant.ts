@@ -82,10 +82,11 @@ export interface WZSJZ_SkillConfig {
     ButtonPrefabPath: string;
     Cooldown: number;
     Duration: number;
-    EffectType: "wall_invincible";
-    EffectName: string;
-    EffectPrefabPath: string;
-    EffectPrewarm: number;
+    EffectType: "wall_invincible" | "wall_heal" | "block_bridge_dog_artillery"
+        | "sonic_trap" | "adjacent_overclock";
+    EffectName?: string;
+    EffectPrefabPath?: string;
+    EffectPrewarm?: number;
 }
 
 export interface WZSJZ_EnemyConfig {
@@ -186,13 +187,88 @@ export class WZSJZ_Constant {
             Parts: ["堵桥", "狗"],
             PrefabPath: "Prefabs/节点/堵桥狗",
         },
+        {
+            Name: "老黑",
+            Parts: ["老", "黑"],
+            PrefabPath: "Prefabs/节点/老黑",
+        },
+        {
+            Name: "哈基蜂",
+            Parts: ["哈", "基蜂"],
+            PrefabPath: "Prefabs/节点/哈基蜂",
+        },
+        {
+            Name: "老板",
+            Parts: ["老", "板"],
+            PrefabPath: "Prefabs/节点/老板",
+        },
     ];
 
     /** 未在场景 MaterialPrefabs 数组中绑定的新物资，可在这里动态补充。 */
     public static readonly RuntimeMaterialPrefabPaths: string[] = [
         "Prefabs/节点/堵桥",
         "Prefabs/节点/狗",
+        "Prefabs/节点/老",
+        "Prefabs/节点/黑",
+        "Prefabs/节点/哈",
+        "Prefabs/节点/基蜂",
+        "Prefabs/节点/板",
     ];
+
+    /** 堵桥狗大招：动画本身表现从天而降，脚本只在落点定时结算范围伤害。 */
+    public static readonly BlockBridgeDogUltimate = {
+        PrefabPath: "Prefabs/投掷物/堵桥狗大招炮弹",
+        ButtonPrefabPath: "Prefabs/UI/技能按钮/巡航火箭",
+        StrikeCount: 3,
+        Cooldown: 20,
+        Damage: 120,
+        DamageRadius: 120,
+        /** 技能动画开始后多少秒触发伤害；按Spine落地爆炸帧调整这里。 */
+        DamageTriggerDelay: 0.4,
+        /** 动画开始后多少秒回到对象池，应晚于伤害触发时间。 */
+        RecycleDelay: 1.0,
+        RandomPositionPadding: 40,
+        KillExperience: 1,
+        AnimationName: "animation",
+    };
+
+    /** 老黑技能：连续三次声波脉冲，范围内敌人停止移动和攻击。 */
+    public static readonly SonicTrap = {
+        PrefabPath: "Prefabs/投掷物/声波陷阱",
+        ButtonPrefabPath: "Prefabs/UI/技能按钮/声波陷阱",
+        Cooldown: 35,
+        Radius: 200,
+        PulseCount: 5,
+        /** 单次Spine动画约1.33秒；每隔这个时间重播并触发下一次脉冲。 */
+        PulseInterval: 1.33,
+        /** 每次脉冲施加的震颤时间，略大于脉冲间隔可形成连续控制。 */
+        TremorDuration: 1.4,
+        RandomPositionPadding: 40,
+        AnimationName: "animation",
+    };
+
+    /** 哈基蜂技能：按组合角色等级回复城墙生命值。 */
+    public static readonly NanoRepair = {
+        ButtonPrefabPath: "Prefabs/UI/技能按钮/纳米修复",
+        Cooldown: 45,
+        EffectName: "技能纳米修复特效",
+        EffectPrefabPath: "Prefabs/特效/技能纳米修复特效",
+        EffectDuration: 1.33,
+        /** 数组下标0～5分别对应哈基蜂1～6级。 */
+        HealByLevel: [40, 80, 160, 320, 640, 1280],
+    };
+
+    /** 老板技能：让自身占格外围一圈的攻击/收益单位获得临时超频。 */
+    public static readonly OverclockCommand = {
+        ButtonPrefabPath: "Prefabs/UI/技能按钮/超频指令",
+        Cooldown: 40,
+        Duration: 5,
+        NeighborRange: 1,
+        AttackDamageMultiplier: 1.5,
+        ProductionMultiplier: 2,
+        EffectName: "技能超频指令特效",
+        EffectPrefabPath: "Prefabs/特效/技能超频指令特效",
+    };
 
     /** 角色技能配置；同一个角色可以配置多条技能。 */
     public static readonly CharacterSkills: WZSJZ_SkillConfig[] = [
@@ -205,7 +281,46 @@ export class WZSJZ_Constant {
             EffectType: "wall_invincible",
             EffectName: "技能绝对防线特效",
             EffectPrefabPath: "Prefabs/特效/技能绝对防线特效",
-            EffectPrewarm: 2,
+            EffectPrewarm: 1,
+        },
+        {
+            Id: "绝对防线",
+            OwnerName: "堵桥狗",
+            ButtonPrefabPath: WZSJZ_Constant.BlockBridgeDogUltimate.ButtonPrefabPath,
+            Cooldown: WZSJZ_Constant.BlockBridgeDogUltimate.Cooldown,
+            Duration: WZSJZ_Constant.BlockBridgeDogUltimate.RecycleDelay,
+            EffectType: "block_bridge_dog_artillery",
+        },
+        {
+            Id: "声波陷阱",
+            OwnerName: "老黑",
+            ButtonPrefabPath: WZSJZ_Constant.SonicTrap.ButtonPrefabPath,
+            Cooldown: WZSJZ_Constant.SonicTrap.Cooldown,
+            Duration: WZSJZ_Constant.SonicTrap.PulseCount
+                * WZSJZ_Constant.SonicTrap.PulseInterval,
+            EffectType: "sonic_trap",
+        },
+        {
+            Id: "纳米修复",
+            OwnerName: "哈基蜂",
+            ButtonPrefabPath: WZSJZ_Constant.NanoRepair.ButtonPrefabPath,
+            Cooldown: WZSJZ_Constant.NanoRepair.Cooldown,
+            Duration: WZSJZ_Constant.NanoRepair.EffectDuration,
+            EffectType: "wall_heal",
+            EffectName: WZSJZ_Constant.NanoRepair.EffectName,
+            EffectPrefabPath: WZSJZ_Constant.NanoRepair.EffectPrefabPath,
+            EffectPrewarm: 1,
+        },
+        {
+            Id: "超频指令",
+            OwnerName: "老板",
+            ButtonPrefabPath: WZSJZ_Constant.OverclockCommand.ButtonPrefabPath,
+            Cooldown: WZSJZ_Constant.OverclockCommand.Cooldown,
+            Duration: WZSJZ_Constant.OverclockCommand.Duration,
+            EffectType: "adjacent_overclock",
+            EffectName: WZSJZ_Constant.OverclockCommand.EffectName,
+            EffectPrefabPath: WZSJZ_Constant.OverclockCommand.EffectPrefabPath,
+            EffectPrewarm: 1,
         },
     ];
 
@@ -218,17 +333,19 @@ export class WZSJZ_Constant {
 
     /** 高频生成节点的对象池预热数量；不足时仍会按需扩容。 */
     public static readonly ObjectPool = {
-        EnemyPrewarmPerType: 5,
-        GunBulletPrewarm: 20,
-        CannonBulletPrewarm: 12,
-        MinePrewarm: 16,
-        KnifeEffectPrewarm: 10,
-        ShieldProjectilePrewarm: 10,
-        BlueExplosionPrewarm: 10,
-        CellMoveEffectPrewarm: 8,
-        CellUpgradeEffectPrewarm: 8,
-        BossLaoSaiArrowPrewarm: 8,
-        BlockBridgeDogBulletPrewarm: 12,
+        EnemyPrewarmPerType: 1,
+        GunBulletPrewarm: 1,
+        CannonBulletPrewarm: 1,
+        MinePrewarm: 1,
+        KnifeEffectPrewarm: 1,
+        ShieldProjectilePrewarm: 1,
+        BlueExplosionPrewarm: 1,
+        CellMoveEffectPrewarm: 1,
+        CellUpgradeEffectPrewarm: 1,
+        BossLaoSaiArrowPrewarm: 1,
+        BlockBridgeDogBulletPrewarm: 1,
+        BlockBridgeDogUltimatePrewarm: 1,
+        SonicTrapPrewarm: 1,
     };
 
     /** 防止单位停在攻击范围临界点时因浮点误差反复进入移动状态。 */
@@ -722,12 +839,180 @@ export class WZSJZ_Constant {
             IsNameUnit: true,
             IdleAnimation: "daiji",
             Levels: [
-                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 25, AttackInterval: 2.5, AttackRange: 950, BulletSpeed: 1050 },
-                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 42, AttackInterval: 2.3, AttackRange: 980, BulletSpeed: 1100 },
-                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 70, AttackInterval: 2.1, AttackRange: 1010, BulletSpeed: 1150 },
-                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 115, AttackInterval: 1.9, AttackRange: 1040, BulletSpeed: 1200 },
-                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 185, AttackInterval: 1.7, AttackRange: 1070, BulletSpeed: 1250 },
-                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 300, AttackInterval: 1.5, AttackRange: 1100, BulletSpeed: 1300 },
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 25, AttackInterval: 1, AttackRange: 950, BulletSpeed: 1050 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 42, AttackInterval: 0.8, AttackRange: 980, BulletSpeed: 1100 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 70, AttackInterval: 0.6, AttackRange: 1010, BulletSpeed: 1150 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 115, AttackInterval: 0.5, AttackRange: 1040, BulletSpeed: 1200 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 185, AttackInterval: 0.4, AttackRange: 1070, BulletSpeed: 1250 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 300, AttackInterval: 0.3, AttackRange: 1100, BulletSpeed: 1300 },
+            ],
+        },
+        "老": {
+            Name: "老",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "黑": {
+            Name: "黑",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "老黑": {
+            Name: "老黑",
+            AttackFireDelay: 0.25,
+            ResourceType: "none",
+            PurchaseWeight: 0,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 0,
+            IsNameUnit: true,
+            IdleAnimation: "daiji",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 32, AttackInterval: 1.3, AttackRange: 950, BulletSpeed: 1050 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 52, AttackInterval: 1.15, AttackRange: 980, BulletSpeed: 1100 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 85, AttackInterval: 1, AttackRange: 1010, BulletSpeed: 1150 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 135, AttackInterval: 0.85, AttackRange: 1040, BulletSpeed: 1200 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 215, AttackInterval: 0.72, AttackRange: 1070, BulletSpeed: 1250 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 340, AttackInterval: 0.6, AttackRange: 1100, BulletSpeed: 1300 },
+            ],
+        },
+        "哈": {
+            Name: "哈",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "基蜂": {
+            Name: "基蜂",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "哈基蜂": {
+            Name: "哈基蜂",
+            AttackFireDelay: 0.25,
+            ResourceType: "none",
+            PurchaseWeight: 0,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 0,
+            IsNameUnit: true,
+            IdleAnimation: "daiji",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 28, AttackInterval: 1.2, AttackRange: 950, BulletSpeed: 1050 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 46, AttackInterval: 1.08, AttackRange: 980, BulletSpeed: 1100 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 76, AttackInterval: 0.96, AttackRange: 1010, BulletSpeed: 1150 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 122, AttackInterval: 0.84, AttackRange: 1040, BulletSpeed: 1200 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 195, AttackInterval: 0.72, AttackRange: 1070, BulletSpeed: 1250 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 310, AttackInterval: 0.6, AttackRange: 1100, BulletSpeed: 1300 },
+            ],
+        },
+        "板": {
+            Name: "板",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "老板": {
+            Name: "老板",
+            AttackFireDelay: 0.25,
+            ResourceType: "none",
+            PurchaseWeight: 0,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 0,
+            IsNameUnit: true,
+            IdleAnimation: "daiji",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 24, AttackInterval: 1.4, AttackRange: 950, BulletSpeed: 1050 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 40, AttackInterval: 1.25, AttackRange: 980, BulletSpeed: 1100 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 66, AttackInterval: 1.1, AttackRange: 1010, BulletSpeed: 1150 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 108, AttackInterval: 0.95, AttackRange: 1040, BulletSpeed: 1200 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 175, AttackInterval: 0.8, AttackRange: 1070, BulletSpeed: 1250 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 280, AttackInterval: 0.68, AttackRange: 1100, BulletSpeed: 1300 },
             ],
         },
     };
@@ -738,6 +1023,14 @@ export class WZSJZ_Constant {
 
     public static GetAttackFireDelay(name: string): number {
         return Math.max(0, this.GetMaterialConfig(name)?.AttackFireDelay || 0);
+    }
+
+    public static GetNanoRepairHeal(level: number): number {
+        const index = Math.max(0, Math.min(
+            this.NanoRepair.HealByLevel.length - 1,
+            Math.floor(level) - 1,
+        ));
+        return Math.max(0, this.NanoRepair.HealByLevel[index] || 0);
     }
 
     public static GetMaterialLevelConfig(

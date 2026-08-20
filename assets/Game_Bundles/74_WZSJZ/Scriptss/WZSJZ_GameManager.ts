@@ -135,7 +135,12 @@ export class WZSJZ_GameManager extends Component {
         this._commonEffectSystem.Configure(this.FormationZone?.parent, this.DragLayer);
         this._skillSystem = this.node.getComponent(WZSJZ_SkillSystem)
             || this.node.addComponent(WZSJZ_SkillSystem);
-        this._skillSystem.Configure(this.PreparationZone, this.WallDisplayNode);
+        this._skillSystem.Configure(
+            this.PreparationZone,
+            this.WallDisplayNode,
+            this.FormationZone?.parent,
+            this._formationCells,
+        );
         this._shieldBrotherCombatSystem = this.node.getComponent(WZSJZ_ShieldBrotherCombatSystem)
             || this.node.addComponent(WZSJZ_ShieldBrotherCombatSystem);
         this._shieldBrotherCombatSystem.Configure(this.FormationZone?.parent, this.DragLayer);

@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "fb056160-8002-4b0b-9a11-af6d4c8e87c8",
+  "uuid": "435a3283-7248-45f9-8b08-dd09b454f969",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "fb056160-8002-4b0b-9a11-af6d4c8e87c8@6c48a",
-      "displayName": "护盾技能",
+      "uuid": "435a3283-7248-45f9-8b08-dd09b454f969@6c48a",
+      "displayName": "1",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "fb056160-8002-4b0b-9a11-af6d4c8e87c8",
+        "imageUuidOrDatabaseUri": "435a3283-7248-45f9-8b08-dd09b454f969",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "fb056160-8002-4b0b-9a11-af6d4c8e87c8@f9941",
-      "displayName": "护盾技能",
+      "uuid": "435a3283-7248-45f9-8b08-dd09b454f969@f9941",
+      "displayName": "1",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -43,12 +43,12 @@
         "rotated": false,
         "offsetX": 0,
         "offsetY": 0,
-        "trimX": 0,
-        "trimY": 0,
-        "width": 162,
-        "height": 491,
-        "rawWidth": 162,
-        "rawHeight": 491,
+        "trimX": 2,
+        "trimY": 2,
+        "width": 123,
+        "height": 80,
+        "rawWidth": 127,
+        "rawHeight": 84,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -81,
-            -245.5,
+            -61.5,
+            -40,
             0,
-            81,
-            -245.5,
+            61.5,
+            -40,
             0,
-            -81,
-            245.5,
+            -61.5,
+            40,
             0,
-            81,
-            245.5,
+            61.5,
+            40,
             0
           ],
           "indexes": [
@@ -82,38 +82,38 @@
             3
           ],
           "uv": [
-            0,
-            491,
-            162,
-            491,
-            0,
-            0,
-            162,
-            0
+            2,
+            82,
+            125,
+            82,
+            2,
+            2,
+            125,
+            2
           ],
           "nuv": [
-            0,
-            0,
-            1,
-            0,
-            0,
-            1,
-            1,
-            1
+            0.015748031496062992,
+            0.023809523809523808,
+            0.984251968503937,
+            0.023809523809523808,
+            0.015748031496062992,
+            0.9761904761904762,
+            0.984251968503937,
+            0.9761904761904762
           ],
           "minPos": [
-            -81,
-            -245.5,
+            -61.5,
+            -40,
             0
           ],
           "maxPos": [
-            81,
-            245.5,
+            61.5,
+            40,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "fb056160-8002-4b0b-9a11-af6d4c8e87c8@6c48a",
+        "imageUuidOrDatabaseUri": "435a3283-7248-45f9-8b08-dd09b454f969@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "fb056160-8002-4b0b-9a11-af6d4c8e87c8@6c48a"
+    "redirect": "435a3283-7248-45f9-8b08-dd09b454f969@6c48a"
   }
 }

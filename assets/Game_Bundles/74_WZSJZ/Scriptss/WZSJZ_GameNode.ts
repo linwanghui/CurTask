@@ -40,6 +40,9 @@ export class WZSJZ_GameNode extends Component {
     private _experienceReceiver: ((amount: number) => void) = null;
     private _experienceProgressProvider: (() => number) = null;
     private _isCombinationDisplay: boolean = false;
+    private _overclockRemaining: number = 0;
+    private _overclockAttackMultiplier: number = 1;
+    private _overclockProductionMultiplier: number = 1;
 
     public get IsDragging(): boolean {
         return this._isDragging;
@@ -199,8 +202,39 @@ export class WZSJZ_GameNode extends Component {
 
     /** 开始游戏后可直接读取该值进行每秒资源结算。 */
     public GetProductionPerSecond(): number {
-        return WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level)
+        const baseProduction = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level)
             ?.ProductionPerSecond || 0;
+        return baseProduction * (this._overclockRemaining > 0
+            ? this._overclockProductionMultiplier
+            : 1);
+    }
+
+    public GetAttackDamage(): number {
+        const baseDamage = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level)
+            ?.AttackDamage || 0;
+        return baseDamage * (this._overclockRemaining > 0
+            ? this._overclockAttackMultiplier
+            : 1);
+    }
+
+    /** 攻击型提升伤害，收益型提升产出；两者都不是时视作暂未支持的Buff型。 */
+    public ApplyOverclock(
+        duration: number,
+        attackMultiplier: number,
+        productionMultiplier: number,
+    ): boolean {
+        const levelConfig = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level);
+        const isAttackUnit = (levelConfig?.AttackDamage || 0) > 0;
+        const isProductionUnit = (levelConfig?.ProductionPerSecond || 0) > 0;
+        if ((!isAttackUnit && !isProductionUnit) || duration <= 0) {
+            return false;
+        }
+        this._overclockRemaining = Math.max(this._overclockRemaining, duration);
+        this._overclockAttackMultiplier = isAttackUnit ? Math.max(1, attackMultiplier) : 1;
+        this._overclockProductionMultiplier = isProductionUnit
+            ? Math.max(1, productionMultiplier)
+            : 1;
+        return true;
     }
 
     public GetMaxHealth(): number {
@@ -209,6 +243,13 @@ export class WZSJZ_GameNode extends Component {
     }
 
     protected update(deltaTime: number): void {
+        if (this._overclockRemaining > 0) {
+            this._overclockRemaining = Math.max(0, this._overclockRemaining - deltaTime);
+            if (this._overclockRemaining <= 0) {
+                this._overclockAttackMultiplier = 1;
+                this._overclockProductionMultiplier = 1;
+            }
+        }
         if (this.Name === "枪") {
             WZSJZ_CombatSystem.Instance?.UpdateGun(this, deltaTime);
         } else if (this.Name === "刀") {
@@ -219,8 +260,9 @@ export class WZSJZ_GameNode extends Component {
             WZSJZ_CombatSystem.Instance?.UpdateMineLayer(this, deltaTime);
         } else if (this.Name === "盾哥") {
             WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateShieldBrother(this, deltaTime);
-        } else if (this.Name === "堵桥狗") {
-            WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateBlockBridgeDog(this, deltaTime);
+        } else if (this.Name === "堵桥狗" || this.Name === "老黑"
+            || this.Name === "哈基蜂" || this.Name === "老板") {
+            WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateSharedBulletCharacter(this, deltaTime);
         }
     }
 

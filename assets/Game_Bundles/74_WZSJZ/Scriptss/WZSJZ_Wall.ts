@@ -76,6 +76,20 @@ export class WZSJZ_Wall extends Component {
         }
     }
 
+    /** 回复城墙生命值并返回实际回复量；不会超过当前最大生命值。 */
+    public Heal(amount: number): number {
+        if (!this.IsAlive || amount <= 0) {
+            return 0;
+        }
+        const previous = this._currentHealth;
+        this._currentHealth = Math.min(this._maxHealth, previous + amount);
+        const healed = this._currentHealth - previous;
+        if (healed > 0) {
+            this.RefreshView();
+        }
+        return healed;
+    }
+
     private RefreshView(): void {
         const healthNode = this.HealthViewNode || this.node.getChildByName("生命值");
         const label = healthNode?.getChildByName("血量文本")?.getComponent(Label);
