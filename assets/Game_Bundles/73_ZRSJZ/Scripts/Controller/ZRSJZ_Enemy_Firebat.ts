@@ -56,7 +56,13 @@ export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
             Vec3.distance(a.node.worldPosition, currentPosition)
             - Vec3.distance(b.node.worldPosition, currentPosition)
         ));
-        return players[0]?.node ?? null;
+        for (let i = 0; i < players.length; i++) {
+            const player = players[i];
+            if (!player.getComponent(ZRSJZ_Player)?.IsDead) {
+                return player.node;
+            }
+        }
+        return null;
     }
 
     protected OnAttack(attack: string): void {

@@ -1,10 +1,10 @@
+import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
 import { _decorator, Component, director, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
+import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
-import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
-import { ZRSJZ_SignInPanel } from './Panel/ZRSJZ_SignInPanel';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
@@ -13,46 +13,36 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_Start extends Component {
 
     @property(Node)
-    Checked: Node = null;
-
-    @property(Node)
-    Confirm: Node = null;
-
-    @property(Node)
-    NameNode: Node = null;
-
-    @property(Label)
-    NameLabel: Label = null;
-
-    @property(Node)
     SignBtn: Node = null;
 
+    @property(Node)
+    Player2: Node = null;
 
     protected start(): void {
-        ZRSJZ_UIManager.Instance;
-        tween(this.Checked)
-            .to(0.5, { scale: v3(1.2, 1.2, 1.2) }, { easing: "sineInOut" })
-            .to(0.5, { scale: v3(1, 1, 1) }, { easing: "sineInOut" })
-            .union()
-            .repeatForever()
-            .start();
-        ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
-        if (ZRSJZ_GameData.Instance.CanClaimSignInReward()) {
+        if (!ZRSJZ_GameData.Instance.IsTutorial) {
+            this.InitTutorial();
+            return;
+        }
+        //关闭所有面板
+        ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
+
+        if (ZRSJZ_AccountService.CanClaimSignInReward()) {
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
         }
-        this.SignBtn.active = !ZRSJZ_GameData.Instance.IsSignInCompleted();
+        // this.SignBtn.active = !ZRSJZ_AccountService.IsSignInCompleted();
         ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
+        this.ModelSwitch();
     }
 
     protected onEnable(): void {
-        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHECKED, this.OnMainChecked, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT, () => {
             ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
         })
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MODEL_SWITCH, this.ModelSwitch, this);
     }
 
     protected onDisable(): void {
-        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHECKED, this.OnMainChecked, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MODEL_SWITCH, this.ModelSwitch, this);
     }
 
     OnButtonClick(event: EventTouch) {
@@ -102,21 +92,38 @@ export class ZRSJZ_Start extends Component {
         }
     }
 
-    OnMainChecked(target: Node, isChecked: boolean) {
-        this.NameLabel.string = target.name;
-        this.Confirm.active = isChecked;
-        this.Checked.setWorldPosition(target.getWorldPosition().clone());
-        this.Checked.active = isChecked;
-        this.Confirm.name = target.name;
-        this.NameNode.active = isChecked;
-        if (isChecked) {
-            Tween.stopAllByTarget(this.NameNode);
-            this.NameNode.setWorldPosition(target.getWorldPosition().clone());
-            tween(this.NameNode)
-                .to(0.5, { worldPosition: target.getWorldPosition().clone().add3f(0, 300, 0) }, { easing: "backOut" })
-                .start();
+    InitTutorial() {
+        //没通过新手教程就跳转新手教程场景
+        ZRSJZ_GameData.Instance.CurMap = "新手村";
+
+        //初始化装备
+        if (ZRSJZ_GameData.Instance.WeaponryID[0] != "") {
+            ZRSJZ_InventoryService.RemovePropID(ZRSJZ_GameData.Instance.WeaponryID[0]);
+            ZRSJZ_GameData.Instance.WeaponryID[0] = "";
         }
+
+        //初始化弹药
+        if (ZRSJZ_GameData.Instance.AmmoID[0] == "") {
+            let propId = ZRSJZ_InventoryService.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            ZRSJZ_GameData.Instance.AmmoID[0] = propId;
+            ZRSJZ_InventoryService.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        } else if (ZRSJZ_GameData.Instance.AmmoID[1] == "") {
+            let propId = ZRSJZ_InventoryService.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            ZRSJZ_GameData.Instance.AmmoID[1] = propId;
+            ZRSJZ_InventoryService.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        } else if (ZRSJZ_GameData.Instance.AmmoID[2] == "") {
+            let propId = ZRSJZ_InventoryService.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            ZRSJZ_GameData.Instance.AmmoID[2] = propId;
+            ZRSJZ_InventoryService.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        }
+        // director.loadScene("ZRSJZ_Tutorial");
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Tutorial");
     }
+
+    ModelSwitch() {
+        this.Player2.active = ZRSJZ_GameData.Instance.CurModel == "2p";
+    }
+
 }
 
 

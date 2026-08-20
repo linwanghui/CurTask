@@ -1,3 +1,5 @@
+import { ZRSJZ_BoxroomService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_BoxroomService";
+import { ZRSJZ_InventoryService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_InventoryService";
 import {
     _decorator,
     Button,
@@ -35,7 +37,6 @@ import {
     ZRSJZ_BoxroomCategory
 } from '../ZRSJZ_BoxroomConstant';
 import { ZRSJZ_BoxroomBox } from '../ZRSJZ_BoxroomBox';
-import { ZRSJZ_GameData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_AudioManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
 const { ccclass } = _decorator;
 
@@ -251,7 +252,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         if (imageSprite) {
             imageSprite.spriteFrame = spriteFrame;
             this.ResizeDetailImage(imageSprite.node, propName, spriteFrame.originalSize);
-            imageSprite.grayscale = ZRSJZ_GameData.Instance.GetBoxroomPropLevel(propName) <= 0;
+            imageSprite.grayscale = ZRSJZ_BoxroomService.GetBoxroomPropLevel(propName) <= 0;
         }
     }
 
@@ -286,7 +287,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         const detailPanel = detail?.getChildByName("Panel");
         if (!detail || !detailPanel) return;
 
-        const level = ZRSJZ_GameData.Instance.GetBoxroomPropLevel(this._selectedPropName);
+        const level = ZRSJZ_BoxroomService.GetBoxroomPropLevel(this._selectedPropName);
         const propCount = this.GetCollectionProps().length;
         const attribute = GetBoxroomAttribute(this._selectedPropName);
         const currentBonus = GetBoxroomBonusBasisPoint(level, propCount);
@@ -320,21 +321,20 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
     private UpgradeSelectedProp(): void {
         if (!this._selectedPropName) return;
 
-        const gameData = ZRSJZ_GameData.Instance;
-        const level = gameData.GetBoxroomPropLevel(this._selectedPropName);
+        const level = ZRSJZ_BoxroomService.GetBoxroomPropLevel(this._selectedPropName);
         if (level >= 3) {
             ZRSJZ_UIManager.Instance.ShowTip("已满级");
             return;
         }
 
         const cost = ZRSJZ_BOXROOM_LEVEL_COST[level];
-        if (gameData.GetPropCountByName(this._selectedPropName) < cost) {
+        if (ZRSJZ_InventoryService.GetPropCountByName(this._selectedPropName) < cost) {
             ZRSJZ_UIManager.Instance.ShowTip("道具不足");
             return;
         }
 
-        gameData.ConsumeProp(this._selectedPropName, cost);
-        gameData.SetBoxroomPropLevel(this._selectedPropName, level + 1);
+        ZRSJZ_InventoryService.ConsumeProp(this._selectedPropName, cost);
+        ZRSJZ_BoxroomService.SetBoxroomPropLevel(this._selectedPropName, level + 1);
         this.SyncAttributeBonus();
         this.RefreshTotalBonus();
         this._categoryCache.forEach(view => {
@@ -353,10 +353,10 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         const props = this.GetCollectionProps();
         for (const config of props) {
             const attribute = GetBoxroomAttribute(config.Name);
-            const level = ZRSJZ_GameData.Instance.GetBoxroomPropLevel(config.Name);
+            const level = ZRSJZ_BoxroomService.GetBoxroomPropLevel(config.Name);
             bonus[attribute] += GetBoxroomBonusBasisPoint(level, props.length);
         }
-        ZRSJZ_GameData.Instance.SetBoxroomAttributeBonusBasisPoints(bonus);
+        ZRSJZ_BoxroomService.SetBoxroomAttributeBonusBasisPoints(bonus);
     }
 
     private RefreshTotalBonus(): void {
@@ -376,7 +376,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         const label = bonusBottom.getChildByName(labelNodeName)?.getComponent(Label);
         if (!label) return;
 
-        const rate = ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate(attribute);
+        const rate = ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate(attribute);
         const basisPoint = Math.round(rate * 10000);
         label.string = `${attribute}+${FormatBoxroomPercent(basisPoint)}`;
     }

@@ -1,3 +1,6 @@
+import { ZRSJZ_BoxroomService } from "../Service/ZRSJZ_BoxroomService";
+import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, sp, Sprite, tween, Tween, v2, v3, Vec2, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
@@ -20,6 +23,8 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
 export class ZRSJZ_Player extends Component {
+    /** 0 为玩家1，1 为玩家2；所有战斗输入和装备读取都以此隔离。 */
+    PlayerIndex: number = 0;
     public readonly Speed: number = 1500;
     public readonly InitHP: number = 100;
     /** 普通跑步与攻击跑步的关键姿势存在少量相位差，按 Spine 常用的 30 FPS 偏移两帧。 */
@@ -75,6 +80,10 @@ export class ZRSJZ_Player extends Component {
         return this._magazineAmmo.length;
     }
 
+    public get IsDead(): boolean {
+        return this.CurHP <= 0;
+    }
+
     public get MagazineCapacity(): number {
         return Math.max(0, Math.floor(this.GetGunProperty("弹夹", 0)));
     }
@@ -82,7 +91,7 @@ export class ZRSJZ_Player extends Component {
     /** 当前备战弹药栏中尚未装入弹夹的子弹总数。 */
     public get WarehouseAmmoCount(): number {
         let count = 0;
-        for (const ammoID of ZRSJZ_GameData.Instance.AmmoID) {
+        for (const ammoID of ZRSJZ_InventoryService.GetAmmoIDs(this.PlayerIndex)) {
             const ammoData = ZRSJZ_GameData.Instance.PropData[ammoID];
             if (ammoData?.PropType === "弹药") {
                 count += Math.max(0, Math.floor(ammoData.CurCount));
@@ -138,6 +147,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected start(): void {
+        this.PlayerSkeleton.CurPlayerIndex = this.PlayerIndex;
         this.Init();
 
         this.PlayerSkeleton.HandSkeleton.setEventListener((trackEntry, event) => {
@@ -173,7 +183,7 @@ export class ZRSJZ_Player extends Component {
 
     protected onDisable(): void {
         this.CancelGunAttackState();
-        ZRSJZ_Game.Instance?.CancelEvacuation();
+        ZRSJZ_Game.Instance?.CancelEvacuation(this.PlayerIndex);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
@@ -209,12 +219,13 @@ export class ZRSJZ_Player extends Component {
     }
 
     Init() {
-        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0];
-        const knifeID = ZRSJZ_GameData.Instance.WeaponryID[4];
+        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex);
+        const gunID = weaponryIDs[0];
+        const knifeID = weaponryIDs[4];
         const hasGun = !!gunID && !!ZRSJZ_GameData.Instance.PropData[gunID];
         const hasKnife = !!knifeID && !!ZRSJZ_GameData.Instance.PropData[knifeID];
         this._curKnifeName = hasKnife ? ZRSJZ_GameData.Instance.PropData[knifeID].Name : "";
-        this.CurSpeed *= 1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate();
+        this.CurSpeed *= 1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate();
         this.WeaponType = hasGun ? "枪" : (hasKnife ? "刀" : "");
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
         if (hasGun) {
@@ -225,7 +236,7 @@ export class ZRSJZ_Player extends Component {
 
 
         //血量初始化
-        this.MaxHP = (this.InitHP + ZRSJZ_GameData.Instance.GetResearchMaxHPBonus()) * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("生命") : 0));
+        this.MaxHP = (this.InitHP + ZRSJZ_FacilityService.GetResearchMaxHPBonus()) * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("生命") : 0));
         this.CurHP = this.MaxHP;
         this.HP.Init(this.MaxHP);
         this.HP.Show(this.CurHP);
@@ -235,14 +246,15 @@ export class ZRSJZ_Player extends Component {
         this.FillInitialMagazineWhenReady();
 
         //速度初始化
-        this.MaxSpeed = this.Speed * (1 + ZRSJZ_GameData.Instance.GetGymMoveSpeedBonusRate());
+        this.MaxSpeed = this.Speed * (1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate());
         this.CurSpeed = this.MaxSpeed;
 
         this._curScale = this.node.scale.x;
     }
 
     //#region 技能
-    Skill(skillName: string, dirX?: number, dirY?: number, radius?: number) {
+    Skill(skillName: string, dirX?: number, dirY?: number, radius?: number, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isSlide || this._gunAttackAnimationActive) return;
         this.CancelGunAttackState();
         this.CancelKnifeAttackState();
@@ -252,7 +264,8 @@ export class ZRSJZ_Player extends Component {
                 const isKnife = this.PlayerSkeleton.IsKnife;
                 if (isKnife) {
                     this.PlayerSkeleton.IsKnife = false;
-                    const weaponName: string = ZRSJZ_GameData.Instance.WeaponryID[0] ? ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name : "CN8-突击步枪";
+                    const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex);
+                    const weaponName: string = weaponryIDs[0] ? ZRSJZ_GameData.Instance.PropData[weaponryIDs[0]].Name : "CN8-突击步枪";
                     this.PlayerSkeleton.ShowEquipment(weaponName);
                 }
                 this.PlayAni(ZRSJZ_ANI.Idle_Q);
@@ -261,7 +274,8 @@ export class ZRSJZ_Player extends Component {
                     laser.active = true;
                     laser.getComponent(ZRSJZ_Skill).Show(this.getMuzzlePos(), this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, 20, () => {
                         if (isKnife) {
-                            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
+                            const knifeID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[4];
+                            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[knifeID].Name);
                             this.PlayAni(ZRSJZ_ANI.Idle_D1);
                             this.PlayerSkeleton.IsKnife = true;
                         }
@@ -304,7 +318,8 @@ export class ZRSJZ_Player extends Component {
     }
 
     //#region 移动
-    Move(x: number, y: number, radius: number) {
+    Move(x: number, y: number, radius: number, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isStop) return;
         this._moveX = x;
         this._moveY = y;
@@ -319,7 +334,8 @@ export class ZRSJZ_Player extends Component {
         }
     }
     //#region 攻击
-    Attack(fireing: boolean) {
+    Attack(fireing: boolean, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isSlide || this._isStop) return;
         if (!fireing) {
             if (this.WeaponType === "刀") {
@@ -373,7 +389,7 @@ export class ZRSJZ_Player extends Component {
         }
         const gunDamage = this.GetGunProperty("伤害", 0);//本身伤害
         const bulletDamage = ZRSJZ_PROP_PROPERTY.get(ammoName)?.["增伤"] ?? 0;//子弹攻击力加成
-        const totalGunDamageRate = 1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
+        const totalGunDamageRate = 1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
         const bulletLevel = this.GetBulletLevel(ammoName);
         const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + totalGunDamageRate));
 
@@ -476,8 +492,8 @@ export class ZRSJZ_Player extends Component {
         const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
 
         const finalDamage = Math.round(
-            damage * (1 + ZRSJZ_GameData.Instance.GetFiringRangeAttackBonusRate() +
-                (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_GameData.Instance.GetBoxroomAttributeBonusRate("枪械伤害") : 0))
+            damage * (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() +
+                (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0))
         );
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         enemys = enemys.filter(enemy => !enemy.IsDead);
@@ -573,11 +589,12 @@ export class ZRSJZ_Player extends Component {
 
     //#region 武器切换
     private _curKnifeName: string = "";
-    SwitchWeapon(weaponType: string) {
+    SwitchWeapon(weaponType: string, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._gunAttackAnimationActive) return;
         const weaponryIndex = weaponType === "枪" ? 0 : (weaponType === "刀" ? 4 : -1);
         const weaponID = weaponryIndex >= 0
-            ? ZRSJZ_GameData.Instance.WeaponryID[weaponryIndex]
+            ? ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[weaponryIndex]
             : "";
         if (!weaponID || !ZRSJZ_GameData.Instance.PropData[weaponID]) {
             console.warn(`[ZRSJZ_Player] 未装备${weaponType}，已忽略切换请求`);
@@ -590,10 +607,12 @@ export class ZRSJZ_Player extends Component {
         if (this.WeaponType === "枪") {
             this.EnsureMagazineMatchesGun();
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
-            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[0]].Name);
+            const gunID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[0];
+            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[gunID].Name);
         } else if (this.WeaponType === "刀") {
             this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => { this.PlayAni(ZRSJZ_ANI.Idle_D1) });
-            this._curKnifeName = ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name
+            const knifeID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[4];
+            this._curKnifeName = ZRSJZ_GameData.Instance.PropData[knifeID].Name
             this.PlayerSkeleton.ShowEquipment(this._curKnifeName);
         }
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
@@ -613,8 +632,10 @@ export class ZRSJZ_Player extends Component {
     }
 
     //#region 复活
-    Resurgence() {
+    Resurgence(playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         this.CurHP = this.MaxHP;
+        this._isStop = false;
         this.HP.Show(this.CurHP);
         this.CurSpeed = this.MaxSpeed;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect").then((effect: Node) => {
@@ -630,6 +651,7 @@ export class ZRSJZ_Player extends Component {
         } else {
             this.PlayAni(ZRSJZ_ANI.Idle_D1);
         }
+        ZRSJZ_Game.Instance?.OnPlayerResurrected(this.PlayerIndex);
     }
 
     //#region 寻找敌人
@@ -672,22 +694,30 @@ export class ZRSJZ_Player extends Component {
         this.CurHP -= madeHarm;
         if (this.CurHP <= 0) {
             this.CurHP = 0;
-            this.CancelGunAttackState();
-            this.CancelKnifeAttackState();
-            ZRSJZ_Game.Instance.CancelEvacuation();
-            ZRSJZ_Game.Instance.GamePaused = true;
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0);
-            ZRSJZ_UIManager.Instance.PrepareForDeath();
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗);
-            this.PlayAni(ZRSJZ_ANI.SW, false);
-            ZRSJZ_AudioManager.Instance.PlaySound("击杀");
+            if (ZRSJZ_GameData.Instance.CurMap !== "新手村") {
+                this.CancelGunAttackState();
+                this.CancelKnifeAttackState();
+                this._isStop = true;
+                ZRSJZ_Game.Instance.OnPlayerDied(this.PlayerIndex);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex,);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0, this.PlayerIndex,);
+                ZRSJZ_UIManager.Instance.PrepareForDeath(this.PlayerIndex);
+                if (ZRSJZ_GameData.Instance.CurModel == "2p") {
+                    //双人模式
+                    ZRSJZ_UIManager.Instance.ShowPlayerPanel(ZRSJZ_PANEL.双人模式死亡弹窗, this.PlayerIndex, this.PlayerIndex);
+                } else {
+                    ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.死亡弹窗, this.PlayerIndex);
+                }
+                this.PlayAni(ZRSJZ_ANI.SW, false);
+                ZRSJZ_AudioManager.Instance.PlaySound("击杀");
+            }
         } else {
             this.beHitEffect();
             const audioName = this._shielding
                 ? "格挡"
                 : "受击";
             ZRSJZ_AudioManager.Instance.PlaySound(audioName);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 6);
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
             effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
@@ -701,7 +731,7 @@ export class ZRSJZ_Player extends Component {
     private GetEquippedDamageReductionRate(): number {
         let reductionPercent = 0;
         for (const equipmentIndex of [1, 2]) {
-            const equipmentID = ZRSJZ_GameData.Instance.WeaponryID[equipmentIndex];
+            const equipmentID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[equipmentIndex];
             const equipmentName = ZRSJZ_GameData.Instance.PropData[equipmentID]?.Name;
             reductionPercent += equipmentName
                 ? ZRSJZ_PROP_PROPERTY.get(equipmentName)?.["减伤"] ?? 0
@@ -726,7 +756,8 @@ export class ZRSJZ_Player extends Component {
     }
 
     //#region 换弹
-    Reload(fill: number, isCancelled: boolean = false) {
+    Reload(fill: number, isCancelled: boolean = false, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (isCancelled) {
             this._isReloading = false;
             if (this.Reloading) this.Reloading.active = false;
@@ -787,7 +818,7 @@ export class ZRSJZ_Player extends Component {
             return;
         }
 
-        const ammoIDs = ZRSJZ_GameData.Instance.AmmoID.slice();
+        const ammoIDs = ZRSJZ_InventoryService.GetAmmoIDs(this.PlayerIndex).slice();
         let remaining = capacity - this._magazineAmmo.length;
         let isChanged = false;
 
@@ -818,7 +849,7 @@ export class ZRSJZ_Player extends Component {
         }
 
         if (isChanged) {
-            ZRSJZ_GameData.Instance.SetAmmoID(ammoIDs);
+            ZRSJZ_InventoryService.SetAmmoID(ammoIDs, this.PlayerIndex);
         }
     }
 
@@ -840,7 +871,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     private EnsureMagazineMatchesGun(): void {
-        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0] ?? "";
+        const gunID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[0] ?? "";
         if (gunID === this._magazineGunID) {
             return;
         }
@@ -851,7 +882,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     private GetGunProperty(propertyName: string, defaultValue: number): number {
-        const gunID = ZRSJZ_GameData.Instance.WeaponryID[0];
+        const gunID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[0];
         const gunName = ZRSJZ_GameData.Instance.PropData[gunID]?.Name;
         const value = gunName
             ? ZRSJZ_PROP_PROPERTY.get(gunName)?.[propertyName]
@@ -1077,7 +1108,8 @@ export class ZRSJZ_Player extends Component {
     }
 
     //#region 滑动
-    Slide() {
+    Slide(playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isStop || this._gunAttackAnimationActive) return;
         this.CancelGunAttackState();
         this.CancelKnifeAttackState();
@@ -1102,12 +1134,12 @@ export class ZRSJZ_Player extends Component {
             }
             this._targetBox = otherCollider.node?.getComponent(ZRSJZ_Box);
             this._targetBox.Check();
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox, this.PlayerIndex);
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, otherCollider.node?.getComponent(ZRSJZ_Door));
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, otherCollider.node?.getComponent(ZRSJZ_Door), this.PlayerIndex);
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
             //开始撤离
-            ZRSJZ_Game.Instance.StartEvacuation(otherCollider.node.name);
+            ZRSJZ_Game.Instance.StartEvacuation(otherCollider.node.name, this.PlayerIndex);
         }
     }
 
@@ -1117,13 +1149,13 @@ export class ZRSJZ_Player extends Component {
             if (target && target === this._targetBox) {
                 this._targetBox.CheckCancel();
                 this._targetBox = null;
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox, this.PlayerIndex);
             }
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, null);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, null, this.PlayerIndex);
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
             //撤离中断
-            ZRSJZ_Game.Instance.CancelEvacuation();
+            ZRSJZ_Game.Instance.CancelEvacuation(this.PlayerIndex);
         }
     }
 

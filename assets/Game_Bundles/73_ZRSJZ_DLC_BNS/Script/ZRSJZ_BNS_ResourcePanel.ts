@@ -1,3 +1,4 @@
+import { ZRSJZ_BNSDataService } from "../../73_ZRSJZ/Scripts/Service/ZRSJZ_BNSDataService";
 import { _decorator, Camera, Component, find, instantiate, Label, Node, Prefab, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_BNS_EventManager, ZRSJZ_BNS_MyEvent } from './ZRSJZ_BNS_EventManager';
@@ -40,7 +41,7 @@ export class ZRSJZ_BNS_ResourcePanel extends Component {
 
             if (countLabel) {
                 countLabel.string =
-                    ZRSJZ_GameData.Instance.GetBNSProperty(resourceName).toString();
+                    ZRSJZ_BNSDataService.GetBNSProperty(resourceName).toString();
             }
         }
     }
@@ -108,7 +109,7 @@ export class ZRSJZ_BNS_ResourcePanel extends Component {
 
         for (const buildingName in ZRSJZ_BNS_Constant.建筑配置) {
             const bnsBuildingName = buildingName as ZRSJZ_BNS_BuildingName;
-            const level = ZRSJZ_GameData.Instance.GetBNSBuildingLevel(bnsBuildingName);
+            const level = ZRSJZ_BNSDataService.GetBNSBuildingLevel(bnsBuildingName);
 
             if (bnsBuildingName === "发电厂") {
                 totalPower += ZRSJZ_BNS_Constant.GetBuildingEffectValue(bnsBuildingName, level);
@@ -118,7 +119,7 @@ export class ZRSJZ_BNS_ResourcePanel extends Component {
             prosperity += ZRSJZ_BNS_Constant.GetBuildingProsperity(bnsBuildingName, level);
         }
 
-        ZRSJZ_GameData.Instance.SetBNSProperty("电力", Math.max(0, totalPower - usedPower));
-        ZRSJZ_GameData.Instance.SetBNSProperty("繁荣度", prosperity);
+        ZRSJZ_BNSDataService.SetBNSProperty("电力", Math.max(0, totalPower - usedPower));
+        ZRSJZ_BNSDataService.SetBNSProperty("繁荣度", prosperity);
     }
 }

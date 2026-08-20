@@ -1,3 +1,6 @@
+import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Button, Color, EventTouch, find, Label, Node, Sprite } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import {
@@ -172,7 +175,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     private async Upgrade(): Promise<void> {
         if (this._isUpgrading) return;
 
-        const currentLevel = ZRSJZ_GameData.Instance.GetFacilityLevel(this._facilityName);
+        const currentLevel = ZRSJZ_FacilityService.GetFacilityLevel(this._facilityName);
         const config = this.GetNextLevelConfig(currentLevel);
         if (!config) {
             await ZRSJZ_UIManager.Instance.ShowTip(
@@ -187,7 +190,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
         }
 
         const lackingMaterial = config.Materials.find(material =>
-            ZRSJZ_GameData.Instance.GetPropCountByName(material.PropName) < material.Count
+            ZRSJZ_InventoryService.GetPropCountByName(material.PropName) < material.Count
         );
         if (lackingMaterial) {
             await ZRSJZ_UIManager.Instance.ShowTip(`${lackingMaterial.PropName}数量不足`);
@@ -196,11 +199,11 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
 
         this._isUpgrading = true;
         try {
-            ZRSJZ_GameData.Instance.ChangeGold(-config.Gold);
+            ZRSJZ_AccountService.ChangeGold(-config.Gold);
             for (const material of config.Materials) {
-                ZRSJZ_GameData.Instance.ConsumeProp(material.PropName, material.Count);
+                ZRSJZ_InventoryService.ConsumeProp(material.PropName, material.Count);
             }
-            ZRSJZ_GameData.Instance.SetFacilityLevel(this._facilityName, config.Level);
+            ZRSJZ_FacilityService.SetFacilityLevel(this._facilityName, config.Level);
             ZRSJZ_AudioManager.Instance?.PlaySound("点击");
             await this.RefreshView();
         } finally {
@@ -211,7 +214,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     private async RefreshView(): Promise<void> {
         const refreshVersion = ++this._refreshVersion;
         const facilityConfig = ZRSJZ_FACILITY_UPGRADE_CONFIG[this._facilityName];
-        const currentLevel = ZRSJZ_GameData.Instance.GetFacilityLevel(this._facilityName);
+        const currentLevel = ZRSJZ_FacilityService.GetFacilityLevel(this._facilityName);
         const nextConfig = this.GetNextLevelConfig(currentLevel);
 
         this._title.string = ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName];
@@ -254,7 +257,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
         countLabel.node.active = true;
         nameLabel.string = material.PropName;
 
-        const ownedCount = ZRSJZ_GameData.Instance.GetPropCountByName(material.PropName);
+        const ownedCount = ZRSJZ_InventoryService.GetPropCountByName(material.PropName);
         countLabel.string = `${ownedCount}/${material.Count}`;
         countLabel.color = ownedCount >= material.Count
             ? ZRSJZ_UpgradePanel.ENOUGH_COLOR

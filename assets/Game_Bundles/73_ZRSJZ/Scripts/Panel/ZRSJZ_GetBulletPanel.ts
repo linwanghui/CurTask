@@ -1,3 +1,5 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Button, EventTouch, find, Label, Node, Sprite, UITransform, v3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
@@ -144,13 +146,13 @@ export class ZRSJZ_GetBulletPanel extends ZRSJZ_Panel {
         }
 
         this._isPurchasing = true;
-        ZRSJZ_GameData.Instance.ChangeGold(-totalPrice);
-        const createdIDs = ZRSJZ_GameData.Instance.AddAmmoToWarehouse(
+        ZRSJZ_AccountService.ChangeGold(-totalPrice);
+        const createdIDs = ZRSJZ_InventoryService.AddAmmoToWarehouse(
             this._ammoName,
             this._count,
         );
         if (createdIDs.length === 0) {
-            ZRSJZ_GameData.Instance.ChangeGold(totalPrice);
+            ZRSJZ_AccountService.ChangeGold(totalPrice);
             this._isPurchasing = false;
             await ZRSJZ_UIManager.Instance.ShowTip("子弹加入仓库失败");
             return;

@@ -24,7 +24,13 @@ export class ZRSJZ_Boss extends ZRSJZ_BossBase {
             Vec3.distance(a.node.worldPosition, currentPosition)
             - Vec3.distance(b.node.worldPosition, currentPosition)
         ));
-        return players[0]?.node ?? null;
+        for (let i = 0; i < players.length; i++) {
+            const player = players[i];
+            if (!player.getComponent(ZRSJZ_Player)?.IsDead) {
+                return player.node;
+            }
+        }
+        return null;
     }
 
     protected OnAttack(eventName: string): void {
@@ -32,8 +38,6 @@ export class ZRSJZ_Boss extends ZRSJZ_BossBase {
         if (!attack) {
             return;
         }
-        console.error(eventName, attack.Name);
-
         switch (attack.Name) {
             case "普通攻击":
                 this._attack(this._getStartPos(this.FireBoneName), attack.DamageRange, attack.Damage);

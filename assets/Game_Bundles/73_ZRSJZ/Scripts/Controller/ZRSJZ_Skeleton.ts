@@ -1,3 +1,4 @@
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Component, Node, sp } from 'cc';
 import { ZRSJZ_ANI, ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
@@ -12,6 +13,11 @@ export class ZRSJZ_Skeleton extends Component {
     AniName: string = "";
     WeaponryName: string = "";
     HandSkeleton: sp.Skeleton = null;
+
+    /** 子类可按自己的玩家索引返回装备栏。 */
+    protected GetEquippedWeaponryIDs(): string[] {
+        return ZRSJZ_GameData.Instance.WeaponryID;
+    }
 
     protected onLoad(): void {
         this.Skeleton = this.getComponent(sp.Skeleton);
@@ -59,21 +65,23 @@ export class ZRSJZ_Skeleton extends Component {
                     isWeaponry = true;
                     if (isEquipment) {
                         this.WeaponryName = equipmentName;
-                        const weaponSkin = ZRSJZ_GameData.Instance.GetWeaponSkin(equipmentName);
+                        const weaponSkin = ZRSJZ_AccountService.GetWeaponSkin(equipmentName);
                         ZRSJZ_UIManager.Instance.GetWeaponryUI(weaponSkin).then(texture => {
                             if (!texture) {
                                 console.error(`武器纹理不存在: ${weaponSkin}`);
                                 return;
                             }
-                            this.HandSkeleton.findSlot('dao').setAttachment(null);
-                            this.HandSkeleton.setAttachment(key, key);
-                            this.HandSkeleton.setSlotTexture(key, texture, true);
+                            this.HandSkeleton?.findSlot('dao').setAttachment(null);
+                            this.HandSkeleton?.setAttachment(key, key);
+                            this.HandSkeleton?.setSlotTexture(key, texture, true);
                         });
                         this.PlayAni(ZRSJZ_ANI.Idle_Q);
                     } else {
                         this.WeaponryName = "";
                         this.HandSkeleton.findSlot(key)?.setAttachment(null);
-                        this.HandSkeleton.setAttachment('dao', ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[4]].Name);
+                        const knifeID = this.GetEquippedWeaponryIDs()[4];
+                        const knifeName = ZRSJZ_GameData.Instance.PropData[knifeID]?.Name;
+                        if (knifeName) this.HandSkeleton.setAttachment('dao', knifeName);
                         this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
                             this.PlayAni(ZRSJZ_ANI.Idle_D1);
                         })

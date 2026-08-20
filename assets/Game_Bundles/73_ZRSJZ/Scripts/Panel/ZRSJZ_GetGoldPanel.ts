@@ -1,3 +1,4 @@
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Component, EventTouch, Node } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -22,7 +23,7 @@ export class ZRSJZ_GetGoldPanel extends ZRSJZ_Panel {
                 break;
             case "免费领取":
                 Banner.Instance.ShowVideoAd(() => {
-                    ZRSJZ_GameData.Instance.ChangeGold(this.Gold);
+                    ZRSJZ_AccountService.ChangeGold(this.Gold);
                     ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
                     ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.获取金币弹窗);
                 })

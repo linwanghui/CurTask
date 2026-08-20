@@ -18,6 +18,11 @@ export class ZRSJZ_UIAutoFit extends Component {
     @property({ displayName: '垂直安全边距', min: 0 })
     public VerticalPadding: number = 0;
 
+    @property({ displayName: '参考尺寸是否为屏幕尺寸' })
+    IsView: boolean = true;
+
+    public TargetScale: Vec3 = new Vec3(1, 1, 1);
+
     private _baseScale: Vec3 = new Vec3(1, 1, 1);
     private _hasBaseScale: boolean = false;
 
@@ -62,7 +67,7 @@ export class ZRSJZ_UIAutoFit extends Component {
             return;
         }
 
-        const visibleSize = view.getVisibleSize();
+        const visibleSize = this.IsView ? view.getVisibleSize() : this.node.parent.getComponent(UITransform).contentSize;
         const availableWidth = Math.max(1, visibleSize.width - this.HorizontalPadding * 2);
         const availableHeight = Math.max(1, visibleSize.height - this.VerticalPadding * 2);
         const parentWorldScale = this.node.parent?.worldScale;
@@ -81,11 +86,13 @@ export class ZRSJZ_UIAutoFit extends Component {
             fitRatio = Math.min(1, fitRatio);
         }
 
-        this.node.setScale(
+        this.TargetScale.set(
             this._baseScale.x * fitRatio,
             this._baseScale.y * fitRatio,
             this._baseScale.z,
-        );
+        )
+
+        this.node.setScale(this.TargetScale.clone());
     }
 }
 

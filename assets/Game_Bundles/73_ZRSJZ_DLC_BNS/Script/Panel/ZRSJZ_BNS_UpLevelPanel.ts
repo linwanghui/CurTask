@@ -1,3 +1,4 @@
+import { ZRSJZ_BNSDataService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_BNSDataService";
 import { _decorator, Color, EventTouch, find, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
 import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
@@ -37,7 +38,7 @@ export class ZRSJZ_BNS_UpLevelPanel extends ZRSJZ_Panel {
     UpLevelClick() {
         if (!this._buildingName) return;
 
-        const level = ZRSJZ_GameData.Instance.GetBNSBuildingLevel(this._buildingName);
+        const level = ZRSJZ_BNSDataService.GetBNSBuildingLevel(this._buildingName);
         const nextLevel = level + 1;
         const cost = ZRSJZ_BNS_Constant.GetBuildingUpgradeCost(this._buildingName, nextLevel);
 
@@ -53,10 +54,10 @@ export class ZRSJZ_BNS_UpLevelPanel extends ZRSJZ_Panel {
             return;
         }
 
-        ZRSJZ_GameData.Instance.ChangeBNSProperty("木材", -cost.木材);
-        ZRSJZ_GameData.Instance.ChangeBNSProperty("矿石", -cost.矿石);
-        ZRSJZ_GameData.Instance.ChangeBNSProperty("宝石", -cost.宝石);
-        ZRSJZ_GameData.Instance.SetBNSBuildingLevel(this._buildingName, nextLevel);
+        ZRSJZ_BNSDataService.ChangeBNSProperty("木材", -cost.木材);
+        ZRSJZ_BNSDataService.ChangeBNSProperty("矿石", -cost.矿石);
+        ZRSJZ_BNSDataService.ChangeBNSProperty("宝石", -cost.宝石);
+        ZRSJZ_BNSDataService.SetBNSBuildingLevel(this._buildingName, nextLevel);
         this.RefreshDerivedProperties();
         this.InitPanel();
     }
@@ -64,7 +65,7 @@ export class ZRSJZ_BNS_UpLevelPanel extends ZRSJZ_Panel {
     private async InitPanel(): Promise<void> {
         if (!this._buildingName) return;
 
-        const level = ZRSJZ_GameData.Instance.GetBNSBuildingLevel(this._buildingName);
+        const level = ZRSJZ_BNSDataService.GetBNSBuildingLevel(this._buildingName);
         const nextLevel = level + 1;
         const config = ZRSJZ_BNS_Constant.建筑配置[this._buildingName];
         const cost = ZRSJZ_BNS_Constant.GetBuildingUpgradeCost(this._buildingName, nextLevel);
@@ -94,7 +95,7 @@ export class ZRSJZ_BNS_UpLevelPanel extends ZRSJZ_Panel {
     }
 
     private SetCondition(prefixName: string, resourceName: "木材" | "矿石" | "宝石", cost: number): void {
-        const count = ZRSJZ_GameData.Instance.GetBNSProperty(resourceName);
+        const count = ZRSJZ_BNSDataService.GetBNSProperty(resourceName);
         const isEnough = count >= cost;
         const conditionNode = find(`Panel/升级弹板/升级条件/${prefixName}是否满足条件`, this.node);
         const label = find(`Panel/升级弹板/升级条件/${prefixName}条件文本`, this.node)?.getComponent(Label);
@@ -126,9 +127,9 @@ export class ZRSJZ_BNS_UpLevelPanel extends ZRSJZ_Panel {
     }
 
     private IsCostEnough(cost: { 木材: number, 矿石: number, 宝石: number }): boolean {
-        return ZRSJZ_GameData.Instance.GetBNSProperty("木材") >= cost.木材
-            && ZRSJZ_GameData.Instance.GetBNSProperty("矿石") >= cost.矿石
-            && ZRSJZ_GameData.Instance.GetBNSProperty("宝石") >= cost.宝石;
+        return ZRSJZ_BNSDataService.GetBNSProperty("木材") >= cost.木材
+            && ZRSJZ_BNSDataService.GetBNSProperty("矿石") >= cost.矿石
+            && ZRSJZ_BNSDataService.GetBNSProperty("宝石") >= cost.宝石;
     }
 
     private IsPowerEnoughAfterUpgrade(nextLevel: number): boolean {
@@ -138,8 +139,8 @@ export class ZRSJZ_BNS_UpLevelPanel extends ZRSJZ_Panel {
 
     private RefreshDerivedProperties(): void {
         const powerState = this.GetPowerState();
-        ZRSJZ_GameData.Instance.SetBNSProperty("电力", Math.max(0, powerState.totalPower - powerState.usedPower));
-        ZRSJZ_GameData.Instance.SetBNSProperty("繁荣度", this.GetTotalProsperity());
+        ZRSJZ_BNSDataService.SetBNSProperty("电力", Math.max(0, powerState.totalPower - powerState.usedPower));
+        ZRSJZ_BNSDataService.SetBNSProperty("繁荣度", this.GetTotalProsperity());
     }
 
     private GetPowerState(upgradeBuildingName: ZRSJZ_BNS_BuildingName = null, upgradeLevel: number = 0): { totalPower: number, usedPower: number } {
@@ -150,7 +151,7 @@ export class ZRSJZ_BNS_UpLevelPanel extends ZRSJZ_Panel {
             const bnsBuildingName = buildingName as ZRSJZ_BNS_BuildingName;
             const level = upgradeBuildingName === bnsBuildingName
                 ? upgradeLevel
-                : ZRSJZ_GameData.Instance.GetBNSBuildingLevel(bnsBuildingName);
+                : ZRSJZ_BNSDataService.GetBNSBuildingLevel(bnsBuildingName);
 
             if (bnsBuildingName === "发电厂") {
                 totalPower += ZRSJZ_BNS_Constant.GetBuildingEffectValue(bnsBuildingName, level);
@@ -167,7 +168,7 @@ export class ZRSJZ_BNS_UpLevelPanel extends ZRSJZ_Panel {
             const bnsBuildingName = buildingName as ZRSJZ_BNS_BuildingName;
             prosperity += ZRSJZ_BNS_Constant.GetBuildingProsperity(
                 bnsBuildingName,
-                ZRSJZ_GameData.Instance.GetBNSBuildingLevel(bnsBuildingName)
+                ZRSJZ_BNSDataService.GetBNSBuildingLevel(bnsBuildingName)
             );
         }
 

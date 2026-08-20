@@ -1,3 +1,4 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, Collider2D, Component, Node, sp } from 'cc';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -27,13 +28,13 @@ export class ZRSJZ_Door extends Component {
         this.Spine.setSkin(this.Skin);
     }
 
-    public TryOpenWithRoomCard(): boolean {
+    public TryOpenWithRoomCard(playerIndex: number = 0): boolean {
         if (this._isOpened) return false;
-        if (!ZRSJZ_GameData.Instance.HasEquippedRoomCard(this.RoomCard)) {
+        if (!ZRSJZ_InventoryService.HasEquippedRoomCard(this.RoomCard, playerIndex)) {
             ZRSJZ_UIManager.Instance.ShowTip(`需要在卡包中装备${this.RoomCard}`);
             return false;
         }
-        if (!ZRSJZ_GameData.Instance.ConsumeEquippedRoomCard(this.RoomCard)) {
+        if (!ZRSJZ_InventoryService.ConsumeEquippedRoomCard(this.RoomCard, playerIndex)) {
             ZRSJZ_UIManager.Instance.ShowTip(`${this.RoomCard}已失效`);
             return false;
         }

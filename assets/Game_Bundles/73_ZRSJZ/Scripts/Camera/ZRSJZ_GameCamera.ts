@@ -65,7 +65,11 @@ export class ZRSJZ_GameCamera extends Component {
 
         if (this._camera && this._camera.projection === Camera.ProjectionType.ORTHO) {
             const visibleSize = view.getVisibleSize();
-            const aspect = visibleSize.height > 0 ? visibleSize.width / visibleSize.height : 1;
+            const viewportWidth = Math.max(0.01, this._camera.rect?.width ?? 1);
+            const viewportHeight = Math.max(0.01, this._camera.rect?.height ?? 1);
+            const aspect = visibleSize.height > 0
+                ? (visibleSize.width * viewportWidth) / (visibleSize.height * viewportHeight)
+                : 1;
             halfViewHeight = this._camera.orthoHeight;
             halfViewWidth = halfViewHeight * aspect;
         }
@@ -90,5 +94,4 @@ export class ZRSJZ_GameCamera extends Component {
     }
 
 }
-
 

@@ -1,5 +1,5 @@
 import { _decorator, Component, director, Node } from 'cc';
-import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
+import { ZRSJZ_BNSDataService } from '../../73_ZRSJZ/Scripts/Service/ZRSJZ_BNSDataService';
 const { ccclass, property } = _decorator;
 export class ZRSJZ_BNS_MyEvent {
     public static 进入交互对象范围: string = 'ZRSJZ_BNS_进入交互对象范围';//进入交互对象范围，参数0为对象Node
@@ -17,10 +17,10 @@ export class ZRSJZ_BNS_EventManager extends Component {
      * 由需要资源事件的 DLC 组件初始化，不会让基础包反向引用 DLC。
      */
     public static BindGameDataEvent(): void {
-        ZRSJZ_GameData.BNS_PropertyChangeCallback = (propertyName, value) => {
+        ZRSJZ_BNSDataService.PropertyChangeCallback = (propertyName, value) => {
             this.Emit(ZRSJZ_BNS_MyEvent.资源数量改变, propertyName, value);
         };
-        ZRSJZ_GameData.BNS_BuildingChangeCallback = (buildingName, level) => {
+        ZRSJZ_BNSDataService.BuildingChangeCallback = (buildingName, level) => {
             this.Emit(ZRSJZ_BNS_MyEvent.建筑等级改变, buildingName, level);
         };
     }

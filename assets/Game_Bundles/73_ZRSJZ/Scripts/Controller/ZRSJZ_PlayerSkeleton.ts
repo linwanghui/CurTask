@@ -4,6 +4,7 @@ import { ZRSJZ_ANI, ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Cons
 import { ZRSJZ_Skeleton } from './ZRSJZ_Skeleton';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PlayerSkeleton')
@@ -11,6 +12,15 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
     @property({ tooltip: "补偿 Spine 持枪约束的初始角度偏差" })
     AimAngleOffset: number = 17;
+
+    @property({
+        displayName: "移动射击动画混合时间",
+        tooltip: "普通持枪移动与移动射击互相切换时的姿势混合时间（秒）。",
+        min: 0,
+        max: 0.5,
+        step: 0.01,
+    })
+    MoveShootMixDuration: number = 0.12;
 
     CurPlayerIndex: number = 0;
     QKBone: sp.spine.Bone = null;
@@ -28,30 +38,47 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     private _mzBone_Hand: sp.spine.Bone = null;
     private _baseScale = new Vec3();
 
+    protected GetEquippedWeaponryIDs(): string[] {
+        return ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex);
+    }
+
     protected onLoad(): void {
         super.onLoad();
+        if (this.node.parent?.name === "Player2" || this.node.parent?.name === "玩家2") {
+            this.CurPlayerIndex = 1;
+        }
         this._mzBone = this.Skeleton?.findBone('mz');
         this._mzBone_Hand = this.HandSkeleton?.findBone('mz');
         this._baseScale.set(this.node.scale.x, this.node.scale.y, this.node.scale.z);
     }
 
-    protected start(): void {
-        this.SetSkin(ZRSJZ_GameData.Instance.CurSkin[this.CurPlayerIndex]);
-        for (let i = ZRSJZ_GameData.Instance.WeaponryID.length - 1; i >= 0; i--) {
-            if (ZRSJZ_GameData.Instance.WeaponryID[i]) {
-                this.ShowEquipment(ZRSJZ_GameData.Instance.PropData[ZRSJZ_GameData.Instance.WeaponryID[i]].Name);
-            }
-        }
-    }
-
     protected onEnable(): void {
+        this.Show();
         director.on(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
-        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
     }
 
     protected onDisable(): void {
         director.off(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
-        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
+    }
+
+    Show() {
+        this.SetSkin(ZRSJZ_GameData.Instance.CurSkin[this.CurPlayerIndex]);
+        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex);
+        for (let i = weaponryIDs.length - 1; i >= 0; i--) {
+            const prop = ZRSJZ_GameData.Instance.PropData[weaponryIDs[i]];
+            if (prop) this.ShowEquipment(prop.Name);
+        }
+    }
+
+    private OnEquipmentChanged(
+        equipmentName: string,
+        isEquipment: boolean = true,
+        playerIndex?: number,
+    ): void {
+        if (playerIndex !== undefined && playerIndex !== this.CurPlayerIndex) return;
+        this.ShowEquipment(equipmentName, isEquipment);
     }
 
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
@@ -80,6 +107,8 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     PlayHandAni(aniName: string, loop: boolean = true, cb: Function = null) {
         this.HandSkeleton.timeScale = 1;
         aniName = this.GetHandAnimationName(aniName);
+        const previousAnimation = this.HandSkeleton.getCurrent(0)?.animation?.name ?? "";
+        this.SetMoveShootMix(this.HandSkeleton, previousAnimation, aniName);
         this.HandSkeleton.setAnimation(0, aniName, loop);
         this.HandSkeleton.setCompleteListener(() => {
             if (!loop) this.HandSkeleton.setCompleteListener(null);
@@ -90,10 +119,12 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     /** 切换身体移动动画时继承当前循环进度，并允许微调动画相位。 */
     PlayBodyAniKeepingProgress(aniName: string, loop: boolean = true) {
         const previousEntry = this.Skeleton.getCurrent(0);
+        const previousAnimation = previousEntry?.animation?.name ?? "";
         const previousDuration = previousEntry?.animation?.duration ?? 0;
         const normalizedTime = previousDuration > 0
             ? (previousEntry.trackTime % previousDuration) / previousDuration
             : 0;
+        this.SetMoveShootMix(this.Skeleton, previousAnimation, aniName);
         const nextEntry = this.Skeleton.setAnimation(0, aniName, loop);
         const nextDuration = nextEntry?.animation?.duration ?? 0;
         if (nextDuration > 0) {
@@ -111,6 +142,8 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         this.HandSkeleton.timeScale = animationDuration > 0
             ? Math.max(0.01, animationDuration * safeRoundsPerMinute / 60)
             : 1;
+        const previousAnimation = this.HandSkeleton.getCurrent(0)?.animation?.name ?? "";
+        this.SetMoveShootMix(this.HandSkeleton, previousAnimation, aniName);
         this.HandSkeleton.setAnimation(0, aniName, false);
         this.HandSkeleton.setCompleteListener(() => {
             this.HandSkeleton.setCompleteListener(null);
@@ -130,6 +163,39 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
             return "gj_jjq2";
         }
         return aniName;
+    }
+
+    /** 只为持枪移动与移动射击配置混合，避免影响换弹、近战及死亡等一次性动画。 */
+    private SetMoveShootMix(
+        skeleton: sp.Skeleton,
+        fromAnimation: string,
+        toAnimation: string,
+    ): void {
+        if (
+            !skeleton
+            || !fromAnimation
+            || fromAnimation === toAnimation
+            || this.MoveShootMixDuration <= 0
+            || !this.IsMoveShootTransition(fromAnimation, toAnimation)
+        ) {
+            return;
+        }
+        skeleton.setMix(fromAnimation, toAnimation, this.MoveShootMixDuration);
+    }
+
+    private IsMoveShootTransition(fromAnimation: string, toAnimation: string): boolean {
+        const moveAnimation = ZRSJZ_ANI.Walk_Q;
+        const movingShootAnimations: string[] = [
+            ZRSJZ_ANI.Attack_Move_Q,
+            ZRSJZ_ANI.Attack_Move_Q2,
+        ];
+        return (
+            fromAnimation === moveAnimation
+            && movingShootAnimations.includes(toAnimation)
+        ) || (
+                toAnimation === moveAnimation
+                && movingShootAnimations.includes(fromAnimation)
+            );
     }
 
     SetPlayerDir(x: number) {

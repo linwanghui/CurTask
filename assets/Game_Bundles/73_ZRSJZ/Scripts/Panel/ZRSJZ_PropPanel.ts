@@ -1,3 +1,5 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Component, EventTouch, find, Label, Node, Sprite } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_ShopStats } from '../UI/ZRSJZ_ShopStats';
@@ -50,6 +52,11 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
     }
 
     Show(...args: any[]) {
+        this.PlayerIndex = args[1] === 1
+            ? 1
+            : args[1] === 0
+                ? 0
+                : ZRSJZ_InventoryService.GetActivePlayerIndex();
         super.Show();
         this.ShowProp(args[0]);
     }
@@ -58,13 +65,13 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         const propData = ZRSJZ_GameData.Instance.PropData[propID];
         if (!propData) {
             console.error("没找到道具Id:", propID);
-            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.道具弹窗);
+            ZRSJZ_UIManager.Instance.HidePlayerPanel(ZRSJZ_PANEL.道具弹窗, this.PlayerIndex);
             return;
         }
         const propConfig = ZRSJZ_PROP_CONFIG.get(propData.Name);
         if (!propConfig) {
             console.error("没找到道具配置:", propData.Name);
-            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.道具弹窗);
+            ZRSJZ_UIManager.Instance.HidePlayerPanel(ZRSJZ_PANEL.道具弹窗, this.PlayerIndex);
             return;
         }
 
@@ -72,7 +79,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         this._isOperating = false;
         const showVersion = ++this._showVersion;
         this.Name.string = propData.Name;
-        this.Price.string = `${propData.UnitPrice * propData.CurCount}`;
+        this.Price.string = `${Math.floor(propData.UnitPrice * propData.CurCount)}`;
         if (ZRSJZ_PROP_PROPERTY.has(propData.Name)) {
             //有属性
             this.PropDesc1.active = true;
@@ -113,10 +120,13 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 this.ReplaceBtn.active = false;
                 this.SellBtn.active = false;
             } else {
-                const isLoading = ZRSJZ_GameData.Instance.WeaponryID.includes(propID);
+                const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(
+                    this.PlayerIndex === 1 ? 1 : 0,
+                );
+                const isLoading = weaponryIDs.includes(propID);
                 this.UnloadBtn.active = isLoading;
                 const weaponIndex = ZRSJZ_Tools.GetWeaponryIndexByType(propConfig.PropType);
-                const isHaveWeapon = ZRSJZ_GameData.Instance.WeaponryID[weaponIndex] != "";
+                const isHaveWeapon = weaponryIDs[weaponIndex] != "";
                 this.LoadBtn.active = !isLoading && !isHaveWeapon;
                 this.ReplaceBtn.active = !isLoading && isHaveWeapon;
                 this.SellBtn.active = !ZRSJZ_UIManager.IsBattle;
@@ -151,13 +161,14 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 break;
             case "出售":
                 await this.SellProp();
+                ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
                 break;
         }
     }
 
     private ClosePanel() {
         this._showVersion++;
-        ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.道具弹窗);
+        ZRSJZ_UIManager.Instance.HidePlayerPanel(ZRSJZ_PANEL.道具弹窗, this.PlayerIndex);
     }
 
     private GetWeaponryInventory(propType: string): ZRSJZ_INVENTORY {
@@ -177,8 +188,10 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         if (!propData) return;
 
         const inventoryType = this.GetWeaponryInventory(propData.PropType);
-        const inventory = ZRSJZ_UIManager.Instance.InventoryMap
-            .get(inventoryType)?.getComponent(ZRSJZ_InventoryWeaponry);
+        const inventory = (await ZRSJZ_UIManager.Instance.GetInventory(
+            inventoryType,
+            this.PlayerIndex,
+        ))?.getComponent(ZRSJZ_InventoryWeaponry);
         if (!inventory) {
             console.error("装备栏尚未初始化:", inventoryType);
             return;
@@ -200,15 +213,19 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         const propData = ZRSJZ_GameData.Instance.PropData[this._propID];
         if (!propData) return;
 
-        const weaponryInventory = ZRSJZ_UIManager.Instance.InventoryMap
-            .get(propData.CurInventory)?.getComponent(ZRSJZ_InventoryWeaponry);
+        const weaponryInventory = (await ZRSJZ_UIManager.Instance.GetInventory(
+            propData.CurInventory,
+            this.PlayerIndex,
+        ))?.getComponent(ZRSJZ_InventoryWeaponry);
         if (!weaponryInventory) return;
 
         this._isOperating = true;
         try {
             if (ZRSJZ_UIManager.IsBattle) {
-                const backpack = ZRSJZ_UIManager.Instance.InventoryMap
-                    .get(ZRSJZ_INVENTORY.背包)?.getComponent(ZRSJZ_Inventory);
+                const backpack = (await ZRSJZ_UIManager.Instance.GetInventory(
+                    ZRSJZ_INVENTORY.背包,
+                    this.PlayerIndex,
+                ))?.getComponent(ZRSJZ_Inventory);
                 if (!backpack) return;
 
                 // 由背包先完成容量、旋转和整理判断；成功转移后装备栏才会被清空。
@@ -233,7 +250,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             const targetInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
             if (!targetInventory) return;
             await weaponryInventory.RemoveProp(this._propID);
-            ZRSJZ_GameData.Instance.MovePropToInventory(this._propID, targetInventory, 1, -1, -1);
+            ZRSJZ_InventoryService.MovePropToInventory(this._propID, targetInventory, 1, -1, -1);
             await this.RefreshWarehouseInventories(targetInventory);
             this.ClosePanel();
         } finally {
@@ -249,14 +266,14 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         this._isOperating = true;
         try {
             // 先等待各库存清理节点，避免删除数据后异步刷新仍访问该道具。
-            for (const inventoryNode of ZRSJZ_UIManager.Instance.InventoryMap.values()) {
+            for (const inventoryNode of ZRSJZ_UIManager.Instance.GetAllInventoryNodes()) {
                 const inventory = inventoryNode.getComponent(ZRSJZ_Inventory);
                 if (inventory?.Grids.some(row => row.includes(this._propID))) {
                     await inventory.RemoveProp(this._propID);
                 }
             }
-            ZRSJZ_GameData.Instance.ChangeGold(propData.UnitPrice * propData.CurCount);
-            ZRSJZ_GameData.Instance.RemovePropID(this._propID);
+            ZRSJZ_AccountService.ChangeGold(propData.UnitPrice * propData.CurCount);
+            ZRSJZ_InventoryService.RemovePropID(this._propID);
             this.ClosePanel();
         } finally {
             this._isOperating = false;

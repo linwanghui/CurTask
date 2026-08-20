@@ -23,12 +23,15 @@ export enum ZRSJZ_PANEL {
     密码箱弹窗 = "73_ZRSJZ/Prefabs/Panel/密码箱弹窗",
     医疗箱弹窗 = "73_ZRSJZ/Prefabs/Panel/医疗箱弹窗",
     死亡弹窗 = "73_ZRSJZ/Prefabs/Panel/死亡弹窗",
+    双人模式死亡弹窗 = "73_ZRSJZ/Prefabs/Panel/双人模式死亡弹窗",
+    死亡状态弹窗 = "73_ZRSJZ/Prefabs/Panel/死亡状态弹窗",
     加载界面 = "73_ZRSJZ/Prefabs/Panel/加载界面",
     签到弹窗 = "73_ZRSJZ/Prefabs/Panel/签到弹窗",
     获取金币弹窗 = "73_ZRSJZ/Prefabs/Panel/获取金币弹窗",
     设置界面 = "73_ZRSJZ/Prefabs/Panel/设置界面",
     购买子弹弹窗 = "73_ZRSJZ/Prefabs/Panel/购买子弹弹窗",
     解锁仓库弹窗 = "73_ZRSJZ/Prefabs/Panel/解锁仓库弹窗",
+    新手引导弹窗 = "73_ZRSJZ/Prefabs/Panel/新手引导弹窗",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -127,6 +130,12 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["万金泪冠", { Name: "万金泪冠", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 218000, MaxCount: 1 }],
     ["劳力士", { Name: "劳力士", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 236000, MaxCount: 1 }],
     ["曼德尔", { Name: "曼德尔", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 194000, MaxCount: 1 }],
+    ["白金鸟蛋", { Name: "白金鸟蛋", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 184000, MaxCount: 1 }],
+    ["极品平安果", { Name: "极品平安果", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 214000, MaxCount: 1 }],
+    ["七彩鸟蛋", { Name: "七彩鸟蛋", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 203800, MaxCount: 1 }],
+    ["钻石级鱼子酱", { Name: "钻石级鱼子酱", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 223800, MaxCount: 1 }],
+    ["黄金方苹果", { Name: "黄金方苹果", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 189000, MaxCount: 1 }],
+    ["极品大红袍茶", { Name: "极品大红袍茶", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 232210, MaxCount: 1 }],
 
     //1x2 --  白
     ["哑铃", { Name: "哑铃", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 3600, MaxCount: 1 }],
@@ -156,6 +165,8 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["155炮弹", { Name: "155炮弹", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 420000, MaxCount: 1 }],
     ["供能单元", { Name: "供能单元", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 412000, MaxCount: 1 }],
     ["装甲车电池", { Name: "装甲车电池", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 476000, MaxCount: 1 }],
+    ["特供香槟", { Name: "特供香槟", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 483000, MaxCount: 1 }],
+    ["彩金色鲤鱼", { Name: "彩金色鲤鱼", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 498000, MaxCount: 1 }],
     //2x2 --  白
     ["水泥石砖", { Name: "水泥石砖", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 5000, MaxCount: 1 }],
     ["垃圾桶", { Name: "垃圾桶", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 4400, MaxCount: 1 }],
@@ -190,6 +201,8 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["呼吸机", { Name: "呼吸机", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 680000, MaxCount: 1 }],
     ["欧洲之心", { Name: "欧洲之心", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 13140000, MaxCount: 1 }],
     ["步战车", { Name: "步战车", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 1340000, MaxCount: 1 }],
+    ["红珊瑚鲤鱼", { Name: "红珊瑚鲤鱼", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 3340000, MaxCount: 1 }],
+    ["特供咖啡豆", { Name: "特供咖啡豆", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 2540000, MaxCount: 1 }],
 
     //2x3 --  白
     ["水泥", { Name: "水泥", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 13000, MaxCount: 1 }],
@@ -379,6 +392,17 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["坦克", "重型坦克模型或关键总成，厚重装甲与炮塔彰显强大的战斗能力。"],
     ["浮力机器设备", "结构复杂的浮力控制设备，可为水上或水下机械提供稳定支撑。"],
     ["火箭燃料", "装在专用容器中的高能推进剂，是航天与导弹系统的关键物资。"],
+
+    ["七彩鸟蛋", "蛋壳流转着七彩光泽的珍稀鸟蛋，保存完好，具有极高的收藏与研究价值。"],
+    ["特供香槟", "皇家酒庄限量酿制的年份香槟，酒香细腻优雅，是宴会与收藏市场上的珍品。"],
+    ["彩金色鲤鱼", "鳞片呈现彩金般绚丽光泽的珍稀鲤鱼，寓意富贵吉祥，深受收藏家追捧。"],
+    ["极品平安果", "经过严格甄选与精心培育的极品平安果，果形圆润饱满，象征平安与好运。"],
+    ["特供咖啡豆", "产自限定庄园的特供咖啡豆，经过精细处理与烘焙，拥有浓郁而层次丰富的香气。"],
+    ["白金鸟蛋", "蛋壳泛着白金般光泽的罕见鸟蛋，数量极少，是价值不菲的珍贵收藏品。"],
+    ["红珊瑚鲤鱼", "通体呈红珊瑚色泽的稀有鲤鱼，鳞光艳丽，被视为吉祥与财富的象征。"],
+    ["钻石级鱼子酱", "采用顶级鱼卵精制而成的钻石级鱼子酱，颗粒饱满、风味醇厚，是奢华宴席中的珍品。"],
+    ["黄金方苹果", "外形方正、果皮泛着黄金光泽的珍稀苹果，果肉清甜爽脆，兼具观赏与收藏价值。"],
+    ["极品大红袍茶", "精选核心产区优质茶叶精制而成，茶香馥郁持久、滋味醇厚回甘，是难得的茶中珍品。"],
 
     //房卡
     ["低级房卡", "用于开启普通封锁房间的电子门禁卡，卡片上的紫色权限标识仍然有效。"],
@@ -639,6 +663,8 @@ export class ZRSJZ_PropData {
     public Name: string;//道具名称
     public PropType: string;//道具分类
     public CurInventory: ZRSJZ_INVENTORY;
+    /** -1 表示共享/非角色库存，0 和 1 分别表示玩家1、玩家2的随身库存。 */
+    public OwnerPlayerIndex: number = -1;
     /** 道具仍在箱子中时，记录所属箱子的唯一 ID。 */
     public SourceBoxID: string = "";
     /** 搜索动画尚未完成时禁止显示和拖动；普通道具默认为 false。 */
@@ -1364,6 +1390,7 @@ function CreateMapModeConfig(
 
 /** 三张地图、两种行动，共六个由易到难的模式。 */
 export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_MapConfig>> = new Map([
+    ["新手村", CreateMapModeConfig("新手村", "机密行动", "新手村", 0)],
     ["五号小镇_机密行动", CreateMapModeConfig("五号小镇", "机密行动", "城镇", 0)],
     ["五号小镇_绝密行动", CreateMapModeConfig("五号小镇", "绝密行动", "城镇", 1)],
     ["沙漠古迹_机密行动", CreateMapModeConfig("沙漠古迹", "机密行动", "沙漠", 2)],

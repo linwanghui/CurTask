@@ -4,6 +4,7 @@ import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_MapConfig, ZRSJZ_PANEL } from 
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
 
 export interface ZRSJZ_LevelEntryResult {
@@ -162,14 +163,21 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             ZRSJZ_INVENTORY.武器_背包,
             ZRSJZ_INVENTORY.武器_刀,
         ]);
-        const propIDs = new Set<string>([
-            ...ZRSJZ_GameData.Instance.WeaponryID,
-            ...ZRSJZ_GameData.Instance.AmmoID,
-        ].filter(Boolean));
+        const playerIndexes = ZRSJZ_GameData.Instance.CurModel === "2p" ? [0, 1] : [0];
+        const playerIndexSet = new Set(playerIndexes);
+        const propIDs = new Set<string>();
+        for (const playerIndex of playerIndexes) {
+            ZRSJZ_InventoryService.GetWeaponryIDs(playerIndex).filter(Boolean).forEach(id => propIDs.add(id));
+            ZRSJZ_InventoryService.GetAmmoIDs(playerIndex).filter(Boolean).forEach(id => propIDs.add(id));
+        }
 
         for (const propID in ZRSJZ_GameData.Instance.PropData) {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
-            if (propData && carriedInventories.has(propData.CurInventory)) {
+            if (
+                propData
+                && carriedInventories.has(propData.CurInventory)
+                && playerIndexSet.has(propData.OwnerPlayerIndex ?? 0)
+            ) {
                 propIDs.add(propID);
             }
         }

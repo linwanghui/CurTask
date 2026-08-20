@@ -1,3 +1,5 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
+import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Button, director, find, Label, Node, Sprite, SpriteFrame, Tween, tween, UITransform, v3, Widget } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
@@ -42,7 +44,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
     }
 
     public Show(...args: any[]): void {
-        if (ZRSJZ_GameData.Instance.IsSignInCompleted()) {
+        if (ZRSJZ_AccountService.IsSignInCompleted()) {
             this.node.active = false;
             return;
         }
@@ -87,7 +89,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
     }
 
     private RefreshSignItems(): void {
-        const claimedCount = ZRSJZ_GameData.Instance.GetSignInClaimedCount();
+        const claimedCount = ZRSJZ_AccountService.GetSignInClaimedCount();
         const canClaimToday = this.CanClaimToday();
 
         for (let dayIndex = 0; dayIndex < SIGN_IN_REWARDS.length; dayIndex++) {
@@ -140,7 +142,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
     }
 
     private OnSignItemClick(dayIndex: number): void {
-        const claimedCount = ZRSJZ_GameData.Instance.GetSignInClaimedCount();
+        const claimedCount = ZRSJZ_AccountService.GetSignInClaimedCount();
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         if (dayIndex < claimedCount) {
             ZRSJZ_UIManager.Instance.ShowTip('该奖励已经领取');
@@ -155,7 +157,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
             return;
         }
 
-        const claimedDayIndex = ZRSJZ_GameData.Instance.ClaimSignInReward();
+        const claimedDayIndex = ZRSJZ_AccountService.ClaimSignInReward();
         if (claimedDayIndex !== dayIndex) {
             this.RefreshSignItems();
             return;
@@ -163,16 +165,16 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
 
         const reward = SIGN_IN_REWARDS[dayIndex];
         if (reward.gold) {
-            ZRSJZ_GameData.Instance.ChangeGold(reward.gold);
+            ZRSJZ_AccountService.ChangeGold(reward.gold);
             ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
         } else if (reward.propName) {
-            ZRSJZ_GameData.Instance.AddPropByName(reward.propName, reward.propCount ?? 1);
+            ZRSJZ_InventoryService.AddPropByName(reward.propName, reward.propCount ?? 1);
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         }
 
         this.RefreshSignItems();
         ZRSJZ_UIManager.Instance.ShowTip(`签到成功，获得${reward.name}${reward.countText}`);
-        if (ZRSJZ_GameData.Instance.IsSignInCompleted()) {
+        if (ZRSJZ_AccountService.IsSignInCompleted()) {
             this.ClosePanel();
         }
     }
@@ -183,7 +185,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
     }
 
     private CanClaimToday(): boolean {
-        return ZRSJZ_GameData.Instance.CanClaimSignInReward();
+        return ZRSJZ_AccountService.CanClaimSignInReward();
     }
 
     private SetLabel(item: Node, childName: string, text: string): void {

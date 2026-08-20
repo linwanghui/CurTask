@@ -17,6 +17,7 @@ import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_Player } from './ZRSJZ_Player';
 
 const { ccclass, property } = _decorator;
 
@@ -483,11 +484,13 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     private TryFindTarget(): void {
         if (!this.IsTargetAvailable()) {
             this.Target = this.FindTarget();
+        } else if (this.Target && !this.Target.getComponent(ZRSJZ_Player)?.IsDead && Vec3.distance(this.node.worldPosition, this.Target.worldPosition) > 500) {
+            this.Target = this.FindTarget();
         }
     }
 
     protected IsTargetAvailable(): boolean {
-        return !!this.Target && this.Target.isValid && this.Target.activeInHierarchy;
+        return !!this.Target && this.Target.isValid && this.Target.activeInHierarchy && !this.Target.getComponent(ZRSJZ_Player)?.IsDead;
     }
 
     /**

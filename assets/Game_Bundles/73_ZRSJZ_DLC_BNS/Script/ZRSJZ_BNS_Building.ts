@@ -1,3 +1,4 @@
+import { ZRSJZ_BNSDataService } from "../../73_ZRSJZ/Scripts/Service/ZRSJZ_BNSDataService";
 import { _decorator, Component, Label, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_BNS_BuildingName, ZRSJZ_BNS_Constant } from './ZRSJZ_BNS_Constant';
@@ -29,7 +30,7 @@ export class ZRSJZ_BNS_Building extends Component {
     private async RefreshAppearance(): Promise<void> {
         if (!this._buildingName || !this._sprite) return;
 
-        const level = ZRSJZ_GameData.Instance.GetBNSBuildingLevel(this._buildingName);
+        const level = ZRSJZ_BNSDataService.GetBNSBuildingLevel(this._buildingName);
         const signNode = this.node.getChildByName("牌子");
         const infoNode = this.node.getChildByName("信息框");
         const levelLabel = infoNode
@@ -78,13 +79,13 @@ export class ZRSJZ_BNS_Building extends Component {
         const config = ZRSJZ_BNS_Constant.建筑配置[this._buildingName];
         if (!config?.outputResourceName) return;
 
-        const level = ZRSJZ_GameData.Instance.GetBNSBuildingLevel(this._buildingName);
+        const level = ZRSJZ_BNSDataService.GetBNSBuildingLevel(this._buildingName);
         if (level <= 0) return;
 
         const income = ZRSJZ_BNS_Constant.GetBuildingEffectValue(this._buildingName, level);
         if (income <= 0) return;
 
-        ZRSJZ_GameData.Instance.ChangeBNSProperty(config.outputResourceName, income);
+        ZRSJZ_BNSDataService.ChangeBNSProperty(config.outputResourceName, income);
     }
 
 }

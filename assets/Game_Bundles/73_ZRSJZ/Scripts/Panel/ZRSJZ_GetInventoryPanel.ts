@@ -1,3 +1,4 @@
+import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, EventTouch, find, Label } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -53,15 +54,15 @@ export class ZRSJZ_GetInventoryPanel extends ZRSJZ_Panel {
 
     private UnlockByVideo(): void {
         if (this._isWatchingAd || !this._inventory) return;
-        if (ZRSJZ_GameData.Instance.IsWarehouseUnlocked(this._inventory)) {
+        if (ZRSJZ_InventoryService.IsWarehouseUnlocked(this._inventory)) {
             this.CompleteUnlock();
             return;
         }
         this._isWatchingAd = true;
         Banner.Instance.ShowVideoAd(() => {
             this._isWatchingAd = false;
-            const unlocked = ZRSJZ_GameData.Instance.UnlockWarehouse(this._inventory);
-            if (!unlocked && !ZRSJZ_GameData.Instance.IsWarehouseUnlocked(this._inventory)) {
+            const unlocked = ZRSJZ_InventoryService.UnlockWarehouse(this._inventory);
+            if (!unlocked && !ZRSJZ_InventoryService.IsWarehouseUnlocked(this._inventory)) {
                 ZRSJZ_UIManager.Instance.ShowTip(`${this._warehouseName}仓库解锁失败`);
                 return;
             }

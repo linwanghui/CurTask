@@ -9,10 +9,12 @@ import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
 import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Joystick_Attack')
 export class ZRSJZ_Joystick_Attack extends Component {
+    PlayerIndex: number = 0;
     public static readonly WeaponType: string[] = ["枪", "刀"];
     public static readonly SlideCD: number = 3;
     public static readonly LoadingCD: number = 1.5;
@@ -22,6 +24,9 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     @property(SpriteFrame)
     SwitchSFs: SpriteFrame[] = [];
+
+    @property(Node)
+    SkillPoint: Node = null;
 
     private _searchButton: Node = null;
     private _targetBox: ZRSJZ_Box = null;
@@ -75,7 +80,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     protected update(dt: number): void {
-        const player = ZRSJZ_Game.Instance?.CurPlayer;
+        const player = ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex);
         if (this._bulletCount && player) {
             this._bulletCount.string =
                 `${player.MagazineAmmoCount}/${player.WarehouseAmmoCount}`;
@@ -116,6 +121,8 @@ export class ZRSJZ_Joystick_Attack extends Component {
             ZRSJZ_EventManager.Emit(
                 ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD,
                 reloadProgress,
+                false,
+                this.PlayerIndex,
             );
 
             // 换弹结束时攻击键仍被按住，则从首发开始继续攻击。
@@ -125,7 +132,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
                 && player?.WeaponType === "枪"
                 && (ZRSJZ_Game.Instance.UnlimitedFirepower || player.MagazineAmmoCount > 0)
             ) {
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, true);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, true, this.PlayerIndex);
             }
         }
     }
@@ -141,7 +148,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
         }
 
         if (this._reloadingCD > 0) return;
-        const player = ZRSJZ_Game.Instance?.CurPlayer;
+        const player = ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex);
         if (!ZRSJZ_Game.Instance.UnlimitedFirepower && player?.WeaponType === "枪" && player.MagazineAmmoCount <= 0) {
             if (player.WarehouseAmmoCount > 0) {
                 this.Reload();
@@ -152,7 +159,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
         }
 
         if (this._attackTouch) {
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, true);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, true, this.PlayerIndex);
             // 首发可能正好耗尽弹匣；首帧 update 尚未记录旧弹量时也要自动换弹。
             if (
                 !ZRSJZ_Game.Instance.UnlimitedFirepower
@@ -172,7 +179,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
             let touch = touches[i];
             if (this._attackTouch && touch.getID() == this._attackTouch.getID()) {
                 this._attackTouch = null;
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex);
             }
         }
     }
@@ -193,7 +200,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
                 this.Search();
                 break;
             case "Crack":
-                if (this._targetDoor?.TryOpenWithRoomCard()) {
+                if (this._targetDoor?.TryOpenWithRoomCard(this.PlayerIndex)) {
                     this.ShowDoor(null);
                 }
                 break;
@@ -223,20 +230,20 @@ export class ZRSJZ_Joystick_Attack extends Component {
             }
             return false;
         }
-        if (!ZRSJZ_Game.Instance.CurPlayer?.IsSwitch) return;
+        if (!ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex)?.IsSwitch) return;
 
         this._curWeaponIndex = normalizedIndex;
         if (this._reloadingCD > 0) {
             this._reloadingCD = 0;
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 1, true);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 1, true, this.PlayerIndex);
         }
         if (this._attackTouch != null) {
             this._attackTouch = null;
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex);
         }
         this._switchSprite.spriteFrame = this.SwitchSFs[this._curWeaponIndex % 2];
         this._attackSprite.spriteFrame = this.AttackSFs[this._curWeaponIndex % 2];
-        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, ZRSJZ_Joystick_Attack.WeaponType[this._curWeaponIndex % 2]);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, ZRSJZ_Joystick_Attack.WeaponType[this._curWeaponIndex % 2], this.PlayerIndex);
         this._switchButton.active = this._curWeaponIndex % 2 == 0;
         this.RefreshWeaponSwitchState();
         return true;
@@ -245,7 +252,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     /** index 0 对应枪，index 1 对应刀；ID 和道具实例必须同时存在。 */
     private HasWeapon(index: number): boolean {
         const weaponryIndex = index === 0 ? 0 : 4;
-        const propID = ZRSJZ_GameData.Instance.WeaponryID[weaponryIndex];
+        const propID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[weaponryIndex];
         return !!propID && !!ZRSJZ_GameData.Instance.PropData[propID];
     }
 
@@ -271,68 +278,99 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //滑铲
     Slide() {
-        if (this._slideCD > 0 || !ZRSJZ_Game.Instance.CurPlayer.IsSlide) return;
+        if (this._slideCD > 0 || !ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex)?.IsSlide) return;
         if (this._attackTouch != null) {
             this._attackTouch = null;
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex);
         }
         this._slideCD = ZRSJZ_Joystick_Attack.SlideCD;
         this._slideSprite.node.active = true;
         this._slideSprite.fillRange = 1;
-        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.PlayerIndex);
     }
 
     //换弹
     Reload() {
-        if (this._reloadingCD > 0 || !ZRSJZ_Game.Instance.CurPlayer?.CanReload()) return;
+        if (this._reloadingCD > 0 || !ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex)?.CanReload()) return;
         if (this._attackTouch != null) {
             // 暂停射击但保留按住状态，换弹完成后可自动续射。
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex);
         }
         this._reloadingCD = ZRSJZ_Joystick_Attack.LoadingCD;
-        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 0);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 0, false, this.PlayerIndex);
         ZRSJZ_AudioManager.Instance.PlaySound("换弹音效");
     }
 
     //搜索
     Search() {
+        if (!this._targetBox) return;
+        if (this._targetBox.IsBeingSearchedByOther(this.PlayerIndex)) {
+            ZRSJZ_UIManager.Instance.ShowTip("另一名玩家正在搜索该箱子");
+            return;
+        }
+        if (!this._targetBox.TryBeginSearch(this.PlayerIndex)) {
+            ZRSJZ_UIManager.Instance.ShowTip("另一名玩家正在搜索该箱子");
+            return;
+        }
+        ZRSJZ_InventoryService.SetActivePlayerIndex(this.PlayerIndex);
         if (this._targetBox?.RequiresRewardVideo()) {
             if (this._targetBox.IsOpened()) {
                 ZRSJZ_UIManager.Instance.ShowTip("医疗箱已经打开");
+                this._targetBox.EndSearch(this.PlayerIndex);
             } else {
-                ZRSJZ_Game.Instance.GamePaused = true;
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.医疗箱弹窗, this._targetBox);
+                ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+                    ZRSJZ_PANEL.医疗箱弹窗,
+                    this.PlayerIndex,
+                    this._targetBox,
+                    this.PlayerIndex,
+                );
             }
             return;
         }
         if (this._targetBox?.RequiresPassword() && !this._targetBox.IsPasswordUnlocked()) {
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.密码箱弹窗, this._targetBox);
+            ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+                ZRSJZ_PANEL.密码箱弹窗,
+                this.PlayerIndex,
+                this._targetBox,
+                this.PlayerIndex,
+            );
             return;
         }
-        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.物资弹窗, this._targetBox);
+        ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+            ZRSJZ_PANEL.物资弹窗,
+            this.PlayerIndex,
+            this._targetBox,
+            this.PlayerIndex,
+        );
     }
 
     //加载技能按钮
     LoadSkillButton() {
-        ZRSJZ_PoolManager.Instance.GetNode(ZRSJZ_ROLE_CONFIG.get(ZRSJZ_GameData.Instance.CurRole[0]).SkillPath).then((skillButton: Node) => {
+        ZRSJZ_PoolManager.Instance.GetNode(ZRSJZ_ROLE_CONFIG.get(ZRSJZ_GameData.Instance.CurRole[this.PlayerIndex]).SkillPath).then((skillButton: Node) => {
             skillButton.parent = this.node;
+            const skill = skillButton.getComponent('ZRSJZ_Skill_Button') as any;
+            if (skill) skill.PlayerIndex = this.PlayerIndex;
             skillButton.active = true;
+            if (this.SkillPoint) skillButton.setWorldPosition(this.SkillPoint.worldPosition.clone());
         })
     }
 
-    ShowSearch(box: ZRSJZ_Box) {
+    ShowSearch(box: ZRSJZ_Box, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         this._targetBox = box;
         this._searchButton.active = box != null;
     }
 
-    ShowDoor(door: ZRSJZ_Door) {
+    ShowDoor(door: ZRSJZ_Door, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         this._targetDoor = door;
         this._doorCardButton.active = door != null;
         this._doorVideoButton.active = door != null;
     }
 
     //装备切换
-    ShowEquipment(equipmentName: string, isEquipment: boolean = true) {
+    ShowEquipment(equipmentName: string, isEquipment: boolean = true, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         //枪
         for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
             const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);

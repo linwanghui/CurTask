@@ -450,7 +450,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 4.606,
-      "y": -243.179,
+      "y": -214.608,
       "z": 0
     },
     "_lrot": {
@@ -502,8 +502,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 2.7319999999999993,
+      "x": -38.492,
+      "y": 2.5720000000000027,
       "z": 0
     },
     "_lrot": {
@@ -543,8 +543,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 164,
-      "height": 79.6
+      "width": 192,
+      "height": 75.6
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -574,16 +574,16 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_string": "观看视频",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
-    "_fontSize": 40,
+    "_actualFontSize": 48,
+    "_fontSize": 48,
     "_fontFamily": "Arial",
     "_lineHeight": 60,
     "_overflow": 0,
@@ -599,7 +599,7 @@
     "_isUnderline": false,
     "_underlineHeight": 5,
     "_cacheMode": 0,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -645,8 +645,8 @@
     "_left": 0,
     "_right": 0,
     "_top": 0,
-    "_bottom": 12.932000000000002,
-    "_horizontalCenter": 0,
+    "_bottom": 21.772000000000002,
+    "_horizontalCenter": -38.492,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
     "_isAbsRight": true,
@@ -679,7 +679,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "广告图标",
+    "_name": "视频角标黑色",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -700,8 +700,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 120.729,
-      "y": 36.768,
+      "x": 97.038,
+      "y": 1.437,
       "z": 0
     },
     "_lrot": {
@@ -741,8 +741,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 63.982,
-      "height": 39.53943820224719
+      "width": 61,
+      "height": 44
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -753,7 +753,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "97w3UzgLRMT7gUtjfLCUAv"
+    "fileId": "d6HdFQE41CMIFJXDha1uDc"
   },
   {
     "__type__": "cc.Sprite",
@@ -778,12 +778,12 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "7e3bee9a-3f6e-4711-b748-f1c166289e6c@f9941",
+      "__uuid__": "b6bfd57d-bd64-4620-92d0-70a398b154ca@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 0,
+    "_sizeMode": 1,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -798,7 +798,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "777I5BaeVG5Jw26lJkzV3L"
+    "fileId": "d8B49vZPRFkKscAF3DHsFC"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -808,7 +808,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "7cDcQ690RPK4eZOTaP1/zy",
+    "fileId": "46ACuUmdRI8aNB4xwa06hG",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -827,8 +827,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 257,
-      "height": 100
+      "width": 388,
+      "height": 114
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -864,7 +864,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "d65d4b6e-026c-49ed-984a-4b23205ea308@f9941",
+      "__uuid__": "ece452cb-ccec-4353-bf31-7cbc463b4224@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,

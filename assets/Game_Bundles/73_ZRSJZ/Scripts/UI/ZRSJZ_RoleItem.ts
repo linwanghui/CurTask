@@ -30,9 +30,6 @@ export class ZRSJZ_RoleItem extends Component {
     }
 
     OnClick() {
-        // const roleIndex = ZRSJZ_PlayerSwitchButton.CurPlayer == "1p" ? 0 : 1;
-        // if (this.RoleName == ZRSJZ_GameData.Instance.CurRole[roleIndex]) return;
-        // ZRSJZ_GameData.Instance.SetCurRole(this.RoleName, roleIndex);
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_ITEM, this.RoleName);
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.RoleName);

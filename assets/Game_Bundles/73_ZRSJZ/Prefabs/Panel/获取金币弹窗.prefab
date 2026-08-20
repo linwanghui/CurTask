@@ -632,8 +632,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -46.997,
-      "y": 6.105000000000004,
+      "x": -43.338,
+      "y": 4.168999999999997,
       "z": 0
     },
     "_lrot": {
@@ -673,8 +673,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 284,
-      "height": 92.2
+      "width": 200,
+      "height": 88.2
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -704,16 +704,16 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_string": "免费领取",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 70,
-    "_fontSize": 70,
+    "_actualFontSize": 50,
+    "_fontSize": 50,
     "_fontFamily": "Arial",
     "_lineHeight": 70,
     "_overflow": 0,
@@ -729,7 +729,7 @@
     "_isUnderline": false,
     "_underlineHeight": 5,
     "_cacheMode": 0,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -775,8 +775,8 @@
     "_left": 0,
     "_right": 0,
     "_top": 0,
-    "_bottom": 30.005000000000003,
-    "_horizontalCenter": -46.997,
+    "_bottom": 30.068999999999996,
+    "_horizontalCenter": -43.338,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
     "_isAbsRight": true,
@@ -830,7 +830,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 144.121,
+      "x": 102.976,
       "y": 0,
       "z": 0
     },
@@ -871,8 +871,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 89,
-      "height": 55
+      "width": 61,
+      "height": 44
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -908,7 +908,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "7e3bee9a-3f6e-4711-b748-f1c166289e6c@f9941",
+      "__uuid__": "b6bfd57d-bd64-4620-92d0-70a398b154ca@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,

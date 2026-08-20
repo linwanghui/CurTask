@@ -1,3 +1,4 @@
+import { ZRSJZ_BNSDataService } from "../../73_ZRSJZ/Scripts/Service/ZRSJZ_BNSDataService";
 import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, sp, v2 } from 'cc';
 import { ZRSJZ_PlayerSkeleton } from '../../73_ZRSJZ/Scripts/Controller/ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
@@ -198,7 +199,7 @@ export class ZRSJZ_BNS_Player extends Component {
             const addReward = () => {
                 if (hasReward) return;
                 hasReward = true;
-                ZRSJZ_GameData.Instance.ChangeBNSProperty(gatherConfig.propertyName, count);
+                ZRSJZ_BNSDataService.ChangeBNSProperty(gatherConfig.propertyName, count);
             };
 
             ZRSJZ_BNS_EventManager.Emit(
