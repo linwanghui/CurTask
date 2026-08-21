@@ -509,6 +509,25 @@ export class ZRSJZ_PropGrid extends Component {
             }
             current = current.parent;
         }
+
+        const ownerInventory = this.GetOwnerInventory();
+        if (ownerInventory) {
+            const isPlayerScopedInventory = ZRSJZ_InventoryService.IsPlayerInventory(
+                ownerInventory.InventoryType,
+            ) || ownerInventory.InventoryType === ZRSJZ_INVENTORY.物资;
+            if (isPlayerScopedInventory) {
+                // 背包、保险箱、装备栏和箱子物资都有明确的玩家视图归属。
+                const inventoryPlayerIndex = ownerInventory.PlayerViewIndex;
+                if (inventoryPlayerIndex === 0 || inventoryPlayerIndex === 1) {
+                    return inventoryPlayerIndex;
+                }
+            } else {
+                // 仓库是两名玩家共享的数据视图，其 PlayerViewIndex 通常固定为0，
+                // 拖动目标必须跟随仓库界面当前选择的玩家。
+                return ZRSJZ_InventoryService.GetActivePlayerIndex();
+            }
+        }
+
         const ownerPlayerIndex = ZRSJZ_GameData.Instance?.PropData?.[this.PropID]?.OwnerPlayerIndex;
         if (ownerPlayerIndex === 0 || ownerPlayerIndex === 1) return ownerPlayerIndex;
         return ZRSJZ_InventoryService.GetActivePlayerIndex();
@@ -715,7 +734,22 @@ export class ZRSJZ_PropGrid extends Component {
             -this._gridY * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL),
             0,
         ));
-        this._propSFNode.parent = ZRSJZ_UIManager.Instance.PropParent;
+        this._propSFNode.parent = propParent;
+        // 拖拽预览脱离弹窗后会失去 Panel 的缩放。将来源库存的世界缩放
+        // 换算为拖拽层下的本地缩放，使双人分屏中的预览与面板内道具等大。
+        const sourceWorldScale = sourceTransform.node.worldScale;
+        const previewParentWorldScale = propParent.worldScale;
+        const parentScaleX = Math.abs(previewParentWorldScale.x) > 0.0001
+            ? Math.abs(previewParentWorldScale.x)
+            : 1;
+        const parentScaleY = Math.abs(previewParentWorldScale.y) > 0.0001
+            ? Math.abs(previewParentWorldScale.y)
+            : 1;
+        this._propSFNode.setScale(
+            Math.abs(sourceWorldScale.x) / parentScaleX,
+            Math.abs(sourceWorldScale.y) / parentScaleY,
+            1,
+        );
         this._propSFNode.setWorldPosition(logicalGridWorldPosition);
         const gridIndex = this._inventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
         const isRotate = this.SupportsAutoRotation(this._inventory)

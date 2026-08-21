@@ -81,7 +81,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     public get IsDead(): boolean {
-        return this.CurHP <= 0;
+        return this.CurHP <= 0 && ZRSJZ_GameData.Instance.CurMap !== "新手村";
     }
 
     public get MagazineCapacity(): number {
@@ -702,7 +702,10 @@ export class ZRSJZ_Player extends Component {
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex,);
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0, this.PlayerIndex,);
                 ZRSJZ_UIManager.Instance.PrepareForDeath(this.PlayerIndex);
-                if (ZRSJZ_GameData.Instance.CurModel == "2p") {
+                if (
+                    ZRSJZ_GameData.Instance.CurModel == "2p"
+                    && !ZRSJZ_Game.Instance.IsUsingSinglePlayerLayout(this.PlayerIndex)
+                ) {
                     //双人模式
                     ZRSJZ_UIManager.Instance.ShowPlayerPanel(ZRSJZ_PANEL.双人模式死亡弹窗, this.PlayerIndex, this.PlayerIndex);
                 } else {

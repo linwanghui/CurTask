@@ -123,9 +123,27 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(
                     this.PlayerIndex === 1 ? 1 : 0,
                 );
-                const isLoading = weaponryIDs.includes(propID);
-                this.UnloadBtn.active = isLoading;
                 const weaponIndex = ZRSJZ_Tools.GetWeaponryIndexByType(propConfig.PropType);
+                const equippedID = weaponryIDs[weaponIndex];
+                const equippedProp = ZRSJZ_GameData.Instance.PropData[equippedID];
+                const expectedInventory = this.GetWeaponryInventory(propConfig.PropType);
+                if (
+                    equippedID
+                    && (
+                        !equippedProp
+                        || equippedProp.CurInventory !== expectedInventory
+                        || (equippedProp.OwnerPlayerIndex ?? 0) !== this.PlayerIndex
+                    )
+                ) {
+                    // 装备已卸下但旧存档仍保留 ID 时，在展示按钮前立即纠正。
+                    ZRSJZ_InventoryService.SetWeaponry(
+                        weaponIndex,
+                        "",
+                        this.PlayerIndex,
+                    );
+                }
+                const isLoading = weaponryIDs[weaponIndex] === propID;
+                this.UnloadBtn.active = isLoading;
                 const isHaveWeapon = weaponryIDs[weaponIndex] != "";
                 this.LoadBtn.active = !isLoading && !isHaveWeapon;
                 this.ReplaceBtn.active = !isLoading && isHaveWeapon;
@@ -196,6 +214,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             console.error("装备栏尚未初始化:", inventoryType);
             return;
         }
+        await inventory.ShowForPlayer(inventoryType, this.PlayerIndex);
 
         this._isOperating = true;
         try {
@@ -218,6 +237,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             this.PlayerIndex,
         ))?.getComponent(ZRSJZ_InventoryWeaponry);
         if (!weaponryInventory) return;
+        await weaponryInventory.ShowForPlayer(propData.CurInventory, this.PlayerIndex);
 
         this._isOperating = true;
         try {
@@ -249,7 +269,11 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
 
             const targetInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
             if (!targetInventory) return;
-            await weaponryInventory.RemoveProp(this._propID);
+            await weaponryInventory.RemoveProp(
+                this._propID,
+                true,
+                this.PlayerIndex,
+            );
             ZRSJZ_InventoryService.MovePropToInventory(this._propID, targetInventory, 1, -1, -1);
             await this.RefreshWarehouseInventories(targetInventory);
             this.ClosePanel();

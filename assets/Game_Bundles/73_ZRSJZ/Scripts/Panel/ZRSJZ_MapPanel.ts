@@ -3,7 +3,6 @@ import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
-import { ZRSJZ_Player } from '../Controller/ZRSJZ_Player';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
@@ -14,6 +13,8 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
     AllMap: Node = null;
     CurMap: Node = null;
     CurPoint: Node = null;
+    Player2Icon: Sprite = null;
+    Player2Point: Node = null;
     private _pointWorldPosition: Vec3 = new Vec3();
     private _pointParentPosition: Vec3 = new Vec3();
     private _playerMapPosition: Vec3 = new Vec3();
@@ -22,6 +23,8 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         this.Icon = find("Panel/我的位置/Icon", this.node)?.getComponent(Sprite) ?? null;
         this.AllMap = find("Panel/Map", this.node);
         this.CurPoint = find("Panel/我的位置", this.node);
+        this.Player2Icon = find("Panel/玩家2/Icon", this.node)?.getComponent(Sprite) ?? null;
+        this.Player2Point = find("Panel/玩家2", this.node);
     }
 
     public Show(...args: any[]): void {
@@ -48,11 +51,20 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         if (this.Icon && iconArgument instanceof SpriteFrame) {
             this.Icon.spriteFrame = iconArgument;
         }
+        const player2IconArgument = args[2];
+        if (this.Player2Icon && player2IconArgument instanceof SpriteFrame) {
+            this.Player2Icon.spriteFrame = player2IconArgument;
+        }
 
-        this.RefreshPlayerPoint();
+        this.RefreshPlayerPoints();
         // Panel 的 Widget/适配组件会在本帧结束时调整地图尺寸与缩放，
         // 下一帧再校准一次，避免不同屏幕比例下标记产生偏移。
-        this.scheduleOnce(() => this.RefreshPlayerPoint(), 0);
+        this.scheduleOnce(() => this.RefreshPlayerPoints(), 0);
+    }
+
+    protected lateUpdate(): void {
+        if (!this.node.activeInHierarchy || !this.CurMap) return;
+        this.RefreshPlayerPoints();
     }
 
     public OnButtonClick(event: EventTouch): void {
@@ -68,22 +80,26 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
 
     /** 根据玩家的游戏世界坐标更新地图弹窗中的位置标记。 */
     public ShowPoint(x: number, y: number): void {
-        if (!this.CurMap || !this.CurPoint) {
+        this.SetPointPosition(this.CurPoint, x, y);
+    }
+
+    private SetPointPosition(point: Node, x: number, y: number): void {
+        if (!this.CurMap || !point) {
             return;
         }
 
         const gameMap = ZRSJZ_Game.Instance?.CurMap?.Map;
         const worldMapTransform = gameMap?.getComponent(UITransform);
         const popupMapTransform = this.CurMap.getComponent(UITransform);
-        const pointParentTransform = this.CurPoint.parent?.getComponent(UITransform);
+        const pointParentTransform = point.parent?.getComponent(UITransform);
         if (!worldMapTransform || !popupMapTransform || !pointParentTransform) {
-            this.CurPoint.active = false;
+            point.active = false;
             return;
         }
 
         const worldMapSize = worldMapTransform.contentSize;
         if (worldMapSize.width <= 0 || worldMapSize.height <= 0) {
-            this.CurPoint.active = false;
+            point.active = false;
             return;
         }
 
@@ -118,22 +134,34 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
             this._pointWorldPosition,
             this._pointParentPosition,
         );
-        this.CurPoint.setPosition(this._pointParentPosition);
-        this.CurPoint.active = true;
+        point.setPosition(this._pointParentPosition);
+        point.active = true;
     }
 
-    /** 只在弹窗打开时调用一次，弹窗保持打开期间不继续更新。 */
-    private RefreshPlayerPoint(): void {
-        const player = ZRSJZ_Game.Instance?.CurMap?.Unit
-            ?.getComponentsInChildren(ZRSJZ_Player)
-            .find(component => component.node.activeInHierarchy);
-        if (!player) {
-            if (this.CurPoint) {
-                this.CurPoint.active = false;
-            }
+    /** 弹窗显示期间持续同步两个明确玩家槽位的位置。 */
+    private RefreshPlayerPoints(): void {
+        const game = ZRSJZ_Game.Instance;
+        const player1 = game?.GetPlayer(0)?.node;
+        if (player1?.isValid && player1.activeInHierarchy) {
+            this.SetPointPosition(this.CurPoint, player1.worldPosition.x, player1.worldPosition.y);
+        } else if (this.CurPoint) {
+            this.CurPoint.active = false;
+        }
+
+        if (!game?.IsTwoPlayerMode()) {
+            if (this.Player2Point) this.Player2Point.active = false;
             return;
         }
 
-        this.ShowPoint(player.node.worldPosition.x, player.node.worldPosition.y);
+        const player2 = game.GetPlayer(1)?.node;
+        if (player2?.isValid && player2.activeInHierarchy) {
+            this.SetPointPosition(
+                this.Player2Point,
+                player2.worldPosition.x,
+                player2.worldPosition.y,
+            );
+        } else if (this.Player2Point) {
+            this.Player2Point.active = false;
+        }
     }
 }

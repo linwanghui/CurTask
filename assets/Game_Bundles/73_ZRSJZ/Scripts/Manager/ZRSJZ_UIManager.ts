@@ -23,6 +23,8 @@ export class ZRSJZ_UIManager extends Component {
     /** 当前拖动所属玩家；通过上下文隔离库存，避免改变旧事件的参数结构。 */
     public static DraggingPlayerIndex: number = -1;
     public static IsBattle: boolean = false;//是否正在战斗界面
+    /** 双人局中改用单人操作布局时记录唯一存活玩家；-1 表示正常分屏。 */
+    public static SinglePlayerBattleIndex: number = -1;
 
     private static _instance: ZRSJZ_UIManager = null;
     public static get Instance(): ZRSJZ_UIManager {
@@ -282,7 +284,11 @@ export class ZRSJZ_UIManager extends Component {
         const normalizedIndex = playerIndex === 1 ? 1 : 0;
         // 只有局内双人模式才使用玩家独立弹窗。仓库等局外界面即使已经
         // 选择了 2p，也仍然使用全局 Panel，否则打开和关闭会落入两套缓存。
-        if (!ZRSJZ_UIManager.IsBattle || ZRSJZ_GameData.Instance.CurModel !== "2p") {
+        if (
+            !ZRSJZ_UIManager.IsBattle
+            || ZRSJZ_GameData.Instance.CurModel !== "2p"
+            || ZRSJZ_UIManager.SinglePlayerBattleIndex >= 0
+        ) {
             this.ShowPanel(panel, ...args);
             return;
         }
@@ -352,7 +358,11 @@ export class ZRSJZ_UIManager extends Component {
 
     public HidePlayerPanel(panel: string, playerIndex: number, ...args: any[]): void {
         const normalizedIndex = playerIndex === 1 ? 1 : 0;
-        if (!ZRSJZ_UIManager.IsBattle || ZRSJZ_GameData.Instance.CurModel !== "2p") {
+        if (
+            !ZRSJZ_UIManager.IsBattle
+            || ZRSJZ_GameData.Instance.CurModel !== "2p"
+            || ZRSJZ_UIManager.SinglePlayerBattleIndex >= 0
+        ) {
             this.HidePanel(panel, ...args);
             return;
         }
@@ -384,7 +394,10 @@ export class ZRSJZ_UIManager extends Component {
      * 这里不走 HidePanel，避免拖动锁和关闭动画阻止死亡弹窗显示。
      */
     public PrepareForDeath(playerIndex: number = 0): void {
-        if (ZRSJZ_GameData.Instance.CurModel === "2p") {
+        if (
+            ZRSJZ_GameData.Instance.CurModel === "2p"
+            && ZRSJZ_UIManager.SinglePlayerBattleIndex < 0
+        ) {
             this.CloseAllPlayerPanelsImmediately(playerIndex);
         } else {
             this.CloseAllPanelsImmediately();
@@ -793,7 +806,9 @@ export class ZRSJZ_UIManager extends Component {
         this._discardingPropIDs.add(propID);
         try {
             const visitedNodes = new Set<Node>();
-            for (const inventoryNode of this.InventoryMap.values()) {
+            // 背包弹窗和保险箱使用玩家独立库存实例；只遍历 InventoryMap
+            // 会删掉数据却留下当前界面的格子节点，看起来就像没有删除。
+            for (const inventoryNode of this.GetAllInventoryNodes()) {
                 if (!inventoryNode?.isValid || visitedNodes.has(inventoryNode)) continue;
                 visitedNodes.add(inventoryNode);
                 const inventory = inventoryNode.getComponent(ZRSJZ_Inventory);
@@ -852,9 +867,16 @@ export class ZRSJZ_UIManager extends Component {
             return false;
         }
 
-        const targetNode = await this.GetInventory(targetInventory, playerIndex);
+        // 物资/背包弹窗展示的是当前玩家独立库存实例。快捷转移也必须取得
+        // 同一个实例；否则单人模式会写入全局默认背包，当前界面只看到物资消失。
+        const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
+        const targetNode = await this.GetInventory(
+            targetInventory,
+            normalizedPlayerIndex,
+            true,
+        );
         const target = targetNode?.getComponent(ZRSJZ_Inventory);
-        if (!target) {
+        if (!target || target.PlayerViewIndex !== normalizedPlayerIndex) {
             console.error("快捷转移目标库存尚未初始化:", targetInventory);
             return false;
         }
@@ -1022,9 +1044,25 @@ export class ZRSJZ_UIManager extends Component {
 
     /** 开始新对局前清除上局可能残留的背包、保险箱数据并重建库存。 */
     public async InitializeBattleInventories(): Promise<void> {
+        // UIManager 是常驻节点，玩家独立库存也会跨场景缓存。先等正在创建的
+        // 实例结束，再全部销毁，避免新局继续显示上局 Grids 中已经失效的道具 ID。
+        const pendingPlayerInventories = Array.from(this._playerInventoryTasks.values());
+        await Promise.all(pendingPlayerInventories.map(task => task.catch(() => null)));
+        this._playerInventoryTasks.clear();
+        for (const inventoryNode of this._playerInventoryMap.values()) {
+            if (inventoryNode?.isValid) inventoryNode.destroy();
+        }
+        this._playerInventoryMap.clear();
+        for (const [inventoryKey, inventoryNode] of Array.from(this.InventoryMap.entries())) {
+            if (!inventoryKey.startsWith("箱子物资_")) continue;
+            this.InventoryMap.delete(inventoryKey);
+            if (inventoryNode?.isValid) inventoryNode.destroy();
+        }
+
         const battleInventories = new Set<ZRSJZ_INVENTORY>([
             ZRSJZ_INVENTORY.背包,
             ZRSJZ_INVENTORY.保险箱,
+            ZRSJZ_INVENTORY.物资,
         ]);
 
         for (const propID in ZRSJZ_GameData.Instance.PropData) {
