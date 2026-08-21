@@ -79,6 +79,12 @@ export class ZRSJZ_GameData {
     public CurMap: string = "新手村";
     public CurModel: string = "1p";
 
+    //#region 任务
+    public MainTaskComplete: string[] = [];//已完成的任务
+    public CurMainTask: { TaskName: string, TaskTargetName: string, CurCount: number } = null;//正在进行的任务
+    public NewMainTask: string = "";//新任务
+
+    //#region 收藏室
     public BoxroomPropLevel: { [propName: string]: number } = {};
     public BoxroomAttributeBonusBasisPoint: { [attributeName: string]: number } = {};
 
@@ -87,6 +93,7 @@ export class ZRSJZ_GameData {
     public MysteryBoxOpenCount: number = 0;
     public MysteryBoxRedCount: number = 0;
 
+    //#region BNS
     public BNS_Property: {
         木材: number;
         矿石: number;
@@ -95,13 +102,13 @@ export class ZRSJZ_GameData {
         电力: number;
         繁荣度: number;
     } = {
-        木材: 0,
-        矿石: 0,
-        食物: 0,
-        宝石: 0,
-        电力: 0,
-        繁荣度: 0,
-    };
+            木材: 0,
+            矿石: 0,
+            食物: 0,
+            宝石: 0,
+            电力: 0,
+            繁荣度: 0,
+        };
 
     public BNS_Building: { name: string, Level: number }[] = [
         { name: "主基地", Level: 1 },

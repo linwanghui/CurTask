@@ -5,6 +5,7 @@ import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_PANEL } from './ZRSJZ_Cons
 import { ZRSJZ_Game } from './ZRSJZ_Game';
 import { ZRSJZ_TutorialPanel } from './Panel/ZRSJZ_TutorialPanel';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
+import { ZRSJZ_TaskService } from './Service/ZRSJZ_TaskService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Tutorial')
@@ -39,6 +40,7 @@ export class ZRSJZ_Tutorial extends Component {
         } else if (index == 5) {
             ZRSJZ_GameData.Instance.IsTutorial = true;
             ZRSJZ_GameData.Instance.CurMap = "五号小镇_机密行动";
+            ZRSJZ_TaskService.CompleteTask("完成新手教程");
         } else if (index == 6 && !this.TipFlag[3]) {
             this.TipFlag[3] = true
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.新手引导弹窗, "Mask", this.TutorialNodes[2], "使用治疗恢复状态");

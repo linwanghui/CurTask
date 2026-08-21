@@ -32,6 +32,8 @@ export enum ZRSJZ_PANEL {
     购买子弹弹窗 = "73_ZRSJZ/Prefabs/Panel/购买子弹弹窗",
     解锁仓库弹窗 = "73_ZRSJZ/Prefabs/Panel/解锁仓库弹窗",
     新手引导弹窗 = "73_ZRSJZ/Prefabs/Panel/新手引导弹窗",
+    主线任务界面 = "73_ZRSJZ/Prefabs/Panel/主线任务界面",
+    获取奖励弹窗 = "73_ZRSJZ/Prefabs/Panel/获取奖励弹窗",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -609,7 +611,7 @@ export const ZRSJZ_FACILITY_UPGRADE_CONFIG: Record<ZRSJZ_UpgradeFacilityName, {
         AttributeName: "攻击力",
         ValueSuffix: "%",
         Levels: [
-            { Level: 1, Gold: 10000, Materials: [{ PropName: "切割刀", Count: 2 }, { PropName: "实验数据", Count: 2 }], BonusValue: 5 },
+            { Level: 1, Gold: 10000, Materials: [{ PropName: "八宝粥", Count: 1 }, { PropName: "切割刀", Count: 1 }], BonusValue: 5 },
             { Level: 2, Gold: 30000, Materials: [{ PropName: "高精数显卡尺", Count: 2 }, { PropName: "显卡", Count: 1 }], BonusValue: 10 },
             { Level: 3, Gold: 80000, Materials: [{ PropName: "刀片服务器", Count: 2 }, { PropName: "军用电台", Count: 1 }], BonusValue: 15 },
             { Level: 4, Gold: 200000, Materials: [{ PropName: "高速阵列", Count: 1 }, { PropName: "信息终端", Count: 1 }], BonusValue: 20 },
@@ -620,7 +622,7 @@ export const ZRSJZ_FACILITY_UPGRADE_CONFIG: Record<ZRSJZ_UpgradeFacilityName, {
         AttributeName: "生命上限",
         ValueSuffix: "",
         Levels: [
-            { Level: 1, Gold: 10000, Materials: [{ PropName: "实验数据", Count: 2 }, { PropName: "八宝粥", Count: 2 }], BonusValue: 10 },
+            { Level: 1, Gold: 10000, Materials: [{ PropName: "黑色手表", Count: 1 }, { PropName: "核桃", Count: 1 }], BonusValue: 10 },
             { Level: 2, Gold: 30000, Materials: [{ PropName: "脑机数据", Count: 2 }, { PropName: "显卡", Count: 1 }], BonusValue: 20 },
             { Level: 3, Gold: 80000, Materials: [{ PropName: "除颤器", Count: 1 }, { PropName: "动力电池组", Count: 1 }], BonusValue: 35 },
             { Level: 4, Gold: 200000, Materials: [{ PropName: "呼吸机", Count: 1 }, { PropName: "ECMO", Count: 1 }], BonusValue: 50 },
@@ -631,7 +633,7 @@ export const ZRSJZ_FACILITY_UPGRADE_CONFIG: Record<ZRSJZ_UpgradeFacilityName, {
         AttributeName: "移动速度",
         ValueSuffix: "%",
         Levels: [
-            { Level: 1, Gold: 10000, Materials: [{ PropName: "哑铃", Count: 2 }, { PropName: "沙袋", Count: 2 }], BonusValue: 5 },
+            { Level: 1, Gold: 10000, Materials: [{ PropName: "哑铃", Count: 1 }, { PropName: "沙袋", Count: 1 }], BonusValue: 5 },
             { Level: 2, Gold: 30000, Materials: [{ PropName: "哑铃", Count: 4 }, { PropName: "沙袋", Count: 4 }], BonusValue: 10 },
             { Level: 3, Gold: 80000, Materials: [{ PropName: "哑铃", Count: 6 }, { PropName: "高精数显卡尺", Count: 2 }], BonusValue: 15 },
             { Level: 4, Gold: 200000, Materials: [{ PropName: "电动马达", Count: 2 }, { PropName: "动力电池组", Count: 1 }], BonusValue: 20 },
@@ -1398,3 +1400,172 @@ export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_MapConfig>> = 
     ["极北之地_机密行动", CreateMapModeConfig("极北之地", "机密行动", "雪地", 4)],
     ["极北之地_绝密行动", CreateMapModeConfig("极北之地", "绝密行动", "雪地", 5)],
 ]);
+
+//#region 任务
+
+// 主线任务
+//任务目标
+export interface ZRSJZ_MainTaskTargetConfig {
+    TaskTargetName: string;//任务目标名字
+    TaskTargetCount: number;//任务目标数量
+}
+//任务奖励
+export interface ZRSJZ_MainTaskAwardConfig {
+    TaskAwardName: string;//任务奖励名字
+    TaskAwardCount: number;//任务奖励数量
+}
+
+export interface ZRSJZ_MainTaskConfig {
+    TaskName: string;//任务名字
+    TaskDesc: string;//任务描述
+    TaskTargets: ReadonlyArray<ZRSJZ_MainTaskTargetConfig>;//任务目标
+    TaskAwards: ReadonlyArray<ZRSJZ_MainTaskAwardConfig>;//任务奖励
+}
+
+export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>> = new Map([
+    ["新人报道", {
+        TaskName: "新人报道",
+        TaskDesc: "完成新手教程",
+        TaskTargets: [
+            {
+                TaskTargetName: "完成新手教程",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: [
+            {
+                TaskAwardName: "钞票",
+                TaskAwardCount: 10000,
+            }
+        ]
+    }],
+    ["战争狂人", {
+        TaskName: "战争狂人",
+        TaskDesc: "",
+        TaskTargets: [
+            {
+                TaskTargetName: "在商城购买[1级子弹]",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: [
+            {
+                TaskAwardName: "钞票",
+                TaskAwardCount: 10000,
+            },
+            {
+                TaskAwardName: "手套",
+                TaskAwardCount: 1,
+            },
+            {
+                TaskAwardName: "无线便携电钻",
+                TaskAwardCount: 1,
+            }
+        ]
+    }],
+    ["售货机", {
+        TaskName: "售货机",
+        TaskDesc: "",
+        TaskTargets: [
+
+            {
+                TaskTargetName: "出售任意物品",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: [
+            {
+                TaskAwardName: "钞票",
+                TaskAwardCount: 10000,
+            },
+            {
+                TaskAwardName: "手套",
+                TaskAwardCount: 1,
+            },
+            {
+                TaskAwardName: "无线便携电钻",
+                TaskAwardCount: 1,
+            }
+        ]
+    }],
+    ["1号超人", {
+        TaskName: "1号超人",
+        TaskDesc: "",
+        TaskTargets: [
+            {
+                TaskTargetName: "强化1次",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: [
+            {
+                TaskAwardName: "手套",
+                TaskAwardCount: 1,
+            },
+            {
+                TaskAwardName: "无线便携电钻",
+                TaskAwardCount: 1,
+            }
+        ]
+    }],
+    ["搜打撤", {
+        TaskName: "搜打撤",
+        TaskDesc: "",
+        TaskTargets: [
+            {
+                TaskTargetName: "进入[五号小镇_机密行动]并成功撤离",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: [
+            {
+                TaskAwardName: "手套",
+                TaskAwardCount: 1,
+            },
+            {
+                TaskAwardName: "无线便携电钻",
+                TaskAwardCount: 1,
+            }
+        ]
+    }],
+    ["祝你好运", {
+        TaskName: "祝你好运",
+        TaskDesc: "",
+        TaskTargets: [
+            {
+                TaskTargetName: "击杀[五号小镇_机密行动]中的敌人",
+                TaskTargetCount: 5,
+            },
+        ],
+        TaskAwards: [
+            {
+                TaskAwardName: "手套",
+                TaskAwardCount: 1,
+            },
+            {
+                TaskAwardName: "无线便携电钻",
+                TaskAwardCount: 1,
+            }
+        ]
+    }],
+    ["解放小镇", {
+        TaskName: "解放小镇",
+        TaskDesc: "",
+        TaskTargets: [
+            {
+                TaskTargetName: "打败[五号小镇_机密行动]Boss",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: [
+            {
+                TaskAwardName: "手套",
+                TaskAwardCount: 1,
+            },
+            {
+                TaskAwardName: "无线便携电钻",
+                TaskAwardCount: 1,
+            }
+        ]
+    }],
+])

@@ -12,6 +12,7 @@ import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_InventoryService } from './Service/ZRSJZ_InventoryService';
+import { ZRSJZ_TaskService } from './Service/ZRSJZ_TaskService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -134,7 +135,7 @@ export class ZRSJZ_Game extends Component {
         }
         // 双人模式不要在初始化阶段关闭再重启第二相机，避免部分平台未重新注册渲染相机。
         if (this.Camera_Player2) {
-            this.Camera_Player2.node.active = ZRSJZ_GameData.Instance.CurModel === "2p";
+            this.Camera_Player2.node.active = ZRSJZ_GameData.Instance.CurModel === "2p" && !this.IsTutorial;
         }
     }
 
@@ -404,6 +405,7 @@ export class ZRSJZ_Game extends Component {
             this.GetAllGoodsID(),
         );
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 5);
+        ZRSJZ_TaskService.CompleteTask(`进入[${ZRSJZ_GameData.Instance.CurMap}]并成功撤离`, 1);
     }
 
     private FailEvacuationByTimeout(): void {
@@ -453,7 +455,7 @@ export class ZRSJZ_Game extends Component {
 
     LoadPlayer() {
         ZRSJZ_Tools.LoadPrefab("Prefabs/Unit/Player").then((prefab: Prefab) => {
-            const playerCount = ZRSJZ_GameData.Instance.CurModel === "2p" ? 2 : 1;
+            const playerCount = ZRSJZ_GameData.Instance.CurModel === "2p" && !this.IsTutorial ? 2 : 1;
             this.Players.length = 0;
             this.Cameras.length = 0;
             const usedSpawnIndexes = new Set<number>();
@@ -513,7 +515,7 @@ export class ZRSJZ_Game extends Component {
     }
 
     public IsTwoPlayerMode(): boolean {
-        return ZRSJZ_GameData.Instance.CurModel === "2p" && this.Players.length > 1;
+        return ZRSJZ_GameData.Instance.CurModel === "2p" && !this.IsTutorial && this.Players.length > 1;
     }
 
     public IsUsingSinglePlayerLayout(playerIndex?: number): boolean {
@@ -847,7 +849,7 @@ export class ZRSJZ_Game extends Component {
     private InitMiniMap(): void {
         const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
         const miniMapMask = find("UICanvas/小地图/Mask");
-        const isConfiguredTwoPlayer = ZRSJZ_GameData.Instance.CurModel === "2p";
+        const isConfiguredTwoPlayer = ZRSJZ_GameData.Instance.CurModel === "2p" && !this.IsTutorial;
         if (!mapConfig || !miniMapMask) {
             console.warn(`[ZRSJZ_Game] 无法初始化小地图: ${ZRSJZ_GameData.Instance.CurMap}`);
             return;

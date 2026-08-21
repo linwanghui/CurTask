@@ -75,9 +75,13 @@ export class ZRSJZ_Start extends Component {
                 break;
             case "开始游戏":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.选关界面);
+                // ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "test");
                 break;
             case "签到":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
+                break;
+            case "主线任务":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.主线任务界面);
                 break;
             case "设置":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.设置界面);
