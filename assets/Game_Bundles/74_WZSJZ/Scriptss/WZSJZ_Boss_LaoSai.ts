@@ -1,4 +1,4 @@
-import { _decorator, instantiate, Node, NodePool, Prefab } from 'cc';
+import { _decorator, instantiate, Node, NodePool, Prefab, Vec3 } from 'cc';
 import { WZSJZ_Enemy } from './WZSJZ_Enemy';
 import { WZSJZ_BossBullet_LaoSai } from './WZSJZ_BossBullet_LaoSai';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
@@ -66,7 +66,7 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Enemy {
     }
 
     /** Boss 不接受任何击退。 */
-    public ApplyKnockback(): void {
+    public ApplyKnockback(direction: Vec3, distance: number, duration?: number): void {
     }
 
     protected ShouldEnterHitReaction(damage: number): boolean {
@@ -104,6 +104,21 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Enemy {
             this._normalAttackTimer,
             this.EnemyConfig?.AttackInterval || 0,
         );
+    }
+
+    protected CanApplyStun(tenacityDamage: number): boolean {
+        if (this._currentTenacity <= 0) {
+            return true;
+        }
+        this._currentTenacity = Math.max(
+            0,
+            this._currentTenacity - Math.max(0, tenacityDamage),
+        );
+        if (this._currentTenacity > 0) {
+            return false;
+        }
+        this._tenacityRecoveryTimer = WZSJZ_Constant.BossLaoSai.TenacityRecoveryDelay;
+        return true;
     }
 
     private async CreateStatusBars(token: number): Promise<void> {
@@ -205,7 +220,7 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Enemy {
         const arrow = arrowNode.getComponent(WZSJZ_BossBullet_LaoSai);
         if (!arrow?.Initialize(
             this.Wall,
-            damage,
+            this.GetOutgoingAttackDamage(damage),
             WZSJZ_Constant.BossLaoSai.ArrowSpeed,
             WZSJZ_Boss_LaoSai.RecycleArrow,
         )) {

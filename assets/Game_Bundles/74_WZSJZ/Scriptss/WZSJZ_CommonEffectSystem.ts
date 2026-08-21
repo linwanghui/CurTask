@@ -10,6 +10,12 @@ interface WZSJZ_CommonEffectRuntime {
     FallbackDuration: number;
 }
 
+interface WZSJZ_AttachedEffectRuntime {
+    EffectNode: Node;
+    Token: number;
+    Runtime: WZSJZ_CommonEffectRuntime;
+}
+
 /** 通用特效入口，负责动态注册、定时播放回池以及层级维护。 */
 @ccclass('WZSJZ_CommonEffectSystem')
 export class WZSJZ_CommonEffectSystem extends Component {
@@ -23,6 +29,7 @@ export class WZSJZ_CommonEffectSystem extends Component {
     private _effectLayer: Node = null;
     private _effects: Map<string, WZSJZ_CommonEffectRuntime> = new Map();
     private _effectLoads: Map<string, Promise<boolean>> = new Map();
+    private _attachedEffects: Map<Node, Map<string, WZSJZ_AttachedEffectRuntime>> = new Map();
 
     protected onLoad(): void {
         WZSJZ_CommonEffectSystem._instance = this;
@@ -34,6 +41,7 @@ export class WZSJZ_CommonEffectSystem extends Component {
         }
         this._effects.clear();
         this._effectLoads.clear();
+        this._attachedEffects.clear();
         if (WZSJZ_CommonEffectSystem._instance === this) {
             WZSJZ_CommonEffectSystem._instance = null;
         }
@@ -44,6 +52,7 @@ export class WZSJZ_CommonEffectSystem extends Component {
         this._dragLayer = dragLayer;
         this.SetupEffectLayer();
         void this.PrepareBlueExplosion();
+        void this.PrepareStunEffect();
     }
 
     public PlayBlueExplosion(worldPosition: Vec3): boolean {
@@ -70,7 +79,8 @@ export class WZSJZ_CommonEffectSystem extends Component {
             || effectNode.getComponentInChildren(sp.Skeleton);
         if (skeleton) {
             skeleton.clearTracks();
-            skeleton.setAnimation(0, skeleton.defaultAnimation || "animation", false);
+            const defaultAnimation = (skeleton as any).defaultAnimation || "animation";
+            skeleton.setAnimation(0, defaultAnimation, false);
         }
         const duration = durationOverride && durationOverride > 0
             ? durationOverride
@@ -98,6 +108,17 @@ export class WZSJZ_CommonEffectSystem extends Component {
         if (!runtime || !target?.isValid || duration <= 0) {
             return false;
         }
+        let targetEffects = this._attachedEffects.get(target);
+        if (!targetEffects) {
+            targetEffects = new Map();
+            this._attachedEffects.set(target, targetEffects);
+        }
+        const existing = targetEffects.get(effectName);
+        if (existing?.EffectNode?.isValid) {
+            existing.Token++;
+            this.ScheduleAttachedRecycle(target, effectName, existing, duration);
+            return true;
+        }
         const effectNode = runtime.Pool.get() || instantiate(runtime.Prefab);
         effectNode.active = true;
         effectNode.setParent(target);
@@ -114,18 +135,69 @@ export class WZSJZ_CommonEffectSystem extends Component {
             || effectNode.getComponentInChildren(sp.Skeleton);
         if (skeleton) {
             skeleton.clearTracks();
-            skeleton.setAnimation(0, skeleton.defaultAnimation || "animation", loopSpine);
+            const defaultAnimation = (skeleton as any).defaultAnimation || "animation";
+            skeleton.setAnimation(0, defaultAnimation, loopSpine);
         }
+        const attached: WZSJZ_AttachedEffectRuntime = {
+            EffectNode: effectNode,
+            Token: 1,
+            Runtime: runtime,
+        };
+        targetEffects.set(effectName, attached);
+        this.ScheduleAttachedRecycle(target, effectName, attached, duration);
+        return true;
+    }
+
+    /** 对象池单位重新启用或死亡时，可立即清掉旧状态，避免特效跟到下一次复用。 */
+    public StopAttached(effectName: string, target: Node): void {
+        const targetEffects = this._attachedEffects.get(target);
+        const attached = targetEffects?.get(effectName);
+        if (!attached) {
+            return;
+        }
+        attached.Token++;
+        targetEffects.delete(effectName);
+        if (targetEffects.size <= 0) {
+            this._attachedEffects.delete(target);
+        }
+        this.RecycleAttachedEffect(attached);
+    }
+
+    /** 同一目标的同名状态特效只保留一个；重复施加只刷新持续时间。 */
+    private ScheduleAttachedRecycle(
+        target: Node,
+        effectName: string,
+        attached: WZSJZ_AttachedEffectRuntime,
+        duration: number,
+    ): void {
+        const token = attached.Token;
         this.scheduleOnce(() => {
-            if (!effectNode?.isValid) {
+            if (attached.Token !== token) {
                 return;
             }
-            animation?.stop();
-            skeleton?.clearTracks();
-            effectNode.active = false;
-            runtime.Pool.put(effectNode);
+            const targetEffects = this._attachedEffects.get(target);
+            if (targetEffects?.get(effectName) !== attached) {
+                return;
+            }
+            targetEffects.delete(effectName);
+            if (targetEffects.size <= 0) {
+                this._attachedEffects.delete(target);
+            }
+            this.RecycleAttachedEffect(attached);
         }, duration);
-        return true;
+    }
+
+    private RecycleAttachedEffect(attached: WZSJZ_AttachedEffectRuntime): void {
+        const effectNode = attached.EffectNode;
+        if (!effectNode?.isValid) {
+            return;
+        }
+        effectNode.getComponent(Animation)?.stop();
+        effectNode.getComponentInChildren(Animation)?.stop();
+        effectNode.getComponent(sp.Skeleton)?.clearTracks();
+        effectNode.getComponentInChildren(sp.Skeleton)?.clearTracks();
+        effectNode.active = false;
+        attached.Runtime.Pool.put(effectNode);
     }
 
     public RegisterEffect(
@@ -159,6 +231,16 @@ export class WZSJZ_CommonEffectSystem extends Component {
             config.PrefabPath,
             config.FallbackDuration,
             WZSJZ_Constant.ObjectPool.BlueExplosionPrewarm,
+        );
+    }
+
+    private async PrepareStunEffect(): Promise<void> {
+        const config = WZSJZ_Constant.CommonEffect.Stun;
+        await this.RegisterEffect(
+            config.EffectName,
+            config.PrefabPath,
+            config.FallbackDuration,
+            1,
         );
     }
 

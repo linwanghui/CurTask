@@ -42,6 +42,7 @@ export class WZSJZ_CombatSystem extends Component {
     private _cannonBulletPrefab: Prefab = null;
     private _minePrefab: Prefab = null;
     private _knifeEffectPrefab: Prefab = null;
+    private _redDogAttackEffectPrefab: Prefab = null;
     private _isGameStarted: boolean = false;
     private _isBatchEnemySpawning: boolean = false;
     private _pendingEnemySpawnCallback: (() => void) | null = null;
@@ -50,6 +51,7 @@ export class WZSJZ_CombatSystem extends Component {
     private _cannonBulletPool: NodePool = new NodePool();
     private _minePool: NodePool = new NodePool();
     private _knifeEffectPool: NodePool = new NodePool();
+    private _redDogAttackEffectPool: NodePool = new NodePool();
     private _ownerMines: Map<WZSJZ_GameNode, Set<WZSJZ_Mine>> = new Map();
     private _mineOwners: Map<WZSJZ_Mine, WZSJZ_GameNode> = new Map();
     private _mineUnitsOnField: Set<WZSJZ_GameNode> = new Set();
@@ -80,6 +82,7 @@ export class WZSJZ_CombatSystem extends Component {
         this._cannonBulletPool.clear();
         this._minePool.clear();
         this._knifeEffectPool.clear();
+        this._redDogAttackEffectPool.clear();
         this._ownerMines.clear();
         this._mineOwners.clear();
         this._mineUnitsOnField.clear();
@@ -101,6 +104,7 @@ export class WZSJZ_CombatSystem extends Component {
         void this.PrepareCannonBulletPrefab();
         void this.PrepareMinePrefab();
         void this.PrepareKnifeEffectPrefab();
+        void this.PrepareRedDogAttackEffectPrefab();
     }
 
     private OnGameStart(wall: WZSJZ_Wall): void {
@@ -327,6 +331,23 @@ export class WZSJZ_CombatSystem extends Component {
         }
     }
 
+    private async PrepareRedDogAttackEffectPrefab(): Promise<void> {
+        try {
+            this._redDogAttackEffectPrefab = await WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.RedDogAttackEffect.PrefabPath,
+            );
+        } catch (error) {
+            console.error("[WZSJZ] 红狗普通攻击特效预制体加载失败。", error);
+        }
+        if (!this.node?.isValid || !this._redDogAttackEffectPrefab) {
+            return;
+        }
+        while (this._redDogAttackEffectPool.size()
+            < WZSJZ_Constant.ObjectPool.RedDogAttackEffectPrewarm) {
+            this._redDogAttackEffectPool.put(instantiate(this._redDogAttackEffectPrefab));
+        }
+    }
+
     private async PrepareCannonBulletPrefab(): Promise<void> {
         try {
             this._cannonBulletPrefab = await WZSJZ_Incident.Loadprefab(
@@ -401,6 +422,41 @@ export class WZSJZ_CombatSystem extends Component {
             const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, currentConfig.AttackRange);
             if (currentTarget && this.SpawnKnifeEffect(currentTarget)) {
                 currentTarget.TakeDamage(gameNode.GetAttackDamage());
+            }
+        });
+    }
+
+    public UpdateRedDog(gameNode: WZSJZ_GameNode, deltaTime: number): void {
+        if (this.UpdatePendingWeaponAttack(gameNode, deltaTime)) {
+            return;
+        }
+        const config = this.GetReadyWeaponConfig(gameNode, deltaTime, false);
+        if (!config) {
+            return;
+        }
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
+        if (!target) {
+            return;
+        }
+        this.BeginWeaponAttack(gameNode, config.AttackInterval, () => {
+            const currentConfig = WZSJZ_Constant.GetMaterialLevelConfig(
+                gameNode.Name,
+                gameNode.Level,
+            );
+            if (!currentConfig?.AttackDamage || !currentConfig.AttackRange) {
+                return;
+            }
+            const currentTarget = this.FindNearestEnemy(
+                gameNode.node.worldPosition,
+                currentConfig.AttackRange,
+            );
+            if (!currentTarget || !this.SpawnRedDogAttackEffect(currentTarget)) {
+                return;
+            }
+            if (currentTarget.TakeDamage(gameNode.GetAttackDamage())) {
+                gameNode.CreateExperienceReceiver()(
+                    WZSJZ_Constant.RedDogAttackEffect.KillExperience,
+                );
             }
         });
     }
@@ -504,12 +560,8 @@ export class WZSJZ_CombatSystem extends Component {
     }
 
     private FinishWeaponAttack(gameNode: WZSJZ_GameNode, interval: number): void {
-        gameNode.StartAttackCooldown(interval);
-        const skeleton = gameNode.node.getChildByName("图像")?.getComponent(sp.Skeleton);
-        if (skeleton) {
-            skeleton.setAnimation(0, "attack", false);
-            skeleton.addAnimation(0, "daiji", true, 0);
-        }
+        gameNode.StartAttackCooldown(gameNode.GetAttackInterval(interval));
+        gameNode.PlayAttackAnimation(interval);
     }
 
     private BeginWeaponAttack(
@@ -518,7 +570,9 @@ export class WZSJZ_CombatSystem extends Component {
         fireAction: () => void,
     ): void {
         this.FinishWeaponAttack(gameNode, interval);
-        const delay = WZSJZ_Constant.GetAttackFireDelay(gameNode.Name);
+        const delay = gameNode.GetAttackFireDelay(
+            WZSJZ_Constant.GetAttackFireDelay(gameNode.Name),
+        );
         if (delay <= 0) {
             fireAction();
             return;
@@ -789,6 +843,40 @@ export class WZSJZ_CombatSystem extends Component {
                 this._knifeEffectPool.put(effectNode);
             }
         }, WZSJZ_Constant.KnifeEffect.Duration);
+        this.KeepCombatLayersOnTop();
+        return true;
+    }
+
+    private SpawnRedDogAttackEffect(target: WZSJZ_Enemy): boolean {
+        if (!target?.IsAlive || !this._redDogAttackEffectPrefab || !this._projectileLayer) {
+            return false;
+        }
+        const effectNode = this._redDogAttackEffectPool.get()
+            || instantiate(this._redDogAttackEffectPrefab);
+        effectNode.active = true;
+        effectNode.setParent(this._projectileLayer);
+        const position = target.node.worldPosition;
+        const config = WZSJZ_Constant.RedDogAttackEffect;
+        effectNode.setWorldPosition(
+            position.x + config.PositionOffsetX,
+            position.y + config.PositionOffsetY,
+            position.z,
+        );
+        effectNode.angle = 0;
+        this.SetLayerRecursively(effectNode, this._projectileLayer.layer);
+        const skeleton = effectNode.getComponent(sp.Skeleton)
+            || effectNode.getComponentInChildren(sp.Skeleton);
+        if (skeleton) {
+            skeleton.clearTracks();
+            skeleton.setAnimation(0, config.AnimationName, false);
+        }
+        this.scheduleOnce(() => {
+            if (effectNode?.isValid) {
+                skeleton?.clearTracks();
+                effectNode.active = false;
+                this._redDogAttackEffectPool.put(effectNode);
+            }
+        }, config.Duration);
         this.KeepCombatLayersOnTop();
         return true;
     }

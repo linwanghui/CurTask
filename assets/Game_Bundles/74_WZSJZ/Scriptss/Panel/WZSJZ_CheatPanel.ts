@@ -44,6 +44,12 @@ export class WZSJZ_CheatPanel extends PanelBase {
                     WZSJZ_UIManager.Instance.ShowText('当前场景不支持批量生成小怪');
                 }
                 break;
+            case "技能无CD":
+            case "无限技能":
+                if (!WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.修改无限技能)) {
+                    WZSJZ_UIManager.Instance.ShowText('当前场景不支持无限技能');
+                }
+                break;
             case "添加单位":
                 const input = this.node.getChildByPath('Panel/单位名')?.getComponent(EditBox);
                 const unitText = input?.string?.trim() || '';

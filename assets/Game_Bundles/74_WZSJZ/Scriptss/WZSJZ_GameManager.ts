@@ -38,6 +38,7 @@ import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 const { ccclass, property } = _decorator;
 
+/** 场景总入口；具体战斗、技能与表现逻辑由各子系统负责。 */
 @ccclass('WZSJZ_GameManager')
 export class WZSJZ_GameManager extends Component {
     @property({ displayName: "布阵区", type: Node })
@@ -108,6 +109,10 @@ export class WZSJZ_GameManager extends Component {
     private _nodeInspectSystem: WZSJZ_NodeInspectSystem = null;
     private _dragIndicatorSystem: WZSJZ_DragIndicatorSystem = null;
 
+    public get IsGameStarted(): boolean {
+        return this._isGameStarted;
+    }
+
     protected onLoad(): void {
         WZSJZ_GameManager._instance = this;
         WZSJZ_EventManager.BindSceneEventNode(this.node);
@@ -140,6 +145,7 @@ export class WZSJZ_GameManager extends Component {
             this.WallDisplayNode,
             this.FormationZone?.parent,
             this._formationCells,
+            this._dragIndicatorSystem,
         );
         this._shieldBrotherCombatSystem = this.node.getComponent(WZSJZ_ShieldBrotherCombatSystem)
             || this.node.addComponent(WZSJZ_ShieldBrotherCombatSystem);

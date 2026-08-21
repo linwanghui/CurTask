@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, sp, UITransform, Vec3 } from 'cc';
 import { WZSJZ_Constant, WZSJZ_EnemyConfig } from './WZSJZ_Constant';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
+import { WZSJZ_CommonEffectSystem } from './WZSJZ_CommonEffectSystem';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_Enemy')
@@ -14,6 +15,12 @@ export class WZSJZ_Enemy extends Component {
     private _isDead: boolean = false;
     private _hitReactionTimer: number = 0;
     private _tremorTimer: number = 0;
+    private _blindTimer: number = 0;
+    private _knockbackDirection: Vec3 = new Vec3(1, 0, 0);
+    private _knockbackDistance: number = 0;
+    private _knockbackMovedDistance: number = 0;
+    private _knockbackElapsed: number = 0;
+    private _knockbackDuration: number = 0;
     private _recycleCallback: ((enemy: WZSJZ_Enemy) => void) | null = null;
 
     public get IsAlive(): boolean {
@@ -52,11 +59,14 @@ export class WZSJZ_Enemy extends Component {
             return false;
         }
         this.node.active = true;
+        this.ClearAttachedStatusEffects();
         this._currentHealth = this._config.MaxHealth;
         this._isDead = false;
         this._attackTimer = 0;
         this._hitReactionTimer = 0;
         this._tremorTimer = 0;
+        this._blindTimer = 0;
+        this.ClearKnockback();
         if (this._skeleton) {
             this._skeleton.timeScale = 1;
         }
@@ -69,13 +79,22 @@ export class WZSJZ_Enemy extends Component {
         if (!this._config || !this.IsAlive || !this._wall?.IsAlive) {
             return;
         }
+        if (this._blindTimer > 0) {
+            this._blindTimer = Math.max(0, this._blindTimer - deltaTime);
+        }
         this.UpdateEnemyState(deltaTime);
+        const isKnockingBack = this.UpdateKnockback(deltaTime);
 
         if (this._tremorTimer > 0) {
             this._tremorTimer = Math.max(0, this._tremorTimer - deltaTime);
             if (this._tremorTimer <= 0 && this._skeleton) {
                 this._skeleton.timeScale = 1;
             }
+            return;
+        }
+
+        // 击退期间不允许自身移动或攻击，避免前进速度抵消击退表现。
+        if (isKnockingBack) {
             return;
         }
 
@@ -114,7 +133,7 @@ export class WZSJZ_Enemy extends Component {
         this.PlayAnimation(this._config.AttackAnimation);
         this._attackTimer -= deltaTime;
         if (this._attackTimer <= 0) {
-            this._wall.TakeDamage(this._config.AttackDamage);
+            this._wall.TakeDamage(this.GetOutgoingAttackDamage(this._config.AttackDamage));
             this._attackTimer = this._config.AttackInterval;
         }
     }
@@ -140,19 +159,61 @@ export class WZSJZ_Enemy extends Component {
         }
     }
 
+    /** 统一眩晕入口；Boss可先消耗韧性并拒绝本次控制。 */
+    public ApplyStun(duration: number, tenacityDamage: number = 0): boolean {
+        if (!this.IsAlive || duration <= 0 || !this.CanApplyStun(tenacityDamage)) {
+            return false;
+        }
+        this.ApplyTremor(duration);
+        const stunAnchor = this.GetStatusEffectAnchor("眩晕点位");
+        WZSJZ_CommonEffectSystem.Instance?.PlayAttached(
+            WZSJZ_Constant.CommonEffect.Stun.EffectName,
+            stunAnchor,
+            duration,
+            true,
+        );
+        return true;
+    }
+
+    /** 致盲不影响移动与攻击动画，只在最终命中结算时把伤害变为0。 */
+    public ApplyBlind(duration: number): boolean {
+        if (!this.IsAlive || duration <= 0) {
+            return false;
+        }
+        // 多次命中只刷新剩余时间，不叠加层数或生成重复特效。
+        this._blindTimer = duration;
+        const blindAnchor = this.GetStatusEffectAnchor("致盲点位");
+        WZSJZ_CommonEffectSystem.Instance?.PlayAttached(
+            WZSJZ_Constant.ElectromagneticBlind.BlindEffectName,
+            blindAnchor,
+            duration,
+            true,
+        );
+        return true;
+    }
+
+    public GetOutgoingAttackDamage(baseDamage: number): number {
+        return this._blindTimer > 0 ? 0 : Math.max(0, baseDamage);
+    }
+
+    protected CanApplyStun(tenacityDamage: number): boolean {
+        return true;
+    }
+
     /** Boss等拥有独立攻击状态机的敌人可在这里取消正在蓄力的攻击。 */
     protected OnTremorStarted(): void {
     }
 
     /** 返回本次伤害是否刚好击杀，供经验、掉落等系统订阅结果。 */
-    public TakeDamage(damage: number): boolean {
+    public TakeDamage(damage: number, allowHitReaction: boolean = true): boolean {
         if (!this.IsAlive || damage <= 0) {
             return false;
         }
         this._currentHealth = Math.max(0, this._currentHealth - damage);
         if (this._currentHealth > 0) {
             // Boss会在这里同步扣除韧性；即使正在震颤也不能跳过该数值结算。
-            const shouldEnterHitReaction = this.ShouldEnterHitReaction(damage);
+            const shouldEnterHitReaction = allowHitReaction
+                && this.ShouldEnterHitReaction(damage);
             // 震颤优先级高于普通受击，不用受击动画打断冻结表现。
             if (this._tremorTimer > 0) {
                 return false;
@@ -166,6 +227,9 @@ export class WZSJZ_Enemy extends Component {
         this._isDead = true;
         this._hitReactionTimer = 0;
         this._tremorTimer = 0;
+        this._blindTimer = 0;
+        this.ClearAttachedStatusEffects();
+        this.ClearKnockback();
         if (this._skeleton) {
             this._skeleton.timeScale = 1;
         }
@@ -179,7 +243,29 @@ export class WZSJZ_Enemy extends Component {
         return true;
     }
 
-    public ApplyKnockback(direction: Vec3, distance: number): void {
+    private GetStatusEffectAnchor(name: string): Node {
+        return this.node.getChildByName("点位")?.getChildByName(name)
+            || this.node.getChildByName(name)
+            || this.node;
+    }
+
+    private ClearAttachedStatusEffects(): void {
+        const effects = WZSJZ_CommonEffectSystem.Instance;
+        effects?.StopAttached(
+            WZSJZ_Constant.CommonEffect.Stun.EffectName,
+            this.GetStatusEffectAnchor("眩晕点位"),
+        );
+        effects?.StopAttached(
+            WZSJZ_Constant.ElectromagneticBlind.BlindEffectName,
+            this.GetStatusEffectAnchor("致盲点位"),
+        );
+    }
+
+    public ApplyKnockback(
+        direction: Vec3,
+        distance: number,
+        duration: number = WZSJZ_Constant.EnemyCombat.KnockbackDuration,
+    ): void {
         if (!this.IsAlive || distance <= 0) {
             return;
         }
@@ -187,12 +273,52 @@ export class WZSJZ_Enemy extends Component {
         if (length <= 0.0001) {
             return;
         }
-        const current = this.node.worldPosition;
-        this.node.setWorldPosition(
-            current.x + direction.x / length * distance,
-            current.y + direction.y / length * distance,
-            current.z,
+        // 同一帧受到多段重叠脉冲时取较大的剩余距离，避免瞬间叠成数倍击退。
+        const remainingDistance = Math.max(
+            0,
+            this._knockbackDistance - this._knockbackMovedDistance,
         );
+        this._knockbackDirection.set(direction.x / length, direction.y / length, 0);
+        this._knockbackDistance = Math.max(distance, remainingDistance);
+        this._knockbackMovedDistance = 0;
+        this._knockbackElapsed = 0;
+        this._knockbackDuration = Math.max(0.01, duration);
+    }
+
+    /** 返回本帧开始时是否处于击退，供主状态机暂停主动行为。 */
+    private UpdateKnockback(deltaTime: number): boolean {
+        if (this._knockbackDistance <= 0 || this._knockbackDuration <= 0) {
+            return false;
+        }
+        const previousProgress = Math.min(1, this._knockbackElapsed / this._knockbackDuration);
+        this._knockbackElapsed = Math.min(
+            this._knockbackDuration,
+            this._knockbackElapsed + Math.max(0, deltaTime),
+        );
+        const currentProgress = Math.min(1, this._knockbackElapsed / this._knockbackDuration);
+        const previousEased = 1 - Math.pow(1 - previousProgress, 3);
+        const currentEased = 1 - Math.pow(1 - currentProgress, 3);
+        const moveDistance = this._knockbackDistance * (currentEased - previousEased);
+        if (moveDistance > 0) {
+            const current = this.node.worldPosition;
+            this.node.setWorldPosition(
+                current.x + this._knockbackDirection.x * moveDistance,
+                current.y + this._knockbackDirection.y * moveDistance,
+                current.z,
+            );
+            this._knockbackMovedDistance += moveDistance;
+        }
+        if (currentProgress >= 1) {
+            this.ClearKnockback();
+        }
+        return true;
+    }
+
+    private ClearKnockback(): void {
+        this._knockbackDistance = 0;
+        this._knockbackMovedDistance = 0;
+        this._knockbackElapsed = 0;
+        this._knockbackDuration = 0;
     }
 
     public GetAimWorldPosition(): { x: number; y: number; z: number } {

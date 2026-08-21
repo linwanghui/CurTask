@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec2, Vec3 } from 'cc';
+import { _decorator, Color, Component, Node, Sprite, SpriteFrame, UITransform, Vec2, Vec3 } from 'cc';
 import { WZSJZ_Cell } from './WZSJZ_Cell';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
@@ -16,6 +16,7 @@ export class WZSJZ_DragIndicatorSystem extends Component {
     private _attackRange: Node = null;
     private _dashNodes: Node[] = [];
     private _draggingNode: WZSJZ_GameNode = null;
+    private _isSkillTargeting: boolean = false;
     private _sourceWorldPosition: Vec3 = new Vec3();
     private _originSprite: SpriteFrame = null;
     private _dashSprite: SpriteFrame = null;
@@ -36,6 +37,7 @@ export class WZSJZ_DragIndicatorSystem extends Component {
         this._root.active = true;
         this._origin.setWorldPosition(this._sourceWorldPosition);
         this._origin.active = true;
+        this._attackRange.getComponent(Sprite).color = Color.WHITE;
     }
 
     public Update(uiPosition: Vec2, targetCell: WZSJZ_Cell): void {
@@ -51,7 +53,44 @@ export class WZSJZ_DragIndicatorSystem extends Component {
 
     public Clear(): void {
         this._draggingNode = null;
+        this._isSkillTargeting = false;
         if (this._root?.isValid) this._root.active = false;
+    }
+
+    /** 技能按钮拖拽瞄准：复用路径虚线，在落点显示指定半径的红色范围。 */
+    public BeginSkill(sourceWorldPosition: Vec3, radius: number): void {
+        if (!this._layer || radius <= 0) return;
+        this.Clear();
+        this._isSkillTargeting = true;
+        this._sourceWorldPosition.set(sourceWorldPosition);
+        this.EnsureNodes();
+        this._root.active = true;
+        this._origin.setWorldPosition(this._sourceWorldPosition);
+        // 技能拖拽只显示路径和落点范围，按钮本身不显示单位拖拽用的起点圆环。
+        this._origin.active = false;
+        this._target.active = false;
+        this._attackRange.getComponent(UITransform).setContentSize(radius * 2, radius * 2);
+        const color = WZSJZ_Constant.DragIndicator.SkillRangeColor;
+        this._attackRange.getComponent(Sprite).color = new Color(
+            color.R,
+            color.G,
+            color.B,
+            color.A,
+        );
+        this._attackRange.active = true;
+        this._root.setSiblingIndex(this._layer.children.length - 1);
+    }
+
+    public UpdateSkill(uiPosition: Vec2): void {
+        if (!this._isSkillTargeting || !this._root) return;
+        const endWorld = new Vec3(
+            uiPosition.x,
+            uiPosition.y,
+            this._sourceWorldPosition.z,
+        );
+        this.RefreshDashes(this._sourceWorldPosition, endWorld);
+        this._attackRange.setWorldPosition(endWorld);
+        this._attackRange.active = true;
     }
 
     private async LoadSprites(): Promise<void> {

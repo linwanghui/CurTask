@@ -14,6 +14,7 @@ export class WZSJZ_EventManager {
     public static 修改添加敌人 = "文字三角洲_修改添加敌人";//参数：敌人名
     public static 修改城墙无敌 = "文字三角洲_修改城墙无敌";//无参数，切换永久无敌状态
     public static 修改批量生成小怪 = "文字三角洲_修改批量生成小怪";//无参数，切换普通小怪定时生成
+    public static 修改无限技能 = "文字三角洲_修改无限技能";//无参数，切换全部技能无CD
 
     /** 修改面板属于常驻UI，通过当前游戏管理节点向场景模块广播命令。 */
     private static _sceneEventNode: Node = null;
