@@ -357,7 +357,7 @@ export class WZSJZ_GameNode extends Component {
             WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateShieldBrother(this, deltaTime);
         } else if (this.Name === "堵桥狗" || this.Name === "老黑"
             || this.Name === "哈基蜂" || this.Name === "老板" || this.Name === "威虫"
-            || this.Name === "麦小鼠") {
+            || this.Name === "麦小鼠" || this.Name === "幽默男") {
             WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateSharedBulletCharacter(this, deltaTime);
         }
     }

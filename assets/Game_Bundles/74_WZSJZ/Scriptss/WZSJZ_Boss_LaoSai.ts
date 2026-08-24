@@ -19,8 +19,10 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Enemy {
     private static _arrowPrefab: Prefab = null;
     private static _arrowLoading: Promise<Prefab> = null;
     private static readonly _arrowPool: NodePool = new NodePool();
-    private static _barPrefab: Prefab = null;
-    private static _barLoading: Promise<Prefab> = null;
+    private static _healthBarPrefab: Prefab = null;
+    private static _healthBarLoading: Promise<Prefab> = null;
+    private static _tenacityBarPrefab: Prefab = null;
+    private static _tenacityBarLoading: Promise<Prefab> = null;
 
     private _attackState: LaoSaiAttackState = "none";
     private _attackElapsed: number = 0;
@@ -122,23 +124,26 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Enemy {
     }
 
     private async CreateStatusBars(token: number): Promise<void> {
-        const prefab = await WZSJZ_Boss_LaoSai.PrepareBarPrefab();
-        if (!prefab || token !== this._initializeToken || !this.IsAlive
+        const [healthPrefab, tenacityPrefab] = await Promise.all([
+            WZSJZ_Boss_LaoSai.PrepareHealthBarPrefab(),
+            WZSJZ_Boss_LaoSai.PrepareTenacityBarPrefab(),
+        ]);
+        if (token !== this._initializeToken || !this.IsAlive
             || !this._healthBarLayer?.isValid) {
             return;
         }
         const healthAnchor = this.node.getChildByName("血条位置");
         const tenacityAnchor = this.node.getChildByName("韧性条位置");
-        if (healthAnchor) {
-            const node = instantiate(prefab);
+        if (healthPrefab && healthAnchor) {
+            const node = instantiate(healthPrefab);
             node.name = `${this.node.name}_血条`;
             node.setParent(this._healthBarLayer);
             this.SetLayerRecursively(node, this._healthBarLayer.layer);
             (node.getComponent(WZSJZ_BossHealthBar)
                 || node.addComponent(WZSJZ_BossHealthBar)).Configure(this, healthAnchor);
         }
-        if (tenacityAnchor) {
-            const node = instantiate(prefab);
+        if (tenacityPrefab && tenacityAnchor) {
+            const node = instantiate(tenacityPrefab);
             node.name = `${this.node.name}_韧性条`;
             node.setParent(this._healthBarLayer);
             this.SetLayerRecursively(node, this._healthBarLayer.layer);
@@ -263,20 +268,36 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Enemy {
         return this._arrowLoading;
     }
 
-    private static async PrepareBarPrefab(): Promise<Prefab> {
-        if (this._barPrefab) {
-            return this._barPrefab;
+    private static async PrepareHealthBarPrefab(): Promise<Prefab> {
+        if (this._healthBarPrefab) {
+            return this._healthBarPrefab;
         }
-        if (!this._barLoading) {
-            this._barLoading = WZSJZ_Incident.Loadprefab(
-                WZSJZ_Constant.BossLaoSai.BarPrefabPath,
-            ).then((prefab) => this._barPrefab = prefab).catch((error) => {
-                this._barLoading = null;
+        if (!this._healthBarLoading) {
+            this._healthBarLoading = WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.BossLaoSai.HealthBarPrefabPath,
+            ).then((prefab) => this._healthBarPrefab = prefab).catch((error) => {
+                this._healthBarLoading = null;
                 console.error("[WZSJZ] Boss血条预制体加载失败。", error);
                 return null;
             });
         }
-        return this._barLoading;
+        return this._healthBarLoading;
+    }
+
+    private static async PrepareTenacityBarPrefab(): Promise<Prefab> {
+        if (this._tenacityBarPrefab) {
+            return this._tenacityBarPrefab;
+        }
+        if (!this._tenacityBarLoading) {
+            this._tenacityBarLoading = WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.BossLaoSai.TenacityBarPrefabPath,
+            ).then((prefab) => this._tenacityBarPrefab = prefab).catch((error) => {
+                this._tenacityBarLoading = null;
+                console.error("[WZSJZ] Boss韧性条预制体加载失败。", error);
+                return null;
+            });
+        }
+        return this._tenacityBarLoading;
     }
 
     private static RecycleArrow = (arrow: WZSJZ_BossBullet_LaoSai): void => {

@@ -13,6 +13,7 @@ import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_Skill_ShenBoXianJing } from './技能/WZSJZ_Skill_ShenBoXianJing';
 import { WZSJZ_Skill_ZhenDangMaiChong } from './技能/WZSJZ_Skill_ZhenDangMaiChong';
 import { WZSJZ_Skill_DianCiZhiMang } from './技能/WZSJZ_Skill_DianCiZhiMang';
+import { WZSJZ_Skill_HuiXuanFeiRen } from './技能/WZSJZ_Skill_HuiXuanFeiRen';
 import { WZSJZ_Cell } from './WZSJZ_Cell';
 import { WZSJZ_DragIndicatorSystem } from './WZSJZ_DragIndicatorSystem';
 
@@ -42,6 +43,8 @@ export class WZSJZ_SkillSystem extends Component {
     private _shockPulsePool: NodePool = new NodePool();
     private _electromagneticBlindPrefab: Prefab = null;
     private _electromagneticBlindPool: NodePool = new NodePool();
+    private _boomerangBladePrefab: Prefab = null;
+    private _boomerangBladePool: NodePool = new NodePool();
     private _formationCells: WZSJZ_Cell[] = [];
     private _infiniteSkills: boolean = false;
     private _dragIndicatorSystem: WZSJZ_DragIndicatorSystem = null;
@@ -64,6 +67,7 @@ export class WZSJZ_SkillSystem extends Component {
         this._sonicTrapPool.clear();
         this._shockPulsePool.clear();
         this._electromagneticBlindPool.clear();
+        this._boomerangBladePool.clear();
     }
 
     public Configure(
@@ -91,6 +95,7 @@ export class WZSJZ_SkillSystem extends Component {
         void this.PrepareSonicTrap();
         void this.PrepareShockPulse();
         void this.PrepareElectromagneticBlind();
+        void this.PrepareBoomerangBlade();
         this.SyncSkillButtons();
     }
 
@@ -266,6 +271,8 @@ export class WZSJZ_SkillSystem extends Component {
             case "electromagnetic_blind":
                 // 该技能只通过拖拽回调释放，单击不会走普通施法入口。
                 return false;
+            case "boomerang_blades":
+                return this.CastBoomerangBlades(config);
             default:
                 return false;
         }
@@ -455,6 +462,23 @@ export class WZSJZ_SkillSystem extends Component {
             this._electromagneticBlindPool.put(
                 instantiate(this._electromagneticBlindPrefab),
             );
+        }
+    }
+
+    private async PrepareBoomerangBlade(): Promise<void> {
+        try {
+            this._boomerangBladePrefab = await WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.BoomerangBlades.PrefabPath,
+            );
+        } catch (error) {
+            console.error("[WZSJZ] 回旋飞刃特效预制体加载失败。", error);
+        }
+        if (!this.node?.isValid || !this._boomerangBladePrefab) {
+            return;
+        }
+        while (this._boomerangBladePool.size()
+            < WZSJZ_Constant.ObjectPool.BoomerangBladePrewarm) {
+            this._boomerangBladePool.put(instantiate(this._boomerangBladePrefab));
         }
     }
 
@@ -756,6 +780,112 @@ export class WZSJZ_SkillSystem extends Component {
         effect.node.active = false;
         this._electromagneticBlindPool.put(effect.node);
     };
+
+    private CastBoomerangBlades(config: WZSJZ_SkillConfig): boolean {
+        if (!this._boomerangBladePrefab || !this._enemyArea || !this._projectileLayer) {
+            WZSJZ_UIManager.Instance.ShowText("技能资源尚未加载完成");
+            return false;
+        }
+        const owner = this._owners
+            .filter((item) => item?.node?.isValid && item.Name === config.OwnerName)
+            .sort((left, right) => right.Level - left.Level)[0];
+        if (!owner) {
+            return false;
+        }
+        const bladeConfig = WZSJZ_Constant.BoomerangBlades;
+        const launchNode = owner.node.getChildByName(bladeConfig.LaunchNodeName)
+            || owner.node;
+        const skeleton = owner.node.getChildByName("图像")?.getComponent(sp.Skeleton);
+        if (skeleton) {
+            skeleton.setAnimation(0, bladeConfig.SkillAnimation, false);
+            skeleton.addAnimation(0, bladeConfig.IdleAnimation, true, 0);
+        }
+        // 三枚飞刃共享两组记录，所以单个敌人整次技能最多去程一次、返程一次。
+        const outboundHits = new Set<WZSJZ_Enemy>();
+        const returnHits = new Set<WZSJZ_Enemy>();
+        const receiveExperience = owner.CreateExperienceReceiver();
+        let spawnedCount = 0;
+        for (const angle of bladeConfig.AnglesDegrees) {
+            if (this.SpawnBoomerangBlade(
+                launchNode.worldPosition,
+                angle,
+                WZSJZ_Constant.GetBoomerangBladeDamage(owner.Level),
+                outboundHits,
+                returnHits,
+                () => receiveExperience(bladeConfig.KillExperience),
+            )) {
+                spawnedCount++;
+            }
+        }
+        return spawnedCount > 0;
+    }
+
+    private SpawnBoomerangBlade(
+        origin: Vec3,
+        angleDegrees: number,
+        damage: number,
+        outboundHits: Set<WZSJZ_Enemy>,
+        returnHits: Set<WZSJZ_Enemy>,
+        onKill: () => void,
+    ): boolean {
+        const bladeNode = this._boomerangBladePool.get()
+            || instantiate(this._boomerangBladePrefab);
+        // 兼容热更新前对象池里已经缓存的实例：缺失脚本会被Cocos反序列化为null。
+        this.RemoveMissingComponents(bladeNode);
+        bladeNode.setParent(this._projectileLayer);
+        bladeNode.setWorldPosition(origin);
+        this.SetLayerRecursively(bladeNode, this._projectileLayer.layer);
+        const radians = angleDegrees * Math.PI / 180;
+        const direction = new Vec3(Math.cos(radians), Math.sin(radians), 0);
+        const blade = bladeNode.getComponent(WZSJZ_Skill_HuiXuanFeiRen);
+        if (!blade) {
+            console.error("[WZSJZ] 回旋飞刃预制体根节点缺少WZSJZ_Skill_HuiXuanFeiRen脚本。");
+            bladeNode.active = false;
+            this._boomerangBladePool.put(bladeNode);
+            return false;
+        }
+        const config = WZSJZ_Constant.BoomerangBlades;
+        if (!blade.Initialize(
+            this._enemyArea,
+            origin,
+            direction,
+            config.Speed,
+            config.MaxTravelDistance,
+            config.ReturnDistance,
+            damage,
+            config.AnimationName,
+            outboundHits,
+            returnHits,
+            this.RecycleBoomerangBlade,
+            onKill,
+            (position) => WZSJZ_CommonEffectSystem.Instance?.PlayBlueExplosion(position),
+        )) {
+            this._boomerangBladePool.put(bladeNode);
+            return false;
+        }
+        this.KeepProjectileLayerOnTop();
+        return true;
+    }
+
+    private RecycleBoomerangBlade = (blade: WZSJZ_Skill_HuiXuanFeiRen): void => {
+        if (!blade?.node?.isValid) {
+            return;
+        }
+        blade.node.active = false;
+        this._boomerangBladePool.put(blade.node);
+    };
+
+    private RemoveMissingComponents(node: Node): void {
+        const internalNode = node as any;
+        if (Array.isArray(internalNode._components)) {
+            internalNode._components = internalNode._components.filter(
+                (component: Component) => !!component,
+            );
+        }
+        for (const child of node.children) {
+            this.RemoveMissingComponents(child);
+        }
+    }
 
     private CastShockPulse(config: WZSJZ_SkillConfig): boolean {
         if (!this._shockPulsePrefab || !this._enemyArea || !this._projectileLayer) {

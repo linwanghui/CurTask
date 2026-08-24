@@ -88,7 +88,7 @@ export interface WZSJZ_SkillConfig {
     Duration: number;
     EffectType: "wall_invincible" | "wall_heal" | "block_bridge_dog_artillery"
     | "sonic_trap" | "adjacent_overclock" | "shock_pulse" | "self_attack_speed"
-    | "electromagnetic_blind";
+    | "electromagnetic_blind" | "boomerang_blades";
     EffectName?: string;
     EffectPrefabPath?: string;
     EffectPrewarm?: number;
@@ -224,6 +224,11 @@ export class WZSJZ_Constant {
             Parts: ["麦", "小鼠"],
             PrefabPath: "Prefabs/节点/麦小鼠",
         },
+        {
+            Name: "幽默男",
+            Parts: ["幽默", "男"],
+            PrefabPath: "Prefabs/节点/幽默男",
+        },
     ];
 
     /** 未在场景 MaterialPrefabs 数组中绑定的新物资，可在这里动态补充。 */
@@ -240,6 +245,8 @@ export class WZSJZ_Constant {
         "Prefabs/节点/红",
         "Prefabs/节点/麦",
         "Prefabs/节点/小鼠",
+        "Prefabs/节点/幽默",
+        "Prefabs/节点/男",
     ];
 
     /** 堵桥狗大招：动画本身表现从天而降，脚本只在落点定时结算范围伤害。 */
@@ -366,6 +373,24 @@ export class WZSJZ_Constant {
         KillExperience: 1,
     };
 
+    /** 幽默男技能：三枚飞刃随机散射，抵达最远点后原路返回。 */
+    public static readonly BoomerangBlades = {
+        PrefabPath: "Prefabs/特效/技能回旋飞刃特效",
+        ButtonPrefabPath: "Prefabs/UI/技能按钮/回旋飞刃",
+        Cooldown: 35,
+        AnglesDegrees: [20, 0, -20],
+        Speed: 900,
+        MaxTravelDistance: 900,
+        ReturnDistance: 20,
+        /** 数组下标0～5分别对应幽默男1～6级的单段命中伤害。 */
+        DamageByLevel: [40, 65, 105, 170, 275, 445],
+        AnimationName: "animation",
+        SkillAnimation: "jineng",
+        IdleAnimation: "daiji",
+        LaunchNodeName: "子弹发射点位",
+        KillExperience: 1,
+    };
+
     /** 角色技能配置；同一个角色可以配置多条技能。 */
     public static readonly CharacterSkills: WZSJZ_SkillConfig[] = [
         {
@@ -448,6 +473,15 @@ export class WZSJZ_Constant {
             EffectPrefabPath: WZSJZ_Constant.ElectromagneticBlind.BlindEffectPrefabPath,
             EffectPrewarm: 1,
         },
+        {
+            Id: "回旋飞刃",
+            OwnerName: "幽默男",
+            ButtonPrefabPath: WZSJZ_Constant.BoomerangBlades.ButtonPrefabPath,
+            Cooldown: WZSJZ_Constant.BoomerangBlades.Cooldown,
+            Duration: WZSJZ_Constant.BoomerangBlades.MaxTravelDistance
+                / WZSJZ_Constant.BoomerangBlades.Speed * 2,
+            EffectType: "boomerang_blades",
+        },
     ];
 
     /** 敌人刷出与战斗参数。 */
@@ -476,6 +510,7 @@ export class WZSJZ_Constant {
         RedDogAttackEffectPrewarm: 1,
         WheatMouseBulletPrewarm: 1,
         ElectromagneticBlindPrewarm: 1,
+        BoomerangBladePrewarm: 1,
     };
 
     /** 防止单位停在攻击范围临界点时因浮点误差反复进入移动状态。 */
@@ -547,7 +582,8 @@ export class WZSJZ_Constant {
     /** 牢赛专属战斗数值；动画内的具体发箭时间在其专属脚本顶部调整。 */
     public static readonly BossLaoSai = {
         ArrowPrefabPath: "Prefabs/投掷物/Boss_牢赛_弓箭",
-        BarPrefabPath: "Prefabs/UI/血条",
+        HealthBarPrefabPath: "Prefabs/UI/血条",
+        TenacityBarPrefabPath: "Prefabs/UI/韧性条",
         ArrowSpeed: 1050,
         ArrowHitDistance: 25,
         ArrowHitEffectDuration: 0.3,
@@ -560,7 +596,6 @@ export class WZSJZ_Constant {
         TenacityDamageScale: 1,
         /** 韧性清空并触发受击后，经过多少秒直接回满。 */
         TenacityRecoveryDelay: 5,
-        TenacityBarColor: { R: 235, G: 184, B: 55, A: 255 },
     };
 
     public static readonly GunBullet = {
@@ -1330,6 +1365,70 @@ export class WZSJZ_Constant {
                 { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 460, AttackInterval: 1.05, AttackRange: 1400, BulletSpeed: 1750 },
             ],
         },
+        "幽默": {
+            Name: "幽默",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "男": {
+            Name: "男",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "幽默男": {
+            Name: "幽默男",
+            AttackFireDelay: 0.25,
+            ResourceType: "none",
+            PurchaseWeight: 0,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 0,
+            IsNameUnit: true,
+            IdleAnimation: "daiji",
+            AttackAnimation: "gongji",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 30, AttackInterval: 1.25, AttackRange: 950, BulletSpeed: 1050 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 49, AttackInterval: 1.12, AttackRange: 980, BulletSpeed: 1100 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 80, AttackInterval: 1, AttackRange: 1010, BulletSpeed: 1150 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 130, AttackInterval: 0.88, AttackRange: 1040, BulletSpeed: 1200 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 210, AttackInterval: 0.76, AttackRange: 1070, BulletSpeed: 1250 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 340, AttackInterval: 0.64, AttackRange: 1100, BulletSpeed: 1300 },
+            ],
+        },
     };
 
     public static GetMaterialConfig(name: string): WZSJZ_MaterialConfig | null {
@@ -1354,6 +1453,14 @@ export class WZSJZ_Constant {
             Math.floor(level) - 1,
         ));
         return Math.max(0, this.ElectromagneticBlind.DamageByLevel[index] || 0);
+    }
+
+    public static GetBoomerangBladeDamage(level: number): number {
+        const index = Math.max(0, Math.min(
+            this.BoomerangBlades.DamageByLevel.length - 1,
+            Math.floor(level) - 1,
+        ));
+        return Math.max(0, this.BoomerangBlades.DamageByLevel[index] || 0);
     }
 
     public static GetMaterialLevelConfig(
