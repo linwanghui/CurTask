@@ -207,6 +207,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
             ZRSJZ_FacilityService.SetFacilityLevel(this._facilityName, config.Level);
             ZRSJZ_AudioManager.Instance?.PlaySound("点击");
             ZRSJZ_TaskService.CompleteTask("强化1次", 1);
+            ZRSJZ_UIManager.Instance.ShowTip(`升级成功！`);
             await this.RefreshView();
         } finally {
             this._isUpgrading = false;

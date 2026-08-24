@@ -210,6 +210,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         const inventory = (await ZRSJZ_UIManager.Instance.GetInventory(
             inventoryType,
             this.PlayerIndex,
+            ZRSJZ_UIManager.IsBattle,
         ))?.getComponent(ZRSJZ_InventoryWeaponry);
         if (!inventory) {
             console.error("装备栏尚未初始化:", inventoryType);
@@ -236,6 +237,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         const weaponryInventory = (await ZRSJZ_UIManager.Instance.GetInventory(
             propData.CurInventory,
             this.PlayerIndex,
+            ZRSJZ_UIManager.IsBattle,
         ))?.getComponent(ZRSJZ_InventoryWeaponry);
         if (!weaponryInventory) return;
         await weaponryInventory.ShowForPlayer(propData.CurInventory, this.PlayerIndex);
@@ -246,6 +248,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 const backpack = (await ZRSJZ_UIManager.Instance.GetInventory(
                     ZRSJZ_INVENTORY.背包,
                     this.PlayerIndex,
+                    true,
                 ))?.getComponent(ZRSJZ_Inventory);
                 if (!backpack) return;
 

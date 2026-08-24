@@ -7,7 +7,7 @@ export class ZRSJZ_TaskService {
     //完成任务---增加次数
     public static CompleteTask(taskName: string, count: number = 1) {
         const data = ZRSJZ_GameData.Instance;
-        if (data.CurMainTask.TaskTargetName != taskName) return;
+        if (data.CurMainTask == null || data.CurMainTask.TaskTargetName != taskName) return;
         data.CurMainTask.CurCount += count;
         ZRSJZ_GameData.SaveData();
     }

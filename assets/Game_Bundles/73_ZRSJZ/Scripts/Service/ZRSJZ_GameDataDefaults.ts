@@ -16,7 +16,7 @@ export class ZRSJZ_GameDataDefaults {
         this.InitializePlayerKnife(data, 0);
         this.InitializePlayerKnife(data, 1);
 
-        const task = ZRSJZ_MAIN_TASK_CONFIG.get("新人报道");
+        const task = ZRSJZ_MAIN_TASK_CONFIG.get("初入禁区");
         data.CurMainTask = {
             TaskName: task.TaskName,
             TaskTargetName: task.TaskTargets[0].TaskTargetName,

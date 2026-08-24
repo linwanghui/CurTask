@@ -22,8 +22,8 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
 
     Show(...args: any[]): void {
         super.Show(() => {
-            this.ShowAward(...args);
         });
+        this.ShowAward(...args);
     }
 
     ShowAward(...args: ZRSJZ_MainTaskAwardConfig[]) {

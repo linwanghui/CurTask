@@ -611,22 +611,22 @@ export const ZRSJZ_FACILITY_UPGRADE_CONFIG: Record<ZRSJZ_UpgradeFacilityName, {
         AttributeName: "攻击力",
         ValueSuffix: "%",
         Levels: [
-            { Level: 1, Gold: 10000, Materials: [{ PropName: "八宝粥", Count: 1 }, { PropName: "切割刀", Count: 1 }], BonusValue: 5 },
-            { Level: 2, Gold: 30000, Materials: [{ PropName: "高精数显卡尺", Count: 2 }, { PropName: "显卡", Count: 1 }], BonusValue: 10 },
-            { Level: 3, Gold: 80000, Materials: [{ PropName: "刀片服务器", Count: 2 }, { PropName: "军用电台", Count: 1 }], BonusValue: 15 },
-            { Level: 4, Gold: 200000, Materials: [{ PropName: "高速阵列", Count: 1 }, { PropName: "信息终端", Count: 1 }], BonusValue: 20 },
-            { Level: 5, Gold: 500000, Materials: [{ PropName: "供能单元", Count: 1 }, { PropName: "动力电池组", Count: 1 }], BonusValue: 30 },
+            { Level: 1, Gold: 10000, Materials: [{ PropName: "切割刀", Count: 1 }, { PropName: "工业图纸", Count: 1 }], BonusValue: 5 },
+            { Level: 2, Gold: 30000, Materials: [{ PropName: "高精数显卡尺", Count: 1 }, { PropName: "电动马达", Count: 1 }], BonusValue: 10 },
+            { Level: 3, Gold: 80000, Materials: [{ PropName: "协议箱", Count: 1 }, { PropName: "汽车燃油", Count: 1 }], BonusValue: 15 },
+            { Level: 4, Gold: 200000, Materials: [{ PropName: "高速阵列", Count: 1 }, { PropName: "供能单元", Count: 1 }], BonusValue: 20 },
+            { Level: 5, Gold: 500000, Materials: [{ PropName: "军用电台", Count: 1 }, { PropName: "军用雷达", Count: 1 }], BonusValue: 30 },
         ],
     },
     "研究所": {
         AttributeName: "生命上限",
         ValueSuffix: "",
         Levels: [
-            { Level: 1, Gold: 10000, Materials: [{ PropName: "黑色手表", Count: 1 }, { PropName: "核桃", Count: 1 }], BonusValue: 10 },
-            { Level: 2, Gold: 30000, Materials: [{ PropName: "脑机数据", Count: 2 }, { PropName: "显卡", Count: 1 }], BonusValue: 20 },
-            { Level: 3, Gold: 80000, Materials: [{ PropName: "除颤器", Count: 1 }, { PropName: "动力电池组", Count: 1 }], BonusValue: 35 },
-            { Level: 4, Gold: 200000, Materials: [{ PropName: "呼吸机", Count: 1 }, { PropName: "ECMO", Count: 1 }], BonusValue: 50 },
-            { Level: 5, Gold: 500000, Materials: [{ PropName: "医疗机器人", Count: 1 }, { PropName: "反应炉", Count: 1 }], BonusValue: 75 },
+            { Level: 1, Gold: 10000, Materials: [{ PropName: "黑色手表", Count: 1 }, { PropName: "量子U盘", Count: 1 }], BonusValue: 10 },
+            { Level: 2, Gold: 30000, Materials: [{ PropName: "太阳能板", Count: 1 }, { PropName: "脑机数据", Count: 1 }], BonusValue: 20 },
+            { Level: 3, Gold: 80000, Materials: [{ PropName: "脑机数据", Count: 2 }, { PropName: "除颤器", Count: 1 }], BonusValue: 35 },
+            { Level: 4, Gold: 200000, Materials: [{ PropName: "信息终端", Count: 1 }, { PropName: "呼吸机", Count: 1 }], BonusValue: 50 },
+            { Level: 5, Gold: 500000, Materials: [{ PropName: "反应炉", Count: 1 }, { PropName: "医疗机器人", Count: 1 }], BonusValue: 75 },
         ],
     },
     "健身": {
@@ -635,8 +635,8 @@ export const ZRSJZ_FACILITY_UPGRADE_CONFIG: Record<ZRSJZ_UpgradeFacilityName, {
         Levels: [
             { Level: 1, Gold: 10000, Materials: [{ PropName: "哑铃", Count: 1 }, { PropName: "沙袋", Count: 1 }], BonusValue: 5 },
             { Level: 2, Gold: 30000, Materials: [{ PropName: "哑铃", Count: 4 }, { PropName: "沙袋", Count: 4 }], BonusValue: 10 },
-            { Level: 3, Gold: 80000, Materials: [{ PropName: "哑铃", Count: 6 }, { PropName: "高精数显卡尺", Count: 2 }], BonusValue: 15 },
-            { Level: 4, Gold: 200000, Materials: [{ PropName: "电动马达", Count: 2 }, { PropName: "动力电池组", Count: 1 }], BonusValue: 20 },
+            { Level: 3, Gold: 80000, Materials: [{ PropName: "哑铃", Count: 8 }, { PropName: "沙袋", Count: 8 }], BonusValue: 15 },
+            { Level: 4, Gold: 200000, Materials: [{ PropName: "电动马达", Count: 2 }, { PropName: "汽车燃油", Count: 2 }], BonusValue: 20 },
             { Level: 5, Gold: 500000, Materials: [{ PropName: "供能单元", Count: 1 }, { PropName: "反应炉", Count: 1 }], BonusValue: 30 },
         ],
     },
@@ -1422,50 +1422,55 @@ export interface ZRSJZ_MainTaskConfig {
     TaskAwards: ReadonlyArray<ZRSJZ_MainTaskAwardConfig>;//任务奖励
 }
 
+/**
+ * 主线奖励固定提供钞票和一组满额弹药，额外奖励用于发放当前阶段的装备或成长物资。
+ * 将数值集中在任务配置中，方便后续按关卡难度继续调整。
+ */
+function CreateMainTaskAwards(
+    gold: number,
+    ammoName: string,
+    ...extraAwards: Array<string | ZRSJZ_MainTaskAwardConfig>
+): ZRSJZ_MainTaskAwardConfig[] {
+    return [
+        { TaskAwardName: "钞票", TaskAwardCount: gold },
+        { TaskAwardName: ammoName, TaskAwardCount: ZRSJZ_AMMO_MAX_COUNT },
+        ...extraAwards.map(award => typeof award === "string"
+            ? { TaskAwardName: award, TaskAwardCount: 1 }
+            : award
+        ),
+    ];
+}
+
+function CreateMainTaskPropAward(TaskAwardName: string, TaskAwardCount: number): ZRSJZ_MainTaskAwardConfig {
+    return { TaskAwardName, TaskAwardCount };
+}
+
 export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>> = new Map([
-    ["新人报道", {
-        TaskName: "新人报道",
-        TaskDesc: "完成新手教程",
+    ["初入禁区", {
+        TaskName: "初入禁区",
+        TaskDesc: "完成新手教程，熟悉移动、战斗、搜索物资与撤离等基础操作，为接下来的行动做好准备。",
         TaskTargets: [
             {
                 TaskTargetName: "完成新手教程",
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: [
-            {
-                TaskAwardName: "钞票",
-                TaskAwardCount: 10000,
-            }
-        ]
+        TaskAwards: CreateMainTaskAwards(50000, "1级子弹", "CN8-突击步枪", "黑色手表", "量子U盘"),
     }],
-    ["战争狂人", {
-        TaskName: "战争狂人",
-        TaskDesc: "",
+    ["弹药补给", {
+        TaskName: "弹药补给",
+        TaskDesc: "前往商城购买1级子弹。充足的弹药是每次行动顺利完成的基础保障。",
         TaskTargets: [
             {
                 TaskTargetName: "在商城购买[1级子弹]",
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: [
-            {
-                TaskAwardName: "钞票",
-                TaskAwardCount: 10000,
-            },
-            {
-                TaskAwardName: "手套",
-                TaskAwardCount: 1,
-            },
-            {
-                TaskAwardName: "无线便携电钻",
-                TaskAwardCount: 1,
-            }
-        ]
+        TaskAwards: CreateMainTaskAwards(60000, "1级子弹", "一级头", "哑铃", "沙袋"),
     }],
-    ["售货机", {
-        TaskName: "售货机",
-        TaskDesc: "",
+    ["物资变现", {
+        TaskName: "物资变现",
+        TaskDesc: "出售一件任意物品，熟悉物资交易流程，并为后续战备积累钞票。",
         TaskTargets: [
 
             {
@@ -1473,99 +1478,239 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: [
-            {
-                TaskAwardName: "钞票",
-                TaskAwardCount: 10000,
-            },
-            {
-                TaskAwardName: "手套",
-                TaskAwardCount: 1,
-            },
-            {
-                TaskAwardName: "无线便携电钻",
-                TaskAwardCount: 1,
-            }
-        ]
+        TaskAwards: CreateMainTaskAwards(70000, "1级子弹", "一级甲", "切割刀", "工业图纸"),
     }],
-    ["1号超人", {
-        TaskName: "1号超人",
-        TaskDesc: "",
+    ["强化", {
+        TaskName: "强化",
+        TaskDesc: "完成一次强化，提升自身战斗能力，以应对禁区中更危险的敌人。",
         TaskTargets: [
             {
                 TaskTargetName: "强化1次",
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: [
-            {
-                TaskAwardName: "手套",
-                TaskAwardCount: 1,
-            },
-            {
-                TaskAwardName: "无线便携电钻",
-                TaskAwardCount: 1,
-            }
-        ]
+        TaskAwards: CreateMainTaskAwards(80000, "2级子弹", "一级包", "高精数显卡尺", "电动马达"),
     }],
-    ["搜打撤", {
-        TaskName: "搜打撤",
-        TaskDesc: "",
+    ["小镇初探", {
+        TaskName: "小镇初探",
+        TaskDesc: "进入五号小镇的机密行动区域，在搜集物资后抵达撤离点并成功撤离。",
         TaskTargets: [
             {
                 TaskTargetName: "进入[五号小镇_机密行动]并成功撤离",
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: [
-            {
-                TaskAwardName: "手套",
-                TaskAwardCount: 1,
-            },
-            {
-                TaskAwardName: "无线便携电钻",
-                TaskAwardCount: 1,
-            }
-        ]
+        TaskAwards: CreateMainTaskAwards(100000, "2级子弹", "二级头", "太阳能板", "脑机数据"),
     }],
-    ["祝你好运", {
-        TaskName: "祝你好运",
-        TaskDesc: "",
+    ["街区清剿", {
+        TaskName: "街区清剿",
+        TaskDesc: "五号小镇的敌人正在封锁主要街区。进入机密行动区域，击杀5名敌人以削弱他们的力量。",
         TaskTargets: [
             {
                 TaskTargetName: "击杀[五号小镇_机密行动]中的敌人",
                 TaskTargetCount: 5,
             },
         ],
-        TaskAwards: [
-            {
-                TaskAwardName: "手套",
-                TaskAwardCount: 1,
-            },
-            {
-                TaskAwardName: "无线便携电钻",
-                TaskAwardCount: 1,
-            }
-        ]
+        TaskAwards: CreateMainTaskAwards(
+            120000,
+            "2级子弹",
+            "二级甲",
+            CreateMainTaskPropAward("哑铃", 4),
+            CreateMainTaskPropAward("沙袋", 4),
+        ),
     }],
     ["解放小镇", {
         TaskName: "解放小镇",
-        TaskDesc: "",
+        TaskDesc: "敌方首领仍在控制五号小镇。进入机密行动区域击败Boss，彻底解除小镇的威胁。",
         TaskTargets: [
             {
                 TaskTargetName: "打败[五号小镇_机密行动]Boss",
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: [
+        TaskAwards: CreateMainTaskAwards(180000, "3级子弹", "二级包", "K50-轻机枪", "协议箱", "汽车燃油"),
+    }],
+    ["重返小镇", {
+        TaskName: "重返小镇",
+        TaskDesc: "更危险的敌人已重新占据五号小镇。进入绝密行动区域完成侦察，并携带情报成功撤离。",
+        TaskTargets: [
             {
-                TaskAwardName: "手套",
-                TaskAwardCount: 1,
+                TaskTargetName: "进入[五号小镇_绝密行动]并成功撤离",
+                TaskTargetCount: 1,
             },
+        ],
+        TaskAwards: CreateMainTaskAwards(
+            200000,
+            "3级子弹",
+            "三级头",
+            CreateMainTaskPropAward("脑机数据", 2),
+            "除颤器",
+        ),
+    }],
+    ["暗巷肃清", {
+        TaskName: "暗巷肃清",
+        TaskDesc: "绝密行动区域内的敌人正在集结。深入五号小镇，击杀10名敌人，打乱他们的部署。",
+        TaskTargets: [
             {
-                TaskAwardName: "无线便携电钻",
-                TaskAwardCount: 1,
-            }
-        ]
+                TaskTargetName: "击杀[五号小镇_绝密行动]中的敌人",
+                TaskTargetCount: 10,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(
+            250000,
+            "3级子弹",
+            "三级甲",
+            CreateMainTaskPropAward("哑铃", 8),
+            CreateMainTaskPropAward("沙袋", 8),
+        ),
+    }],
+    ["小镇决战", {
+        TaskName: "小镇决战",
+        TaskDesc: "敌方精锐首领藏身于五号小镇深处。进入绝密行动区域击败Boss，结束小镇争夺战。",
+        TaskTargets: [
+            {
+                TaskTargetName: "打败[五号小镇_绝密行动]Boss",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(350000, "4级子弹", "三级包", "RK77-轻机枪", "高速阵列", "供能单元"),
+    }],
+    ["踏入古迹", {
+        TaskName: "踏入古迹",
+        TaskDesc: "新的线索指向沙漠古迹。进入机密行动区域调查遗迹周边，并在确认安全路线后成功撤离。",
+        TaskTargets: [
+            {
+                TaskTargetName: "进入[沙漠古迹_机密行动]并成功撤离",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(400000, "4级子弹", "四级头", "信息终端", "呼吸机"),
+    }],
+    ["遗迹清剿", {
+        TaskName: "遗迹清剿",
+        TaskDesc: "敌人已在遗迹外围建立据点。进入沙漠古迹的机密行动区域，击杀10名敌人，清理推进路线。",
+        TaskTargets: [
+            {
+                TaskTargetName: "击杀[沙漠古迹_机密行动]中的敌人",
+                TaskTargetCount: 10,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(
+            500000,
+            "4级子弹",
+            "四级甲",
+            CreateMainTaskPropAward("电动马达", 2),
+            CreateMainTaskPropAward("汽车燃油", 2),
+        ),
+    }],
+    ["黄沙守卫", {
+        TaskName: "黄沙守卫",
+        TaskDesc: "遗迹守卫者阻断了深入沙漠的道路。进入机密行动区域击败Boss，夺取古迹外围的控制权。",
+        TaskTargets: [
+            {
+                TaskTargetName: "打败[沙漠古迹_机密行动]Boss",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(700000, "5级子弹", "四级包", "FS-霰弹枪", "军用电台", "军用雷达"),
+    }],
+    ["深入禁地", {
+        TaskName: "深入禁地",
+        TaskDesc: "古迹深处出现高价值信号。进入沙漠古迹的绝密行动区域完成侦察，并带着调查结果成功撤离。",
+        TaskTargets: [
+            {
+                TaskTargetName: "进入[沙漠古迹_绝密行动]并成功撤离",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(800000, "5级子弹", "五级头", "反应炉", "医疗机器人"),
+    }],
+    ["沙海歼敌", {
+        TaskName: "沙海歼敌",
+        TaskDesc: "大批敌方精锐盘踞在古迹核心区域。进入绝密行动区域，击杀15名敌人，为最终进攻扫清障碍。",
+        TaskTargets: [
+            {
+                TaskTargetName: "击杀[沙漠古迹_绝密行动]中的敌人",
+                TaskTargetCount: 15,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(1000000, "5级子弹", "五级甲", "供能单元", "反应炉"),
+    }],
+    ["古迹终战", {
+        TaskName: "古迹终战",
+        TaskDesc: "盘踞古迹的首领掌握着北境行动的关键线索。进入绝密行动区域击败Boss，结束沙漠战役。",
+        TaskTargets: [
+            {
+                TaskTargetName: "打败[沙漠古迹_绝密行动]Boss",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(1300000, "6级子弹", "五级包", "ssv-狙击枪", "金条", "无人机"),
+    }],
+    ["北境远征", {
+        TaskName: "北境远征",
+        TaskDesc: "追踪古迹中的线索前往极北之地。进入机密行动区域勘察雪原环境，并成功撤离。",
+        TaskTargets: [
+            {
+                TaskTargetName: "进入[极北之地_机密行动]并成功撤离",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(1500000, "6级子弹", "六级头", "军用电台", "动力电池组"),
+    }],
+    ["雪原清剿", {
+        TaskName: "雪原清剿",
+        TaskDesc: "敌人依托严寒环境封锁了雪原通道。进入极北之地的机密行动区域，击杀15名敌人。",
+        TaskTargets: [
+            {
+                TaskTargetName: "击杀[极北之地_机密行动]中的敌人",
+                TaskTargetCount: 15,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(1800000, "6级子弹", "六级甲", "信息大终端", "军用雷达"),
+    }],
+    ["冰原霸主", {
+        TaskName: "冰原霸主",
+        TaskDesc: "雪原据点的首领正在阻止远征队继续前进。进入机密行动区域击败Boss，打开北境通道。",
+        TaskTargets: [
+            {
+                TaskTargetName: "打败[极北之地_机密行动]Boss",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(2200000, "6级子弹", "六级包", "W76-狙击枪", "飞行记录仪", "火箭燃料"),
+    }],
+    ["终极潜入", {
+        TaskName: "终极潜入",
+        TaskDesc: "最后的敌方据点位于极北之地深处。进入绝密行动区域取得核心情报，并从封锁中成功撤离。",
+        TaskTargets: [
+            {
+                TaskTargetName: "进入[极北之地_绝密行动]并成功撤离",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(2500000, "6级子弹", "高级房卡", "碳纤维", "医疗机器人"),
+    }],
+    ["极寒决战", {
+        TaskName: "极寒决战",
+        TaskDesc: "敌方残余力量正在绝密区域集结。深入极北之地，击杀20名敌人，瓦解他们最后的防线。",
+        TaskTargets: [
+            {
+                TaskTargetName: "击杀[极北之地_绝密行动]中的敌人",
+                TaskTargetCount: 20,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(3000000, "6级子弹", "动力电池组", "坦克", "特供咖啡豆"),
+    }],
+    ["北境终局", {
+        TaskName: "北境终局",
+        TaskDesc: "幕后首领已在极北之地的核心据点现身。进入绝密行动区域击败Boss，完成禁区主线行动。",
+        TaskTargets: [
+            {
+                TaskTargetName: "打败[极北之地_绝密行动]Boss",
+                TaskTargetCount: 1,
+            },
+        ],
+        TaskAwards: CreateMainTaskAwards(5000000, "6级子弹", "KK41-霰弹枪", "反应炉", "烽火奖杯"),
     }],
 ])
