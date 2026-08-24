@@ -96,6 +96,16 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Enemy {
         }
     }
 
+    protected OnTremorStarted(): void {
+        this._attackState = "none";
+        this._attackElapsed = 0;
+        this._firedArrowCount = 0;
+        this._normalAttackTimer = Math.max(
+            this._normalAttackTimer,
+            this.EnemyConfig?.AttackInterval || 0,
+        );
+    }
+
     private async CreateStatusBars(token: number): Promise<void> {
         const prefab = await WZSJZ_Boss_LaoSai.PrepareBarPrefab();
         if (!prefab || token !== this._initializeToken || !this.IsAlive

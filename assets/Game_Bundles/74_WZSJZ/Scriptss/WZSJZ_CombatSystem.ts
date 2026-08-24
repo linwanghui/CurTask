@@ -376,7 +376,7 @@ export class WZSJZ_CombatSystem extends Component {
             }
             const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, currentConfig.AttackRange);
             if (currentTarget) {
-                this.SpawnGunBullet(gameNode, currentTarget, currentConfig.AttackDamage, currentConfig.BulletSpeed);
+                this.SpawnGunBullet(gameNode, currentTarget, gameNode.GetAttackDamage(), currentConfig.BulletSpeed);
             }
         });
     }
@@ -400,7 +400,7 @@ export class WZSJZ_CombatSystem extends Component {
             }
             const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, currentConfig.AttackRange);
             if (currentTarget && this.SpawnKnifeEffect(currentTarget)) {
-                currentTarget.TakeDamage(currentConfig.AttackDamage);
+                currentTarget.TakeDamage(gameNode.GetAttackDamage());
             }
         });
     }
@@ -432,7 +432,7 @@ export class WZSJZ_CombatSystem extends Component {
                 this.SpawnCannonBullet(
                     gameNode,
                     currentTarget,
-                    currentConfig.AttackDamage,
+                    gameNode.GetAttackDamage(),
                     currentConfig.BulletSpeed,
                     currentConfig.AreaRadius,
                 );
@@ -477,7 +477,7 @@ export class WZSJZ_CombatSystem extends Component {
             }
             this.SpawnMine(
                 gameNode,
-                currentConfig.AttackDamage,
+                gameNode.GetAttackDamage(),
                 currentConfig.TriggerRadius,
                 currentConfig.AreaRadius,
             );

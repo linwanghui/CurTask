@@ -1,0 +1,196 @@
+{
+"skeleton": {
+	"hash": "DHDeQ0CL5diDvK+DjlDpOLd5kKc",
+	"spine": "3.8.75",
+	"x": -138.77,
+	"y": -72.1,
+	"width": 282.88,
+	"height": 211.43,
+	"images": "./images/",
+	"audio": ""
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "ap", "parent": "root", "scaleX": 0.8, "scaleY": 0.8 },
+	{ "name": "GivePowe_1", "parent": "ap", "x": 1.52, "y": 86.88, "scaleX": 1.3268, "scaleY": 1.3268 },
+	{ "name": "GivePowe_4", "parent": "GivePowe_1", "length": 30, "x": 4.92, "y": 33.02 },
+	{ "name": "GivePowe_6", "parent": "ap", "x": 1.48, "y": -24.07 },
+	{ "name": "GivePowe_7", "parent": "ap", "length": 44.74, "x": 0.69, "y": -26.91 },
+	{
+		"name": "GivePowe_a1",
+		"parent": "GivePowe_1",
+		"length": 59.95,
+		"x": -4.3,
+		"y": -19.7,
+		"scaleX": 0.6,
+		"scaleY": 0.8
+	},
+	{ "name": "骨骼", "parent": "ap", "x": 3.34, "y": -2.77, "scaleX": 0.8, "scaleY": 0.8 },
+	{ "name": "骨骼2", "parent": "ap", "x": 3.34, "y": -2.77, "scaleX": 0.8, "scaleY": 0.8 }
+],
+"slots": [
+	{ "name": "GivePowe_1", "bone": "GivePowe_1" },
+	{ "name": "GivePowe_4", "bone": "骨骼", "attachment": "GivePowe_4" },
+	{ "name": "GivePowe_5", "bone": "骨骼2", "attachment": "GivePowe_4" },
+	{ "name": "GivePowe_6", "bone": "GivePowe_6", "attachment": "GivePowe_6" },
+	{ "name": "GivePowe_7", "bone": "GivePowe_7", "attachment": "GivePowe_5" },
+	{ "name": "GivePowe_a1", "bone": "GivePowe_a1", "attachment": "GivePowe_a1" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"GivePowe_1": {
+				"GivePowe_1": { "x": -0.74, "y": 7.21, "width": 67, "height": 92 }
+			},
+			"GivePowe_4": {
+				"GivePowe_4": { "scaleY": 0.415, "width": 442, "height": 442 }
+			},
+			"GivePowe_5": {
+				"GivePowe_4": { "scaleY": 0.415, "width": 442, "height": 442 }
+			},
+			"GivePowe_6": {
+				"GivePowe_6": { "x": -0.23, "y": 6.93, "width": 59, "height": 48 }
+			},
+			"GivePowe_7": {
+				"GivePowe_5": { "x": 7.92, "y": 44.27, "width": 107, "height": 117 }
+			},
+			"GivePowe_a1": {
+				"GivePowe_a1": { "x": 4.65, "y": -17.64, "width": 158, "height": 249 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {
+		"slots": {
+			"GivePowe_a1": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 0.1667, "color": "ffffff00" },
+					{ "time": 0.3, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 0.6333, "color": "ffffffff" },
+					{ "time": 0.8333, "color": "ffffff00" }
+				]
+			},
+			"GivePowe_7": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 0.2, "color": "ffffffff" },
+					{ "time": 0.3333, "color": "ffffff00" }
+				]
+			},
+			"GivePowe_5": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 0.3333, "color": "ffffffff" },
+					{ "time": 0.4333, "color": "5fe0ffa0" },
+					{ "time": 0.7667, "color": "3ecdc300" }
+				]
+			},
+			"GivePowe_4": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 0.2667, "color": "ffffffff" },
+					{ "time": 0.3667, "color": "5ffcffa0" },
+					{ "time": 0.4667, "color": "3ebccd00" }
+				]
+			},
+			"GivePowe_6": {
+				"color": [
+					{ "color": "23fee0ff" },
+					{ "time": 0.1667, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 0.2, "color": "ffffff00" }
+				]
+			},
+			"GivePowe_1": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 0.2, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 0.8, "color": "ffffffff" },
+					{ "time": 0.9333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.2, "name": "GivePowe_1" }
+				]
+			}
+		},
+		"bones": {
+			"GivePowe_4": {
+				"translate": [
+					{ "time": 0.2 },
+					{ "time": 0.8, "y": 11.27 }
+				],
+				"scale": [
+					{ "y": 0.485, "curve": "stepped" },
+					{ "time": 0.2, "y": 0.485 },
+					{ "time": 0.2667, "y": 0.897 },
+					{ "time": 0.3667, "y": 0.959 },
+					{ "time": 0.8 }
+				]
+			},
+			"骨骼": {
+				"translate": [
+					{ "curve": "stepped" },
+					{ "time": 0.2667, "y": 44.11 },
+					{ "time": 0.3667, "y": 137.22 },
+					{ "time": 0.4667, "y": 178.49 }
+				],
+				"scale": [
+					{ "curve": "stepped" },
+					{ "time": 0.2667, "x": 0.2, "y": 0.2 },
+					{ "time": 0.3667, "x": 0.6, "y": 0.6 },
+					{ "time": 0.4667, "x": 0.7, "y": 0.7 }
+				]
+			},
+			"骨骼2": {
+				"translate": [
+					{ "curve": "stepped" },
+					{ "time": 0.3333, "y": 43.96 },
+					{ "time": 0.4333, "y": 123.72 },
+					{ "time": 0.7667, "y": 223.48 }
+				],
+				"scale": [
+					{ "curve": "stepped" },
+					{ "time": 0.3333, "x": 0.2, "y": 0.2 },
+					{ "time": 0.4333, "x": 0.6, "y": 0.6 },
+					{ "time": 0.7667, "x": 0.7, "y": 0.7 }
+				]
+			},
+			"GivePowe_a1": {
+				"translate": [
+					{ "time": 0.1667 },
+					{ "time": 0.9333, "y": 47.7 }
+				]
+			},
+			"GivePowe_1": {
+				"translate": [
+					{ "y": -122.59 },
+					{ "time": 0.2, "x": -2.38, "y": -88.85 },
+					{ "time": 0.2667, "y": -29.36 },
+					{ "time": 0.3667, "y": -18.68 },
+					{ "time": 0.8, "y": -8.87 },
+					{ "time": 0.9333, "y": 1.38 }
+				]
+			},
+			"GivePowe_7": {
+				"translate": [
+					{ "time": 0.2 },
+					{ "time": 0.3333, "y": 3.26 }
+				],
+				"scale": [
+					{},
+					{ "time": 0.2, "y": 0.695 },
+					{ "time": 0.3333, "x": 1.52, "y": 1.145 }
+				]
+			},
+			"GivePowe_6": {
+				"scale": [
+					{ "x": 0.21, "y": 0.22 },
+					{ "time": 0.1667 }
+				]
+			}
+		}
+	}
+}
+}
