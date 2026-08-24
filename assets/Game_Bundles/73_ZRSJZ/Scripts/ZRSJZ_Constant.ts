@@ -1168,6 +1168,10 @@ export interface ZRSJZ_MapConfig {
     MapEnemy: Map<string, ZRSJZ_MapEnemyConfig>
     MapBoss: Map<string, ZRSJZ_MapBossConfig>
     MapBox: Map<string, ZRSJZ_BoxConfig>
+    /** 本关卡特有的红色物资，同时用于选关界面的专属掉落展示。 */
+    ExclusiveRedProps: readonly string[]
+    /** 所有关卡都能开出的通用红色物资，不在选关界面的专属掉落中展示。 */
+    UniversalRedProps: readonly string[]
     MapProp: string[][]
 }
 
@@ -1203,6 +1207,40 @@ const ZRSJZ_MAP_BOX_EQUIPMENT_QUALITIES: readonly ZRSJZ_PROP_QUALITY[] = [
     ZRSJZ_PROP_QUALITY.蓝色,
     ZRSJZ_PROP_QUALITY.紫色,
 ];
+
+/**
+ * 各关卡的专属特产大红。
+ *
+ * 配置按关卡难度逐步提高物资价值和占用空间；关卡原有的红色品质概率仍决定
+ * 是否出红；这些物资只加入对应关卡的掉落池，界面展示也直接读取同一份数据。
+ */
+export const ZRSJZ_MAP_EXCLUSIVE_RED_CONFIG: ReadonlyMap<string, readonly string[]> = new Map([
+    ["新手村", []],
+    ["五号小镇_机密行动", ["化石", "白金鸟蛋", "黄金方苹果"]],
+    ["五号小镇_绝密行动", ["实验数据", "曼德尔", "七彩鸟蛋", "极品平安果"]],
+    ["沙漠古迹_机密行动", ["金条", "劳力士", "终端", "扫地机器"]],
+    ["沙漠古迹_绝密行动", ["军用地图匣", "外星人笔记本", "万金", "刀片服务器"]],
+    ["极北之地_机密行动", ["显卡", "留声机", "动力电池组", "卫星锅", "半身像"]],
+    ["极北之地_绝密行动", ["军用雷达", "ECMO", "飞行记录仪", "火箭燃料", "医疗机器人"]],
+]);
+
+/**
+ * 跨地图通用大红。
+ * 所有未被分配为地图专属特产的红色“物品”都会自动进入这里；新增红色物品时，
+ * 如果没有放入上面的专属配置，也会自动成为通用大红，避免意外从游戏中消失。
+ */
+const ZRSJZ_EXCLUSIVE_RED_PROP_SET: ReadonlySet<string> = new Set(
+    Array.from(ZRSJZ_MAP_EXCLUSIVE_RED_CONFIG.values()).flatMap(props => [...props]),
+);
+export const ZRSJZ_UNIVERSAL_RED_CONFIG: readonly string[] = Object.freeze(
+    Array.from(ZRSJZ_PROP_CONFIG.values())
+        .filter(prop =>
+            prop.Quality === ZRSJZ_PROP_QUALITY.红色
+            && prop.PropType === "物品"
+            && !ZRSJZ_EXCLUSIVE_RED_PROP_SET.has(prop.Name)
+        )
+        .map(prop => prop.Name),
+);
 
 function CanEquipmentDropFromMapBox(prop: { PropType: string, Quality: ZRSJZ_PROP_QUALITY }): boolean {
     return prop.PropType !== "背包"
@@ -1241,6 +1279,7 @@ function CreateMapBoxConfig(
 }
 
 function CreateMapModeConfig(
+    mapKey: string,
     displayName: string,
     actionName: string,
     mapName: string,
@@ -1256,6 +1295,12 @@ function CreateMapModeConfig(
     const commonMax = 4 + Math.ceil(modeIndex / 2);
     const eliteMin = 3 + Math.floor(modeIndex / 3);
     const eliteMax = 5 + Math.ceil(modeIndex / 2);
+    const exclusiveRedProps = [...(ZRSJZ_MAP_EXCLUSIVE_RED_CONFIG.get(mapKey) ?? [])];
+    const universalRedProps = [...ZRSJZ_UNIVERSAL_RED_CONFIG];
+    // 红色房卡、弹药等不是“大红物资”，继续保留原有跨地图掉落规则。
+    const otherRedProps = ZRSJZ_MAP_PROP_POOL[5].filter(propName =>
+        ZRSJZ_PROP_CONFIG.get(propName)?.PropType !== "物品"
+    );
 
     return {
         DisplayName: displayName,
@@ -1374,19 +1419,25 @@ function CreateMapModeConfig(
                 4 + Math.floor(modeIndex / 2), 7 + modeIndex, 2,
             )],
         ]),
-        MapProp: ZRSJZ_MAP_PROP_POOL.map(props => [...props]),
+        ExclusiveRedProps: exclusiveRedProps,
+        UniversalRedProps: universalRedProps,
+        MapProp: ZRSJZ_MAP_PROP_POOL.map((props, qualityIndex) =>
+            qualityIndex === 5
+                ? [...universalRedProps, ...exclusiveRedProps, ...otherRedProps]
+                : [...props]
+        ),
     };
 }
 
 /** 三张地图、两种行动，共六个由易到难的模式。 */
 export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_MapConfig>> = new Map([
-    ["新手村", CreateMapModeConfig("新手村", "机密行动", "新手村", 0)],
-    ["五号小镇_机密行动", CreateMapModeConfig("五号小镇", "机密行动", "城镇", 0)],
-    ["五号小镇_绝密行动", CreateMapModeConfig("五号小镇", "绝密行动", "城镇", 1)],
-    ["沙漠古迹_机密行动", CreateMapModeConfig("沙漠古迹", "机密行动", "沙漠", 2)],
-    ["沙漠古迹_绝密行动", CreateMapModeConfig("沙漠古迹", "绝密行动", "沙漠", 3)],
-    ["极北之地_机密行动", CreateMapModeConfig("极北之地", "机密行动", "雪地", 4)],
-    ["极北之地_绝密行动", CreateMapModeConfig("极北之地", "绝密行动", "雪地", 5)],
+    ["新手村", CreateMapModeConfig("新手村", "新手村", "机密行动", "新手村", 0)],
+    ["五号小镇_机密行动", CreateMapModeConfig("五号小镇_机密行动", "五号小镇", "机密行动", "城镇", 0)],
+    ["五号小镇_绝密行动", CreateMapModeConfig("五号小镇_绝密行动", "五号小镇", "绝密行动", "城镇", 1)],
+    ["沙漠古迹_机密行动", CreateMapModeConfig("沙漠古迹_机密行动", "沙漠古迹", "机密行动", "沙漠", 2)],
+    ["沙漠古迹_绝密行动", CreateMapModeConfig("沙漠古迹_绝密行动", "沙漠古迹", "绝密行动", "沙漠", 3)],
+    ["极北之地_机密行动", CreateMapModeConfig("极北之地_机密行动", "极北之地", "机密行动", "雪地", 4)],
+    ["极北之地_绝密行动", CreateMapModeConfig("极北之地_绝密行动", "极北之地", "绝密行动", "雪地", 5)],
 ]);
 
 //#region 任务
