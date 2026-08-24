@@ -43,6 +43,8 @@ export class WZSJZ_GameNode extends Component {
     private _overclockRemaining: number = 0;
     private _overclockAttackMultiplier: number = 1;
     private _overclockProductionMultiplier: number = 1;
+    private _attackSpeedBuffRemaining: number = 0;
+    private _attackSpeedMultiplier: number = 1;
 
     public get IsDragging(): boolean {
         return this._isDragging;
@@ -69,6 +71,8 @@ export class WZSJZ_GameNode extends Component {
         this.CurrentCell = cell;
         this.Level = Math.max(1, level);
         this.Exp = 0;
+        this._attackSpeedBuffRemaining = 0;
+        this._attackSpeedMultiplier = 1;
         this.RefreshView();
     }
 
@@ -217,6 +221,86 @@ export class WZSJZ_GameNode extends Component {
             : 1);
     }
 
+    public GetAttackInterval(baseInterval: number): number {
+        return Math.max(0.01, baseInterval / this.GetAttackSpeedMultiplier());
+    }
+
+    public GetAttackSpeedMultiplier(): number {
+        return this._attackSpeedBuffRemaining > 0
+            ? Math.max(1, this._attackSpeedMultiplier)
+            : 1;
+    }
+
+    /** 攻速不仅缩短攻击间隔，也会等比例缩短攻击前摇。 */
+    public GetAttackFireDelay(baseDelay: number): number {
+        return Math.max(0, baseDelay / this.GetAttackSpeedMultiplier());
+    }
+
+    /**
+     * 所有攻击单位共用的Spine播放入口。
+     * 只加速本次攻击轨道，不永久修改Skeleton.timeScale，避免待机动画也被残留加速。
+     */
+    public PlayAttackAnimation(
+        baseInterval: number,
+        attackAnimation?: string,
+        idleAnimation?: string,
+    ): void {
+        const skeleton = this.node.getChildByName("图像")?.getComponent(sp.Skeleton);
+        if (!skeleton) {
+            return;
+        }
+        const materialConfig = WZSJZ_Constant.GetMaterialConfig(this.Name);
+        const attackName = attackAnimation || materialConfig?.AttackAnimation || "attack";
+        const idleName = idleAnimation || materialConfig?.IdleAnimation || "daiji";
+        const attack = skeleton.findAnimation(attackName);
+        const animationStartTime = Math.max(
+            0,
+            Math.min(
+                materialConfig?.AttackAnimationStartTime || 0,
+                Math.max(0, (attack?.duration || 0) - 0.001),
+            ),
+        );
+        const remainingAnimationDuration = Math.max(
+            0,
+            (attack?.duration || 0) - animationStartTime,
+        );
+        const effectiveInterval = this.GetAttackInterval(baseInterval);
+        const completionTime = Math.max(
+            0.01,
+            effectiveInterval * WZSJZ_Constant.CombatAnimation.CompletionRatio,
+        );
+        const playbackScale = Math.max(
+            WZSJZ_Constant.CombatAnimation.MinimumPlaybackScale,
+            this.GetAttackSpeedMultiplier(),
+            remainingAnimationDuration / completionTime,
+        );
+        const attackEntry = skeleton.setAnimation(0, attackName, false);
+        if (attackEntry) {
+            attackEntry.timeScale = playbackScale;
+            attackEntry.trackTime = animationStartTime;
+        }
+        const idleEntry = skeleton.addAnimation(0, idleName, true, 0);
+        if (idleEntry) {
+            idleEntry.timeScale = 1;
+        }
+    }
+
+    public ApplyAttackSpeedBuff(duration: number, multiplier: number): boolean {
+        const levelConfig = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level);
+        if ((levelConfig?.AttackDamage || 0) <= 0 || duration <= 0 || multiplier <= 1) {
+            return false;
+        }
+        const previousMultiplier = this._attackSpeedBuffRemaining > 0
+            ? this._attackSpeedMultiplier
+            : 1;
+        const nextMultiplier = Math.max(previousMultiplier, multiplier);
+        this._attackSpeedBuffRemaining = Math.max(this._attackSpeedBuffRemaining, duration);
+        this._attackSpeedMultiplier = nextMultiplier;
+        // 已经处于一次普通攻击冷却中时也立即获得攻速收益。
+        this._attackCooldown *= previousMultiplier / nextMultiplier;
+        return true;
+    }
+
     /** 攻击型提升伤害，收益型提升产出；两者都不是时视作暂未支持的Buff型。 */
     public ApplyOverclock(
         duration: number,
@@ -250,10 +334,21 @@ export class WZSJZ_GameNode extends Component {
                 this._overclockProductionMultiplier = 1;
             }
         }
+        if (this._attackSpeedBuffRemaining > 0) {
+            this._attackSpeedBuffRemaining = Math.max(
+                0,
+                this._attackSpeedBuffRemaining - deltaTime,
+            );
+            if (this._attackSpeedBuffRemaining <= 0) {
+                this._attackSpeedMultiplier = 1;
+            }
+        }
         if (this.Name === "枪") {
             WZSJZ_CombatSystem.Instance?.UpdateGun(this, deltaTime);
         } else if (this.Name === "刀") {
             WZSJZ_CombatSystem.Instance?.UpdateKnife(this, deltaTime);
+        } else if (this.Name === "红狗") {
+            WZSJZ_CombatSystem.Instance?.UpdateRedDog(this, deltaTime);
         } else if (this.Name === "炮") {
             WZSJZ_CombatSystem.Instance?.UpdateCannon(this, deltaTime);
         } else if (this.Name === "雷") {
@@ -261,7 +356,8 @@ export class WZSJZ_GameNode extends Component {
         } else if (this.Name === "盾哥") {
             WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateShieldBrother(this, deltaTime);
         } else if (this.Name === "堵桥狗" || this.Name === "老黑"
-            || this.Name === "哈基蜂" || this.Name === "老板") {
+            || this.Name === "哈基蜂" || this.Name === "老板" || this.Name === "威虫"
+            || this.Name === "麦小鼠") {
             WZSJZ_ShieldBrotherCombatSystem.Instance?.UpdateSharedBulletCharacter(this, deltaTime);
         }
     }

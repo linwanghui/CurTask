@@ -15,6 +15,7 @@ export class WZSJZ_NameCombination extends Component {
     private _selectedUnit: WZSJZ_GameNode = null;
     private _isPointerDown: boolean = false;
     private _touchStartUI: Vec2 = new Vec2();
+    private _skillEffectAnchors: Node[] = [];
 
     protected onLoad(): void {
         this.node.on(Node.EventType.TOUCH_START, this.OnTouchStart, this);
@@ -29,6 +30,23 @@ export class WZSJZ_NameCombination extends Component {
     ): void {
         this._system = system;
         this._partUnits = partUnits;
+    }
+
+    /** 为组合中的每个文字提供独立特效点位，同时保持组合表现处于可交互的最上层。 */
+    public GetPartEffectTargets(): Node[] {
+        if (this._skillEffectAnchors.length === this._partUnits.length
+            && this._skillEffectAnchors.every((anchor) => anchor?.isValid)) {
+            return this._skillEffectAnchors;
+        }
+        this._skillEffectAnchors = this._partUnits.map((unit, index) => {
+            const anchor = new Node(`技能特效点位_${index + 1}`);
+            anchor.setParent(this.node);
+            anchor.layer = this.node.layer;
+            anchor.setWorldPosition(unit.node.worldPosition);
+            anchor.setSiblingIndex(this.node.children.length - 1);
+            return anchor;
+        });
+        return this._skillEffectAnchors;
     }
 
     /**

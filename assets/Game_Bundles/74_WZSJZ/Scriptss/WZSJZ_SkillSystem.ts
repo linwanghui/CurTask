@@ -1,16 +1,20 @@
-import { _decorator, Component, instantiate, Node, NodePool, Prefab, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, instantiate, Node, NodePool, Prefab, sp, UITransform, Vec2, Vec3 } from 'cc';
 import { WZSJZ_Bullet_XunHanHuoJian } from './WZSJZ_Bullet_XunHanHuoJian';
 import { WZSJZ_CommonEffectSystem } from './WZSJZ_CommonEffectSystem';
 import { WZSJZ_Constant, WZSJZ_SkillConfig } from './WZSJZ_Constant';
 import { WZSJZ_Enemy } from './WZSJZ_Enemy';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
+import { WZSJZ_NameCombination } from './WZSJZ_NameCombination';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_SkillButtom } from './WZSJZ_SkillButtom';
 import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_Skill_ShenBoXianJing } from './技能/WZSJZ_Skill_ShenBoXianJing';
+import { WZSJZ_Skill_ZhenDangMaiChong } from './技能/WZSJZ_Skill_ZhenDangMaiChong';
+import { WZSJZ_Skill_DianCiZhiMang } from './技能/WZSJZ_Skill_DianCiZhiMang';
 import { WZSJZ_Cell } from './WZSJZ_Cell';
+import { WZSJZ_DragIndicatorSystem } from './WZSJZ_DragIndicatorSystem';
 
 const { ccclass } = _decorator;
 
@@ -34,7 +38,13 @@ export class WZSJZ_SkillSystem extends Component {
     private _blockBridgeDogUltimatePool: NodePool = new NodePool();
     private _sonicTrapPrefab: Prefab = null;
     private _sonicTrapPool: NodePool = new NodePool();
+    private _shockPulsePrefab: Prefab = null;
+    private _shockPulsePool: NodePool = new NodePool();
+    private _electromagneticBlindPrefab: Prefab = null;
+    private _electromagneticBlindPool: NodePool = new NodePool();
     private _formationCells: WZSJZ_Cell[] = [];
+    private _infiniteSkills: boolean = false;
+    private _dragIndicatorSystem: WZSJZ_DragIndicatorSystem = null;
 
     protected onLoad(): void {
         this.node.on(
@@ -42,11 +52,18 @@ export class WZSJZ_SkillSystem extends Component {
             this.OnCombinationUnitsChanged,
             this,
         );
+        this.node.on(
+            WZSJZ_EventManager.修改无限技能,
+            this.OnCheatToggleInfiniteSkills,
+            this,
+        );
     }
 
     protected onDestroy(): void {
         this._blockBridgeDogUltimatePool.clear();
         this._sonicTrapPool.clear();
+        this._shockPulsePool.clear();
+        this._electromagneticBlindPool.clear();
     }
 
     public Configure(
@@ -54,12 +71,14 @@ export class WZSJZ_SkillSystem extends Component {
         wallDisplayNode: Node,
         canvas?: Node,
         formationCells: WZSJZ_Cell[] = [],
+        dragIndicatorSystem?: WZSJZ_DragIndicatorSystem,
     ): void {
         this._skillBar = preparationZone?.getChildByName("技能栏") || null;
         this._wallDisplayNode = wallDisplayNode;
         this._canvas = canvas || preparationZone?.parent || null;
         this._enemyArea = this._canvas?.getChildByName("敌方单位") || null;
         this._formationCells = formationCells;
+        this._dragIndicatorSystem = dragIndicatorSystem || null;
         this.SetupProjectileLayer();
         if (!this._skillBar) {
             console.error("[WZSJZ] 操作区下没有找到“技能栏”节点。");
@@ -70,6 +89,8 @@ export class WZSJZ_SkillSystem extends Component {
         }
         void this.PrepareBlockBridgeDogUltimate();
         void this.PrepareSonicTrap();
+        void this.PrepareShockPulse();
+        void this.PrepareElectromagneticBlind();
         this.SyncSkillButtons();
     }
 
@@ -141,9 +162,55 @@ export class WZSJZ_SkillSystem extends Component {
             this.SetLayerRecursively(buttonNode, this._skillBar.layer);
             const button = buttonNode.getComponent(WZSJZ_SkillButtom)
                 || buttonNode.addComponent(WZSJZ_SkillButtom);
-            button.Configure(config.Cooldown, () => this.ExecuteSkill(config));
+            button.Configure(
+                config.Cooldown,
+                () => this.ExecuteSkill(config),
+                this._infiniteSkills,
+            );
+            if (config.EffectType === "sonic_trap") {
+                button.ConfigureTargeting(
+                    (position) => this.BeginSonicTrapTargeting(
+                        config,
+                        buttonNode,
+                        position,
+                    ),
+                    (position) => this._dragIndicatorSystem?.UpdateSkill(position),
+                    (position, cancelled) => this.EndSonicTrapTargeting(
+                        config,
+                        position,
+                        cancelled,
+                    ),
+                    () => WZSJZ_UIManager.Instance.ShowText("该技能需要拖动释放"),
+                );
+            } else if (config.EffectType === "electromagnetic_blind") {
+                button.ConfigureTargeting(
+                    (position) => this.BeginElectromagneticBlindTargeting(
+                        config,
+                        buttonNode,
+                        position,
+                    ),
+                    (position) => this._dragIndicatorSystem?.UpdateSkill(position),
+                    (position, cancelled) => this.EndElectromagneticBlindTargeting(
+                        config,
+                        position,
+                        cancelled,
+                    ),
+                    () => WZSJZ_UIManager.Instance.ShowText("该技能需要拖动释放"),
+                );
+            }
             this._activeButtons.push({ Config: config, ButtonNode: buttonNode });
         }
+    }
+
+    private OnCheatToggleInfiniteSkills(): void {
+        this._infiniteSkills = !this._infiniteSkills;
+        for (const entry of this._activeButtons) {
+            entry.ButtonNode?.getComponent(WZSJZ_SkillButtom)
+                ?.SetInfiniteCooldown(this._infiniteSkills);
+        }
+        WZSJZ_UIManager.Instance.ShowText(
+            this._infiniteSkills ? "无限技能已开启" : "无限技能已关闭",
+        );
     }
 
     private ExecuteSkill(config: WZSJZ_SkillConfig): boolean {
@@ -192,6 +259,13 @@ export class WZSJZ_SkillSystem extends Component {
                 return this.CastBlockBridgeDogArtillery(config);
             case "sonic_trap":
                 return this.CastSonicTrap(config);
+            case "shock_pulse":
+                return this.CastShockPulse(config);
+            case "self_attack_speed":
+                return this.CastSelfAttackSpeed(config);
+            case "electromagnetic_blind":
+                // 该技能只通过拖拽回调释放，单击不会走普通施法入口。
+                return false;
             default:
                 return false;
         }
@@ -226,6 +300,34 @@ export class WZSJZ_SkillSystem extends Component {
         if (appliedCount <= 0) {
             WZSJZ_UIManager.Instance.ShowText("周围没有可超频的单位");
             return false;
+        }
+        return true;
+    }
+
+    private CastSelfAttackSpeed(config: WZSJZ_SkillConfig): boolean {
+        const owner = this._owners
+            .filter((item) => item?.node?.isValid && item.Name === config.OwnerName)
+            .sort((left, right) => right.Level - left.Level)[0];
+        if (!owner?.ApplyAttackSpeedBuff(
+            WZSJZ_Constant.HuntProtocol.Duration,
+            WZSJZ_Constant.HuntProtocol.AttackSpeedMultiplier,
+        )) {
+            return false;
+        }
+        const combination = owner.node.getComponent(WZSJZ_NameCombination);
+        const effectTargets = combination?.GetPartEffectTargets() || [owner.node];
+        for (const target of effectTargets) {
+            WZSJZ_CommonEffectSystem.Instance?.PlayAttached(
+                config.EffectName,
+                target,
+                config.Duration,
+                true,
+            );
+        }
+        const skeleton = owner.node.getChildByName("图像")?.getComponent(sp.Skeleton);
+        if (skeleton) {
+            skeleton.setAnimation(0, WZSJZ_Constant.HuntProtocol.SkillAnimation, false);
+            skeleton.addAnimation(0, WZSJZ_Constant.HuntProtocol.IdleAnimation, true, 0);
         }
         return true;
     }
@@ -318,6 +420,41 @@ export class WZSJZ_SkillSystem extends Component {
         }
         while (this._sonicTrapPool.size() < WZSJZ_Constant.ObjectPool.SonicTrapPrewarm) {
             this._sonicTrapPool.put(instantiate(this._sonicTrapPrefab));
+        }
+    }
+
+    private async PrepareShockPulse(): Promise<void> {
+        try {
+            this._shockPulsePrefab = await WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.ShockPulse.PrefabPath,
+            );
+        } catch (error) {
+            console.error("[WZSJZ] 震荡脉冲特效预制体加载失败。", error);
+        }
+        if (!this.node?.isValid || !this._shockPulsePrefab) {
+            return;
+        }
+        while (this._shockPulsePool.size() < WZSJZ_Constant.ObjectPool.ShockPulsePrewarm) {
+            this._shockPulsePool.put(instantiate(this._shockPulsePrefab));
+        }
+    }
+
+    private async PrepareElectromagneticBlind(): Promise<void> {
+        try {
+            this._electromagneticBlindPrefab = await WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.ElectromagneticBlind.PrefabPath,
+            );
+        } catch (error) {
+            console.error("[WZSJZ] 电磁致盲特效预制体加载失败。", error);
+        }
+        if (!this.node?.isValid || !this._electromagneticBlindPrefab) {
+            return;
+        }
+        while (this._electromagneticBlindPool.size()
+            < WZSJZ_Constant.ObjectPool.ElectromagneticBlindPrewarm) {
+            this._electromagneticBlindPool.put(
+                instantiate(this._electromagneticBlindPrefab),
+            );
         }
     }
 
@@ -446,6 +583,50 @@ export class WZSJZ_SkillSystem extends Component {
         return this.SpawnSonicTrap(target);
     }
 
+    private BeginSonicTrapTargeting(
+        config: WZSJZ_SkillConfig,
+        buttonNode: Node,
+        initialPosition: Vec2,
+    ): boolean {
+        if (!this._sonicTrapPrefab || !this._enemyArea || !this._projectileLayer
+            || !this._dragIndicatorSystem) {
+            WZSJZ_UIManager.Instance.ShowText("技能资源尚未加载完成");
+            return false;
+        }
+        const hasOwner = this._owners.some((item) => item?.node?.isValid
+            && item.Name === config.OwnerName);
+        if (!hasOwner) {
+            return false;
+        }
+        this._dragIndicatorSystem.BeginSkill(
+            buttonNode.worldPosition,
+            WZSJZ_Constant.SonicTrap.Radius,
+        );
+        this._dragIndicatorSystem.UpdateSkill(initialPosition);
+        return true;
+    }
+
+    private EndSonicTrapTargeting(
+        config: WZSJZ_SkillConfig,
+        position: Vec2,
+        cancelled: boolean,
+    ): boolean {
+        this._dragIndicatorSystem?.Clear();
+        if (cancelled) {
+            return false;
+        }
+        const hasOwner = this._owners.some((item) => item?.node?.isValid
+            && item.Name === config.OwnerName);
+        if (!hasOwner || !this._sonicTrapPrefab || !this._projectileLayer) {
+            return false;
+        }
+        return this.SpawnSonicTrap(new Vec3(
+            position.x,
+            position.y,
+            this._projectileLayer.worldPosition.z,
+        ));
+    }
+
     private SpawnSonicTrap(position: Vec3): boolean {
         const trapNode = this._sonicTrapPool.get() || instantiate(this._sonicTrapPrefab);
         trapNode.setParent(this._projectileLayer);
@@ -476,6 +657,166 @@ export class WZSJZ_SkillSystem extends Component {
             trap.unscheduleAllCallbacks();
             trap.node.active = false;
             this._sonicTrapPool.put(trap.node);
+        }
+    };
+
+    private BeginElectromagneticBlindTargeting(
+        config: WZSJZ_SkillConfig,
+        buttonNode: Node,
+        initialPosition: Vec2,
+    ): boolean {
+        if (!this._electromagneticBlindPrefab || !this._enemyArea
+            || !this._projectileLayer || !this._dragIndicatorSystem) {
+            WZSJZ_UIManager.Instance.ShowText("技能资源尚未加载完成");
+            return false;
+        }
+        const hasOwner = this._owners.some((item) => item?.node?.isValid
+            && item.Name === config.OwnerName);
+        if (!hasOwner) {
+            return false;
+        }
+        this._dragIndicatorSystem.BeginSkill(
+            buttonNode.worldPosition,
+            WZSJZ_Constant.ElectromagneticBlind.Radius,
+        );
+        this._dragIndicatorSystem.UpdateSkill(initialPosition);
+        return true;
+    }
+
+    private EndElectromagneticBlindTargeting(
+        config: WZSJZ_SkillConfig,
+        position: Vec2,
+        cancelled: boolean,
+    ): boolean {
+        this._dragIndicatorSystem?.Clear();
+        if (cancelled || !this._electromagneticBlindPrefab || !this._projectileLayer) {
+            return false;
+        }
+        const owner = this._owners
+            .filter((item) => item?.node?.isValid && item.Name === config.OwnerName)
+            .sort((left, right) => right.Level - left.Level)[0];
+        if (!owner) {
+            return false;
+        }
+        const skeleton = owner.node.getChildByName("图像")?.getComponent(sp.Skeleton);
+        if (skeleton) {
+            skeleton.setAnimation(
+                0,
+                WZSJZ_Constant.ElectromagneticBlind.SkillAnimation,
+                false,
+            );
+            skeleton.addAnimation(
+                0,
+                WZSJZ_Constant.ElectromagneticBlind.IdleAnimation,
+                true,
+                0,
+            );
+        }
+        return this.SpawnElectromagneticBlind(
+            owner,
+            new Vec3(position.x, position.y, this._projectileLayer.worldPosition.z),
+        );
+    }
+
+    private SpawnElectromagneticBlind(owner: WZSJZ_GameNode, position: Vec3): boolean {
+        const effectNode = this._electromagneticBlindPool.get()
+            || instantiate(this._electromagneticBlindPrefab);
+        effectNode.setParent(this._projectileLayer);
+        effectNode.setWorldPosition(position);
+        effectNode.angle = 0;
+        this.SetLayerRecursively(effectNode, this._projectileLayer.layer);
+        const effect = effectNode.getComponent(WZSJZ_Skill_DianCiZhiMang)
+            || effectNode.addComponent(WZSJZ_Skill_DianCiZhiMang);
+        const config = WZSJZ_Constant.ElectromagneticBlind;
+        const receiveExperience = owner.CreateExperienceReceiver();
+        if (!effect.Initialize(
+            this._enemyArea,
+            config.Radius,
+            config.EffectDuration,
+            config.DamageInterval,
+            WZSJZ_Constant.GetElectromagneticBlindDamage(owner.Level),
+            config.BlindDuration,
+            config.AnimationName,
+            this.RecycleElectromagneticBlind,
+            () => receiveExperience(config.KillExperience),
+        )) {
+            this._electromagneticBlindPool.put(effectNode);
+            return false;
+        }
+        this.KeepProjectileLayerOnTop();
+        return true;
+    }
+
+    private RecycleElectromagneticBlind = (
+        effect: WZSJZ_Skill_DianCiZhiMang,
+    ): void => {
+        if (!effect?.node?.isValid) {
+            return;
+        }
+        effect.node.active = false;
+        this._electromagneticBlindPool.put(effect.node);
+    };
+
+    private CastShockPulse(config: WZSJZ_SkillConfig): boolean {
+        if (!this._shockPulsePrefab || !this._enemyArea || !this._projectileLayer) {
+            WZSJZ_UIManager.Instance.ShowText("技能资源尚未加载完成");
+            return false;
+        }
+        const owner = this._owners
+            .filter((item) => item?.node?.isValid && item.Name === config.OwnerName)
+            .sort((left, right) => right.Level - left.Level)[0];
+        if (!owner) {
+            return false;
+        }
+        const launchNode = owner.node.getChildByName("子弹发射点位") || owner.node;
+        const skeleton = owner.node.getChildByName("图像")?.getComponent(sp.Skeleton);
+        if (skeleton) {
+            skeleton.setAnimation(0, WZSJZ_Constant.ShockPulse.SkillAnimation, false);
+            skeleton.addAnimation(0, WZSJZ_Constant.ShockPulse.IdleAnimation, true, 0);
+        }
+        let spawnedCount = 0;
+        for (const angle of WZSJZ_Constant.ShockPulse.AnglesDegrees) {
+            if (this.SpawnShockPulse(launchNode.worldPosition, angle)) {
+                spawnedCount++;
+            }
+        }
+        return spawnedCount > 0;
+    }
+
+    private SpawnShockPulse(position: Vec3, angleDegrees: number): boolean {
+        const projectileNode = this._shockPulsePool.get()
+            || instantiate(this._shockPulsePrefab);
+        projectileNode.setParent(this._projectileLayer);
+        projectileNode.setWorldPosition(position);
+        projectileNode.angle = angleDegrees;
+        this.SetLayerRecursively(projectileNode, this._projectileLayer.layer);
+        const radians = angleDegrees * Math.PI / 180;
+        const direction = new Vec3(Math.cos(radians), Math.sin(radians), 0);
+        const projectile = projectileNode.getComponent(WZSJZ_Skill_ZhenDangMaiChong)
+            || projectileNode.addComponent(WZSJZ_Skill_ZhenDangMaiChong);
+        const config = WZSJZ_Constant.ShockPulse;
+        if (!projectile.Initialize(
+            this._enemyArea,
+            direction,
+            config.HitTriggerDelay,
+            config.EffectDuration,
+            config.KnockbackDistance,
+            config.StunDuration,
+            config.BossTenacityDamage,
+            config.AnimationName,
+            this.RecycleShockPulse,
+        )) {
+            this._shockPulsePool.put(projectileNode);
+            return false;
+        }
+        this.KeepProjectileLayerOnTop();
+        return true;
+    }
+
+    private RecycleShockPulse = (projectile: WZSJZ_Skill_ZhenDangMaiChong): void => {
+        if (projectile?.node?.isValid) {
+            projectile.node.active = false;
+            this._shockPulsePool.put(projectile.node);
         }
     };
 

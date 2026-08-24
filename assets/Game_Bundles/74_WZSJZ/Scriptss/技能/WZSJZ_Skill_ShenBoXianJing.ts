@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, sp } from 'cc';
 import { WZSJZ_Enemy } from '../WZSJZ_Enemy';
+import { WZSJZ_Constant } from '../WZSJZ_Constant';
 const { ccclass } = _decorator;
 
 @ccclass('WZSJZ_Skill_ShenBoXianJing')
@@ -67,7 +68,10 @@ export class WZSJZ_Skill_ShenBoXianJing extends Component {
             const dx = position.x - center.x;
             const dy = position.y - center.y;
             if (dx * dx + dy * dy <= radiusSquared) {
-                enemy.ApplyTremor(this._tremorDuration);
+                enemy.ApplyStun(
+                    this._tremorDuration,
+                    WZSJZ_Constant.SonicTrap.BossTenacityDamage,
+                );
             }
         }
     }

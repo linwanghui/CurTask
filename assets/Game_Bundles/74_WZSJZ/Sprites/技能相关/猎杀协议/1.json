@@ -1,0 +1,54 @@
+{
+"skeleton": {
+	"hash": "aKKk/QFBosCUwNAM8aTCVl1fpTk",
+	"spine": "3.8.75",
+	"x": -119.49,
+	"y": -38.97,
+	"width": 250,
+	"height": 280,
+	"images": "",
+	"audio": "D:/2026/spine特效/状态/霸体加速"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "TX_xuqi_0001", "parent": "root" }
+],
+"slots": [
+	{ "name": "TX_xuqi_0001", "bone": "TX_xuqi_0001", "attachment": "TX_xuqi_0001", "blend": "additive" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"TX_xuqi_0001": {
+				"TX_xuqi_0001": { "x": 5.51, "y": 101.03, "width": 250, "height": 280 },
+				"TX_xuqi_0002": { "x": 5.51, "y": 101.03, "width": 250, "height": 280 },
+				"TX_xuqi_0003": { "x": 5.51, "y": 101.03, "width": 250, "height": 280 }
+			}
+		}
+	}
+],
+"events": {
+	"event_hit": {}
+},
+"animations": {
+	"animation": {
+		"slots": {
+			"TX_xuqi_0001": {
+				"attachment": [
+					{ "time": 0.1, "name": "TX_xuqi_0002" },
+					{ "time": 0.2, "name": "TX_xuqi_0003" },
+					{ "time": 0.3, "name": "TX_xuqi_0001" }
+				]
+			}
+		},
+		"bones": {
+			"TX_xuqi_0001": {
+				"scale": [
+					{ "x": 1.5, "y": 1.5 }
+				]
+			}
+		}
+	}
+}
+}

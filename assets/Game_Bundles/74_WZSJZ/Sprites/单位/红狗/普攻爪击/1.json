@@ -1,0 +1,98 @@
+{
+"skeleton": { "hash": "vQjKbC0vvDbPmJYhgndneUm4kRg", "spine": "3.8.75", "images": "./images/", "audio": "D:/2026/spine特效/普攻/爪击" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "zhuahenc", "parent": "root", "length": 144.54, "rotation": 90, "x": -62, "y": -81 },
+	{ "name": "zhuahenc_1", "parent": "root", "length": 144.54, "rotation": 90, "x": -62, "y": -81 }
+],
+"slots": [
+	{ "name": "zhuahenc_0000", "bone": "zhuahenc" },
+	{ "name": "zhuahenc_00002", "bone": "zhuahenc_1", "color": "ffffffc0", "blend": "additive" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"zhuahenc_00002": {
+				"zhuahenc_0000": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0002": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0003": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0004": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0005": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0006": { "rotation": -90, "width": 350, "height": 175 }
+			},
+			"zhuahenc_0000": {
+				"zhuahenc_0000": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0002": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0003": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0004": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0005": { "rotation": -90, "width": 350, "height": 175 },
+				"zhuahenc_0006": { "rotation": -90, "width": 350, "height": 175 }
+			}
+		}
+	}
+],
+"events": {
+	"aa": {},
+	"attack": {},
+	"back": {},
+	"hit": {},
+	"hit_num3": {},
+	"move": {},
+	"shake_point": {}
+},
+"animations": {
+	"animation": {
+		"slots": {
+			"zhuahenc_00002": {
+				"color": [
+					{ "color": "ffffff45" }
+				],
+				"attachment": [
+					{ "name": "zhuahenc_0000" },
+					{ "time": 0.0667, "name": "zhuahenc_0002" },
+					{ "time": 0.1333, "name": "zhuahenc_0003" },
+					{ "time": 0.2, "name": "zhuahenc_0004" },
+					{ "time": 0.2667, "name": "zhuahenc_0005" },
+					{ "time": 0.3333, "name": "zhuahenc_0006" },
+					{ "time": 0.4, "name": null }
+				]
+			},
+			"zhuahenc_0000": {
+				"attachment": [
+					{ "name": "zhuahenc_0000" },
+					{ "time": 0.0667, "name": "zhuahenc_0002" },
+					{ "time": 0.1333, "name": "zhuahenc_0003" },
+					{ "time": 0.2, "name": "zhuahenc_0004" },
+					{ "time": 0.2667, "name": "zhuahenc_0005" },
+					{ "time": 0.3333, "name": "zhuahenc_0006" },
+					{ "time": 0.4, "name": null }
+				]
+			}
+		},
+		"bones": {
+			"zhuahenc": {
+				"translate": [
+					{ "x": 75.65, "y": 76.5 }
+				],
+				"scale": [
+					{ "x": 1.2, "y": 1.2 }
+				]
+			},
+			"zhuahenc_1": {
+				"translate": [
+					{ "x": 75.65, "y": 76.5 }
+				],
+				"scale": [
+					{ "x": 1.2, "y": 1.2 }
+				]
+			},
+			"root": {
+				"scale": [
+					{ "x": 0.7, "y": 0.7 }
+				]
+			}
+		}
+	}
+}
+}

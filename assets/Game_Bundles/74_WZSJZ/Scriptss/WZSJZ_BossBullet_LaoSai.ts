@@ -27,7 +27,8 @@ export class WZSJZ_BossBullet_LaoSai extends Component {
         speed: number,
         recycle: (bullet: WZSJZ_BossBullet_LaoSai) => void,
     ): boolean {
-        if (!wall?.IsAlive || damage <= 0 || speed <= 0) {
+        // 伤害为0表示发射者处于致盲：箭仍正常飞行和命中，但不会伤害城墙。
+        if (!wall?.IsAlive || damage < 0 || speed <= 0) {
             return false;
         }
         this.unscheduleAllCallbacks();
