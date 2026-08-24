@@ -95,11 +95,11 @@ export class ZRSJZ_BNS_Player extends Component {
             this.PlayerSkeleton.HasDirection = false;
             return;
         }
-        if (this.WeaponType === "枪") {
-            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q) : this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
-        } else {
-            this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
-        }
+        // if (this.WeaponType === "枪") {
+        //     this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q) : this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
+        // } else {
+        //     this._moveX == 0 && this._moveY == 0 ? this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2) : this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
+        // }
         this.PlayerSkeleton.AttackX = x;
         this.PlayerSkeleton.AttackY = y;
         this.PlayerSkeleton.HasDirection = true;
@@ -113,31 +113,31 @@ export class ZRSJZ_BNS_Player extends Component {
 
     //动画切换
     AniSwitch() {
-        if (this._moveX == 0 && this._moveY == 0) {
-            if (this._aniName == ZRSJZ_ANI.Walk_D) {
-                this.PlayAni(ZRSJZ_ANI.Idle_D1);
-            } else if (this._aniName == ZRSJZ_ANI.Walk_Q) {
-                this.PlayAni(ZRSJZ_ANI.Idle_Q);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D3) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D3);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Move_Q) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q);
-            }
-        } else if (this._moveX != 0 || this._moveY != 0) {
-            if (this._aniName == ZRSJZ_ANI.Idle_D1 || this._aniName == ZRSJZ_ANI.Idle_D2) {
-                this.PlayAni(ZRSJZ_ANI.Walk_D);
-            } else if (this._aniName == ZRSJZ_ANI.Idle_Q) {
-                this.PlayAni(ZRSJZ_ANI.Walk_Q);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D3) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_D3);
-            } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_Q) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
-            }
-        }
+        // if (this._moveX == 0 && this._moveY == 0) {
+        //     if (this._aniName == ZRSJZ_ANI.Walk_D) {
+        //         this.PlayAni(ZRSJZ_ANI.Idle_D1);
+        //     } else if (this._aniName == ZRSJZ_ANI.Walk_Q) {
+        //         this.PlayAni(ZRSJZ_ANI.Idle_Q);
+        //     } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D2) {
+        //         this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
+        //     } else if (this._aniName == ZRSJZ_ANI.Attack_Move_D3) {
+        //         this.PlayAni(ZRSJZ_ANI.Attack_Idle_D3);
+        //     } else if (this._aniName == ZRSJZ_ANI.Attack_Move_Q) {
+        //         this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q);
+        //     }
+        // } else if (this._moveX != 0 || this._moveY != 0) {
+        //     if (this._aniName == ZRSJZ_ANI.Idle_D1 || this._aniName == ZRSJZ_ANI.Idle_D2) {
+        //         this.PlayAni(ZRSJZ_ANI.Walk_D);
+        //     } else if (this._aniName == ZRSJZ_ANI.Idle_Q) {
+        //         this.PlayAni(ZRSJZ_ANI.Walk_Q);
+        //     } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D2) {
+        //         this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
+        //     } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_D3) {
+        //         this.PlayAni(ZRSJZ_ANI.Attack_Move_D3);
+        //     } else if (this._aniName == ZRSJZ_ANI.Attack_Idle_Q) {
+        //         this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
+        //     }
+        // }
     }
 
     SwitchWeapon() {

@@ -286,13 +286,6 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["魔刀", { Name: "魔刀", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 2000000, MaxCount: 1 }],
 ])
 
-// // 搜索物资按品质统一校准，并保留名称之间原有的价值差异。
-// ZRSJZ_PROP_CONFIG.forEach(config => {
-//     if (config.PropType !== "物品") return;
-
-//     const multiplier = ZRSJZ_SEARCH_LOOT_PRICE_MULTIPLIER[config.Quality];
-//     config.UnitPrice = Math.max(100, Math.round(config.UnitPrice * multiplier / 100) * 100);
-// });
 
 // 道具描述：结合道具名称及图标外观，用于详情、商店和仓库界面展示。
 export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
@@ -794,14 +787,9 @@ export enum ZRSJZ_ANI {
     Idle_D1 = "daiji_dao1",
     Idle_D2 = "daiji_dao2",
     Idle_Q = "daiji_q",
-    Attack_Idle_D2 = "gj_dao3",
-    Attack_Move_D2 = "gj_dao3_2",
-    Attack_Idle_D3 = "gj_dao4",
-    Attack_Move_D3 = "gj_dao4_2",
-    Attack_Idle_Q = "gj_qiang",
-    Attack_Move_Q = "gj_qiang2",
-    Attack_Idle_Q2 = "gj_jjq",
-    Attack_Move_Q2 = "gj_jjq2",
+    Attack_D1 = "gj_dao3",
+    Attack_D2 = "gj_dao4",
+    Fire = "kq",
     Walk_D = "zl_dao",
     Walk_Q = "zl_q",
     HC_Q = "hc",
@@ -864,8 +852,8 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
         AttackInterval: 1.15,
         IdleAnimation: ZRSJZ_ANI.Idle_Q,
         MoveAnimation: ZRSJZ_ANI.Walk_Q,
-        MovingAttackAnimation: [ZRSJZ_ANI.Attack_Move_Q],
-        StandingAttackAnimation: [ZRSJZ_ANI.Attack_Idle_Q],
+        MovingAttackAnimation: ["gj_qiang2"],
+        StandingAttackAnimation: ["gj_qiang"],
         WeaponName: "突击步枪",
     }],
     ["持刀小兵", {
@@ -882,8 +870,8 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
         AttackInterval: 0.9,
         IdleAnimation: ZRSJZ_ANI.Idle_D1,
         MoveAnimation: ZRSJZ_ANI.Walk_D,
-        MovingAttackAnimation: [ZRSJZ_ANI.Attack_Move_D2, ZRSJZ_ANI.Attack_Move_D3],
-        StandingAttackAnimation: [ZRSJZ_ANI.Attack_Idle_D2, ZRSJZ_ANI.Attack_Idle_D3],
+        MovingAttackAnimation: ["gj_dao3_2", "gj_dao4_2"],
+        StandingAttackAnimation: [ZRSJZ_ANI.Attack_D1, ZRSJZ_ANI.Attack_D2],
         WeaponName: "战术匕首",
     }],
     ["喷火兵", {
@@ -918,8 +906,8 @@ export const ZRSJZ_ENEMY_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_EnemyConfig>
         AttackInterval: 1.4,
         IdleAnimation: ZRSJZ_ANI.Idle_Q,
         MoveAnimation: ZRSJZ_ANI.Walk_Q,
-        MovingAttackAnimation: [ZRSJZ_ANI.Attack_Move_Q],
-        StandingAttackAnimation: [ZRSJZ_ANI.Attack_Idle_Q],
+        MovingAttackAnimation: ["gj_qiang2"],
+        StandingAttackAnimation: ["gj_qiang"],
         WeaponName: "盾牌兵武器",
     }],
 ]);

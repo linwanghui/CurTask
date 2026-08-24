@@ -1,10 +1,11 @@
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, Component, Node, sp } from 'cc';
-import { ZRSJZ_ANI, ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
+import { _decorator, Component, sp, Texture2D } from 'cc';
+import { ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
+/** 角色统一使用一套完整 Spine，皮肤、动画和全部装备均操作同一个 Skeleton。 */
 @ccclass('ZRSJZ_Skeleton')
 export class ZRSJZ_Skeleton extends Component {
 
@@ -12,7 +13,6 @@ export class ZRSJZ_Skeleton extends Component {
     SkinName: string = null;
     AniName: string = "";
     WeaponryName: string = "";
-    HandSkeleton: sp.Skeleton = null;
 
     /** 子类可按自己的玩家索引返回装备栏。 */
     protected GetEquippedWeaponryIDs(): string[] {
@@ -21,151 +21,88 @@ export class ZRSJZ_Skeleton extends Component {
 
     protected onLoad(): void {
         this.Skeleton = this.getComponent(sp.Skeleton);
-        this.HandSkeleton = this.node.getChildByName("Hand").getComponent(sp.Skeleton);
+        if (!this.Skeleton) {
+            console.error(`[${this.constructor.name}] 当前节点缺少 sp.Skeleton 组件`);
+        }
     }
 
-    SetSkin(skinName: string) {
+    SetSkin(skinName: string): void {
         const skinConfig = ZRSJZ_SKIN_CONFIG.get(skinName);
-        if (!skinConfig) {
-            return;
-        }
+        if (!skinConfig || !this.Skeleton) return;
 
         this.SkinName = skinName;
         this.Skeleton.setSkin(skinConfig.Skin);
-        this.HandSkeleton.setSkin(skinConfig.Skin);
     }
 
-    PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
+    PlayAni(aniName: string, loop: boolean = true, cb: Function = null): void {
+        if (!this.Skeleton) return;
         this.AniName = aniName;
         this.Skeleton.setAnimation(0, aniName, loop);
-        this.HandSkeleton.setAnimation(0, aniName, loop);
         this.Skeleton.setCompleteListener(() => {
             if (cb) cb();
         });
     }
 
+    async ShowEquipment(equipmentName: string, isEquipment: boolean = true): Promise<void> {
+        if (!equipmentName || !this.Skeleton?._skeleton) return;
 
-    //显示装备
-    async ShowEquipment(equipmentName: string, isEquipment: boolean = true) {
-        if (!equipmentName || !this.Skeleton?._skeleton || !this.HandSkeleton?._skeleton) {
-            return;
-        }
+        for (const [gunType, weaponNames] of ZRSJZ_WEAPONRY_TYPE) {
+            if (!weaponNames.includes(equipmentName)) continue;
 
-        //枪的穿戴
-        let isWeaponry = false;
-        for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
-            if (ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName)) {
-                isWeaponry = true;
-            }
-        }
-        if (isWeaponry) {
-            for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
-                const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);
-                if (flag) {
-                    isWeaponry = true;
-                    if (isEquipment) {
-                        this.WeaponryName = equipmentName;
-                        const weaponSkin = ZRSJZ_AccountService.GetWeaponSkin(equipmentName);
-                        ZRSJZ_UIManager.Instance.GetWeaponryUI(weaponSkin).then(texture => {
-                            if (!texture) {
-                                console.error(`武器纹理不存在: ${weaponSkin}`);
-                                return;
-                            }
-                            this.HandSkeleton?.findSlot('dao').setAttachment(null);
-                            this.HandSkeleton?.setAttachment(key, key);
-                            this.HandSkeleton?.setSlotTexture(key, texture, true);
-                        });
-                        this.PlayAni(ZRSJZ_ANI.Idle_Q);
-                    } else {
-                        this.WeaponryName = "";
-                        this.HandSkeleton.findSlot(key)?.setAttachment(null);
-                        const knifeID = this.GetEquippedWeaponryIDs()[4];
-                        const knifeName = ZRSJZ_GameData.Instance.PropData[knifeID]?.Name;
-                        if (knifeName) this.HandSkeleton.setAttachment('dao', knifeName);
-                        this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
-                            this.PlayAni(ZRSJZ_ANI.Idle_D1);
-                        })
-                    }
-                } else {
-                    this.HandSkeleton.findSlot(key)?.setAttachment(null);
-                }
-            }
-            return;
-        }
-
-        const handSkeleton = this.HandSkeleton._skeleton;
-        // Find the owning slot by attachment name instead of hard-coding slot names.
-        for (let slotIndex = 0; slotIndex < handSkeleton.slots.length; slotIndex++) {
-            if (!handSkeleton.getAttachment(slotIndex, equipmentName)) {
-                continue;
+            for (const otherGunType of ZRSJZ_WEAPONRY_TYPE.keys()) {
+                this.Skeleton.findSlot(otherGunType)?.setAttachment(null);
             }
 
-            const targetSlot = handSkeleton.slots[slotIndex];
-            const slotName = targetSlot.data.name;
-
-            // The gun and knife use different slots, so hide the other weapon slot.
-            if (slotName === 'dao') {
-                //装备
-                if (isEquipment) {
-                    this.WeaponryName = equipmentName;
-                    for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
-                        this.HandSkeleton.findSlot(key)?.setAttachment(null);
-                    }
-                    this.PlayAni(ZRSJZ_ANI.Idle_D2, false, () => {
-                        this.PlayAni(ZRSJZ_ANI.Idle_D1);
-                    })
-                }
-            }
-            targetSlot.setAttachment(null);
             if (isEquipment) {
-                this.HandSkeleton.setAttachment(slotName, equipmentName);
+                this.WeaponryName = equipmentName;
+                this.Skeleton.findSlot('dao')?.setAttachment(null);
+                this.Skeleton.setAttachment(gunType, gunType);
+                const weaponSkin = ZRSJZ_AccountService.GetWeaponSkin(equipmentName);
+                const texture: Texture2D = await ZRSJZ_UIManager.Instance.GetWeaponryUI(weaponSkin);
+                if (texture && this.WeaponryName === equipmentName) {
+                    this.Skeleton.setSlotTexture(gunType, texture, true);
+                }
+            } else {
+                this.WeaponryName = "";
+                const knifeID = this.GetEquippedWeaponryIDs()[4];
+                const knifeName = ZRSJZ_GameData.Instance.PropData[knifeID]?.Name;
+                if (knifeName) this.Skeleton.setAttachment('dao', knifeName);
             }
             return;
         }
-
 
         const skeleton = this.Skeleton._skeleton;
-        // Find the owning slot by attachment name instead of hard-coding slot names.
         for (let slotIndex = 0; slotIndex < skeleton.slots.length; slotIndex++) {
-            if (!skeleton.getAttachment(slotIndex, equipmentName)) {
-                continue;
-            }
+            if (!skeleton.getAttachment(slotIndex, equipmentName)) continue;
 
             const targetSlot = skeleton.slots[slotIndex];
             const slotName = targetSlot.data.name;
 
+            if (slotName === 'dao' && isEquipment) {
+                this.WeaponryName = equipmentName;
+                for (const gunType of ZRSJZ_WEAPONRY_TYPE.keys()) {
+                    this.Skeleton.findSlot(gunType)?.setAttachment(null);
+                }
+            }
+
             if (slotName === 't') {
                 const headsets = ZRSJZ_SKIN_CONFIG.get(this.SkinName)?.Headset;
-                headsets?.filter(headsetName => !!headsetName).forEach(headsetName => {
+                headsets?.filter(Boolean).forEach(headsetName => {
                     for (let headsetSlotIndex = 0; headsetSlotIndex < skeleton.slots.length; headsetSlotIndex++) {
-                        if (!skeleton.getAttachment(headsetSlotIndex, headsetName)) {
-                            continue;
-                        }
-
+                        if (!skeleton.getAttachment(headsetSlotIndex, headsetName)) continue;
                         const headsetSlot = skeleton.slots[headsetSlotIndex];
-
-                        if (isEquipment) {
-                            // Wearing a helmet hides the accessories on the head.
-                            headsetSlot.setAttachment(null);
-                        } else {
-                            // Removing the helmet restores the accessories for the current skin.
-                            this.Skeleton.setAttachment(headsetSlot.data.name, headsetName);
-                        }
+                        if (isEquipment) headsetSlot.setAttachment(null);
+                        else this.Skeleton.setAttachment(headsetSlot.data.name, headsetName);
                         break;
                     }
                 });
             }
 
             targetSlot.setAttachment(null);
-            if (isEquipment) {
-                this.Skeleton.setAttachment(slotName, equipmentName);
-            }
+            if (isEquipment) this.Skeleton.setAttachment(slotName, equipmentName);
             return;
         }
+
         console.error(`[ZRSJZ_PlayerSpine] Equipment attachment not found: ${equipmentName}`);
-
     }
-
 }
-
-

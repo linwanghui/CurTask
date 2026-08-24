@@ -1,53 +1,24 @@
-import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, Component, Node } from 'cc';
+import { _decorator } from 'cc';
 import { ZRSJZ_Skeleton } from './ZRSJZ_Skeleton';
 import { ZRSJZ_ANI, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
-import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
+/** 皮肤预览同样使用一套完整 Spine。 */
 @ccclass('ZRSJZ_SkinSkeleton')
 export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
 
-    SetSkin(skinName: string) {
+    SetSkin(skinName: string): void {
         super.SetSkin(skinName);
-        this.ShowEquipment("DX9-冲锋枪");
+        void this.ShowEquipment("DX9-冲锋枪");
     }
 
-    //显示装备
-    async ShowEquipment(equipmentName: string, isEquipment: boolean = true) {
-        if (!equipmentName || !this.Skeleton?._skeleton) {
-            return;
-        }
-        //枪的穿戴
-        let isWeaponry = false;
-        for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
-            const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);
-            if (flag) {
-                isWeaponry = true;
-                if (isEquipment) {
-                    const weaponSkin = ZRSJZ_AccountService.GetWeaponSkin(equipmentName);
-                    ZRSJZ_UIManager.Instance.GetWeaponryUI(weaponSkin).then(texture => {
-                        if (!texture) {
-                            console.error(`武器纹理不存在: ${weaponSkin}`);
-                            return;
-                        }
-                        this.HandSkeleton.findSlot('dao').setAttachment(null);
-                        this.HandSkeleton.setAttachment(key, key);
-                        this.HandSkeleton.setSlotTexture(key, texture, true);
-                    });
+    async ShowEquipment(equipmentName: string, isEquipment: boolean = true): Promise<void> {
+        await super.ShowEquipment(equipmentName, isEquipment);
+        const isGun = Array.from(ZRSJZ_WEAPONRY_TYPE.values())
+            .some(weaponNames => weaponNames.includes(equipmentName));
+        if (!isGun || !isEquipment) return;
 
-                    const ani = Math.random() > 0.5 ? ZRSJZ_ANI.Appear1 : ZRSJZ_ANI.Appear2;
-                    this.PlayAni(ani, false, () => {
-                        this.PlayAni(ZRSJZ_ANI.Idle_Q)
-                    })
-                }
-            } else {
-                this.HandSkeleton.findSlot(key)?.setAttachment(null);
-            }
-        }
-
+        const appearAnimation = Math.random() > 0.5 ? ZRSJZ_ANI.Appear1 : ZRSJZ_ANI.Appear2;
+        this.PlayAni(appearAnimation, false, () => this.PlayAni(ZRSJZ_ANI.Idle_Q));
     }
 }
-
-

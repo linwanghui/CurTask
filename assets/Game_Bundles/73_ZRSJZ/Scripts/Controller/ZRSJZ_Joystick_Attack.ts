@@ -139,13 +139,8 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //#region 射击
     OnTouchStart_Attack(event: EventTouch) {
-        let touches = event.getTouches();
-        for (let i = 0; i < touches.length; ++i) {
-            if (!this._attackTouch) {
-                this._attackTouch = touches[i];
-                break;
-            }
-        }
+        // 使用当前变更的触点，避免快速点击时 getTouches() 的活动触点列表为空或发生错配。
+        if (!this._attackTouch && event.touch) this._attackTouch = event.touch;
 
         if (this._reloadingCD > 0) return;
         const player = ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex);
@@ -174,14 +169,12 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
 
     OnTouchEnd_Attack(event: EventTouch) {
-        let touches = event.getTouches();
-        for (let i = 0; i < touches.length; ++i) {
-            let touch = touches[i];
-            if (this._attackTouch && touch.getID() == this._attackTouch.getID()) {
-                this._attackTouch = null;
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex);
-            }
-        }
+        const changedTouch = event.touch;
+        if (!this._attackTouch || !changedTouch) return;
+        if (changedTouch.getID() !== this._attackTouch.getID()) return;
+
+        this._attackTouch = null;
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex);
     }
 
     OnButtonClick(event: EventTouch) {

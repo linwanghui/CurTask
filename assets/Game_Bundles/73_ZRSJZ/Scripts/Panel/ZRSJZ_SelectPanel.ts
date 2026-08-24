@@ -43,7 +43,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             find(`Panel/${mapName}`, this.node)?.on(Node.EventType.TOUCH_END, this.OnMapSelected, this);
         }
         for (const actionName of this._actionNames) {
-            find(`Panel/Desc/${actionName}`, this.node)?.on(Node.EventType.TOUCH_END, this.OnActionSelected, this);
+            find(`Panel/${actionName}`, this.node)?.on(Node.EventType.TOUCH_END, this.OnActionSelected, this);
         }
     }
 
@@ -52,7 +52,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             find(`Panel/${mapName}`, this.node)?.off(Node.EventType.TOUCH_END, this.OnMapSelected, this);
         }
         for (const actionName of this._actionNames) {
-            find(`Panel/Desc/${actionName}`, this.node)?.off(Node.EventType.TOUCH_END, this.OnActionSelected, this);
+            find(`Panel/${actionName}`, this.node)?.off(Node.EventType.TOUCH_END, this.OnActionSelected, this);
         }
     }
 
@@ -107,7 +107,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
         });
 
         this._actionNames.forEach((actionName, index) => {
-            const actionNode = find(`Panel/Desc/${actionName}`, this.node);
+            const actionNode = find(`Panel/${actionName}`, this.node);
             const selected = actionName === this._selectedActionName;
             const checked = actionNode?.getChildByName("Checked");
             if (checked) checked.active = selected;
@@ -130,7 +130,6 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
         this.SetLabel("Panel/Desc/准入价值", config
             ? this.FormatValue(config.RequiredLoadoutValue)
             : "--");
-        this.SetLabel("Panel/Desc/任务限制", config?.MissionLimit || "暂未开放");
         this.SetLabel("Panel/Desc/行动时限", config
             ? (config.TimeLimitMinutes > 0 ? `${config.TimeLimitMinutes}分钟` : "不限时")
             : "--");

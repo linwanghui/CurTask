@@ -30,9 +30,10 @@ export class ZRSJZ_MuzzleEffect extends Component {
         }
 
         this.Skeleton.setAnimation(0, "skill0", false);
-        // this.Skeleton.setEndListener(() => {
-        //     ZRSJZ_PoolManager.Instance.PutNode(this.node);
-        // })
+        this.Skeleton.setCompleteListener(() => {
+            this.Skeleton.setCompleteListener(null);
+            ZRSJZ_PoolManager.Instance.PutNode(this.node);
+        });
 
         const angle = Math.atan2(this._dirY, this._dirX) * 180 / Math.PI;
         this.node.setWorldRotationFromEuler(0, 0, angle);
