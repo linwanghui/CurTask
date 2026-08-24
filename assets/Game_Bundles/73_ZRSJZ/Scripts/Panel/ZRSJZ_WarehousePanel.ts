@@ -9,6 +9,7 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
 import { ZRSJZ_Prepare } from '../UI/ZRSJZ_Prepare';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_TaskService } from "../Service/ZRSJZ_TaskService";
 const { ccclass, property } = _decorator;
 
 const GridCol: number = 7;
@@ -338,17 +339,20 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
 
     SellProp() {
         let totalValue = 0;
+        let tatalCount = 0;
         this._sellPropID.forEach(propID => {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
             if (!propData) return;
 
             totalValue += propData.UnitPrice * propData.CurCount;
+            tatalCount += propData.CurCount;
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, propID);
             ZRSJZ_InventoryService.RemovePropID(propID);
         });
         if (totalValue > 0) {
             ZRSJZ_AccountService.ChangeGold(totalValue);
             ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
+            ZRSJZ_TaskService.CompleteTask("出售任意物品", tatalCount);
         }
         this._sellPropID = [];
         this.RefreshSellValue();

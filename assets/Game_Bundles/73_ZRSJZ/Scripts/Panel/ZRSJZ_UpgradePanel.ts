@@ -16,6 +16,7 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
+import { ZRSJZ_TaskService } from "../Service/ZRSJZ_TaskService";
 const { ccclass, property } = _decorator;
 
 type ZRSJZ_UpgradeFacilityDisplayName = "射击训练" | "科技研究" | "体能锻炼";
@@ -205,6 +206,8 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
             }
             ZRSJZ_FacilityService.SetFacilityLevel(this._facilityName, config.Level);
             ZRSJZ_AudioManager.Instance?.PlaySound("点击");
+            ZRSJZ_TaskService.CompleteTask("强化1次", 1);
+            ZRSJZ_UIManager.Instance.ShowTip(`升级成功！`);
             await this.RefreshView();
         } finally {
             this._isUpgrading = false;

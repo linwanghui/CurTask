@@ -10,6 +10,7 @@ import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
 import { ZRSJZ_InventoryWeaponry } from '../UI/ZRSJZ_InventoryWeaponry';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_TaskService } from "../Service/ZRSJZ_TaskService";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PropPanel')
@@ -209,6 +210,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         const inventory = (await ZRSJZ_UIManager.Instance.GetInventory(
             inventoryType,
             this.PlayerIndex,
+            ZRSJZ_UIManager.IsBattle,
         ))?.getComponent(ZRSJZ_InventoryWeaponry);
         if (!inventory) {
             console.error("装备栏尚未初始化:", inventoryType);
@@ -235,6 +237,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         const weaponryInventory = (await ZRSJZ_UIManager.Instance.GetInventory(
             propData.CurInventory,
             this.PlayerIndex,
+            ZRSJZ_UIManager.IsBattle,
         ))?.getComponent(ZRSJZ_InventoryWeaponry);
         if (!weaponryInventory) return;
         await weaponryInventory.ShowForPlayer(propData.CurInventory, this.PlayerIndex);
@@ -245,6 +248,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 const backpack = (await ZRSJZ_UIManager.Instance.GetInventory(
                     ZRSJZ_INVENTORY.背包,
                     this.PlayerIndex,
+                    true,
                 ))?.getComponent(ZRSJZ_Inventory);
                 if (!backpack) return;
 
@@ -296,6 +300,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                     await inventory.RemoveProp(this._propID);
                 }
             }
+            ZRSJZ_TaskService.CompleteTask("出售任意物品", propData.CurCount);
             ZRSJZ_AccountService.ChangeGold(propData.UnitPrice * propData.CurCount);
             ZRSJZ_InventoryService.RemovePropID(this._propID);
             this.ClosePanel();

@@ -50,7 +50,13 @@ export class ZRSJZ_Weaponry extends Component {
 
     async Show(playerIndex: number = ZRSJZ_InventoryService.GetActivePlayerIndex()) {
         const showVersion = ++this._showVersion;
-        const usePlayerInstance = (this.GetOwnerPanel()?.PlayerIndex ?? -1) >= 0;
+        // 局内背包和快捷转移始终使用玩家专属库存实例。单人战斗（包括新手教程）
+        // 的弹窗会回退到全局 Panel，PlayerIndex 仍为 -1；如果这里只依据
+        // PlayerIndex，就会把可见装备栏挂到全局实例，而双击装备写入隐藏的
+        // Player1 实例，表现为道具从背包消失。局内统一使用玩家实例，局外仓库
+        // 仍使用全局实例。
+        const usePlayerInstance = ZRSJZ_UIManager.IsBattle
+            || (this.GetOwnerPanel()?.PlayerIndex ?? -1) >= 0;
         const gun = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.武器_枪, playerIndex, usePlayerInstance);
         await gun.getComponent(ZRSJZ_Inventory).ShowForPlayer(ZRSJZ_INVENTORY.武器_枪, playerIndex);
         if (!this.CanApplyShow(showVersion, playerIndex)) return;

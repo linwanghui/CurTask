@@ -39,7 +39,9 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_LOADOUT_PLAYER_CHANGE: string = 'ZRSJZ_LOADOUT_PLAYER_CHANGE';//仓库切换随身配置玩家
 
     public static ZRSJZ_TUTORIAL: string = 'ZRSJZ_TUTORIAL';//新手教程引导
-
+    public static ZRSJZ_MAIN_TASK_SHOW: string = 'ZRSJZ_MAIN_TASK_SHOW';//主线任务Item显示UI
+    public static ZRSJZ_MAIN_TASK_CHECK: string = 'ZRSJZ_MAIN_TASK_CHECK';//主线任务Item选中
+    public static ZRSJZ_MAIN_TASK_ADD: string = 'ZRSJZ_MAIN_TASK_ADD';//主线任务Item添加
 }
 
 export class ZRSJZ_EventManager {

@@ -2,6 +2,7 @@ import {
     ZRSJZ_AMMO_MAX_COUNT,
     ZRSJZ_GridData,
     ZRSJZ_INVENTORY,
+    ZRSJZ_MAIN_TASK_CONFIG,
     ZRSJZ_PROP_CONFIG,
     ZRSJZ_PropData,
 } from "../ZRSJZ_Constant";
@@ -14,6 +15,14 @@ export class ZRSJZ_GameDataDefaults {
         data.CurMap = "新手村";
         this.InitializePlayerKnife(data, 0);
         this.InitializePlayerKnife(data, 1);
+
+        const task = ZRSJZ_MAIN_TASK_CONFIG.get("初入禁区");
+        data.CurMainTask = {
+            TaskName: task.TaskName,
+            TaskTargetName: task.TaskTargets[0].TaskTargetName,
+            CurCount: 0
+        }
+
     }
 
     public static Migrate(data: ZRSJZ_GameData, savedData: any): boolean {

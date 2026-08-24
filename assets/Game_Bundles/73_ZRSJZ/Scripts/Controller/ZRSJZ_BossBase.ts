@@ -10,6 +10,7 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_TaskService } from '../Service/ZRSJZ_TaskService';
 
 const { ccclass } = _decorator;
 
@@ -180,6 +181,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     public Die(): void {
         this.CancelActiveAttack();
         super.Die();
+        ZRSJZ_TaskService.CompleteTask(`打败[${ZRSJZ_GameData.Instance.CurMap}]Boss`, 1);
     }
 
     protected onDisable(): void {

@@ -20,12 +20,12 @@ type SignInReward = {
 };
 
 const SIGN_IN_REWARDS: readonly SignInReward[] = [
-    { name: '金币', countText: 'x100万', gold: 1000000 },
-    { name: '金币', countText: 'x200万', gold: 2000000 },
-    { name: '金币', countText: 'x300万', gold: 3000000 },
-    { name: '金币', countText: 'x400万', gold: 4000000 },
-    { name: '金币', countText: 'x500万', gold: 5000000 },
-    { name: '金币', countText: 'x600万', gold: 6000000 },
+    { name: '钞票', countText: 'x100万', gold: 1000000 },
+    { name: '钞票', countText: 'x200万', gold: 2000000 },
+    { name: '钞票', countText: 'x300万', gold: 3000000 },
+    { name: '钞票', countText: 'x400万', gold: 4000000 },
+    { name: '钞票', countText: 'x500万', gold: 5000000 },
+    { name: '钞票', countText: 'x600万', gold: 6000000 },
     { name: 'W76-狙击枪', countText: 'x1', propName: 'W76-狙击枪', propCount: 1 },
 ];
 

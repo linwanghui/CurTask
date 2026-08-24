@@ -7,6 +7,7 @@ import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
+import { ZRSJZ_TaskService } from "../Service/ZRSJZ_TaskService";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_GetBulletPanel')
@@ -164,6 +165,7 @@ export class ZRSJZ_GetBulletPanel extends ZRSJZ_Panel {
         await warehouseNode?.getComponent(ZRSJZ_Inventory)?.ShowPropItem();
         await ZRSJZ_UIManager.Instance.ShowTip(`成功购买${this._count}发${this._ammoName}`);
         ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.购买子弹弹窗);
+        ZRSJZ_TaskService.CompleteTask(`在商城购买[${this._ammoName}]`, this._count);
     }
 }
 
