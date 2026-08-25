@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "0c8fc105-445a-4748-8447-0f217bd09fdd",
+  "uuid": "29eda52a-28bc-4962-b3fd-fb7b2cb0cfd3",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "0c8fc105-445a-4748-8447-0f217bd09fdd@6c48a",
-      "displayName": "空投打开描边",
+      "uuid": "29eda52a-28bc-4962-b3fd-fb7b2cb0cfd3@6c48a",
+      "displayName": "空投开箱",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "0c8fc105-445a-4748-8447-0f217bd09fdd",
+        "imageUuidOrDatabaseUri": "29eda52a-28bc-4962-b3fd-fb7b2cb0cfd3",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "0c8fc105-445a-4748-8447-0f217bd09fdd@f9941",
-      "displayName": "空投打开描边",
+      "uuid": "29eda52a-28bc-4962-b3fd-fb7b2cb0cfd3@f9941",
+      "displayName": "空投开箱",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "0c8fc105-445a-4748-8447-0f217bd09fdd@6c48a",
+        "imageUuidOrDatabaseUri": "29eda52a-28bc-4962-b3fd-fb7b2cb0cfd3@6c48a",
         "atlasUuid": "",
         "trimType": "none"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "0c8fc105-445a-4748-8447-0f217bd09fdd@6c48a"
+    "redirect": "29eda52a-28bc-4962-b3fd-fb7b2cb0cfd3@6c48a"
   }
 }

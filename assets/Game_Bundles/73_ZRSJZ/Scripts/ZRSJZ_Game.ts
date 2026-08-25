@@ -5,7 +5,7 @@ import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY } from './ZRSJZ_Constant';
+import { ZRSJZ_BOMB_PLOT_SPAWN_CONFIG, ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
@@ -13,6 +13,8 @@ import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_InventoryService } from './Service/ZRSJZ_InventoryService';
 import { ZRSJZ_TaskService } from './Service/ZRSJZ_TaskService';
+import { ZRSJZ_ParacargoBox } from './Unit/ZRSJZ_ParacargoBox';
+import { ZRSJZ_BombPlot } from './Unit/ZRSJZ_BombPlot';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -93,6 +95,14 @@ export class ZRSJZ_Game extends Component {
     private _timeLimitSeconds: number = 0;
     private _killCount: number = 0;
     private _battleStarted: boolean = false;
+    /** 每局只请求一次空投，异步加载期间也用于阻止重复生成。 */
+    private _paracargoSpawnRequested: boolean = false;
+    /** 空投实际生成后记录其落点，供地图弹窗显示空投标记。 */
+    private _hasParacargoTarget: boolean = false;
+    private readonly _paracargoTargetWorldPosition: Vec3 = new Vec3();
+    private _activeBombPlot: ZRSJZ_BombPlot = null;
+    private _bombPlotSpawnLoading: boolean = false;
+    private _nextBombPlotSpawnTime: number = Number.POSITIVE_INFINITY;
     private readonly _evacuationDuration: number = 10;
     private _evacuationElapsed: number = 0;
     private _isEvacuating: boolean = false;
@@ -118,6 +128,12 @@ export class ZRSJZ_Game extends Component {
         this._elapsedGameTime = 0;
         this._killCount = 0;
         this._battleStarted = false;
+        this._paracargoSpawnRequested = false;
+        this._hasParacargoTarget = false;
+        this._paracargoTargetWorldPosition.set(0, 0, 0);
+        this._activeBombPlot = null;
+        this._bombPlotSpawnLoading = false;
+        this._nextBombPlotSpawnTime = Number.POSITIVE_INFINITY;
         this._evacuationElapsed = 0;
         this._isEvacuating = false;
         this._playerEvacuationPoints.clear();
@@ -299,6 +315,8 @@ export class ZRSJZ_Game extends Component {
                 : Number.POSITIVE_INFINITY;
             this._elapsedGameTime += deltaTime;
             this.RefreshGameTime();
+            void this.TrySpawnParacargo();
+            void this.TrySpawnBombPlot();
 
             if (this._isEvacuating) {
                 this._evacuationElapsed += deltaTime;
@@ -322,6 +340,119 @@ export class ZRSJZ_Game extends Component {
             if (evacuationCompleted) {
                 this.CompleteEvacuation();
             }
+        }
+    }
+
+    /** 到达地图配置时间后，在 ParacargoPoints 的随机子节点上方生成一架空投。 */
+    private async TrySpawnParacargo(): Promise<void> {
+        if (this._paracargoSpawnRequested || this._isGameFinished || !this.CurMap?.node) return;
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
+        const config = mapConfig?.Paracargo;
+        if (!mapConfig || !config || config.SpawnTimeSeconds <= 0) return;
+        if (this._elapsedGameTime < config.SpawnTimeSeconds) return;
+
+        this._paracargoSpawnRequested = true;
+        const pointRoot = this.CurMap.node.getChildByName("ParacargoPoints");
+        const points = pointRoot?.children.filter(point => point?.isValid) ?? [];
+        if (points.length === 0) {
+            console.warn(`[ZRSJZ_Game] 地图 ${mapConfig.MapName} 的 ParacargoPoints 没有可用落点`);
+            return;
+        }
+
+        const point = points[math.randomRangeInt(0, points.length)];
+        const targetWorldPosition = point.worldPosition.clone();
+        const paracargoNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/箱子/空投");
+        if (!paracargoNode) {
+            console.error("[ZRSJZ_Game] 加载空投预制体失败");
+            return;
+        }
+        if (this._isGameFinished || !this.CurMap?.Unit?.isValid) {
+            ZRSJZ_PoolManager.Instance.PutNode(paracargoNode);
+            return;
+        }
+
+        const paracargoBox = paracargoNode.getComponent(ZRSJZ_ParacargoBox);
+        if (!paracargoBox) {
+            console.error("[ZRSJZ_Game] 空投预制体缺少 ZRSJZ_ParacargoBox 组件");
+            ZRSJZ_PoolManager.Instance.PutNode(paracargoNode);
+            return;
+        }
+
+        paracargoNode.active = false;
+        paracargoNode.parent = this.CurMap.Unit;
+        this._paracargoTargetWorldPosition.set(targetWorldPosition);
+        this._hasParacargoTarget = true;
+        paracargoBox.Deploy(targetWorldPosition, config, mapConfig);
+    }
+
+    /** 空投尚未实际生成时返回 null；生成后返回空投的最终落点世界坐标。 */
+    public GetParacargoTargetWorldPosition(): Readonly<Vec3> | null {
+        return this._hasParacargoTarget ? this._paracargoTargetWorldPosition : null;
+    }
+
+    /** 返回当前处于预警或轰炸阶段的轰炸区。 */
+    public GetActiveBombPlot(): ZRSJZ_BombPlot | null {
+        return this._activeBombPlot?.IsRunning ? this._activeBombPlot : null;
+    }
+
+    private ScheduleNextBombPlot(firstSpawn: boolean): void {
+        if (this.IsTutorial || this._isGameFinished) {
+            this._nextBombPlotSpawnTime = Number.POSITIVE_INFINITY;
+            return;
+        }
+        const config = ZRSJZ_BOMB_PLOT_SPAWN_CONFIG;
+        const minDelay = firstSpawn ? config.FirstSpawnMinSeconds : config.RepeatSpawnMinSeconds;
+        const maxDelay = firstSpawn ? config.FirstSpawnMaxSeconds : config.RepeatSpawnMaxSeconds;
+        const safeMin = Math.max(0, Math.min(minDelay, maxDelay));
+        const safeMax = Math.max(safeMin, minDelay, maxDelay);
+        this._nextBombPlotSpawnTime = this._elapsedGameTime
+            + safeMin
+            + Math.random() * (safeMax - safeMin);
+    }
+
+    private async TrySpawnBombPlot(): Promise<void> {
+        if (this.IsTutorial
+            || this._bombPlotSpawnLoading
+            || this.GetActiveBombPlot()
+            || this._isGameFinished
+            || this._elapsedGameTime < this._nextBombPlotSpawnTime
+            || !this.CurMap?.Map?.isValid
+            || !this.CurMap?.Unit?.isValid) {
+            return;
+        }
+
+        this._bombPlotSpawnLoading = true;
+        const bombPlotNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/BombPlot");
+        this._bombPlotSpawnLoading = false;
+        if (!bombPlotNode) {
+            console.error("[ZRSJZ_Game] 加载 BombPlot 预制体失败");
+            this.ScheduleNextBombPlot(false);
+            return;
+        }
+        if (this._isGameFinished || !this.CurMap?.Map?.isValid || !this.CurMap?.Unit?.isValid) {
+            ZRSJZ_PoolManager.Instance.PutNode(bombPlotNode);
+            return;
+        }
+
+        const bombPlot = bombPlotNode.getComponent(ZRSJZ_BombPlot);
+        if (!bombPlot) {
+            console.error("[ZRSJZ_Game] BombPlot 预制体缺少 ZRSJZ_BombPlot 组件");
+            ZRSJZ_PoolManager.Instance.PutNode(bombPlotNode);
+            this.ScheduleNextBombPlot(false);
+            return;
+        }
+
+        bombPlotNode.active = false;
+        bombPlotNode.parent = this.CurMap.Unit;
+        this._activeBombPlot = bombPlot;
+        const deployed = bombPlot.DeployRandom(this.CurMap.Map, this.CurMap.Unit, () => {
+            if (this._activeBombPlot === bombPlot) this._activeBombPlot = null;
+            this.ScheduleNextBombPlot(false);
+        });
+        if (!deployed) {
+            this._activeBombPlot = null;
+            ZRSJZ_PoolManager.Instance.PutNode(bombPlotNode);
+            this.ScheduleNextBombPlot(false);
         }
     }
 
@@ -498,6 +629,7 @@ export class ZRSJZ_Game extends Component {
         this.ApplyControlModelVisibility();
         this.RefreshGameTime();
         this._battleStarted = true;
+        this.ScheduleNextBombPlot(true);
         for (const checked of this._checkedNodes.slice(0, this.Players.length)) {
             if (!checked) continue;
             tween(checked)

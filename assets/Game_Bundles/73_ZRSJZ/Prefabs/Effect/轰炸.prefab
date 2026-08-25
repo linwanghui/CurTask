@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "BombEffect",
+    "_name": "轰炸",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "BombEffect",
+    "_name": "轰炸",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -39,8 +39,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -1160.231,
-      "y": -538.759,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -306,7 +306,7 @@
       "__uuid__": "1f33abbb-9193-47f1-ae5a-46ef94639da2",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "1",
+    "defaultSkin": "2",
     "defaultAnimation": "eff",
     "_premultipliedAlpha": true,
     "_timeScale": 1,
@@ -367,7 +367,7 @@
     "fileId": "58UrosyelMIqqX6KHuV8AG"
   },
   {
-    "__type__": "05ea2pmyLRGC6bXaRUHWhEJ",
+    "__type__": "2b56bAwjAFBaZxfhw18fHyB",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -384,7 +384,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "89tST16PFJVpdCvltS2Iza"
+    "fileId": "a2UrxJvixNdYvKwYgtSKT0"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -395,7 +395,6 @@
       "__id__": 0
     },
     "fileId": "4fba8gzbBB8LPQbBzwYYDU",
-    "instance": null,
     "targetOverrides": null
   }
 ]

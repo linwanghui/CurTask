@@ -27,6 +27,7 @@ export class ZRSJZ_PoolManager extends Component {
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/DieEffect", 5);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/MuzzleEffect", 10);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/HitEffect", 10);
+            ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/绿色血雾", 10);
             ZRSJZ_PoolManager._instance.Preload("Prefabs/Effect/SearchPropEffect", 2);
         }
         return ZRSJZ_PoolManager._instance;
@@ -53,12 +54,18 @@ export class ZRSJZ_PoolManager extends Component {
         if (count <= 0) return;
 
         const key = this.GetPoolKey(path);
-        const prefab = await this.GetPrefab(path);
-        if (!prefab) return;
 
-        const pool = this.GetOrCreatePool(key);
-        while (pool.size() < count) {
-            pool.put(instantiate(prefab));
+        const cb = (prefab: Prefab) => {
+            const pool = this.GetOrCreatePool(key);
+            while (pool.size() < count) {
+                pool.put(instantiate(prefab));
+            }
+        };
+
+        if (this._prefabMap.has(key)) {
+            cb(this._prefabMap.get(key));
+        } else {
+            ZRSJZ_Tools.LoadPrefab(path).then(prefab => cb(prefab));
         }
     }
 

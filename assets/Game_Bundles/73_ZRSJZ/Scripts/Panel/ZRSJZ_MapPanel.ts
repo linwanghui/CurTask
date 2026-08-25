@@ -15,9 +15,13 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
     CurPoint: Node = null;
     Player2Icon: Sprite = null;
     Player2Point: Node = null;
+    ParacargoPoint: Node = null;
+    BombPlotPoint: Node = null;
     private _pointWorldPosition: Vec3 = new Vec3();
     private _pointParentPosition: Vec3 = new Vec3();
     private _playerMapPosition: Vec3 = new Vec3();
+    private _rangeWorldPosition: Vec3 = new Vec3();
+    private _rangeParentPosition: Vec3 = new Vec3();
 
     protected onLoad(): void {
         this.Icon = find("Panel/我的位置/Icon", this.node)?.getComponent(Sprite) ?? null;
@@ -25,6 +29,10 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         this.CurPoint = find("Panel/我的位置", this.node);
         this.Player2Icon = find("Panel/玩家2/Icon", this.node)?.getComponent(Sprite) ?? null;
         this.Player2Point = find("Panel/玩家2", this.node);
+        this.ParacargoPoint = find("Panel/空投", this.node);
+        if (this.ParacargoPoint) this.ParacargoPoint.active = false;
+        this.BombPlotPoint = find("Panel/轰炸区", this.node);
+        if (this.BombPlotPoint) this.BombPlotPoint.active = false;
     }
 
     public Show(...args: any[]): void {
@@ -56,15 +64,15 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
             this.Player2Icon.spriteFrame = player2IconArgument;
         }
 
-        this.RefreshPlayerPoints();
+        this.RefreshMapPoints();
         // Panel 的 Widget/适配组件会在本帧结束时调整地图尺寸与缩放，
         // 下一帧再校准一次，避免不同屏幕比例下标记产生偏移。
-        this.scheduleOnce(() => this.RefreshPlayerPoints(), 0);
+        this.scheduleOnce(() => this.RefreshMapPoints(), 0);
     }
 
     protected lateUpdate(): void {
         if (!this.node.activeInHierarchy || !this.CurMap) return;
-        this.RefreshPlayerPoints();
+        this.RefreshMapPoints();
     }
 
     public OnButtonClick(event: EventTouch): void {
@@ -163,5 +171,63 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         } else if (this.Player2Point) {
             this.Player2Point.active = false;
         }
+    }
+
+    /** 同步玩家与空投等所有地图标记。 */
+    private RefreshMapPoints(): void {
+        this.RefreshPlayerPoints();
+
+        const paracargoPosition = ZRSJZ_Game.Instance?.GetParacargoTargetWorldPosition();
+        if (paracargoPosition) {
+            this.SetPointPosition(
+                this.ParacargoPoint,
+                paracargoPosition.x,
+                paracargoPosition.y,
+            );
+        } else if (this.ParacargoPoint) {
+            this.ParacargoPoint.active = false;
+        }
+
+        this.RefreshBombPlotPoint();
+    }
+
+    private RefreshBombPlotPoint(): void {
+        const bombPlot = ZRSJZ_Game.Instance?.GetActiveBombPlot();
+        if (!bombPlot || !this.BombPlotPoint) {
+            if (this.BombPlotPoint) this.BombPlotPoint.active = false;
+            return;
+        }
+
+        const center = bombPlot.CenterWorldPosition;
+        this.SetPointPosition(this.BombPlotPoint, center.x, center.y);
+
+        const gameMapTransform = ZRSJZ_Game.Instance?.CurMap?.Map?.getComponent(UITransform);
+        const popupMapTransform = this.CurMap?.getComponent(UITransform);
+        const rangeTransform = this.BombPlotPoint.getComponent(UITransform);
+        const pointParentTransform = this.BombPlotPoint.parent?.getComponent(UITransform);
+        if (!gameMapTransform || !popupMapTransform || !rangeTransform || !pointParentTransform) return;
+
+        const gameBounds = gameMapTransform.getBoundingBoxToWorld();
+        const popupBounds = popupMapTransform.getBoundingBoxToWorld();
+        if (gameBounds.width <= 0 || gameBounds.height <= 0) return;
+
+        const diameterWorldX = bombPlot.Radius * 2 / gameBounds.width * popupBounds.width;
+        const diameterWorldY = bombPlot.Radius * 2 / gameBounds.height * popupBounds.height;
+        this._rangeWorldPosition.set(popupBounds.x, popupBounds.y, this.CurMap.worldPosition.z);
+        pointParentTransform.convertToNodeSpaceAR(this._rangeWorldPosition, this._rangeParentPosition);
+        const rangeOriginX = this._rangeParentPosition.x;
+        const rangeOriginY = this._rangeParentPosition.y;
+
+        this._rangeWorldPosition.set(
+            popupBounds.x + diameterWorldX,
+            popupBounds.y + diameterWorldY,
+            this.CurMap.worldPosition.z,
+        );
+        pointParentTransform.convertToNodeSpaceAR(this._rangeWorldPosition, this._rangeParentPosition);
+        rangeTransform.setContentSize(
+            Math.abs(this._rangeParentPosition.x - rangeOriginX),
+            Math.abs(this._rangeParentPosition.y - rangeOriginY),
+        );
+        this.BombPlotPoint.setScale(1, 1, 1);
     }
 }
