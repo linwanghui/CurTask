@@ -1,10 +1,10 @@
 {
 "skeleton": {
-	"hash": "3Vm8ST/p2xFkJPKK6P0hM0AoiWg",
+	"hash": "iwBSlYHtEejSGEZseYLZ8FwPxNY",
 	"spine": "3.8.75",
-	"x": -462.25,
+	"x": -254.63,
 	"y": -57.92,
-	"width": 899,
+	"width": 426.08,
 	"height": 757.15,
 	"images": "./images/",
 	"audio": "C:/Users/admin/Desktop/三角洲真人版/角色/猫女动画"
@@ -464,7 +464,7 @@
 	{ "name": "ll-_0003_右手2_蓝狼", "bone": "root", "attachment": "llpf1__0000s_0009_曲线-3-拷贝-6" },
 	{ "name": "dao", "bone": "zb_dao" },
 	{ "name": "散弹枪", "bone": "骨骼39" },
-	{ "name": "步枪", "bone": "骨骼39", "attachment": "步枪" },
+	{ "name": "步枪", "bone": "骨骼39" },
 	{ "name": "狙击枪", "bone": "骨骼39" },
 	{ "name": "小兵1__0006_左手3拿枪手2", "bone": "root", "attachment": "小兵1__0006_左手3拿枪手2" },
 	{ "name": "小兵1__0002_右手3", "bone": "root", "attachment": "小兵1__0002_右手3" },
@@ -654,7 +654,7 @@
 	{
 		"name": "default",
 		"attachments": {
-			"images/effect/zhccy_nom/zhccy_01": {
+			"images/effect/zhccy_nom/zhccy_2": {
 				"images/effect/zhccy_nom/zhccy_07": { "width": 190, "height": 72 },
 				"images/effect/zhccy_nom/zhccy_09": { "width": 190, "height": 72 },
 				"images/effect/zhccy_nom/zhccy_11": { "width": 190, "height": 72 }
@@ -695,12 +695,6 @@
 				"赤牙": { "x": 62.1, "y": 81.59, "rotation": -14.14, "width": 185, "height": 307 },
 				"魔刀": { "x": 67.3, "y": 105.06, "width": 315, "height": 348 }
 			},
-			"images/skill/zuihouyiji/twtd/twtd_0001": {
-				"images/skill/zuihouyiji/twtd/twtd_0001": { "width": 229, "height": 64 },
-				"images/skill/zuihouyiji/twtd/twtd_0002": { "width": 229, "height": 64 },
-				"images/skill/zuihouyiji/twtd/twtd_0004": { "width": 229, "height": 64 },
-				"images/skill/zuihouyiji/twtd/twtd_0006": { "width": 229, "height": 64 }
-			},
 			"images/skill/tybg_add/tybg_1": {
 				"images/skill/tybg_add/tybg_01": { "width": 46, "height": 42 }
 			},
@@ -716,10 +710,11 @@
 				"images/effect/xuanfeng/xuanfeng_00055": { "width": 192, "height": 92 },
 				"images/effect/xuanfeng/xuanfeng_00059": { "width": 192, "height": 92 }
 			},
-			"images/effect/zhccy_nom/zhccy_2": {
-				"images/effect/zhccy_nom/zhccy_07": { "width": 190, "height": 72 },
-				"images/effect/zhccy_nom/zhccy_09": { "width": 190, "height": 72 },
-				"images/effect/zhccy_nom/zhccy_11": { "width": 190, "height": 72 }
+			"images/skill/zuihouyiji/twtd/twtd_0001": {
+				"images/skill/zuihouyiji/twtd/twtd_0001": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0002": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0004": { "width": 229, "height": 64 },
+				"images/skill/zuihouyiji/twtd/twtd_0006": { "width": 229, "height": 64 }
 			},
 			"images/skill/zuihouyiji/dtcg_add/dtcg_0001": {
 				"images/skill/zuihouyiji/dtcg_add/dtcg_0001": { "width": 246, "height": 54 },
@@ -772,6 +767,11 @@
 				"images/skill/zuihouyiji/twtd/twtd_0002": { "width": 229, "height": 64 },
 				"images/skill/zuihouyiji/twtd/twtd_0004": { "width": 229, "height": 64 },
 				"images/skill/zuihouyiji/twtd/twtd_0006": { "width": 229, "height": 64 }
+			},
+			"images/effect/zhccy_nom/zhccy_01": {
+				"images/effect/zhccy_nom/zhccy_07": { "width": 190, "height": 72 },
+				"images/effect/zhccy_nom/zhccy_09": { "width": 190, "height": 72 },
+				"images/effect/zhccy_nom/zhccy_11": { "width": 190, "height": 72 }
 			},
 			"gz": {
 				"huaban-6356646602": {
@@ -2237,16 +2237,6 @@
 					{ "name": "m1__0017_左脚" }
 				]
 			},
-			"w2__0016_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
 			"images/skill/qiquan_add/qq_1": {
 				"color": [
 					{ "time": 0.1045, "color": "ffffffff" },
@@ -2259,9 +2249,30 @@
 					{ "time": 0.2633, "name": null }
 				]
 			},
+			"右脚-猫": {
+				"attachment": [
+					{ "name": "右脚2-猫" },
+					{ "time": 1.4056, "name": "右脚-猫" }
+				]
+			},
+			"ll-_0013_右脚": {
+				"attachment": [
+					{ "name": "ll-_0012_右脚2_蓝狼2" }
+				]
+			},
+			"小兵1__0007_左手3拿枪手1": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
 			"llpf1__0000s_0019_曲线-3-拷贝-11": {
 				"attachment": [
 					{ "time": 1.4056, "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
+				]
+			},
+			"w2__0020_右脚": {
+				"attachment": [
+					{ "name": "w2__0019_右脚2" }
 				]
 			},
 			"images/skill/qxyan_add/qipaoyan_00035": {
@@ -2277,14 +2288,19 @@
 					{ "time": 0.5928, "name": null }
 				]
 			},
+			"llpf1__0000s_0027_曲线-3-拷贝-15": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
 			"w1__0000s_0015_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
 			},
-			"ll-_0013_右脚": {
+			"w1__0000s_0021_右脚": {
 				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
+					{ "name": "w1__0000s_0020_右脚2" }
 				]
 			},
 			"images/skill/qiquan_add/qq_2": {
@@ -2299,17 +2315,12 @@
 					{ "time": 0.3034, "name": null }
 				]
 			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
+			"左手3拿枪手1-猫": {
 				"attachment": [
 					{ "name": null }
 				]
 			},
-			"w2__0020_右脚": {
-				"attachment": [
-					{ "name": "w2__0019_右脚2" }
-				]
-			},
-			"左手3拿枪手1-猫": {
+			"w2__0016_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -2317,17 +2328,6 @@
 			"ll-_0008_左手3拿枪手1_蓝狼": {
 				"attachment": [
 					{ "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" },
-					{ "time": 1.4056, "name": "右脚-猫" }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
 				]
 			}
 		},
@@ -2359,8 +2359,6 @@
 					{},
 					{ "time": 0.1549, "x": 12.2, "y": -37.36 },
 					{ "time": 0.4807, "x": 19.54, "y": -4.05 },
-					{ "time": 0.6988, "x": 34.43, "y": 21.8 },
-					{ "time": 0.8, "x": 44.35, "y": 13.64 },
 					{ "time": 1.1936, "x": 45.38, "y": 12.22 },
 					{ "time": 1.4056 }
 				]
@@ -2969,6 +2967,11 @@
 				]
 			}
 		},
+		"ik": {
+			"mz": [
+				{ "mix": 0 }
+			]
+		},
 		"transform": {
 			"qqq": [
 				{ "rotateMix": -0.212, "translateMix": -0.212, "scaleMix": -0.212, "shearMix": -0.212 }
@@ -3014,19 +3017,10 @@
 					{ "name": "m1__0017_左脚" }
 				]
 			},
-			"w2__0016_左手3拿枪手1": {
+			"右脚-猫": {
 				"attachment": [
-					{ "name": null }
-				]
-			},
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
+					{ "name": "右脚2-猫" },
+					{ "time": 1.6333, "name": "右脚-猫" }
 				]
 			},
 			"ll-_0013_右脚": {
@@ -3034,7 +3028,7 @@
 					{ "name": "ll-_0012_右脚2_蓝狼2" }
 				]
 			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
+			"小兵1__0007_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -3044,7 +3038,27 @@
 					{ "name": "w2__0019_右脚2" }
 				]
 			},
+			"llpf1__0000s_0027_曲线-3-拷贝-15": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"w1__0000s_0015_左手3拿枪手1": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"w1__0000s_0021_右脚": {
+				"attachment": [
+					{ "name": "w1__0000s_0020_右脚2" }
+				]
+			},
 			"左手3拿枪手1-猫": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"w2__0016_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -3052,17 +3066,6 @@
 			"ll-_0008_左手3拿枪手1_蓝狼": {
 				"attachment": [
 					{ "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" },
-					{ "time": 1.6333, "name": "右脚-猫" }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
 				]
 			}
 		},
@@ -3679,16 +3682,6 @@
 					{ "name": "m1__0017_左脚" }
 				]
 			},
-			"w2__0016_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
 			"images/skill/qiquan_add/qq_1": {
 				"color": [
 					{ "time": 0.1045, "color": "ffffffff" },
@@ -3701,9 +3694,30 @@
 					{ "time": 0.2633, "name": null }
 				]
 			},
+			"右脚-猫": {
+				"attachment": [
+					{ "name": "右脚2-猫" },
+					{ "time": 1.1667, "name": "右脚-猫" }
+				]
+			},
+			"ll-_0013_右脚": {
+				"attachment": [
+					{ "name": "ll-_0012_右脚2_蓝狼2" }
+				]
+			},
+			"小兵1__0007_左手3拿枪手1": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
 			"llpf1__0000s_0019_曲线-3-拷贝-11": {
 				"attachment": [
 					{ "time": 1.1667, "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
+				]
+			},
+			"w2__0020_右脚": {
+				"attachment": [
+					{ "name": "w2__0019_右脚2" }
 				]
 			},
 			"images/skill/qxyan_add/qipaoyan_00035": {
@@ -3719,14 +3733,19 @@
 					{ "time": 0.5572, "name": null }
 				]
 			},
+			"llpf1__0000s_0027_曲线-3-拷贝-15": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
 			"w1__0000s_0015_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
 			},
-			"ll-_0013_右脚": {
+			"w1__0000s_0021_右脚": {
 				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
+					{ "name": "w1__0000s_0020_右脚2" }
 				]
 			},
 			"images/skill/qiquan_add/qq_2": {
@@ -3741,17 +3760,12 @@
 					{ "time": 0.3034, "name": null }
 				]
 			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
+			"左手3拿枪手1-猫": {
 				"attachment": [
 					{ "name": null }
 				]
 			},
-			"w2__0020_右脚": {
-				"attachment": [
-					{ "name": "w2__0019_右脚2" }
-				]
-			},
-			"左手3拿枪手1-猫": {
+			"w2__0016_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -3759,17 +3773,6 @@
 			"ll-_0008_左手3拿枪手1_蓝狼": {
 				"attachment": [
 					{ "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" },
-					{ "time": 1.1667, "name": "右脚-猫" }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
 				]
 			}
 		},
@@ -4357,6 +4360,11 @@
 				]
 			}
 		},
+		"ik": {
+			"mz": [
+				{ "mix": 0 }
+			]
+		},
 		"transform": {
 			"qqq": [
 				{ "rotateMix": -0.212, "translateMix": -0.212, "scaleMix": -0.212, "shearMix": -0.212 }
@@ -4384,39 +4392,9 @@
 					{ "name": "m1__0017_左脚" }
 				]
 			},
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
 			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "time": 3.1667, "name": null }
-				]
-			},
-			"w2__0020_右脚": {
-				"attachment": [
-					{ "name": "w2__0019_右脚2" }
-				]
-			},
-			"左手3拿枪手1-猫": {
-				"attachment": [
-					{ "time": 3.1667, "name": null }
 				]
 			},
 			"右脚-猫": {
@@ -4425,9 +4403,39 @@
 					{ "time": 3.1667, "name": "右脚-猫" }
 				]
 			},
+			"ll-_0013_右脚": {
+				"attachment": [
+					{ "name": "ll-_0012_右脚2_蓝狼2" }
+				]
+			},
+			"w2__0020_右脚": {
+				"attachment": [
+					{ "name": "w2__0019_右脚2" }
+				]
+			},
+			"llpf1__0000s_0027_曲线-3-拷贝-15": {
+				"attachment": [
+					{ "time": 3.1667, "name": null }
+				]
+			},
+			"w1__0000s_0015_左手3拿枪手1": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
 			"w1__0000s_0021_右脚": {
 				"attachment": [
 					{ "name": "w1__0000s_0020_右脚2" }
+				]
+			},
+			"左手3拿枪手1-猫": {
+				"attachment": [
+					{ "time": 3.1667, "name": null }
+				]
+			},
+			"小兵1__0007_左手3拿枪手1": {
+				"attachment": [
+					{ "name": null }
 				]
 			}
 		},
@@ -5022,14 +5030,14 @@
 	},
 	"daiji_dao1": {
 		"slots": {
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
-				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
 			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
+				]
+			},
+			"llpf1__0000s_0019_曲线-3-拷贝-11": {
+				"attachment": [
+					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
 				]
 			}
 		},
@@ -5398,14 +5406,14 @@
 	},
 	"daiji_dao2": {
 		"slots": {
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
-				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
 			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
+				]
+			},
+			"llpf1__0000s_0019_曲线-3-拷贝-11": {
+				"attachment": [
+					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
 				]
 			}
 		},
@@ -5812,27 +5820,12 @@
 					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
 				]
 			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
 			"llpf1__0000s_0027_曲线-3-拷贝-15": {
 				"attachment": [
 					{ "name": null }
 				]
 			},
-			"左手3拿枪手1-猫": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"m1__0014_左手2": {
+			"w1__0000s_0015_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -5842,7 +5835,22 @@
 					{ "name": null }
 				]
 			},
+			"左手3拿枪手1-猫": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"m1__0014_左手2": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
 			"w2__0016_左手3拿枪手1": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"ll-_0008_左手3拿枪手1_蓝狼": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -6182,6 +6190,20 @@
 		},
 		"deform": {
 			"js/w1": {
+				"ll-_0002_右手3_蓝狼": {
+					"ll-_0002_右手3_蓝狼": [
+						{
+							"vertices": [ -15.07008, -1.29526, -13.58768, -0.48547, -13.38011, 2.65178, -12.89108, 3.01012, -12.38422, 3.07144, -11.76848, 2.4982, -11.76039, 0.02699, -10.49207, 0.17949, -8.08673, -0.68816, -7.40999, -1.27272, -7.10947, -4.01797, -7.54933, -6.01749, -7.50287, -6.3773, -7.01524, -8.55969, -7.2124, -9.24129, -8.09602, -10.31575, -10.27455, -10.54912, -11.28705, -9.94876, -11.84207, -9.17485, -13.58952, -3.49208, -13.49243, -1.47314, -13.79288, -0.98259 ]
+						}
+					]
+				},
+				"ll-_0007_左手3拿枪手2_蓝狼": {
+					"ll-_0007_左手3拿枪手2_蓝狼": [
+						{
+							"vertices": [ -7.7534, 16.88943, -7.7534, 16.88943, -7.7534, 16.88943, -7.7534, 16.88943 ]
+						}
+					]
+				},
 				"w1__0000s_0016_左手2": {
 					"w1__0000s_0016_左手2": [
 						{
@@ -6195,23 +6217,16 @@
 							"vertices": [ -10.87573, 1.47397, -11.06555, 3.25134, -11.53217, -0.15683, -11.02364, 5.93402, -12.28339, 2.41881, -12.66373, 6.57668, -12.33546, 9.70563, -12.12851, 10.45926, -11.40807, 10.78163, -10.66055, 10.17714, -10.69534, 7.87685, -9.17638, 7.74513, -7.09631, 6.81818, -6.43945, 6.33551, -6.13528, 4.11438, -6.39787, 2.17749, -6.68376, 1.55739, -5.21463, -1.61389, -4.50645, -3.07994, -4.68446, -3.59711, -3.41502, -4.81856, -4.70052, -5.71704, -2.80504, -6.84889, -5.40347, -5.84079, -3.44014, -7.17442, -5.79768, -5.0314, -4.05557, -6.51746, -6.44907, -5.35168, -4.58353, -7.01562, -9.61586, -6.03909, -11.02441, -4.6109, -11.58182, -1.98199, -8.15274, -3.37009, -6.79588, -5.62463, -8.74304, 1.61099, -8.82903, -1.03943, -9.65581, 4.82181 ]
 						}
 					]
-				},
-				"ll-_0007_左手3拿枪手2_蓝狼": {
-					"ll-_0007_左手3拿枪手2_蓝狼": [
-						{
-							"vertices": [ -7.7534, 16.88943, -7.7534, 16.88943, -7.7534, 16.88943, -7.7534, 16.88943 ]
-						}
-					]
-				},
-				"ll-_0002_右手3_蓝狼": {
-					"ll-_0002_右手3_蓝狼": [
-						{
-							"vertices": [ -15.07008, -1.29526, -13.58768, -0.48547, -13.38011, 2.65178, -12.89108, 3.01012, -12.38422, 3.07144, -11.76848, 2.4982, -11.76039, 0.02699, -10.49207, 0.17949, -8.08673, -0.68816, -7.40999, -1.27272, -7.10947, -4.01797, -7.54933, -6.01749, -7.50287, -6.3773, -7.01524, -8.55969, -7.2124, -9.24129, -8.09602, -10.31575, -10.27455, -10.54912, -11.28705, -9.94876, -11.84207, -9.17485, -13.58952, -3.49208, -13.49243, -1.47314, -13.79288, -0.98259 ]
-						}
-					]
 				}
 			},
 			"js/w2": {
+				"ll-_0002_右手3_蓝狼": {
+					"ll-_0002_右手3_蓝狼": [
+						{
+							"vertices": [ -6.22502, 12.4127, -5.43423, 13.09894, -4.29729, 12.44823, -4.26669, 9.56351, -1.81989, 9.41772, 0.3488, 8.1644, 0.80423, 7.6684, 0.89954, 4.93535, 0.26909, 1.03542, 0.28484, 0.49742, -3.55327, 0.71968, -5.03947, 1.53146, -7.28281, 5.69551 ]
+						}
+					]
+				},
 				"w2__0011_右手2": {
 					"w2__0011_右手2": [
 						{
@@ -6232,13 +6247,6 @@
 							"vertices": [ -5.7001, 8.92596, -5.7001, 8.92596, -5.7001, 8.92596, -5.7001, 8.92596, -5.7001, 8.92596, -5.7001, 8.92596, -5.7001, 8.92596, -5.7001, 8.92596, -5.7001, 8.92596, -5.7001, 8.92596 ]
 						}
 					]
-				},
-				"ll-_0002_右手3_蓝狼": {
-					"ll-_0002_右手3_蓝狼": [
-						{
-							"vertices": [ -6.22502, 12.4127, -5.43423, 13.09894, -4.29729, 12.44823, -4.26669, 9.56351, -1.81989, 9.41772, 0.3488, 8.1644, 0.80423, 7.6684, 0.89954, 4.93535, 0.26909, 1.03542, 0.28484, 0.49742, -3.55327, 0.71968, -5.03947, 1.53146, -7.28281, 5.69551 ]
-						}
-					]
 				}
 			},
 			"js/m1": {
@@ -6249,22 +6257,29 @@
 						}
 					]
 				},
-				"m1__0014_左手2": {
-					"m1__0014_左手2": [
-						{
-							"vertices": [ -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367 ]
-						}
-					]
-				},
 				"m1__0013_左手3拿枪手1": {
 					"m1__0013_左手3拿枪手1": [
 						{
 							"vertices": [ -33.7627, 17.67789, -34.35833, 19.89438, -33.62801, 22.14236, -31.86303, 24.67694, -29.45234, 25.34036, -27.64925, 26.32425, -22.72099, 26.24878, -17.98645, 24.67114, -16.04316, 21.2572, -15.48714, 13.97556, -12.92242, 9.46738, -13.27814, 7.46524, -14.73351, 4.80502, -15.76405, 3.86084, -21.34142, 2.27496, -24.65128, 3.51871, -26.95147, 5.80618, -26.40865, 11.62357, -29.45377, 12.23718, -31.38864, 13.33923 ]
 						}
 					]
+				},
+				"m1__0014_左手2": {
+					"m1__0014_左手2": [
+						{
+							"vertices": [ -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367, -9.96422, 15.60367 ]
+						}
+					]
 				}
 			},
 			"js/m2": {
+				"ll-_0002_右手3_蓝狼": {
+					"ll-_0002_右手3_蓝狼": [
+						{
+							"vertices": [ 0.53909, -1.04514, 0.53909, -1.04514, 0.53909, -1.04514, 0.53909, -1.04514 ]
+						}
+					]
+				},
 				"左手2-猫": {
 					"左手2-猫": [
 						{
@@ -6278,43 +6293,36 @@
 							"vertices": [ -3.60039, 11.7045, -3.60039, 11.7045, -3.60039, 11.7045, -3.60039, 11.7045 ]
 						}
 					]
-				},
-				"ll-_0002_右手3_蓝狼": {
-					"ll-_0002_右手3_蓝狼": [
-						{
-							"vertices": [ 0.53909, -1.04514, 0.53909, -1.04514, 0.53909, -1.04514, 0.53909, -1.04514 ]
-						}
-					]
 				}
 			},
 			"js/ll2": {
-				"ll-_0007_左手3拿枪手2_蓝狼": {
-					"ll-_0007_左手3拿枪手2_蓝狼": [
-						{
-							"vertices": [ -5.5443, 13.70837, -5.5443, 13.70837, -5.5443, 13.70837, -5.5443, 13.70837 ]
-						}
-					]
-				},
 				"ll-_0002_右手3_蓝狼": {
 					"ll-_0002_右手3_蓝狼": [
 						{
 							"vertices": [ -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213, -2.35159, -1.213 ]
 						}
 					]
-				}
-			},
-			"js/ll1": {
+				},
 				"ll-_0007_左手3拿枪手2_蓝狼": {
 					"ll-_0007_左手3拿枪手2_蓝狼": [
 						{
-							"vertices": [ -3.00076, 9.75412, -3.00076, 9.75412, -3.00076, 9.75412, -3.00076, 9.75412, -3.00076, 9.75412, -3.00076, 9.75412 ]
+							"vertices": [ -5.5443, 13.70837, -5.5443, 13.70837, -5.5443, 13.70837, -5.5443, 13.70837 ]
 						}
 					]
-				},
+				}
+			},
+			"js/ll1": {
 				"ll-_0002_右手3_蓝狼": {
 					"ll-_0002_右手3_蓝狼": [
 						{
 							"vertices": [ 7.57726, 3.90858, 7.57726, 3.90858, 7.57726, 3.90858, 7.57726, 3.90858, 7.57726, 3.90858, 7.57726, 3.90858 ]
+						}
+					]
+				},
+				"ll-_0007_左手3拿枪手2_蓝狼": {
+					"ll-_0007_左手3拿枪手2_蓝狼": [
+						{
+							"vertices": [ -3.00076, 9.75412, -3.00076, 9.75412, -3.00076, 9.75412, -3.00076, 9.75412, -3.00076, 9.75412, -3.00076, 9.75412 ]
 						}
 					]
 				}
@@ -6323,36 +6331,18 @@
 	},
 	"gj_dao3": {
 		"slots": {
-			"images/skill/zuihouyiji/dtcg_add/dtcg_0001": {
+			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
-					{ "time": 0.3, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0003" },
-					{ "time": 0.3667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0005" },
-					{ "time": 0.4, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0006" },
-					{ "time": 0.4667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0008" },
-					{ "time": 0.5, "name": null }
+					{ "name": null }
 				]
 			},
-			"images/skill/zuihouyiji/twtd/twtd_0001": {
-				"attachment": [
-					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
-					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
-					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
-					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
-					{ "time": 0.3667, "name": null }
-				]
-			},
-			"images/effect/xuanfeng/xuanfeng_45": {
+			"images/skill/tybg_add/tybg_1": {
 				"color": [
-					{ "time": 0.1333, "color": "00a0ffff" }
+					{ "time": 0.1333, "color": "0544bcff" }
 				],
 				"attachment": [
-					{ "time": 0.1333, "name": "images/effect/xuanfeng/xuanfeng_00045" },
+					{ "time": 0.1333, "name": "images/skill/tybg_add/tybg_01" },
 					{ "time": 0.2, "name": null }
-				]
-			},
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
-				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
 				]
 			},
 			"images/skill/baodian_add/js_5_normal/js_5_0001": {
@@ -6362,25 +6352,9 @@
 					{ "time": 0.3333, "name": null }
 				]
 			},
-			"images/skill/zuihouyiji/twtd/twtd_1": {
+			"llpf1__0000s_0019_曲线-3-拷贝-11": {
 				"attachment": [
-					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
-					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
-					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
-					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
-					{ "time": 0.3667, "name": null }
-				]
-			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"images/skill/baodian_add/js_5_normal/js_5_1": {
-				"attachment": [
-					{ "time": 0.1667, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
-					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
-					{ "time": 0.3667, "name": null }
+					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
 				]
 			},
 			"images/skill/tybg_add/tybg_01": {
@@ -6392,14 +6366,13 @@
 					{ "time": 0.2333, "name": "images/skill/tybg_add/tybg_01" }
 				]
 			},
-			"images/skill/slj/tc_add/tc_0001": {
+			"images/skill/zuihouyiji/twtd/twtd_0001": {
 				"attachment": [
-					{ "time": 0.1333, "name": "images/skill/slj/tc_add/tc_0001" },
-					{ "time": 0.2, "name": "images/skill/slj/tc_add/tc_0003" },
-					{ "time": 0.2667, "name": "images/skill/slj/tc_add/tc_0004" },
-					{ "time": 0.3333, "name": "images/skill/slj/tc_add/tc_0005" },
-					{ "time": 0.4, "name": "images/skill/slj/tc_add/tc_0006" },
-					{ "time": 0.4667, "name": null }
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.3667, "name": null }
 				]
 			},
 			"images/effect/xuanfeng/xuanfeng_00045": {
@@ -6412,13 +6385,48 @@
 					{ "time": 0.5, "name": null }
 				]
 			},
-			"images/skill/tybg_add/tybg_1": {
+			"images/skill/zuihouyiji/dtcg_add/dtcg_0001": {
+				"attachment": [
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0003" },
+					{ "time": 0.3667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0005" },
+					{ "time": 0.4, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0006" },
+					{ "time": 0.4667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0008" },
+					{ "time": 0.5, "name": null }
+				]
+			},
+			"images/skill/baodian_add/js_5_normal/js_5_1": {
+				"attachment": [
+					{ "time": 0.1667, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
+					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
+					{ "time": 0.3667, "name": null }
+				]
+			},
+			"images/skill/slj/tc_add/tc_0001": {
+				"attachment": [
+					{ "time": 0.1333, "name": "images/skill/slj/tc_add/tc_0001" },
+					{ "time": 0.2, "name": "images/skill/slj/tc_add/tc_0003" },
+					{ "time": 0.2667, "name": "images/skill/slj/tc_add/tc_0004" },
+					{ "time": 0.3333, "name": "images/skill/slj/tc_add/tc_0005" },
+					{ "time": 0.4, "name": "images/skill/slj/tc_add/tc_0006" },
+					{ "time": 0.4667, "name": null }
+				]
+			},
+			"images/effect/xuanfeng/xuanfeng_45": {
 				"color": [
-					{ "time": 0.1333, "color": "0544bcff" }
+					{ "time": 0.1333, "color": "00a0ffff" }
 				],
 				"attachment": [
-					{ "time": 0.1333, "name": "images/skill/tybg_add/tybg_01" },
+					{ "time": 0.1333, "name": "images/effect/xuanfeng/xuanfeng_00045" },
 					{ "time": 0.2, "name": null }
+				]
+			},
+			"images/skill/zuihouyiji/twtd/twtd_1": {
+				"attachment": [
+					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
+					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
+					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
+					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
+					{ "time": 0.3667, "name": null }
 				]
 			},
 			"images/skill/zuihouyiji/twtd/twtd_2": {
@@ -6945,59 +6953,11 @@
 			{ "time": 0.2667, "name": "dao" }
 		]
 	},
-	"gj_dao3_2": {
+	"gj_dao4": {
 		"slots": {
-			"m1__0017_左脚": {
-				"attachment": [
-					{ "name": "m1__0017_左脚" }
-				]
-			},
-			"images/skill/zuihouyiji/dtcg_add/dtcg_0001": {
-				"attachment": [
-					{ "time": 0.3, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0003" },
-					{ "time": 0.3667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0005" },
-					{ "time": 0.4, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0006" },
-					{ "time": 0.4667, "name": "images/skill/zuihouyiji/dtcg_add/dtcg_0008" },
-					{ "time": 0.5, "name": null }
-				]
-			},
-			"images/skill/zuihouyiji/twtd/twtd_0001": {
-				"attachment": [
-					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
-					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
-					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
-					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
-					{ "time": 0.3667, "name": null }
-				]
-			},
-			"images/effect/xuanfeng/xuanfeng_45": {
-				"color": [
-					{ "time": 0.1333, "color": "00a0ffff" }
-				],
-				"attachment": [
-					{ "time": 0.1333, "name": "images/effect/xuanfeng/xuanfeng_00045" },
-					{ "time": 0.2, "name": null }
-				]
-			},
 			"小兵1__0006_左手3拿枪手2": {
 				"attachment": [
 					{ "name": null }
-				]
-			},
-			"images/skill/baodian_add/js_5_normal/js_5_0001": {
-				"attachment": [
-					{ "time": 0.2, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
-					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
-					{ "time": 0.3333, "name": null }
-				]
-			},
-			"images/skill/zuihouyiji/twtd/twtd_1": {
-				"attachment": [
-					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0001" },
-					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
-					{ "time": 0.3, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
-					{ "time": 0.3333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
-					{ "time": 0.3667, "name": null }
 				]
 			},
 			"ll-_0007_左手3拿枪手2_蓝狼": {
@@ -7005,716 +6965,9 @@
 					{ "name": null }
 				]
 			},
-			"images/skill/baodian_add/js_5_normal/js_5_1": {
-				"attachment": [
-					{ "time": 0.1667, "name": "images/skill/baodian_add/js_5_normal/js_5_0003" },
-					{ "time": 0.3, "name": "images/skill/baodian_add/js_5_normal/js_5_0005" },
-					{ "time": 0.3667, "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"images/skill/tybg_add/tybg_01": {
-				"color": [
-					{ "time": 0.2333, "color": "0093ffff" },
-					{ "time": 0.5, "color": "00acff00" }
-				],
-				"attachment": [
-					{ "time": 0.2333, "name": "images/skill/tybg_add/tybg_01" }
-				]
-			},
-			"w2__0020_右脚": {
-				"attachment": [
-					{ "name": "w2__0019_右脚2" }
-				]
-			},
-			"images/skill/slj/tc_add/tc_0001": {
-				"attachment": [
-					{ "time": 0.1333, "name": "images/skill/slj/tc_add/tc_0001" },
-					{ "time": 0.2, "name": "images/skill/slj/tc_add/tc_0003" },
-					{ "time": 0.2667, "name": "images/skill/slj/tc_add/tc_0004" },
-					{ "time": 0.3333, "name": "images/skill/slj/tc_add/tc_0005" },
-					{ "time": 0.4, "name": "images/skill/slj/tc_add/tc_0006" },
-					{ "time": 0.4667, "name": null }
-				]
-			},
-			"images/effect/xuanfeng/xuanfeng_00045": {
-				"attachment": [
-					{ "time": 0.2, "name": "images/effect/xuanfeng/xuanfeng_00045" },
-					{ "time": 0.2667, "name": "images/effect/xuanfeng/xuanfeng_00047" },
-					{ "time": 0.3333, "name": "images/effect/xuanfeng/xuanfeng_00051" },
-					{ "time": 0.4, "name": "images/effect/xuanfeng/xuanfeng_00055" },
-					{ "time": 0.4667, "name": "images/effect/xuanfeng/xuanfeng_00059" },
-					{ "time": 0.5, "name": null }
-				]
-			},
-			"images/skill/tybg_add/tybg_1": {
-				"color": [
-					{ "time": 0.1333, "color": "0544bcff" }
-				],
-				"attachment": [
-					{ "time": 0.1333, "name": "images/skill/tybg_add/tybg_01" },
-					{ "time": 0.2, "name": null }
-				]
-			},
-			"images/skill/zuihouyiji/twtd/twtd_2": {
-				"attachment": [
-					{ "time": 0.1333, "name": "images/skill/zuihouyiji/twtd/twtd_0002" },
-					{ "time": 0.1667, "name": "images/skill/zuihouyiji/twtd/twtd_0003" },
-					{ "time": 0.2, "name": "images/skill/zuihouyiji/twtd/twtd_0004" },
-					{ "time": 0.2333, "name": "images/skill/zuihouyiji/twtd/twtd_0006" },
-					{ "time": 0.2667, "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			}
-		},
-		"bones": {
-			"骨骼17": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.01, "y": -1.29 }
-				]
-			},
-			"骨骼24": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1181 },
-					{ "time": 0.3544, "angle": -4.67 },
-					{ "time": 0.4699, "angle": -2.34 }
-				]
-			},
-			"zb_tk": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": 0.27, "y": -2.56 }
-				]
-			},
-			"骨骼23": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1181 },
-					{ "time": 0.3544, "angle": -4.67 },
-					{ "time": 0.4699, "angle": -2.34 }
-				]
-			},
-			"骨骼10": {
-				"rotate": [
-					{ "angle": 46.04 },
-					{ "time": 0.055, "angle": 42.57 },
-					{ "time": 0.1101, "angle": 37.14 },
-					{ "time": 0.1651, "angle": 0.49 },
-					{ "time": 0.1657, "angle": 2.92 },
-					{ "time": 0.2201, "angle": -1.21 },
-					{ "time": 0.2751, "angle": -1.68 },
-					{ "time": 0.3186, "angle": 29.49 },
-					{ "time": 0.3698, "angle": 53.76 },
-					{ "time": 0.4205, "angle": 70.86 },
-					{ "time": 0.4699, "angle": 46.04 }
-				]
-			},
-			"骨骼11": {
-				"rotate": [
-					{ "angle": -16.68 },
-					{ "time": 0.055, "angle": -48.83 },
-					{ "time": 0.1101, "angle": -54.2 },
-					{ "time": 0.1651, "angle": -12.93 },
-					{ "time": 0.2201, "angle": -37.56 },
-					{ "time": 0.2751, "angle": -54.32 },
-					{ "time": 0.3186, "angle": -103.2 },
-					{ "time": 0.3698, "angle": -87.41 },
-					{ "time": 0.4205, "angle": -49.19 },
-					{ "time": 0.4699, "angle": -16.68 }
-				]
-			},
-			"骨骼26": {
-				"rotate": [
-					{ "angle": -25.44 },
-					{ "time": 0.1477 },
-					{ "time": 0.3839, "angle": -40.7 },
-					{ "time": 0.4699, "angle": -25.44 }
-				]
-			},
-			"zb_q": {
-				"translate": [
-					{},
-					{ "time": 0.1101, "y": -10.6 },
-					{ "time": 0.2357, "y": 2.91 },
-					{ "time": 0.3535, "y": -10.6 },
-					{ "time": 0.4699 }
-				]
-			},
-			"骨骼22": {
-				"rotate": [
-					{ "angle": -10.6 },
-					{ "time": 0.1678 },
-					{ "time": 0.4028, "angle": -15.01 },
-					{ "time": 0.4699, "angle": -10.6 }
-				]
-			},
-			"骨骼35": {
-				"rotate": [
-					{},
-					{ "time": 0.235, "angle": -0.57 },
-					{ "time": 0.4699 }
-				]
-			},
-			"骨骼34": {
-				"rotate": [
-					{ "angle": -0.48 },
-					{ "time": 0.235, "angle": -1.05 },
-					{ "time": 0.4699, "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.11, "y": -1.74 }
-				]
-			},
-			"骨骼28": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.43, "y": -0.53 }
-				]
-			},
-			"zs1": {
-				"rotate": [
-					{ "time": 0.2517, "angle": 82.05 }
-				],
-				"translate": [
-					{},
-					{ "time": 0.2517, "x": -22.09, "y": 119.68 },
-					{ "time": 0.4699 }
-				]
-			},
-			"骨骼29": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": 0.26, "y": -0.57 }
-				]
-			},
-			"骨骼43": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.57, "y": -1.63 }
-				]
-			},
-			"骨骼30": {
-				"rotate": [
-					{ "angle": -4.37 },
-					{ "time": 0.0839, "angle": -0.48 },
-					{ "time": 0.235, "angle": -11.04 },
-					{ "time": 0.3524, "angle": -9.81 },
-					{ "time": 0.4699, "angle": -4.37 }
-				],
-				"translate": [
-					{ "x": 0.9, "y": -1.09 }
-				]
-			},
-			"骨骼36": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.3, "y": -1.73 }
-				]
-			},
-			"骨骼16": {
-				"rotate": [
-					{ "angle": -2.42 }
-				],
-				"translate": [
-					{ "x": 1.33, "y": -0.01 }
-				]
-			},
-			"骨骼32": {
-				"rotate": [
-					{ "angle": -13.51 },
-					{ "time": 0.0839, "angle": 1.45 },
-					{ "time": 0.3524, "angle": -34.45 },
-					{ "time": 0.4699, "angle": -13.51 }
-				]
-			},
-			"骨骼42": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": 0.63, "y": -1.6 }
-				]
-			},
-			"骨骼25": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1181 },
-					{ "time": 0.3544, "angle": -4.67 },
-					{ "time": 0.4699, "angle": -2.34 }
-				]
-			},
-			"骨骼18": {
-				"rotate": [
-					{ "angle": 4.72 },
-					{ "time": 0.235, "angle": 14.15 },
-					{ "time": 0.3356, "angle": -13.93 },
-					{ "time": 0.4699, "angle": 4.72 }
-				],
-				"translate": [
-					{ "x": 0.68, "y": -1.65 }
-				]
-			},
-			"骨骼33": {
-				"translate": [
-					{}
-				]
-			},
-			"骨骼8": {
-				"rotate": [
-					{ "angle": -25.57 }
-				]
-			},
-			"bone2": {
-				"rotate": [
-					{ "angle": 3.4 },
-					{ "time": 0.235, "angle": -10.91 },
-					{ "time": 0.4699, "angle": 3.4 }
-				]
-			},
-			"骨骼37": {
-				"rotate": [
-					{ "angle": 3.14 },
-					{ "time": 0.235, "angle": 1.35 },
-					{ "time": 0.4699, "angle": 3.14 }
-				]
-			},
-			"骨骼19": {
-				"rotate": [
-					{ "angle": 11.87 },
-					{ "time": 0.235, "angle": 21.29 },
-					{ "time": 0.3356, "angle": -6.79 },
-					{ "time": 0.4699, "angle": 11.87 }
-				]
-			},
-			"骨骼20": {
-				"rotate": [
-					{ "angle": 3.63 },
-					{ "time": 0.235, "angle": 13.05 },
-					{ "time": 0.3356, "angle": -15.03 },
-					{ "time": 0.4699, "angle": 3.63 }
-				],
-				"translate": [
-					{ "x": -0.6, "y": -1.68 }
-				]
-			},
-			"骨骼21": {
-				"rotate": [
-					{ "angle": 11.89 },
-					{ "time": 0.235, "angle": 21.32 },
-					{ "time": 0.3356, "angle": -6.77 },
-					{ "time": 0.4699, "angle": 11.89 }
-				]
-			},
-			"bone": {
-				"rotate": [
-					{ "angle": 3.4 },
-					{ "time": 0.235, "angle": -1.68 },
-					{ "time": 0.4699, "angle": 3.4 }
-				]
-			},
-			"骨骼52": {
-				"rotate": [
-					{ "angle": 11.01 },
-					{ "time": 0.0503 },
-					{ "time": 0.1633, "angle": 19.27 },
-					{ "time": 0.201, "angle": 11.01 },
-					{ "time": 0.2667 },
-					{ "time": 0.4154, "angle": 19.27 },
-					{ "time": 0.4699, "angle": 11.01 }
-				]
-			},
-			"骨骼58": {
-				"rotate": [
-					{ "angle": -11.41, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.1005, "angle": 2.23, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.201, "angle": -11.41, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.3329, "angle": 2.23, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4699, "angle": -11.41 }
-				]
-			},
-			"骨骼51": {
-				"rotate": [
-					{ "angle": 8.12 },
-					{ "time": 0.0377 },
-					{ "time": 0.1507, "angle": 18.95 },
-					{ "time": 0.201, "angle": 8.12 },
-					{ "time": 0.2505 },
-					{ "time": 0.3989, "angle": 18.95 },
-					{ "time": 0.4699, "angle": 8.12 }
-				]
-			},
-			"骨骼49": {
-				"rotate": [
-					{ "angle": 7.75 },
-					{ "time": 0.0377 },
-					{ "time": 0.1507, "angle": 18.09 },
-					{ "time": 0.201, "angle": 7.75 },
-					{ "time": 0.2505 },
-					{ "time": 0.3989, "angle": 18.09 },
-					{ "time": 0.4699, "angle": 7.75 }
-				]
-			},
-			"骨骼38": {
-				"rotate": [
-					{ "angle": 3.14 },
-					{ "time": 0.235, "angle": -17.1 },
-					{ "time": 0.4699, "angle": 3.14 }
-				]
-			},
-			"骨骼2": {
-				"rotate": [
-					{},
-					{ "time": 0.2517, "angle": -38.11 },
-					{ "time": 0.4699 }
-				],
-				"translate": [
-					{ "x": -0.05, "y": 2.52 }
-				]
-			},
-			"骨骼3": {
-				"translate": [
-					{ "x": -0.62, "y": 0.01 }
-				]
-			},
-			"骨骼31": {
-				"rotate": [
-					{ "angle": -4.88 },
-					{ "time": 0.0839, "angle": 1.45 },
-					{ "time": 0.3524, "angle": -13.75 },
-					{ "time": 0.4699, "angle": -4.88 }
-				]
-			},
-			"骨骼13": {
-				"rotate": [
-					{ "angle": -48.06 },
-					{ "time": 0.055, "angle": -34.22 },
-					{ "time": 0.1101, "angle": -10.14 },
-					{ "time": 0.1651, "angle": 28.4 },
-					{ "time": 0.2201, "angle": 26.47 },
-					{ "time": 0.2751, "angle": 12.75 },
-					{ "time": 0.3186, "angle": 3.9 },
-					{ "time": 0.3698, "angle": -37.1 },
-					{ "time": 0.4205, "angle": -41.38 },
-					{ "time": 0.4699, "angle": -48.06 }
-				]
-			},
-			"骨骼14": {
-				"rotate": [
-					{ "angle": -43.49 },
-					{ "time": 0.055, "angle": -53.96 },
-					{ "time": 0.1101, "angle": -87.12 },
-					{ "time": 0.1651, "angle": -80.67 },
-					{ "time": 0.2201, "angle": -38.45 },
-					{ "time": 0.2751, "angle": -1.67 },
-					{ "time": 0.3186, "angle": -23.25 },
-					{ "time": 0.3698, "angle": -1.06 },
-					{ "time": 0.4205, "angle": -21.34 },
-					{ "time": 0.4699, "angle": -43.49 }
-				]
-			},
-			"骨骼15": {
-				"rotate": [
-					{ "angle": 5.51 },
-					{ "time": 0.055, "angle": -17.27 },
-					{ "time": 0.1101, "angle": -6.48 },
-					{ "time": 0.1651, "angle": 17.19 },
-					{ "time": 0.2201, "angle": 22.32 },
-					{ "time": 0.2751, "angle": 19.39 },
-					{ "time": 0.3186, "angle": 21.04 },
-					{ "time": 0.3698, "angle": 12.25, "curve": "stepped" },
-					{ "time": 0.4205, "angle": 12.25 },
-					{ "time": 0.4699, "angle": 5.51 }
-				]
-			},
-			"骨骼12": {
-				"rotate": [
-					{},
-					{ "time": 0.055, "angle": 2.49 },
-					{ "time": 0.1101, "angle": 11.56, "curve": "stepped" },
-					{ "time": 0.1651, "angle": 11.56 },
-					{ "time": 0.2201, "angle": -24.3 },
-					{ "time": 0.2751, "angle": -9.38 },
-					{ "time": 0.3186, "angle": 5.53, "curve": "stepped" },
-					{ "time": 0.4205, "angle": 5.53 },
-					{ "time": 0.4699 }
-				]
-			},
-			"骨骼60": {
-				"rotate": [
-					{ "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.1005, "angle": 17.56, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.201, "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.3329, "angle": 17.56, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4699, "angle": -14.11 }
-				]
-			},
-			"骨骼57": {
-				"rotate": [
-					{ "angle": -7.84, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.1005, "angle": 1.67, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.201, "angle": -7.84, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.3329, "angle": 1.67, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4699, "angle": -7.84 }
-				]
-			},
-			"骨骼59": {
-				"rotate": [
-					{ "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.1005, "angle": 17.56, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.201, "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.3329, "angle": 17.56, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4699, "angle": -14.11 }
-				]
-			},
-			"骨骼46": {
-				"scale": [
-					{ "x": 1.015, "y": 1.015, "curve": "stepped" },
-					{ "time": 0.1678, "x": 1.015, "y": 1.015 },
-					{ "time": 0.2517, "x": 1.148, "y": 0.93 },
-					{ "time": 0.4699, "x": 1.015, "y": 1.015 }
-				]
-			},
-			"zs2": {
-				"translate": [
-					{},
-					{ "time": 0.1007, "x": 9.52, "y": -71.79 },
-					{ "time": 0.2517, "x": -0.03, "y": -185.78 },
-					{ "time": 0.4699 }
-				]
-			},
-			"骨骼27": {
-				"rotate": [
-					{ "angle": -20.57 }
-				]
-			},
-			"zb_dao": {
-				"rotate": [
-					{ "angle": -36.75 }
-				],
-				"translate": [
-					{ "x": -5.6, "y": -6.54 },
-					{ "time": 0.1376, "x": -60.22, "y": -6.54 },
-					{ "time": 0.2751, "x": 163.91, "y": 11.78, "curve": "stepped" },
-					{ "time": 0.3577, "x": 163.91, "y": 11.78 },
-					{ "time": 0.4953, "x": -5.6, "y": -6.54 }
-				]
-			},
-			"ys1": {
-				"translate": [
-					{},
-					{ "time": 0.1376, "x": -26.01, "y": 20.97 },
-					{ "time": 0.2751, "x": 178.11, "y": 59.73 },
-					{ "time": 0.3577, "x": 156.47, "y": 78.8 },
-					{ "time": 0.4953 }
-				]
-			},
-			"xuanfeng2": {
-				"rotate": [
-					{ "time": 0.1333, "angle": 170.32 }
-				],
-				"translate": [
-					{ "time": 0.1333, "x": -46.23, "y": 37.48 }
-				],
-				"scale": [
-					{ "time": 0.1333, "x": 1.336, "y": 1.336 }
-				]
-			},
-			"tuci": {
-				"rotate": [
-					{ "time": 0.1333, "angle": -3.5 },
-					{ "time": 0.1667, "angle": -2.68 },
-					{ "time": 0.2, "angle": -5.57 },
-					{ "time": 0.2667, "angle": -1.3 }
-				],
-				"translate": [
-					{ "time": 0.1333, "x": 4.6, "y": 39.56 },
-					{ "time": 0.1667, "x": -2.99, "y": 41.97 },
-					{ "time": 0.2, "x": -1.39, "y": 55.43 },
-					{ "time": 0.2667, "x": 88.56, "y": 42.26 }
-				],
-				"scale": [
-					{ "time": 0.1333, "x": 1.648, "y": 0.84 },
-					{ "time": 0.2, "x": 1.981, "y": 1.686 }
-				]
-			},
-			"tuoweixian4": {
-				"rotate": [
-					{ "time": 0.1333, "angle": 179.92 }
-				],
-				"translate": [
-					{ "time": 0.1333, "x": -29.74, "y": 37.06 }
-				],
-				"scale": [
-					{ "time": 0.1333, "x": 0.611, "y": 0.611 }
-				]
-			},
-			"guangzi": {
-				"rotate": [
-					{ "time": 0.1333, "angle": -5.23 },
-					{ "time": 0.1667, "angle": -7.67 }
-				],
-				"translate": [
-					{ "time": 0.1333, "x": 3.46, "y": 45.05 },
-					{ "time": 0.1667, "x": 27.86, "y": 41.82 }
-				],
-				"scale": [
-					{ "time": 0.1333, "x": 12.837, "y": 4.232 }
-				]
-			},
-			"js1": {
-				"rotate": [
-					{ "time": 0.1667, "angle": 87.75 }
-				],
-				"translate": [
-					{ "time": 0.1667, "x": -358.03, "y": 23.94 },
-					{ "time": 0.2667, "x": -254.24, "y": 20.49 }
-				]
-			},
-			"tuoweixian3": {
-				"rotate": [
-					{ "time": 0.1667, "angle": -145.36 },
-					{ "time": 0.2, "angle": -174.25 }
-				],
-				"translate": [
-					{ "time": 0.1667, "x": -149.55, "y": 53.29 },
-					{ "time": 0.2, "x": 26.36, "y": 36.1 },
-					{ "time": 0.2667, "x": 135.96, "y": 32.4 }
-				]
-			},
-			"js01": {
-				"rotate": [
-					{ "time": 0.2, "angle": 77.71 }
-				],
-				"translate": [
-					{ "time": 0.2, "x": -306.49, "y": 36.82 },
-					{ "time": 0.2667, "x": -202.7, "y": 33.37 }
-				]
-			},
-			"tuoweixian2": {
-				"translate": [
-					{ "time": 0.2, "x": -24.07, "y": 38.96 },
-					{ "time": 0.2667, "x": 86.77, "y": 41.02 }
-				],
-				"scale": [
-					{ "time": 0.2, "x": -0.937, "y": 0.555 }
-				]
-			},
-			"xuanfeng": {
-				"rotate": [
-					{ "time": 0.2, "angle": 167.19 }
-				],
-				"translate": [
-					{ "time": 0.2, "x": -104.74, "y": 55.74 },
-					{ "time": 0.2667, "x": 109.3, "y": 49 }
-				],
-				"scale": [
-					{ "time": 0.2, "x": 1.919, "y": 1.919, "curve": "stepped" },
-					{ "time": 0.2333, "x": 1.919, "y": 1.919 },
-					{ "time": 0.2667, "x": 1.508, "y": 1.508 }
-				]
-			},
-			"guang": {
-				"translate": [
-					{ "time": 0.2333, "x": 157.69, "y": 40.24 },
-					{ "time": 0.2667, "x": 209.89, "y": 34.32 }
-				],
-				"scale": [
-					{ "time": 0.2333, "x": 13.347, "y": 3.265 }
-				]
-			},
-			"tuci5": {
-				"translate": [
-					{ "time": 0.2667, "x": 28.51, "y": 38.76 },
-					{ "time": 0.3333, "x": 139, "y": 38.76 }
-				],
-				"scale": [
-					{ "time": 0.2667, "x": 0.604, "y": 0.604 }
-				]
-			},
-			"dao2": {
-				"translate": [
-					{ "x": -213.21, "y": 217.95 },
-					{ "time": 0.1667, "x": -211.44, "y": 194.11 }
-				]
-			}
-		},
-		"transform": {
-			"ddd": [
-				{ "rotateMix": -0.166, "translateMix": -0.166, "scaleMix": -0.166, "shearMix": -0.166 }
-			],
-			"zskz": [
-				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
-			]
-		},
-		"deform": {
-			"js/m1": {
-				"m1__0010_右手1": {
-					"m1__0010_右手1": [
-						{
-							"time": 0.2201,
-							"vertices": [ -0.10461, 13.81171, 4.84232, 12.70752, 9.54651, 9.50433, 11.39478, 5.4129, 9.43652, 1.84384, 10.41928, -0.12878, 12.3374, -6.11328, 12.75867, -9.96539, 10.10373, -15.46045, 9.85492, -17.63855, 10.17203, -19.64218, 8.05844, -30.90332, 7.02951, -35.12173, 5.70215, -36.55203, -3.6506, -40.81146, -5.39923, -40.77841, -9.53479, -38.95236, -14.55435, -30.04745, -14.4704, -23.35806, -13.96814, -9.44342, -11.13721, -1.90326, -7.53558, 6.24631, -2.3414, 12.30029 ]
-						},
-						{
-							"time": 0.2357,
-							"vertices": [ 1.67801, 2.83856, 5.00772, 2.30344, 8.26062, 0.36478, 9.65227, -2.27844, 8.49487, -4.72745, 9.22672, -5.99796, 10.74069, -9.89578, 11.17516, -12.43729, 9.63232, -16.19339, 9.55437, -17.65015, 9.84532, -18.9679, 8.8933, -26.53192, 8.37915, -29.37488, 7.55499, -30.37808, 1.51422, -33.58237, 0.35147, -33.63052, -2.46844, -32.58359, -6.15944, -26.8707, -6.37204, -22.42447, -6.59673, -13.16287, -5.01889, -8.04144, -2.95396, -2.48428, 0.25304, 1.74478 ]
-						}
-					]
-				},
-				"m1__0013_左手3拿枪手1": {
-					"m1__0013_左手3拿枪手1": [
-						{
-							"vertices": [ -35.44856, 15.56033, -37.53873, 20.00632, -36.84616, 25.01797, -34.08176, 31.02261, -29.25271, 33.32849, -25.82405, 36.08011, -15.41164, 37.77737, -4.84219, 36.2363, 0.53797, 29.77472, 4.45113, 14.64203, 11.55303, 6.10892, 11.55756, 1.75647, 9.49291, -4.39682, 7.67725, -6.77411, -3.47722, -12.21582, -10.91909, -10.84164, -16.62727, -6.88797, -17.67391, 5.57352, -24.32129, 5.71976, -28.81257, 7.31311 ]
-						}
-					]
-				}
-			}
-		},
-		"events": [
-			{ "time": 0.2667, "name": "dao" }
-		]
-	},
-	"gj_dao4": {
-		"slots": {
 			"llpf1__0000s_0019_曲线-3-拷贝-11": {
 				"attachment": [
 					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
-			"小兵1__0006_左手3拿枪手2": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
-				"attachment": [
-					{ "name": null }
 				]
 			},
 			"dao1": {
@@ -7729,6 +6982,18 @@
 			}
 		},
 		"bones": {
+			"zb_dao": {
+				"rotate": [
+					{ "angle": -36.75 }
+				],
+				"translate": [
+					{ "x": -5.6, "y": -6.54 },
+					{ "time": 0.1563, "x": -60.22, "y": -6.54 },
+					{ "time": 0.3126, "x": 163.91, "y": 11.78, "curve": "stepped" },
+					{ "time": 0.4065, "x": 163.91, "y": 11.78 },
+					{ "time": 0.5627, "x": -5.6, "y": -6.54 }
+				]
+			},
 			"骨骼35": {
 				"rotate": [
 					{},
@@ -8101,1923 +7366,6 @@
 			{ "time": 0.3333, "name": "hui" }
 		]
 	},
-	"gj_dao4_2": {
-		"slots": {
-			"m1__0017_左脚": {
-				"attachment": [
-					{ "name": "m1__0017_左脚" }
-				]
-			},
-			"小兵1__0006_左手3拿枪手2": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"w2__0020_右脚": {
-				"attachment": [
-					{ "name": "w2__0019_右脚2" }
-				]
-			},
-			"dao1": {
-				"attachment": [
-					{ "time": 0.2667, "name": "dg3/1_00031" },
-					{ "time": 0.3333, "name": "dg3/1_00032" },
-					{ "time": 0.3667, "name": "dg3/1_00033" },
-					{ "time": 0.4, "name": "dg3/1_00034" },
-					{ "time": 0.4333, "name": "dg3/1_00036" },
-					{ "time": 0.4667, "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			}
-		},
-		"bones": {
-			"骨骼11": {
-				"rotate": [
-					{ "angle": -16.68 },
-					{ "time": 0.0667, "angle": -48.83 },
-					{ "time": 0.1333, "angle": -54.2 },
-					{ "time": 0.1996, "angle": -12.93 },
-					{ "time": 0.2662, "angle": -37.56 },
-					{ "time": 0.3327, "angle": -54.32 },
-					{ "time": 0.3849, "angle": -103.2 },
-					{ "time": 0.4465, "angle": -87.41 },
-					{ "time": 0.5081, "angle": -49.19 },
-					{ "time": 0.5677, "angle": -16.68 }
-				]
-			},
-			"骨骼13": {
-				"rotate": [
-					{ "angle": -48.06 },
-					{ "time": 0.0667, "angle": -34.22 },
-					{ "time": 0.1333, "angle": -10.14 },
-					{ "time": 0.1996, "angle": 28.4 },
-					{ "time": 0.2662, "angle": 26.47 },
-					{ "time": 0.3327, "angle": 12.75 },
-					{ "time": 0.3849, "angle": 3.9 },
-					{ "time": 0.4465, "angle": -37.1 },
-					{ "time": 0.5081, "angle": -41.38 },
-					{ "time": 0.5677, "angle": -48.06 }
-				]
-			},
-			"骨骼17": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.01, "y": -1.29 }
-				]
-			},
-			"zb_q": {
-				"translate": [
-					{},
-					{ "time": 0.1333, "y": -10.6 },
-					{ "time": 0.2847, "y": 2.91 },
-					{ "time": 0.4271, "y": -10.6 },
-					{ "time": 0.5677 }
-				]
-			},
-			"骨骼18": {
-				"rotate": [
-					{ "angle": 4.72 },
-					{ "time": 0.2839, "angle": 14.15 },
-					{ "time": 0.4055, "angle": -13.93 },
-					{ "time": 0.5677, "angle": 4.72 }
-				],
-				"translate": [
-					{ "x": 0.68, "y": -1.65 }
-				]
-			},
-			"骨骼43": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.57, "y": -1.63 }
-				]
-			},
-			"骨骼42": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": 0.63, "y": -1.6 }
-				]
-			},
-			"骨骼36": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.3, "y": -1.73 }
-				]
-			},
-			"骨骼16": {
-				"rotate": [
-					{ "angle": -2.42 }
-				],
-				"translate": [
-					{ "x": 1.33, "y": -0.01 }
-				]
-			},
-			"骨骼29": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": 0.26, "y": -0.57 }
-				]
-			},
-			"骨骼28": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.43, "y": -0.53 }
-				]
-			},
-			"骨骼23": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1427 },
-					{ "time": 0.4282, "angle": -4.67 },
-					{ "time": 0.5709, "angle": -2.34 }
-				]
-			},
-			"骨骼34": {
-				"rotate": [
-					{ "angle": -0.48 },
-					{ "time": 0.2839, "angle": -1.05 },
-					{ "time": 0.5677, "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": -0.11, "y": -1.74 }
-				]
-			},
-			"zb_tk": {
-				"rotate": [
-					{ "angle": -0.48 }
-				],
-				"translate": [
-					{ "x": 0.27, "y": -2.56 }
-				]
-			},
-			"骨骼20": {
-				"rotate": [
-					{ "angle": 3.63 },
-					{ "time": 0.2839, "angle": 13.05 },
-					{ "time": 0.4055, "angle": -15.03 },
-					{ "time": 0.5677, "angle": 3.63 }
-				],
-				"translate": [
-					{ "x": -0.6, "y": -1.68 }
-				]
-			},
-			"骨骼30": {
-				"rotate": [
-					{ "angle": -4.37 },
-					{ "time": 0.1014, "angle": -0.48 },
-					{ "time": 0.2839, "angle": -11.04 },
-					{ "time": 0.4258, "angle": -9.81 },
-					{ "time": 0.5677, "angle": -4.37 }
-				],
-				"translate": [
-					{ "x": 0.9, "y": -1.09 }
-				]
-			},
-			"骨骼46": {
-				"scale": [
-					{ "x": 1.015, "y": 1.015, "curve": "stepped" },
-					{ "time": 0.2028, "x": 1.015, "y": 1.015 },
-					{ "time": 0.3041, "x": 1.148, "y": 0.93 },
-					{ "time": 0.5677, "x": 1.015, "y": 1.015 }
-				]
-			},
-			"骨骼22": {
-				"rotate": [
-					{ "angle": -10.6 },
-					{ "time": 0.2028 },
-					{ "time": 0.4866, "angle": -15.01 },
-					{ "time": 0.5709, "angle": -10.6 }
-				]
-			},
-			"骨骼3": {
-				"translate": [
-					{ "x": -0.62, "y": 0.01 }
-				]
-			},
-			"骨骼8": {
-				"rotate": [
-					{ "angle": -25.57 }
-				]
-			},
-			"骨骼12": {
-				"rotate": [
-					{},
-					{ "time": 0.0667, "angle": 2.49 },
-					{ "time": 0.1333, "angle": 11.56, "curve": "stepped" },
-					{ "time": 0.1996, "angle": 11.56 },
-					{ "time": 0.2662, "angle": -24.3 },
-					{ "time": 0.3327, "angle": -9.38 },
-					{ "time": 0.3849, "angle": 5.53, "curve": "stepped" },
-					{ "time": 0.5081, "angle": 5.53 },
-					{ "time": 0.5677 }
-				]
-			},
-			"骨骼26": {
-				"rotate": [
-					{ "angle": -25.44 },
-					{ "time": 0.1784 },
-					{ "time": 0.4639, "angle": -40.7 },
-					{ "time": 0.5709, "angle": -25.44 }
-				]
-			},
-			"骨骼57": {
-				"rotate": [
-					{ "angle": -7.84, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.1214, "angle": 1.67, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.2428, "angle": -7.84, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4022, "angle": 1.67, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.5677, "angle": -7.84 }
-				]
-			},
-			"骨骼10": {
-				"rotate": [
-					{ "angle": 46.04 },
-					{ "time": 0.0667, "angle": 42.57 },
-					{ "time": 0.1333, "angle": 37.14 },
-					{ "time": 0.1996, "angle": 0.49 },
-					{ "time": 0.2, "angle": 2.92 },
-					{ "time": 0.2662, "angle": -1.21 },
-					{ "time": 0.3327, "angle": -1.68 },
-					{ "time": 0.3849, "angle": 29.49 },
-					{ "time": 0.4465, "angle": 53.76 },
-					{ "time": 0.5081, "angle": 70.86 },
-					{ "time": 0.5677, "angle": 46.04 }
-				]
-			},
-			"骨骼24": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1427 },
-					{ "time": 0.4282, "angle": -4.67 },
-					{ "time": 0.5709, "angle": -2.34 }
-				]
-			},
-			"bone2": {
-				"rotate": [
-					{ "angle": 3.4 },
-					{ "time": 0.2839, "angle": -10.91 },
-					{ "time": 0.5677, "angle": 3.4 }
-				]
-			},
-			"骨骼58": {
-				"rotate": [
-					{ "angle": -11.41, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.1214, "angle": 2.23, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.2428, "angle": -11.41, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4022, "angle": 2.23, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.5677, "angle": -11.41 }
-				]
-			},
-			"骨骼32": {
-				"rotate": [
-					{ "angle": -13.51 },
-					{ "time": 0.1014, "angle": 1.45 },
-					{ "time": 0.4258, "angle": -34.45 },
-					{ "time": 0.5677, "angle": -13.51 }
-				]
-			},
-			"骨骼15": {
-				"rotate": [
-					{ "angle": 5.51 },
-					{ "time": 0.0667, "angle": -17.27 },
-					{ "time": 0.1333, "angle": -6.48 },
-					{ "time": 0.1996, "angle": 17.19 },
-					{ "time": 0.2662, "angle": 22.32 },
-					{ "time": 0.3327, "angle": 19.39 },
-					{ "time": 0.3849, "angle": 21.04 },
-					{ "time": 0.4465, "angle": 12.25, "curve": "stepped" },
-					{ "time": 0.5081, "angle": 12.25 },
-					{ "time": 0.5677, "angle": 5.51 }
-				]
-			},
-			"骨骼21": {
-				"rotate": [
-					{ "angle": 11.89 },
-					{ "time": 0.2839, "angle": 21.32 },
-					{ "time": 0.4055, "angle": -6.77 },
-					{ "time": 0.5677, "angle": 11.89 }
-				]
-			},
-			"骨骼59": {
-				"rotate": [
-					{ "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.1214, "angle": 17.56, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.2428, "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4022, "angle": 17.56, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.5677, "angle": -14.11 }
-				]
-			},
-			"骨骼35": {
-				"rotate": [
-					{},
-					{ "time": 0.2839, "angle": -0.57 }
-				]
-			},
-			"骨骼49": {
-				"rotate": [
-					{ "angle": 7.75 },
-					{ "time": 0.0455 },
-					{ "time": 0.1821, "angle": 18.09 },
-					{ "time": 0.2428, "angle": 7.75 },
-					{ "time": 0.3025 },
-					{ "time": 0.482, "angle": 18.09 },
-					{ "time": 0.5677, "angle": 7.75 }
-				]
-			},
-			"骨骼19": {
-				"rotate": [
-					{ "angle": 11.87 },
-					{ "time": 0.2839, "angle": 21.29 },
-					{ "time": 0.4055, "angle": -6.79 },
-					{ "time": 0.5677, "angle": 11.87 }
-				]
-			},
-			"骨骼31": {
-				"rotate": [
-					{ "angle": -4.88 },
-					{ "time": 0.1014, "angle": 1.45 },
-					{ "time": 0.4258, "angle": -13.75 },
-					{ "time": 0.5677, "angle": -4.88 }
-				]
-			},
-			"骨骼37": {
-				"rotate": [
-					{ "angle": 3.14 },
-					{ "time": 0.2839, "angle": 1.35 },
-					{ "time": 0.5677, "angle": 3.14 }
-				]
-			},
-			"骨骼14": {
-				"rotate": [
-					{ "angle": -43.49 },
-					{ "time": 0.0667, "angle": -53.96 },
-					{ "time": 0.1333, "angle": -87.12 },
-					{ "time": 0.1996, "angle": -80.67 },
-					{ "time": 0.2662, "angle": -38.45 },
-					{ "time": 0.3327, "angle": -1.67 },
-					{ "time": 0.3849, "angle": -23.25 },
-					{ "time": 0.4465, "angle": -1.06 },
-					{ "time": 0.5081, "angle": -21.34 },
-					{ "time": 0.5677, "angle": -43.49 }
-				]
-			},
-			"骨骼60": {
-				"rotate": [
-					{ "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.1214, "angle": 17.56, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.2428, "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4022, "angle": 17.56, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.5677, "angle": -14.11 }
-				]
-			},
-			"骨骼51": {
-				"rotate": [
-					{ "angle": 8.12 },
-					{ "time": 0.0455 },
-					{ "time": 0.1821, "angle": 18.95 },
-					{ "time": 0.2428, "angle": 8.12 },
-					{ "time": 0.3025 },
-					{ "time": 0.482, "angle": 18.95 },
-					{ "time": 0.5677, "angle": 8.12 }
-				]
-			},
-			"骨骼33": {
-				"translate": [
-					{}
-				]
-			},
-			"骨骼27": {
-				"rotate": [
-					{ "angle": -20.57 }
-				]
-			},
-			"骨骼25": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1427 },
-					{ "time": 0.4282, "angle": -4.67 },
-					{ "time": 0.5709, "angle": -2.34 }
-				]
-			},
-			"骨骼52": {
-				"rotate": [
-					{ "angle": 11.01 },
-					{ "time": 0.0608 },
-					{ "time": 0.1973, "angle": 19.27 },
-					{ "time": 0.2428, "angle": 11.01 },
-					{ "time": 0.3225 },
-					{ "time": 0.5019, "angle": 19.27 },
-					{ "time": 0.5677, "angle": 11.01 }
-				]
-			},
-			"骨骼38": {
-				"rotate": [
-					{ "angle": 3.14 },
-					{ "time": 0.2839, "angle": -17.1 },
-					{ "time": 0.5677, "angle": 3.14 }
-				]
-			},
-			"bone": {
-				"rotate": [
-					{ "angle": 3.4 },
-					{ "time": 0.2839, "angle": -1.68 },
-					{ "time": 0.5677, "angle": 3.4 }
-				]
-			},
-			"骨骼2": {
-				"translate": [
-					{ "x": -0.05, "y": 2.52 }
-				]
-			},
-			"ys2": {
-				"translate": [
-					{},
-					{ "time": 0.2037, "x": 47.43, "y": 181.02 },
-					{ "time": 0.306, "x": 195.25, "y": 90.02 },
-					{ "time": 0.5712 }
-				]
-			},
-			"zs1": {
-				"translate": [
-					{},
-					{ "time": 0.2652, "x": -128.12, "y": -67.76 },
-					{ "time": 0.5712 }
-				]
-			},
-			"mz": {
-				"translate": [
-					{},
-					{ "time": 0.2037, "x": 12.05, "y": 224.13 },
-					{ "time": 0.3056, "x": -91.2, "y": -603.93 },
-					{ "time": 0.4692 }
-				]
-			},
-			"dao1": {
-				"rotate": [
-					{ "time": 0.2667, "angle": 0.06 }
-				],
-				"translate": [
-					{ "time": 0.2667, "x": 27.08, "y": 51.47 }
-				],
-				"scale": [
-					{ "time": 0.2667, "x": 0.87, "y": 0.477 }
-				]
-			}
-		},
-		"transform": {
-			"zskz": [
-				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
-			]
-		},
-		"deform": {
-			"js/m1": {
-				"m1__0010_右手1": {
-					"m1__0010_右手1": [
-						{
-							"time": 0.2667,
-							"vertices": [ -0.05601, 12.75793, 3.83857, 12.04892, 7.6086, 9.69446, 9.17725, 6.55841, 7.75935, 3.71289, 8.58721, 2.20401, 10.26877, -2.40735, 10.71655, -5.40039, 8.81431, -9.7706, 8.68732, -11.47833, 8.99674, -13.03183, 7.69488, -21.88531, 7.02225, -25.20901, 6.03051, -26.36612, -1.13673, -29.97897, -2.50241, -30.00745, -5.78618, -28.70999, -9.97826, -21.91556, -10.11927, -16.69266, -10.15694, -5.81839, -8.18042, 0.15359, -5.62151, 6.62448, -1.75488, 11.50922 ]
-						},
-						{
-							"time": 0.2847,
-							"vertices": [ 9.1485, -6.67065, 12.1857, -7.12549, 15.1669, -8.85927, 16.45978, -11.25279, 15.42953, -13.49408, 16.10818, -14.64403, 17.52487, -18.17868, 17.9451, -20.48878, 16.57663, -23.9241, 16.51971, -25.25124, 16.79776, -26.44872, 16.00418, -33.34563, 15.56354, -35.93947, 14.82275, -36.86102, 9.35294, -39.83742, 8.29483, -39.89267, 5.71677, -38.96675, 2.30029, -33.80037, 2.06345, -29.75365, 1.76901, -21.32214, 3.15588, -16.64299, 4.98239, -11.56265, 7.86172, -7.6805 ]
-						}
-					]
-				},
-				"m1__0013_左手3拿枪手1": {
-					"m1__0013_左手3拿枪手1": [
-						{
-							"vertices": [ -35.44856, 15.56033, -37.53873, 20.00632, -36.84616, 25.01797, -34.08176, 31.02261, -29.25271, 33.32849, -25.82405, 36.08011, -15.41164, 37.77737, -4.84219, 36.2363, 0.53797, 29.77472, 4.45113, 14.64203, 11.55303, 6.10892, 11.55756, 1.75647, 9.49291, -4.39682, 7.67725, -6.77411, -3.47722, -12.21582, -10.91909, -10.84164, -16.62727, -6.88797, -17.67391, 5.57352, -24.32129, 5.71976, -28.81257, 7.31311 ]
-						}
-					]
-				}
-			}
-		},
-		"events": [
-			{ "time": 0.2667, "name": "hui" }
-		]
-	},
-	"gj_jjq": {
-		"slots": {
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
-				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"左手3拿枪手1-猫": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w2__0016_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			}
-		},
-		"bones": {
-			"骨骼49": {
-				"rotate": [
-					{ "angle": 7.75 },
-					{ "time": 0.1 },
-					{ "time": 0.4, "angle": 18.09 },
-					{ "time": 0.5333, "angle": 7.75 }
-				]
-			},
-			"骨骼51": {
-				"rotate": [
-					{ "angle": 8.12 },
-					{ "time": 0.1 },
-					{ "time": 0.4, "angle": 18.95 },
-					{ "time": 0.5333, "angle": 8.12 }
-				]
-			},
-			"骨骼52": {
-				"rotate": [
-					{ "angle": 11.01 },
-					{ "time": 0.1333 },
-					{ "time": 0.4333, "angle": 19.27 },
-					{ "time": 0.5333, "angle": 11.01 }
-				]
-			},
-			"骨骼25": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼26": {
-				"rotate": [
-					{ "angle": -25.44 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": -40.7 },
-					{ "time": 0.5333, "angle": -25.44 }
-				]
-			},
-			"骨骼29": {
-				"scale": [
-					{ "time": 0.1333 },
-					{ "time": 0.2667, "x": 1.173 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼59": {
-				"rotate": [
-					{ "angle": 1.73, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4, "angle": 17.56, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": 1.73 }
-				]
-			},
-			"骨骼23": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼58": {
-				"rotate": [
-					{ "angle": -4.59, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -11.41 },
-					{ "time": 0.4, "angle": 2.23, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": -4.59 }
-				]
-			},
-			"骨骼57": {
-				"rotate": [
-					{ "angle": -3.08, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -7.84 },
-					{ "time": 0.4, "angle": 1.67, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": -3.08 }
-				]
-			},
-			"骨骼28": {
-				"scale": [
-					{ "time": 0.1333 },
-					{ "time": 0.2667, "x": 1.173 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼24": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼39": {
-				"translate": [
-					{},
-					{ "time": 0.0791, "x": -44.36, "y": -3.94 },
-					{ "time": 0.1333, "x": -39.8, "y": 11.15 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼16": {
-				"translate": [
-					{},
-					{ "time": 0.2667, "x": -7.02, "y": 0.32 },
-					{ "time": 0.5333 }
-				]
-			},
-			"mz": {
-				"translate": [
-					{ "x": 113.92, "y": 99.84 }
-				]
-			},
-			"骨骼3": {
-				"translate": [
-					{},
-					{ "time": 0.2667, "x": 7.71, "y": -0.28, "curve": "stepped" },
-					{ "time": 0.4, "x": 7.71, "y": -0.28 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼2": {
-				"translate": [
-					{},
-					{ "time": 0.1246, "x": 0.17, "y": -8.96 },
-					{ "time": 0.2667, "x": 0.07, "y": -3.82 },
-					{ "time": 0.4, "x": 0.17, "y": -8.96 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼18": {
-				"rotate": [
-					{ "angle": 1.72 },
-					{ "time": 0.1, "angle": -4.21 },
-					{ "time": 0.3667, "angle": 11.61 },
-					{ "time": 0.5333, "angle": 1.72 }
-				]
-			},
-			"骨骼19": {
-				"rotate": [
-					{ "angle": 3.7 },
-					{ "time": 0.1333, "angle": -4.21 },
-					{ "time": 0.4, "angle": 11.61 },
-					{ "time": 0.5333, "angle": 3.7 }
-				]
-			},
-			"骨骼20": {
-				"rotate": [
-					{ "angle": 18.21 },
-					{ "time": 0.1, "angle": 8.75 },
-					{ "time": 0.3667, "angle": 33.98 },
-					{ "time": 0.5333, "angle": 18.21 }
-				]
-			},
-			"骨骼21": {
-				"rotate": [
-					{ "angle": 21.36 },
-					{ "time": 0.1333, "angle": 8.75 },
-					{ "time": 0.4, "angle": 33.98 },
-					{ "time": 0.5333, "angle": 21.36 }
-				]
-			},
-			"骨骼37": {
-				"rotate": [
-					{ "angle": 1.6 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": 2.56 },
-					{ "time": 0.5333, "angle": 1.6 }
-				]
-			},
-			"骨骼38": {
-				"rotate": [
-					{ "angle": 1.6 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": 2.56 },
-					{ "time": 0.5333, "angle": 1.6 }
-				]
-			},
-			"骨骼34": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -2.26 },
-					{ "time": 0.5333, "angle": -0.51 }
-				]
-			},
-			"骨骼35": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -2.26 },
-					{ "time": 0.5333, "angle": -0.51 }
-				]
-			},
-			"bone": {
-				"rotate": [
-					{ "angle": 4.27 },
-					{ "time": 0.2 },
-					{ "time": 0.4667, "angle": 5.69 },
-					{ "time": 0.5333, "angle": 4.27 }
-				]
-			},
-			"bone2": {
-				"rotate": [
-					{ "angle": 4.27 },
-					{ "time": 0.2 },
-					{ "time": 0.4667, "angle": 5.69 },
-					{ "time": 0.5333, "angle": 4.27 }
-				]
-			},
-			"骨骼31": {
-				"rotate": [
-					{ "angle": 4.77 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": 9.54 },
-					{ "time": 0.5333, "angle": 4.77 }
-				]
-			},
-			"骨骼32": {
-				"rotate": [
-					{ "angle": 4.77 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": 9.54 },
-					{ "time": 0.5333, "angle": 4.77 }
-				]
-			},
-			"骨骼60": {
-				"rotate": [
-					{ "angle": 1.73, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -14.11 },
-					{ "time": 0.4, "angle": 17.56, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": 1.73 }
-				]
-			},
-			"骨骼22": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -4.67 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼46": {
-				"scale": [
-					{},
-					{ "time": 0.1333, "x": 1.141 },
-					{ "time": 0.2667 },
-					{ "time": 0.4, "x": 1.141 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼11": {
-				"translate": [
-					{},
-					{ "time": 0.2661, "x": 8.63, "y": 2.55 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼14": {
-				"translate": [
-					{},
-					{ "time": 0.2661, "x": 8.88, "y": -1.42 },
-					{ "time": 0.5333 }
-				]
-			},
-			"zb_q": {
-				"translate": [
-					{},
-					{ "time": 0.2661, "y": 9.85 },
-					{ "time": 0.5333 }
-				]
-			},
-			"狙击枪枪口": {
-				"translate": [
-					{ "x": 23.34, "y": 6.8 }
-				]
-			}
-		},
-		"transform": {
-			"qqq": [
-				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
-			]
-		},
-		"deform": {
-			"js/m1": {
-				"m1__0013_左手3拿枪手1": {
-					"m1__0013_左手3拿枪手1": [
-						{
-							"vertices": [ -27.88447, 2.40085, -28.91638, 5.46307, -28.08752, 8.68619, -25.83003, 12.40259, -22.50087, 13.54666, -20.0537, 15.08746, -13.12177, 15.41443, -6.33044, 13.61343, -3.29995, 8.98709, -1.87927, -1.19611, 2.12083, -7.30588, 1.79675, -10.15042, -0.0146, -14.01663, -1.37971, -15.43375, -9.07769, -18.15222, -13.83774, -16.69516, -17.27097, -13.68274, -17.01897, -5.46063, -21.3519, -4.86557, -24.16754, -3.487 ]
-						}
-					]
-				}
-			}
-		},
-		"events": [
-			{ "time": 0.1, "name": "kq" }
-		]
-	},
-	"gj_jjq2": {
-		"slots": {
-			"m1__0017_左脚": {
-				"attachment": [
-					{ "name": "m1__0017_左脚" }
-				]
-			},
-			"w2__0016_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w2__0020_右脚": {
-				"attachment": [
-					{ "name": "w2__0019_右脚2" }
-				]
-			},
-			"左手3拿枪手1-猫": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			}
-		},
-		"bones": {
-			"骨骼49": {
-				"rotate": [
-					{ "angle": 7.75 },
-					{ "time": 0.1 },
-					{ "time": 0.4, "angle": 18.09 },
-					{ "time": 0.5333, "angle": 7.75 }
-				]
-			},
-			"骨骼51": {
-				"rotate": [
-					{ "angle": 8.12 },
-					{ "time": 0.1 },
-					{ "time": 0.4, "angle": 18.95 },
-					{ "time": 0.5333, "angle": 8.12 }
-				]
-			},
-			"骨骼52": {
-				"rotate": [
-					{ "angle": 11.01 },
-					{ "time": 0.1333 },
-					{ "time": 0.4333, "angle": 19.27 },
-					{ "time": 0.5333, "angle": 11.01 }
-				]
-			},
-			"骨骼25": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼26": {
-				"rotate": [
-					{ "angle": -25.44 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": -40.7 },
-					{ "time": 0.5333, "angle": -25.44 }
-				]
-			},
-			"骨骼29": {
-				"scale": [
-					{ "time": 0.1333 },
-					{ "time": 0.2667, "x": 1.173 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼10": {
-				"rotate": [
-					{ "angle": 46.04 },
-					{ "time": 0.0623, "angle": 42.57 },
-					{ "time": 0.1246, "angle": 37.14 },
-					{ "time": 0.187, "angle": 0.49 },
-					{ "time": 0.1875, "angle": 2.92 },
-					{ "time": 0.2493, "angle": -1.21 },
-					{ "time": 0.3116, "angle": -1.68 },
-					{ "time": 0.3605, "angle": 29.49 },
-					{ "time": 0.4182, "angle": 53.76 },
-					{ "time": 0.4759, "angle": 70.86 },
-					{ "time": 0.5333, "angle": 46.04 }
-				]
-			},
-			"骨骼11": {
-				"rotate": [
-					{ "angle": -16.68 },
-					{ "time": 0.0623, "angle": -48.83 },
-					{ "time": 0.1246, "angle": -54.2 },
-					{ "time": 0.187, "angle": -12.93 },
-					{ "time": 0.2493, "angle": -37.56 },
-					{ "time": 0.3116, "angle": -54.32 },
-					{ "time": 0.3605, "angle": -103.2 },
-					{ "time": 0.4182, "angle": -87.41 },
-					{ "time": 0.4759, "angle": -49.19 },
-					{ "time": 0.5333, "angle": -16.68 }
-				]
-			},
-			"骨骼13": {
-				"rotate": [
-					{ "angle": -48.06 },
-					{ "time": 0.0623, "angle": -34.22 },
-					{ "time": 0.1246, "angle": -10.14 },
-					{ "time": 0.187, "angle": 28.4 },
-					{ "time": 0.2493, "angle": 26.47 },
-					{ "time": 0.3116, "angle": 12.75 },
-					{ "time": 0.3605, "angle": 3.9 },
-					{ "time": 0.4182, "angle": -37.1 },
-					{ "time": 0.4759, "angle": -41.38 },
-					{ "time": 0.5333, "angle": -48.06 }
-				]
-			},
-			"骨骼59": {
-				"rotate": [
-					{ "angle": 1.73, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4, "angle": 17.56, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": 1.73 }
-				]
-			},
-			"骨骼14": {
-				"rotate": [
-					{ "angle": -43.49 },
-					{ "time": 0.0623, "angle": -53.96 },
-					{ "time": 0.1246, "angle": -87.12 },
-					{ "time": 0.187, "angle": -80.67 },
-					{ "time": 0.2493, "angle": -38.45 },
-					{ "time": 0.3116, "angle": -1.67 },
-					{ "time": 0.3605, "angle": -23.25 },
-					{ "time": 0.4182, "angle": -1.06 },
-					{ "time": 0.4759, "angle": -21.34 },
-					{ "time": 0.5333, "angle": -43.49 }
-				]
-			},
-			"骨骼23": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼15": {
-				"rotate": [
-					{ "angle": 5.51 },
-					{ "time": 0.0623, "angle": -17.27 },
-					{ "time": 0.1246, "angle": -6.48 },
-					{ "time": 0.187, "angle": 17.19 },
-					{ "time": 0.2493, "angle": 22.32 },
-					{ "time": 0.3116, "angle": 19.39 },
-					{ "time": 0.3605, "angle": 21.04 },
-					{ "time": 0.4182, "angle": 12.25, "curve": "stepped" },
-					{ "time": 0.4759, "angle": 12.25 },
-					{ "time": 0.5333, "angle": 5.51 }
-				]
-			},
-			"骨骼58": {
-				"rotate": [
-					{ "angle": -4.59, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -11.41 },
-					{ "time": 0.4, "angle": 2.23, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": -4.59 }
-				]
-			},
-			"骨骼57": {
-				"rotate": [
-					{ "angle": -3.08, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -7.84 },
-					{ "time": 0.4, "angle": 1.67, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": -3.08 }
-				]
-			},
-			"骨骼28": {
-				"scale": [
-					{ "time": 0.1333 },
-					{ "time": 0.2667, "x": 1.173 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼24": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼3": {
-				"translate": [
-					{},
-					{ "time": 0.2667, "x": 7.71, "y": -0.28, "curve": "stepped" },
-					{ "time": 0.4, "x": 7.71, "y": -0.28 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼22": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -4.67 },
-					{ "time": 0.5333 }
-				]
-			},
-			"zb_q": {
-				"translate": [
-					{},
-					{ "time": 0.1246, "y": -10.6 },
-					{ "time": 0.2667, "y": 2.91 },
-					{ "time": 0.4, "y": -10.6 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼39": {
-				"translate": [
-					{},
-					{ "time": 0.0791, "x": -44.36, "y": -3.94 },
-					{ "time": 0.1333, "x": -39.8, "y": 11.15 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼16": {
-				"translate": [
-					{},
-					{ "time": 0.2667, "x": -7.02, "y": 0.32 },
-					{ "time": 0.5333 }
-				]
-			},
-			"mz": {
-				"translate": [
-					{ "x": 113.92, "y": 99.84 }
-				]
-			},
-			"骨骼2": {
-				"translate": [
-					{},
-					{ "time": 0.1246, "x": 0.17, "y": -8.96 },
-					{ "time": 0.2667, "x": 0.07, "y": -3.82 },
-					{ "time": 0.4, "x": 0.17, "y": -8.96 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼18": {
-				"rotate": [
-					{ "angle": 1.72 },
-					{ "time": 0.1, "angle": -4.21 },
-					{ "time": 0.3667, "angle": 11.61 },
-					{ "time": 0.5333, "angle": 1.72 }
-				]
-			},
-			"骨骼19": {
-				"rotate": [
-					{ "angle": 3.7 },
-					{ "time": 0.1333, "angle": -4.21 },
-					{ "time": 0.4, "angle": 11.61 },
-					{ "time": 0.5333, "angle": 3.7 }
-				]
-			},
-			"骨骼20": {
-				"rotate": [
-					{ "angle": 18.21 },
-					{ "time": 0.1, "angle": 8.75 },
-					{ "time": 0.3667, "angle": 33.98 },
-					{ "time": 0.5333, "angle": 18.21 }
-				]
-			},
-			"骨骼21": {
-				"rotate": [
-					{ "angle": 21.36 },
-					{ "time": 0.1333, "angle": 8.75 },
-					{ "time": 0.4, "angle": 33.98 },
-					{ "time": 0.5333, "angle": 21.36 }
-				]
-			},
-			"骨骼37": {
-				"rotate": [
-					{ "angle": 1.6 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": 2.56 },
-					{ "time": 0.5333, "angle": 1.6 }
-				]
-			},
-			"骨骼38": {
-				"rotate": [
-					{ "angle": 1.6 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": 2.56 },
-					{ "time": 0.5333, "angle": 1.6 }
-				]
-			},
-			"骨骼34": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -2.26 },
-					{ "time": 0.5333, "angle": -0.51 }
-				]
-			},
-			"骨骼35": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -2.26 },
-					{ "time": 0.5333, "angle": -0.51 }
-				]
-			},
-			"bone": {
-				"rotate": [
-					{ "angle": 4.27 },
-					{ "time": 0.2 },
-					{ "time": 0.4667, "angle": 5.69 },
-					{ "time": 0.5333, "angle": 4.27 }
-				]
-			},
-			"bone2": {
-				"rotate": [
-					{ "angle": 4.27 },
-					{ "time": 0.2 },
-					{ "time": 0.4667, "angle": 5.69 },
-					{ "time": 0.5333, "angle": 4.27 }
-				]
-			},
-			"骨骼31": {
-				"rotate": [
-					{ "angle": 4.77 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": 9.54 },
-					{ "time": 0.5333, "angle": 4.77 }
-				]
-			},
-			"骨骼32": {
-				"rotate": [
-					{ "angle": 4.77 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": 9.54 },
-					{ "time": 0.5333, "angle": 4.77 }
-				]
-			},
-			"骨骼60": {
-				"rotate": [
-					{ "angle": 1.73, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -14.11 },
-					{ "time": 0.4, "angle": 17.56, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": 1.73 }
-				]
-			},
-			"骨骼12": {
-				"rotate": [
-					{},
-					{ "time": 0.0623, "angle": 2.49 },
-					{ "time": 0.1246, "angle": 11.56, "curve": "stepped" },
-					{ "time": 0.187, "angle": 11.56 },
-					{ "time": 0.2493, "angle": -24.3 },
-					{ "time": 0.3116, "angle": -9.38 },
-					{ "time": 0.3605, "angle": 5.53, "curve": "stepped" },
-					{ "time": 0.4759, "angle": 5.53 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼46": {
-				"scale": [
-					{},
-					{ "time": 0.1333, "x": 1.141 },
-					{ "time": 0.2667 },
-					{ "time": 0.4, "x": 1.141 },
-					{ "time": 0.5333 }
-				]
-			}
-		},
-		"transform": {
-			"qqq": [
-				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
-			]
-		},
-		"deform": {
-			"js/m1": {
-				"m1__0013_左手3拿枪手1": {
-					"m1__0013_左手3拿枪手1": [
-						{
-							"vertices": [ -25.30849, 8.45856, -26.34238, 11.52429, -25.51323, 14.75104, -23.25391, 18.47211, -19.92149, 19.61847, -17.47173, 21.16153, -10.53211, 21.49072, -3.7326, 19.68945, -0.69738, 15.05838, 0.72736, 4.86389, 4.73356, -1.25189, 4.40984, -4.09973, 2.59731, -7.97052, 1.23108, -9.38956, -6.4751, -12.11307, -11.24096, -10.65555, -14.67883, -7.64069, -14.4288, 0.59103, -18.76673, 1.18549, -21.58571, 2.56479 ]
-						}
-					]
-				}
-			}
-		},
-		"events": [
-			{ "time": 0.0667, "name": "kq" }
-		]
-	},
-	"gj_qiang": {
-		"slots": {
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"左手3拿枪手1-猫": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w2__0016_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			}
-		},
-		"bones": {
-			"骨骼31": {
-				"rotate": [
-					{ "angle": 4.77 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": 9.54 },
-					{ "time": 0.5333, "angle": 4.77 }
-				]
-			},
-			"骨骼22": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -4.67 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼23": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼60": {
-				"rotate": [
-					{ "angle": 11.72, "curve": 0.333, "c2": 0.33, "c3": 0.758 },
-					{ "time": 0.2, "angle": -14.11 },
-					{ "time": 0.4667, "angle": 17.56, "curve": 0.276, "c3": 0.621, "c4": 0.4 },
-					{ "time": 0.5333, "angle": 11.72 }
-				]
-			},
-			"骨骼58": {
-				"rotate": [
-					{ "angle": -0.29, "curve": 0.333, "c2": 0.33, "c3": 0.758 },
-					{ "time": 0.2, "angle": -11.41 },
-					{ "time": 0.4667, "angle": 2.23, "curve": 0.276, "c3": 0.621, "c4": 0.4 },
-					{ "time": 0.5333, "angle": -0.29 }
-				]
-			},
-			"骨骼57": {
-				"rotate": [
-					{ "angle": -0.08, "curve": 0.333, "c2": 0.33, "c3": 0.758 },
-					{ "time": 0.2, "angle": -7.84 },
-					{ "time": 0.4667, "angle": 1.67, "curve": 0.276, "c3": 0.621, "c4": 0.4 },
-					{ "time": 0.5333, "angle": -0.08 }
-				]
-			},
-			"骨骼25": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼26": {
-				"rotate": [
-					{ "angle": -25.44 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": -40.7 },
-					{ "time": 0.5333, "angle": -25.44 }
-				]
-			},
-			"骨骼29": {
-				"scale": [
-					{ "time": 0.1333 },
-					{ "time": 0.2667, "x": 1.173 },
-					{ "time": 0.5333 }
-				]
-			},
-			"bone2": {
-				"rotate": [
-					{ "angle": 4.27 },
-					{ "time": 0.2 },
-					{ "time": 0.4667, "angle": 5.69 },
-					{ "time": 0.5333, "angle": 4.27 }
-				]
-			},
-			"骨骼32": {
-				"rotate": [
-					{ "angle": 4.77 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": 9.54 },
-					{ "time": 0.5333, "angle": 4.77 }
-				]
-			},
-			"骨骼16": {
-				"translate": [
-					{},
-					{ "time": 0.2667, "x": -7.02, "y": 0.32 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼3": {
-				"translate": [
-					{},
-					{ "time": 0.2667, "x": 7.71, "y": -0.28, "curve": "stepped" },
-					{ "time": 0.4, "x": 7.71, "y": -0.28 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼18": {
-				"rotate": [
-					{ "angle": 1.72 },
-					{ "time": 0.1, "angle": -4.21 },
-					{ "time": 0.3667, "angle": 11.61 },
-					{ "time": 0.5333, "angle": 1.72 }
-				]
-			},
-			"骨骼19": {
-				"rotate": [
-					{ "angle": 3.7 },
-					{ "time": 0.1333, "angle": -4.21 },
-					{ "time": 0.4, "angle": 11.61 },
-					{ "time": 0.5333, "angle": 3.7 }
-				]
-			},
-			"骨骼20": {
-				"rotate": [
-					{ "angle": 18.21 },
-					{ "time": 0.1, "angle": 8.75 },
-					{ "time": 0.3667, "angle": 33.98 },
-					{ "time": 0.5333, "angle": 18.21 }
-				]
-			},
-			"骨骼21": {
-				"rotate": [
-					{ "angle": 21.36 },
-					{ "time": 0.1333, "angle": 8.75 },
-					{ "time": 0.4, "angle": 33.98 },
-					{ "time": 0.5333, "angle": 21.36 }
-				]
-			},
-			"骨骼37": {
-				"rotate": [
-					{ "angle": 1.6 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": 2.56 },
-					{ "time": 0.5333, "angle": 1.6 }
-				]
-			},
-			"骨骼38": {
-				"rotate": [
-					{ "angle": 1.6 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": 2.56 },
-					{ "time": 0.5333, "angle": 1.6 }
-				]
-			},
-			"骨骼34": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -2.26 },
-					{ "time": 0.5333, "angle": -0.51 }
-				]
-			},
-			"骨骼35": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -2.26 },
-					{ "time": 0.5333, "angle": -0.51 }
-				]
-			},
-			"bone": {
-				"rotate": [
-					{ "angle": 4.27 },
-					{ "time": 0.2 },
-					{ "time": 0.4667, "angle": 5.69 },
-					{ "time": 0.5333, "angle": 4.27 }
-				]
-			},
-			"骨骼24": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼28": {
-				"scale": [
-					{ "time": 0.1333 },
-					{ "time": 0.2667, "x": 1.173 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼59": {
-				"rotate": [
-					{ "angle": 11.72, "curve": 0.333, "c2": 0.33, "c3": 0.758 },
-					{ "time": 0.2, "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4667, "angle": 17.56, "curve": 0.276, "c3": 0.621, "c4": 0.4 },
-					{ "time": 0.5333, "angle": 11.72 }
-				]
-			},
-			"zb_q": {
-				"translate": [
-					{},
-					{ "time": 0.2661, "y": 9.85 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼11": {
-				"translate": [
-					{},
-					{ "time": 0.2661, "x": 8.63, "y": 2.55 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼14": {
-				"translate": [
-					{},
-					{ "time": 0.2661, "x": 8.88, "y": -1.42 },
-					{ "time": 0.5333 }
-				]
-			},
-			"mz": {
-				"translate": [
-					{ "x": 113.92, "y": 99.84 }
-				]
-			},
-			"骨骼46": {
-				"scale": [
-					{},
-					{ "time": 0.1333, "x": 1.141 },
-					{ "time": 0.2667 },
-					{ "time": 0.4, "x": 1.141 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼52": {
-				"rotate": [
-					{ "angle": 11.01 },
-					{ "time": 0.1333 },
-					{ "time": 0.4333, "angle": 19.27 },
-					{ "time": 0.5333, "angle": 11.01 }
-				]
-			},
-			"骨骼49": {
-				"rotate": [
-					{ "angle": 7.75 },
-					{ "time": 0.1 },
-					{ "time": 0.4, "angle": 18.09 },
-					{ "time": 0.5333, "angle": 7.75 }
-				]
-			},
-			"骨骼51": {
-				"rotate": [
-					{ "angle": 8.12 },
-					{ "time": 0.1 },
-					{ "time": 0.4, "angle": 18.95 },
-					{ "time": 0.5333, "angle": 8.12 }
-				]
-			},
-			"ys2": {
-				"translate": [
-					{ "x": -14.11, "y": 5.92 }
-				]
-			},
-			"骨骼39": {
-				"translate": [
-					{},
-					{ "time": 0.0791, "x": -27.66, "y": -2.98 },
-					{ "time": 0.1706 },
-					{ "time": 0.2621, "x": -27.66, "y": -2.98 },
-					{ "time": 0.3536 },
-					{ "time": 0.4451, "x": -27.66, "y": -2.98 },
-					{ "time": 0.5333 }
-				]
-			}
-		},
-		"transform": {
-			"qqq": [
-				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
-			]
-		},
-		"deform": {
-			"js/m1": {
-				"m1__0013_左手3拿枪手1": {
-					"m1__0013_左手3拿枪手1": [
-						{
-							"vertices": [ -27.88447, 2.40085, -28.91638, 5.46307, -28.08752, 8.68619, -25.83003, 12.40259, -22.50087, 13.54666, -20.0537, 15.08746, -13.12177, 15.41443, -6.33044, 13.61343, -3.29995, 8.98709, -1.87927, -1.19611, 2.12083, -7.30588, 1.79675, -10.15042, -0.0146, -14.01663, -1.37971, -15.43375, -9.07769, -18.15222, -13.83774, -16.69516, -17.27097, -13.68274, -17.01897, -5.46063, -21.3519, -4.86557, -24.16754, -3.487 ]
-						}
-					]
-				}
-			}
-		},
-		"events": [
-			{ "name": "kq" },
-			{ "time": 0.1667, "name": "kq" },
-			{ "time": 0.3667, "name": "kq" },
-			{ "time": 0.5333, "name": "kq" }
-		]
-	},
-	"gj_qiang2": {
-		"slots": {
-			"w2__0016_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0013_右脚": {
-				"attachment": [
-					{ "name": "ll-_0012_右脚2_蓝狼2" }
-				]
-			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w2__0020_右脚": {
-				"attachment": [
-					{ "name": "w2__0019_右脚2" }
-				]
-			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0021_右脚": {
-				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
-				]
-			}
-		},
-		"bones": {
-			"骨骼25": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼26": {
-				"rotate": [
-					{ "angle": -25.44 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": -40.7 },
-					{ "time": 0.5333, "angle": -25.44 }
-				]
-			},
-			"骨骼29": {
-				"scale": [
-					{ "time": 0.1333 },
-					{ "time": 0.2667, "x": 1.173 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼24": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼16": {
-				"translate": [
-					{},
-					{ "time": 0.2667, "x": -7.02, "y": 0.32 },
-					{ "time": 0.5333 }
-				]
-			},
-			"mz": {
-				"translate": [
-					{ "x": 113.92, "y": 99.84 }
-				]
-			},
-			"骨骼3": {
-				"translate": [
-					{},
-					{ "time": 0.2667, "x": 7.71, "y": -0.28, "curve": "stepped" },
-					{ "time": 0.4, "x": 7.71, "y": -0.28 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼2": {
-				"translate": [
-					{},
-					{ "time": 0.1246, "x": 0.17, "y": -8.96 },
-					{ "time": 0.2667, "x": 0.07, "y": -3.82 },
-					{ "time": 0.4, "x": 0.17, "y": -8.96 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼18": {
-				"rotate": [
-					{ "angle": 1.72 },
-					{ "time": 0.1, "angle": -4.21 },
-					{ "time": 0.3667, "angle": 11.61 },
-					{ "time": 0.5333, "angle": 1.72 }
-				]
-			},
-			"骨骼19": {
-				"rotate": [
-					{ "angle": 3.7 },
-					{ "time": 0.1333, "angle": -4.21 },
-					{ "time": 0.4, "angle": 11.61 },
-					{ "time": 0.5333, "angle": 3.7 }
-				]
-			},
-			"骨骼20": {
-				"rotate": [
-					{ "angle": 18.21 },
-					{ "time": 0.1, "angle": 8.75 },
-					{ "time": 0.3667, "angle": 33.98 },
-					{ "time": 0.5333, "angle": 18.21 }
-				]
-			},
-			"骨骼21": {
-				"rotate": [
-					{ "angle": 21.36 },
-					{ "time": 0.1333, "angle": 8.75 },
-					{ "time": 0.4, "angle": 33.98 },
-					{ "time": 0.5333, "angle": 21.36 }
-				]
-			},
-			"骨骼37": {
-				"rotate": [
-					{ "angle": 1.6 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": 2.56 },
-					{ "time": 0.5333, "angle": 1.6 }
-				]
-			},
-			"骨骼38": {
-				"rotate": [
-					{ "angle": 1.6 },
-					{ "time": 0.1667 },
-					{ "time": 0.4333, "angle": 2.56 },
-					{ "time": 0.5333, "angle": 1.6 }
-				]
-			},
-			"骨骼34": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -2.26 },
-					{ "time": 0.5333, "angle": -0.51 }
-				]
-			},
-			"骨骼35": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -2.26 },
-					{ "time": 0.5333, "angle": -0.51 }
-				]
-			},
-			"bone": {
-				"rotate": [
-					{ "angle": 4.27 },
-					{ "time": 0.2 },
-					{ "time": 0.4667, "angle": 5.69 },
-					{ "time": 0.5333, "angle": 4.27 }
-				]
-			},
-			"bone2": {
-				"rotate": [
-					{ "angle": 4.27 },
-					{ "time": 0.2 },
-					{ "time": 0.4667, "angle": 5.69 },
-					{ "time": 0.5333, "angle": 4.27 }
-				]
-			},
-			"骨骼31": {
-				"rotate": [
-					{ "angle": 4.77 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": 9.54 },
-					{ "time": 0.5333, "angle": 4.77 }
-				]
-			},
-			"骨骼32": {
-				"rotate": [
-					{ "angle": 4.77 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": 9.54 },
-					{ "time": 0.5333, "angle": 4.77 }
-				]
-			},
-			"骨骼22": {
-				"rotate": [
-					{},
-					{ "time": 0.2667, "angle": -4.67 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼23": {
-				"rotate": [
-					{ "angle": -2.34 },
-					{ "time": 0.1333 },
-					{ "time": 0.4, "angle": -4.67 },
-					{ "time": 0.5333, "angle": -2.34 }
-				]
-			},
-			"骨骼28": {
-				"scale": [
-					{ "time": 0.1333 },
-					{ "time": 0.2667, "x": 1.173 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼60": {
-				"rotate": [
-					{ "angle": 1.73, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -14.11 },
-					{ "time": 0.4, "angle": 17.56, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": 1.73 }
-				]
-			},
-			"骨骼58": {
-				"rotate": [
-					{ "angle": -4.59, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -11.41 },
-					{ "time": 0.4, "angle": 2.23, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": -4.59 }
-				]
-			},
-			"骨骼57": {
-				"rotate": [
-					{ "angle": -3.08, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -7.84 },
-					{ "time": 0.4, "angle": 1.67, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": -3.08 }
-				]
-			},
-			"骨骼59": {
-				"rotate": [
-					{ "angle": 1.73, "curve": 0.375, "c2": 0.5, "c3": 0.75 },
-					{ "time": 0.1333, "angle": -14.11, "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.4, "angle": 17.56, "curve": 0.25, "c3": 0.625, "c4": 0.5 },
-					{ "time": 0.5333, "angle": 1.73 }
-				]
-			},
-			"骨骼49": {
-				"rotate": [
-					{ "angle": 7.75 },
-					{ "time": 0.1 },
-					{ "time": 0.4, "angle": 18.09 },
-					{ "time": 0.5333, "angle": 7.75 }
-				]
-			},
-			"骨骼51": {
-				"rotate": [
-					{ "angle": 8.12 },
-					{ "time": 0.1 },
-					{ "time": 0.4, "angle": 18.95 },
-					{ "time": 0.5333, "angle": 8.12 }
-				]
-			},
-			"骨骼52": {
-				"rotate": [
-					{ "angle": 11.01 },
-					{ "time": 0.1333 },
-					{ "time": 0.4333, "angle": 19.27 },
-					{ "time": 0.5333, "angle": 11.01 }
-				]
-			},
-			"骨骼46": {
-				"scale": [
-					{},
-					{ "time": 0.1333, "x": 1.141 },
-					{ "time": 0.2667 },
-					{ "time": 0.4, "x": 1.141 },
-					{ "time": 0.5333 }
-				]
-			},
-			"骨骼39": {
-				"translate": [
-					{},
-					{ "time": 0.0791, "x": -27.66, "y": -2.98 },
-					{ "time": 0.1706 },
-					{ "time": 0.2621, "x": -27.66, "y": -2.98 },
-					{ "time": 0.3536 },
-					{ "time": 0.4451, "x": -27.66, "y": -2.98 },
-					{ "time": 0.5333 }
-				]
-			}
-		},
-		"transform": {
-			"qqq": [
-				{ "rotateMix": 0, "translateMix": 0, "scaleMix": 0, "shearMix": 0 }
-			]
-		}
-	},
 	"hc": {
 		"slots": {
 			"m1__0017_左脚": {
@@ -10035,6 +7383,17 @@
 					{ "time": 0.1286, "name": "images/skill/qiquan_add/qq_0003" },
 					{ "time": 0.197, "name": "images/skill/qiquan_add/qq_0005" },
 					{ "time": 0.2312, "name": null }
+				]
+			},
+			"右脚-猫": {
+				"attachment": [
+					{ "name": "右脚2-猫" },
+					{ "time": 0.6667, "name": "右脚-猫" }
+				]
+			},
+			"w2__0016_左手3拿枪手1": {
+				"attachment": [
+					{ "name": null }
 				]
 			},
 			"images/skill/qxyan_add/qipaoyan_00035": {
@@ -10068,17 +7427,6 @@
 				]
 			},
 			"左手3拿枪手1-猫": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" },
-					{ "time": 0.6667, "name": "右脚-猫" }
-				]
-			},
-			"w2__0016_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -10583,16 +7931,20 @@
 					{ "name": "m1__0017_左脚" }
 				]
 			},
-			"images/skill/qiquan_add/qq_1": {
-				"color": [
-					{ "time": 0.0944, "color": "ffffffff" },
-					{ "time": 0.197, "color": "ffffff64" }
-				],
+			"小兵1__0006_左手3拿枪手2": {
 				"attachment": [
-					{ "time": 0.0602, "name": "images/skill/qiquan_add/qq_0001" },
-					{ "time": 0.1286, "name": "images/skill/qiquan_add/qq_0003" },
-					{ "time": 0.197, "name": "images/skill/qiquan_add/qq_0005" },
-					{ "time": 0.2312, "name": null }
+					{ "name": null }
+				]
+			},
+			"ll-_0007_左手3拿枪手2_蓝狼": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"右脚-猫": {
+				"attachment": [
+					{ "name": "右脚2-猫" },
+					{ "time": 0.6667, "name": "右脚-猫" }
 				]
 			},
 			"images/skill/qxyan_add/qipaoyan_00035": {
@@ -10606,16 +7958,6 @@
 					{ "time": 0.4022, "name": "images/skill/qxyan_add/qipaoyan_00046" },
 					{ "time": 0.4706, "name": "images/skill/qxyan_add/qipaoyan_00048" },
 					{ "time": 0.539, "name": null }
-				]
-			},
-			"小兵1__0006_左手3拿枪手2": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"ll-_0007_左手3拿枪手2_蓝狼": {
-				"attachment": [
-					{ "name": null }
 				]
 			},
 			"w1__0000s_0015_左手3拿枪手1": {
@@ -10635,15 +7977,21 @@
 					{ "time": 0.2654, "name": null }
 				]
 			},
+			"images/skill/qiquan_add/qq_1": {
+				"color": [
+					{ "time": 0.0944, "color": "ffffffff" },
+					{ "time": 0.197, "color": "ffffff64" }
+				],
+				"attachment": [
+					{ "time": 0.0602, "name": "images/skill/qiquan_add/qq_0001" },
+					{ "time": 0.1286, "name": "images/skill/qiquan_add/qq_0003" },
+					{ "time": 0.197, "name": "images/skill/qiquan_add/qq_0005" },
+					{ "time": 0.2312, "name": null }
+				]
+			},
 			"左手3拿枪手1-猫": {
 				"attachment": [
 					{ "name": null }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" },
-					{ "time": 0.6667, "name": "右脚-猫" }
 				]
 			}
 		},
@@ -11183,11 +8531,6 @@
 					{ "name": null }
 				]
 			},
-			"ft": {
-				"attachment": [
-					{ "name": "huaban-3682071511" }
-				]
-			},
 			"dao1": {
 				"attachment": [
 					{ "time": 0.0667, "name": "dg3/1_00031" },
@@ -11196,6 +8539,11 @@
 					{ "time": 0.2, "name": "dg3/1_00034" },
 					{ "time": 0.2333, "name": "dg3/1_00036" },
 					{ "time": 0.2667, "name": null }
+				]
+			},
+			"ft": {
+				"attachment": [
+					{ "name": "huaban-3682071511" }
 				]
 			}
 		},
@@ -11627,11 +8975,6 @@
 	},
 	"sw": {
 		"slots": {
-			"llpf1__0000s_0019_曲线-3-拷贝-11": {
-				"attachment": [
-					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
-				]
-			},
 			"小兵1__0006_左手3拿枪手2": {
 				"attachment": [
 					{ "name": null }
@@ -11640,6 +8983,11 @@
 			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
+				]
+			},
+			"llpf1__0000s_0019_曲线-3-拷贝-11": {
+				"attachment": [
+					{ "name": "llpf1__0000s_0019_曲线-3-拷贝-11" }
 				]
 			}
 		},
@@ -12077,19 +9425,19 @@
 		},
 		"deform": {
 			"js/m1": {
-				"ll-_0003_右手2_蓝狼": {
-					"llpf1__0000s_0009_曲线-3-拷贝-6": [
-						{
-							"time": 0.0667,
-							"vertices": [ -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391 ]
-						}
-					]
-				},
 				"ll-_0002_右手3_蓝狼": {
 					"ll-_0002_右手3_蓝狼": [
 						{
 							"time": 0.0667,
 							"vertices": [ -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391 ]
+						}
+					]
+				},
+				"ll-_0003_右手2_蓝狼": {
+					"llpf1__0000s_0009_曲线-3-拷贝-6": [
+						{
+							"time": 0.0667,
+							"vertices": [ -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391, -4.08807, 34.92206, -1.99983, 35.10391 ]
 						}
 					]
 				}
@@ -12098,14 +9446,14 @@
 	},
 	"wk": {
 		"slots": {
-			"gz": {
-				"attachment": [
-					{ "name": "huaban-6356646602" }
-				]
-			},
 			"ll-_0007_左手3拿枪手2_蓝狼": {
 				"attachment": [
 					{ "name": null }
+				]
+			},
+			"gz": {
+				"attachment": [
+					{ "name": "huaban-6356646602" }
 				]
 			}
 		},
@@ -12532,6 +9880,11 @@
 					{ "name": null }
 				]
 			},
+			"右脚-猫": {
+				"attachment": [
+					{ "name": "右脚2-猫" }
+				]
+			},
 			"ll-_0013_右脚": {
 				"attachment": [
 					{ "name": "ll-_0012_右脚2_蓝狼2" }
@@ -12540,11 +9893,6 @@
 			"w2__0020_右脚": {
 				"attachment": [
 					{ "name": "w2__0019_右脚2" }
-				]
-			},
-			"右脚-猫": {
-				"attachment": [
-					{ "name": "右脚2-猫" }
 				]
 			},
 			"w1__0000s_0021_右脚": {
@@ -12949,19 +10297,9 @@
 					{ "name": "m1__0017_左脚" }
 				]
 			},
-			"w2__0016_左手3拿枪手1": {
+			"右脚-猫": {
 				"attachment": [
-					{ "name": null }
-				]
-			},
-			"小兵1__0007_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
-				]
-			},
-			"w1__0000s_0015_左手3拿枪手1": {
-				"attachment": [
-					{ "name": null }
+					{ "name": "右脚2-猫" }
 				]
 			},
 			"ll-_0013_右脚": {
@@ -12969,7 +10307,7 @@
 					{ "name": "ll-_0012_右脚2_蓝狼2" }
 				]
 			},
-			"llpf1__0000s_0027_曲线-3-拷贝-15": {
+			"小兵1__0007_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
 				]
@@ -12979,14 +10317,19 @@
 					{ "name": "w2__0019_右脚2" }
 				]
 			},
-			"左手3拿枪手1-猫": {
+			"llpf1__0000s_0027_曲线-3-拷贝-15": {
 				"attachment": [
 					{ "name": null }
 				]
 			},
-			"ll-_0008_左手3拿枪手1_蓝狼": {
+			"w1__0000s_0015_左手3拿枪手1": {
 				"attachment": [
 					{ "name": null }
+				]
+			},
+			"w1__0000s_0021_右脚": {
+				"attachment": [
+					{ "name": "w1__0000s_0020_右脚2" }
 				]
 			},
 			"m1__0013_左手3拿枪手1": {
@@ -12994,14 +10337,19 @@
 					{ "name": null }
 				]
 			},
-			"右脚-猫": {
+			"左手3拿枪手1-猫": {
 				"attachment": [
-					{ "name": "右脚2-猫" }
+					{ "name": null }
 				]
 			},
-			"w1__0000s_0021_右脚": {
+			"w2__0016_左手3拿枪手1": {
 				"attachment": [
-					{ "name": "w1__0000s_0020_右脚2" }
+					{ "name": null }
+				]
+			},
+			"ll-_0008_左手3拿枪手1_蓝狼": {
+				"attachment": [
+					{ "name": null }
 				]
 			}
 		},

@@ -5,6 +5,8 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
+import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
+import { ZRSJZ_TaskAward } from '../UI/ZRSJZ_TaskAward';
 const { ccclass, property } = _decorator;
 
 export interface ZRSJZ_LevelEntryResult {
@@ -27,6 +29,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
     private readonly _actionNames: string[] = ["机密行动", "绝密行动"];
     private _selectedMapName: string = "五号小镇";
     private _selectedActionName: string = "机密行动";
+    private _exclusiveDropRefreshVersion: number = 0;
 
     protected onLoad(): void {
         this.BindSelectEvents();
@@ -43,16 +46,18 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             find(`Panel/${mapName}`, this.node)?.on(Node.EventType.TOUCH_END, this.OnMapSelected, this);
         }
         for (const actionName of this._actionNames) {
-            find(`Panel/Desc/${actionName}`, this.node)?.on(Node.EventType.TOUCH_END, this.OnActionSelected, this);
+            find(`Panel/${actionName}`, this.node)?.on(Node.EventType.TOUCH_END, this.OnActionSelected, this);
         }
     }
 
     protected onDestroy(): void {
+        this._exclusiveDropRefreshVersion++;
+        this.ClearExclusiveDrops();
         for (const mapName of this._mapNames) {
             find(`Panel/${mapName}`, this.node)?.off(Node.EventType.TOUCH_END, this.OnMapSelected, this);
         }
         for (const actionName of this._actionNames) {
-            find(`Panel/Desc/${actionName}`, this.node)?.off(Node.EventType.TOUCH_END, this.OnActionSelected, this);
+            find(`Panel/${actionName}`, this.node)?.off(Node.EventType.TOUCH_END, this.OnActionSelected, this);
         }
     }
 
@@ -107,7 +112,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
         });
 
         this._actionNames.forEach((actionName, index) => {
-            const actionNode = find(`Panel/Desc/${actionName}`, this.node);
+            const actionNode = find(`Panel/${actionName}`, this.node);
             const selected = actionName === this._selectedActionName;
             const checked = actionNode?.getChildByName("Checked");
             if (checked) checked.active = selected;
@@ -120,6 +125,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
 
         const config = this.GetSelectedConfig();
         this.RefreshLevelInfo(config);
+        void this.RefreshExclusiveDrops(config);
     }
 
     private RefreshLevelInfo(config: Readonly<ZRSJZ_MapConfig> | null): void {
@@ -130,10 +136,55 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
         this.SetLabel("Panel/Desc/准入价值", config
             ? this.FormatValue(config.RequiredLoadoutValue)
             : "--");
-        this.SetLabel("Panel/Desc/任务限制", config?.MissionLimit || "暂未开放");
         this.SetLabel("Panel/Desc/行动时限", config
             ? (config.TimeLimitMinutes > 0 ? `${config.TimeLimitMinutes}分钟` : "不限时")
             : "--");
+    }
+
+    /** 使用任务系统的 TaskAward 预制体展示当前关卡专属大红。 */
+    private async RefreshExclusiveDrops(config: Readonly<ZRSJZ_MapConfig> | null): Promise<void> {
+        const refreshVersion = ++this._exclusiveDropRefreshVersion;
+        const content = find("Panel/Desc/专属掉落/View/Content", this.node);
+        if (!content) {
+            console.warn("[ZRSJZ_SelectPanel] 未找到专属掉落展示节点");
+            return;
+        }
+
+        this.ClearExclusiveDrops(content);
+        for (const propName of config?.ExclusiveRedProps ?? []) {
+            const awardNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/TaskAward");
+            if (!awardNode) continue;
+            if (
+                refreshVersion !== this._exclusiveDropRefreshVersion
+                || !content.isValid
+                || !this.node.isValid
+            ) {
+                ZRSJZ_PoolManager.Instance.PutNode(awardNode);
+                return;
+            }
+
+            const taskAward = awardNode.getComponent(ZRSJZ_TaskAward);
+            if (!taskAward) {
+                console.warn("[ZRSJZ_SelectPanel] TaskAward 预制体缺少 ZRSJZ_TaskAward 组件");
+                ZRSJZ_PoolManager.Instance.PutNode(awardNode);
+                continue;
+            }
+            awardNode.parent = content;
+            awardNode.active = true;
+            taskAward.Init(propName, 1);
+        }
+    }
+
+    private ClearExclusiveDrops(content: Node = find("Panel/Desc/专属掉落/View/Content", this.node)): void {
+        if (!content?.isValid) return;
+        for (const child of [...content.children]) {
+            if (child.getComponent(ZRSJZ_TaskAward)) {
+                ZRSJZ_PoolManager.Instance.PutNode(child);
+            } else {
+                child.removeFromParent();
+                child.destroy();
+            }
+        }
     }
 
     private SetLabel(path: string, value: string): void {

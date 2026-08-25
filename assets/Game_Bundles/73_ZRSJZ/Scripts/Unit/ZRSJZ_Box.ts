@@ -126,10 +126,24 @@ export class ZRSJZ_Box extends Component {
         this._searchingPlayerIndex = -1;
         this._nextLootIndex = 0;
         this._inventoryID = `${this.node.uuid}_${++ZRSJZ_Box._inventorySerial}`;
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
+        const allowedRedProps = new Set([
+            ...(mapConfig?.UniversalRedProps ?? []),
+            ...(mapConfig?.ExclusiveRedProps ?? []),
+        ]);
         this.LootProps = (lootProps ?? []).filter(propName => {
-            const valid = ZRSJZ_PROP_CONFIG.has(propName);
+            const propConfig = ZRSJZ_PROP_CONFIG.get(propName);
+            const valid = !!propConfig;
             if (!valid) {
                 console.warn(`[ZRSJZ_Box] 自定义箱子中不存在道具配置: ${propName}`);
+            }
+            if (
+                propConfig?.Quality === ZRSJZ_PROP_QUALITY.红色
+                && propConfig.PropType === "物品"
+                && !allowedRedProps.has(propName)
+            ) {
+                console.warn(`[ZRSJZ_Box] ${ZRSJZ_GameData.Instance.CurMap} 未配置该专属或通用大红: ${propName}`);
+                return false;
             }
             return valid;
         });

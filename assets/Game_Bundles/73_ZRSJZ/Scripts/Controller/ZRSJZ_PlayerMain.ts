@@ -2,7 +2,7 @@ import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
 import { _decorator, CircleCollider2D, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, v2 } from 'cc';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_ANI, ZRSJZ_TIER } from '../ZRSJZ_Constant';
+import { ZRSJZ_ANI, ZRSJZ_KNIFE, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
@@ -35,6 +35,7 @@ export class ZRSJZ_PlayerMain extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN, this.ChangeSkin, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
         this.Collider.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.on(Contact2DType.END_CONTACT, this.EndContact, this)
     }
@@ -44,6 +45,7 @@ export class ZRSJZ_PlayerMain extends Component {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON, this.SwitchWeapon, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN, this.ChangeSkin, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
         this.Collider.off(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.off(Contact2DType.END_CONTACT, this.EndContact, this)
     }
@@ -94,15 +96,21 @@ export class ZRSJZ_PlayerMain extends Component {
 
         this.PlayerSkeleton.IsKnife = weaponType === "刀";
         this.PlayerSkeleton.ShowEquipment(propData.Name);
-        this.PlayAni(weaponType === "枪" ? ZRSJZ_ANI.Idle_Q : ZRSJZ_ANI.Idle_D2, false, () => {
-            this.PlayAni(weaponType === "枪" ? ZRSJZ_ANI.Idle_Q : ZRSJZ_ANI.Idle_D1);
-        });
+        this._aniName = "";
+        if (weaponType === "枪") {
+            this.PlayerSkeleton.ClearAttackAnimation();
+            this.PlayAni(ZRSJZ_ANI.Idle_Q);
+        } else {
+            this.PlayAni(ZRSJZ_ANI.Idle_D1);
+            this.PlayerSkeleton.PlayKnifeBaseAni(ZRSJZ_ANI.Idle_D1);
+        }
     }
 
     /** 大厅滑铲没有冷却；仅等待当前滑铲动作结束即可再次使用。 */
     Slide(): void {
         if (this._isSliding) return;
         this._isSliding = true;
+        this.PlayerSkeleton.ClearAttackAnimation();
         this._slideDirection = Math.sign(this._moveX) || this.PlayerSkeleton.Facing || 1;
         const slideAnimation = this._weaponType === "枪" ? ZRSJZ_ANI.HC_Q : ZRSJZ_ANI.HC_D;
         this._aniName = "";
@@ -113,6 +121,11 @@ export class ZRSJZ_PlayerMain extends Component {
                 this.PlayAni(this._weaponType === "枪" ? ZRSJZ_ANI.Idle_Q : ZRSJZ_ANI.Idle_D1);
             } else {
                 this.PlayAni(this._weaponType === "枪" ? ZRSJZ_ANI.Walk_Q : ZRSJZ_ANI.Walk_D);
+            }
+            if (this._weaponType === "刀") {
+                this.PlayerSkeleton.PlayKnifeBaseAni(
+                    this._moveX == 0 ? ZRSJZ_ANI.Idle_D1 : ZRSJZ_ANI.Walk_D,
+                );
             }
         });
     }
@@ -140,35 +153,48 @@ export class ZRSJZ_PlayerMain extends Component {
     }
     //动画切换
     AniSwitch() {
-        if (this._moveX == 0 && this._moveY == 0) {
-            if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Walk_D) {
-                this.PlayAni(ZRSJZ_ANI.Idle_D1);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Walk_Q) {
-                this.PlayAni(ZRSJZ_ANI.Idle_Q);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Attack_Move_D2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D2);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Attack_Move_D3) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_D3);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Attack_Move_Q) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Attack_Move_Q2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Idle_Q2);
-            }
-        } else if (this._moveX != 0 || this._moveY != 0) {
-            if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Idle_D1 || this.PlayerSkeleton.AniName == ZRSJZ_ANI.Idle_D2) {
-                this.PlayAni(ZRSJZ_ANI.Walk_D);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Idle_Q) {
-                this.PlayAni(ZRSJZ_ANI.Walk_Q);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Attack_Idle_D2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_D2);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Attack_Idle_D3) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_D3);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Attack_Idle_Q) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_Q);
-            } else if (this.PlayerSkeleton.AniName == ZRSJZ_ANI.Attack_Idle_Q2) {
-                this.PlayAni(ZRSJZ_ANI.Attack_Move_Q2);
-            }
+        const isMoving = this._moveX !== 0 || this._moveY !== 0;
+        const animation = this._weaponType === "枪"
+            ? (isMoving ? ZRSJZ_ANI.Walk_Q : ZRSJZ_ANI.Idle_Q)
+            : (isMoving ? ZRSJZ_ANI.Walk_D : ZRSJZ_ANI.Idle_D1);
+        this.PlayAni(animation);
+        if (this._weaponType === "刀") this.PlayerSkeleton.PlayKnifeBaseAni(animation);
+    }
+
+    private OnEquipmentChanged(
+        equipmentName: string,
+        isEquipment: boolean = true,
+        playerIndex?: number,
+    ): void {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerSkeleton.CurPlayerIndex) return;
+        const changedType = this.GetWeaponType(equipmentName);
+        if (!changedType) return;
+
+        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerSkeleton.CurPlayerIndex);
+        if (isEquipment) {
+            this._weaponType = changedType;
+        } else if (changedType === this._weaponType) {
+            this._weaponType = weaponryIDs[0] ? "枪" : "刀";
         }
+
+        const targetIndex = this._weaponType === "枪" ? 0 : 4;
+        if (weaponryIDs[targetIndex] && ZRSJZ_GameData.Instance.PropData[weaponryIDs[targetIndex]]) {
+            this.ApplyWeaponType(this._weaponType);
+            return;
+        }
+
+        this.PlayerSkeleton.IsKnife = true;
+        this.PlayerSkeleton.ClearAttackAnimation();
+        this._aniName = "";
+        this.PlayAni(ZRSJZ_ANI.Idle_D1);
+        this.PlayerSkeleton.PlayKnifeBaseAni(ZRSJZ_ANI.Idle_D1);
+    }
+
+    private GetWeaponType(equipmentName: string): "枪" | "刀" | null {
+        for (const weaponNames of ZRSJZ_WEAPONRY_TYPE.values()) {
+            if (weaponNames.includes(equipmentName)) return "枪";
+        }
+        return ZRSJZ_KNIFE.includes(equipmentName) ? "刀" : null;
     }
 
     ChangeSkin(playerIndex?: number) {

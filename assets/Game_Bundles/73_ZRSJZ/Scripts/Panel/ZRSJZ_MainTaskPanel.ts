@@ -36,7 +36,7 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
         this.TaskDesc = find("Panel/TasksDesc/View/Content/TaskDesc", this.node).getComponent(Label);
         this.TaskTargetComplete = find("Panel/TasksDesc/View/Content/TaskTarget/Complete", this.node);
         this.TaskTargetDesc = find("Panel/TasksDesc/View/Content/TaskTarget/TaskTargetDesc", this.node).getComponent(Label);
-        this.TaskAward = find("Panel/TasksDesc/View/Content/TaskAward", this.node);
+        this.TaskAward = find("Panel/TasksDesc/View/Content/TaskAward/View/Content", this.node);
         this.GetAward = find("Panel/TasksDesc/领取奖励", this.node);
         this.GetTask = find("Panel/TasksDesc/领取任务", this.node);
         this.Underway = find("Panel/TasksDesc/已接取任务", this.node);

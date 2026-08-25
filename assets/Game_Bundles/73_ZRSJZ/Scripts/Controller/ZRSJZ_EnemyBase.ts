@@ -485,7 +485,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     private TryFindTarget(): void {
         if (!this.IsTargetAvailable()) {
             this.Target = this.FindTarget();
-        } else if (this.Target && !this.Target.getComponent(ZRSJZ_Player)?.IsDead && Vec3.distance(this.node.worldPosition, this.Target.worldPosition) > 500) {
+        } else if (this.Target && !this.Target.getComponent(ZRSJZ_Player)?.IsDead && Vec3.distance(this.node.worldPosition, this.Target.worldPosition) > 300) {
             this.Target = this.FindTarget();
         }
     }

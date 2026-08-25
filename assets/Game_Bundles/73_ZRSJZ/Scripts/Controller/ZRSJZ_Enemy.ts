@@ -61,7 +61,6 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
 
         const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/EnemyBullet");
         bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
-        bullet.active = true;
 
         // Bone.worldX/worldY 是 Spine 节点空间坐标。
         // 再经过 Spine 节点的世界矩阵，得到 Cocos 世界坐标。
