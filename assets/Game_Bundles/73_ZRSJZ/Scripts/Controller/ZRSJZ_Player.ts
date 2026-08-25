@@ -18,7 +18,9 @@ import { ZRSJZ_Skill } from '../Skill/ZRSJZ_Skill';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
 import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
+import { ZRSJZ_SpecialOperationsTaskIcon } from '../Unit/ZRSJZ_SpecialOperationsTaskIcon';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_Mailbox } from '../Unit/ZRSJZ_Mailbox';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -46,6 +48,7 @@ export class ZRSJZ_Player extends Component {
     Loading: Sprite = null;
     private _bulletProgressNode: Node = null;
     private _bulletProgressSprite: Sprite = null;
+    private readonly _nearbySpecialOperations = new Set<ZRSJZ_SpecialOperationsTaskIcon>();
 
     private _moveX: number = 0;
     private _moveY: number = 0;
@@ -1017,11 +1020,34 @@ export class ZRSJZ_Player extends Component {
             this._targetBox = otherCollider.node?.getComponent(ZRSJZ_Box);
             this._targetBox.Check();
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox, this.PlayerIndex);
+        } else if (
+            otherCollider.group === ZRSJZ_TIER.场景物
+            && otherCollider.node?.getComponent(ZRSJZ_Mailbox)
+        ) {
+            ZRSJZ_EventManager.Emit(
+                ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH,
+                otherCollider.node.getComponent(ZRSJZ_Mailbox),
+                this.PlayerIndex,
+            );
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, otherCollider.node?.getComponent(ZRSJZ_Door), this.PlayerIndex);
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
             //开始撤离
             ZRSJZ_Game.Instance.StartEvacuation(otherCollider.node.name, this.PlayerIndex);
+        } else if (
+            otherCollider.group === ZRSJZ_TIER.场景物
+            && otherCollider.node?.getComponent(ZRSJZ_SpecialOperationsTaskIcon)
+        ) {
+            const taskPoint = otherCollider.node.getComponent(ZRSJZ_SpecialOperationsTaskIcon);
+            if (taskPoint?.IsAvailable) {
+                this._nearbySpecialOperations.add(taskPoint);
+                taskPoint.Check(this.PlayerIndex);
+                ZRSJZ_EventManager.Emit(
+                    ZRSJZ_MyEvent.ZRSJZ_PLAYER_SPECIAL_OPERATION,
+                    taskPoint,
+                    this.PlayerIndex,
+                );
+            }
         }
     }
 
@@ -1033,11 +1059,32 @@ export class ZRSJZ_Player extends Component {
                 this._targetBox = null;
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this._targetBox, this.PlayerIndex);
             }
+        } else if (
+            otherCollider.group === ZRSJZ_TIER.场景物
+            && otherCollider.node?.getComponent(ZRSJZ_Mailbox)
+        ) {
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, null, this.PlayerIndex);
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, null, this.PlayerIndex);
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
             //撤离中断
             ZRSJZ_Game.Instance.CancelEvacuation(this.PlayerIndex);
+        } else if (
+            otherCollider.group === ZRSJZ_TIER.场景物
+            && otherCollider.node?.getComponent(ZRSJZ_SpecialOperationsTaskIcon)
+        ) {
+            const taskPoint = otherCollider.node.getComponent(ZRSJZ_SpecialOperationsTaskIcon);
+            if (taskPoint) {
+                this._nearbySpecialOperations.delete(taskPoint);
+                taskPoint.CheckCancel(this.PlayerIndex);
+            }
+            const nextTaskPoint = Array.from(this._nearbySpecialOperations)
+                .find(point => point?.IsAvailable) ?? null;
+            ZRSJZ_EventManager.Emit(
+                ZRSJZ_MyEvent.ZRSJZ_PLAYER_SPECIAL_OPERATION,
+                nextTaskPoint,
+                this.PlayerIndex,
+            );
         }
     }
 

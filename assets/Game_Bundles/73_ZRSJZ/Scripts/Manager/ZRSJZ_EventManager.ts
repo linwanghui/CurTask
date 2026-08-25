@@ -12,6 +12,7 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_PLAYER_SKILL: string = 'ZRSJZ_PLAYER_SKILL';//玩家技能
     public static ZRSJZ_PLAYER_SEARCH: string = 'ZRSJZ_PLAYER_SEARCH';//玩家搜索显示
     public static ZRSJZ_PLAYER_DOOR: string = 'ZRSJZ_PLAYER_DOOR';//玩家遇到门
+    public static ZRSJZ_PLAYER_SPECIAL_OPERATION: string = 'ZRSJZ_PLAYER_SPECIAL_OPERATION';//玩家进入/离开特别行动接取点
     public static ZRSJZ_PLAYER_RESURGENCE: string = 'ZRSJZ_PLAYER_RESURGENCE';//玩家复活
 
     public static ZRSJZ_CURRENCY_CHANGE: string = 'ZRSJZ_CURRENCY_CHANGE';//货币发生变动

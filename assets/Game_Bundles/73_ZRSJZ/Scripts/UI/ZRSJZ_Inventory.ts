@@ -21,7 +21,8 @@ export class ZRSJZ_Inventory extends Component {
     /** 当前库存节点正在展示的玩家，避免异步重建期间读取到变化后的全局玩家。 */
     public PlayerViewIndex: number = -1;
     private _newAddPropID: string[] = [];
-    private _isShowingPropItem: boolean = false;
+    /** 子类销毁临时库存前需要等待本轮异步格子刷新结束。 */
+    protected _isShowingPropItem: boolean = false;
     IsVisible: boolean = true;
 
     protected onEnable(): void {
@@ -213,10 +214,15 @@ export class ZRSJZ_Inventory extends Component {
             // 删行、扩容和新增道具完成后，以 Grids 为准校正所有空格节点。
             await this.SyncEmptyGridNodes();
 
+            // 临时箱子库存可能在等待异步格子创建期间被关闭。
+            // 节点已经销毁时不能再通过 Component.getComponent 访问它。
+            if (!this.node?.isValid) return;
             if (!this.UITransform) {
                 this.UITransform = this.getComponent(UITransform);
             }
-            this.UITransform.height = this.Grids.length * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL);
+            if (this.UITransform) {
+                this.UITransform.height = this.Grids.length * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL);
+            }
         } finally {
             this._isShowingPropItem = false;
         }

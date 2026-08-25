@@ -1,11 +1,11 @@
-import { _decorator, Camera, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
+import { _decorator, Camera, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { ZRSJZ_BOMB_PLOT_SPAWN_CONFIG, ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY } from './ZRSJZ_Constant';
+import { GetSpecialOperationConfig, ZRSJZ_BOMB_PLOT_SPAWN_CONFIG, ZRSJZ_INVENTORY, ZRSJZ_MainTaskAwardConfig, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_SPECIAL_OPERATION_CONFIG, ZRSJZ_SpecialOperationConfig, ZRSJZ_SpecialOperationTaskType } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
@@ -15,7 +15,16 @@ import { ZRSJZ_InventoryService } from './Service/ZRSJZ_InventoryService';
 import { ZRSJZ_TaskService } from './Service/ZRSJZ_TaskService';
 import { ZRSJZ_ParacargoBox } from './Unit/ZRSJZ_ParacargoBox';
 import { ZRSJZ_BombPlot } from './Unit/ZRSJZ_BombPlot';
+import { ZRSJZ_SpecialOperationsTaskIcon } from './Unit/ZRSJZ_SpecialOperationsTaskIcon';
+import { ZRSJZ_Door } from './Unit/ZRSJZ_Door';
+import { ZRSJZ_Mailbox } from './Unit/ZRSJZ_Mailbox';
 const { ccclass, property } = _decorator;
+
+interface ZRSJZ_MiniMapTaskMarker {
+    Node: Node;
+    MapPosition: Vec3;
+    TaskPoint: ZRSJZ_SpecialOperationsTaskIcon;
+}
 
 @ccclass('ZRSJZ_Game')
 export class ZRSJZ_Game extends Component {
@@ -82,18 +91,48 @@ export class ZRSJZ_Game extends Component {
     Drug: number[][] = [[0, 0, 3], [0, 0, 3]];//两名玩家各自的高级/中级/低级药品
 
     private _player: Node = null;
+    private _miniMapMask: Node = null;
+    private _miniMapMapRoot: Node = null;
     private _miniMapContent: Node = null;
     private _miniMapPoint: Node = null;
     private _miniMapIcon: Sprite = null;
     private _miniMapPlayer2Point: Node = null;
     private _miniMapPlayer2Icon: Sprite = null;
+    private _miniMapTaskPoint: Node = null;
+    private readonly _miniMapTaskMarkers: ZRSJZ_MiniMapTaskMarker[] = [];
+    private readonly _specialOperationTaskPoints: ZRSJZ_SpecialOperationsTaskIcon[] = [];
+    private _miniMapParacargoPoint: Node = null;
+    private _miniMapBombPlotPoint: Node = null;
+    private readonly _miniMapTaskMapPosition: Vec3 = new Vec3();
+    private _hasMiniMapTaskPoint: boolean = false;
     private _miniMapPointPosition: Vec3 = new Vec3();
+    private _miniMapDisplayCenterPosition: Vec3 = new Vec3();
+    private _miniMapClampedContentPosition: Vec3 = new Vec3();
     private _miniMapPlayer1Position: Vec3 = new Vec3();
     private _miniMapPlayer2Position: Vec3 = new Vec3();
+    private _specialTaskWorldPosition: Vec3 = new Vec3();
     private _currentMapName: string = "";
     private _elapsedGameTime: number = 0;
     private _timeLimitSeconds: number = 0;
     private _killCount: number = 0;
+    private _acceptedSpecialOperationMapKey: string = "";
+    private _specialOperationStartTime: number = 0;
+    private _specialOperationState: "未领取" | "进行中" | "已完成" | "已失败" = "未领取";
+    private _specialOperationTaskType: ZRSJZ_SpecialOperationTaskType = "待定";
+    private _specialOperationPlayerIndex: number = 0;
+    private _specialOperationObjectiveCompleted: boolean = false;
+    private _specialOperationSetupVersion: number = 0;
+    private _specialOperationTargetEnemy: Node = null;
+    private _specialOperationBombPlot: ZRSJZ_BombPlot = null;
+    private readonly _specialOperationBombCenter: Vec3 = new Vec3();
+    private _specialOperationBombRadius: number = 0;
+    private readonly _breakWallMailboxes: ZRSJZ_Mailbox[] = [];
+    private _breakWallTotalBoxCount: number = 0;
+    private _taskStateNode: Node = null;
+    private _taskStateSkeleton: sp.Skeleton = null;
+    private _taskCountdownNode: Node = null;
+    private _taskCountdownLabel: Label = null;
+    private _taskStateAnimationVersion: number = 0;
     private _battleStarted: boolean = false;
     /** 每局只请求一次空投，异步加载期间也用于阻止重复生成。 */
     private _paracargoSpawnRequested: boolean = false;
@@ -124,9 +163,27 @@ export class ZRSJZ_Game extends Component {
     protected onLoad(): void {
         ZRSJZ_Game.Instance = this;
         this.ResolveBattleSceneNodes();
+        this.ResolveSpecialOperationUI();
         this.ConfigureSceneControlModels();
         this._elapsedGameTime = 0;
         this._killCount = 0;
+        this._acceptedSpecialOperationMapKey = "";
+        this._specialOperationStartTime = 0;
+        this._specialOperationState = "未领取";
+        this._specialOperationTaskType = "待定";
+        this._specialOperationPlayerIndex = 0;
+        this._specialOperationObjectiveCompleted = false;
+        this._specialOperationSetupVersion = 0;
+        this._specialOperationTargetEnemy = null;
+        this._specialOperationBombPlot = null;
+        this._specialOperationBombCenter.set(0, 0, 0);
+        this._specialOperationBombRadius = 0;
+        this._breakWallMailboxes.length = 0;
+        this._breakWallTotalBoxCount = 0;
+        this._miniMapTaskMarkers.length = 0;
+        this._specialOperationTaskPoints.length = 0;
+        this.SetSpecialOperationCountdownVisible(false);
+        if (this._taskStateNode) this._taskStateNode.active = false;
         this._battleStarted = false;
         this._paracargoSpawnRequested = false;
         this._hasParacargoTarget = false;
@@ -168,6 +225,8 @@ export class ZRSJZ_Game extends Component {
 
     protected onDisable(): void {
         this.CancelEvacuation();
+        this.SetSpecialOperationCountdownVisible(false);
+        if (this._taskStateNode?.isValid) this._taskStateNode.active = false;
         ZRSJZ_UIManager.IsBattle = false;
         ZRSJZ_UIManager.SinglePlayerBattleIndex = -1;
     }
@@ -317,6 +376,7 @@ export class ZRSJZ_Game extends Component {
             this.RefreshGameTime();
             void this.TrySpawnParacargo();
             void this.TrySpawnBombPlot();
+            this.UpdateSpecialOperation();
 
             if (this._isEvacuating) {
                 this._evacuationElapsed += deltaTime;
@@ -413,6 +473,7 @@ export class ZRSJZ_Game extends Component {
     private async TrySpawnBombPlot(): Promise<void> {
         if (this.IsTutorial
             || this._bombPlotSpawnLoading
+            || (this._specialOperationState === "进行中" && this._specialOperationTaskType === "坚守轰炸区")
             || this.GetActiveBombPlot()
             || this._isGameFinished
             || this._elapsedGameTime < this._nextBombPlotSpawnTime
@@ -429,7 +490,10 @@ export class ZRSJZ_Game extends Component {
             this.ScheduleNextBombPlot(false);
             return;
         }
-        if (this._isGameFinished || !this.CurMap?.Map?.isValid || !this.CurMap?.Unit?.isValid) {
+        if (this._isGameFinished
+            || (this._specialOperationState === "进行中" && this._specialOperationTaskType === "坚守轰炸区")
+            || !this.CurMap?.Map?.isValid
+            || !this.CurMap?.Unit?.isValid) {
             ZRSJZ_PoolManager.Instance.PutNode(bombPlotNode);
             return;
         }
@@ -462,6 +526,10 @@ export class ZRSJZ_Game extends Component {
         playerIndex: number = 0,
     ): void {
         if (!this._battleStarted || this.GamePaused || this._isGameFinished) return;
+        if (this._specialOperationState === "进行中") {
+            void ZRSJZ_UIManager.Instance.ShowTip("任务还未完成 无法撤离");
+            return;
+        }
         this._playerEvacuationPoints.set(
             playerIndex === 1 ? 1 : 0,
             evacuationPointName || "固定撤离点",
@@ -546,6 +614,7 @@ export class ZRSJZ_Game extends Component {
         this._isGameFinished = true;
         this._battleStarted = false;
         this.GamePaused = true;
+        this.SetSpecialOperationCountdownVisible(false);
         this.RefreshGameTime();
         ZRSJZ_UIManager.Instance.ShowPanel(
             ZRSJZ_PANEL.失败弹窗,
@@ -567,6 +636,7 @@ export class ZRSJZ_Game extends Component {
             map.parent = this.MapParent;
             this.CurMap = map.getComponent(ZRSJZ_Map);
             this.CurMap.Init();
+            this.InitializeSpecialOperationPoints();
             this.ConfigureTileMapForPlayerCount();
             this.LoadPlayer();
         })
@@ -717,6 +787,7 @@ export class ZRSJZ_Game extends Component {
         this._isGameFinished = true;
         this._battleStarted = false;
         this.GamePaused = true;
+        this.SetSpecialOperationCountdownVisible(false);
         this.RefreshGameTime();
         ZRSJZ_UIManager.Instance.ShowPanel(
             ZRSJZ_PANEL.失败弹窗,
@@ -894,6 +965,15 @@ export class ZRSJZ_Game extends Component {
         this._checkedNodes.splice(0, this._checkedNodes.length, this.Checked_Player1, this.Checked_Player2);
     }
 
+    private ResolveSpecialOperationUI(): void {
+        this._taskStateNode = find("UICanvas/TaskState");
+        this._taskStateSkeleton = this._taskStateNode?.getComponent(sp.Skeleton) ?? null;
+        this._taskCountdownNode = find("UICanvas/任务倒计时");
+        this._taskCountdownLabel = this._taskCountdownNode
+            ?.getChildByName("Time")
+            ?.getComponent(Label) ?? null;
+    }
+
     /** 给场景内现成的两套操作组件写入玩家索引。 */
     private ConfigureSceneControlModels(): void {
         if (this.OnePlayerModel) this.OnePlayerModel.active = false;
@@ -975,6 +1055,9 @@ export class ZRSJZ_Game extends Component {
             this._currentMapName,
             this._miniMapIcon?.spriteFrame ?? null,
             this._miniMapPlayer2Icon?.spriteFrame ?? null,
+            this._miniMapMapRoot,
+            this._miniMapTaskMarkers.map(marker => marker.MapPosition.clone()),
+            this._miniMapTaskMarkers.map(marker => marker.TaskPoint?.IsAvailable ?? false),
         );
     }
 
@@ -988,16 +1071,30 @@ export class ZRSJZ_Game extends Component {
         }
 
         this._currentMapName = mapConfig.MapName;
-        this._miniMapContent = miniMapMask.getChildByName(this._currentMapName);
-        this._miniMapPoint = miniMapMask.getChildByName("我的位置");
+        this._miniMapMask = miniMapMask;
+        // 新版小地图将地图、地点和动态标记统一放在 Mask/Map 下；
+        // 没有 Map 包装节点时继续兼容旧场景结构。
+        this._miniMapMapRoot = miniMapMask.getChildByName("Map") ?? miniMapMask;
+        this._miniMapMapRoot.setPosition(0, 0, this._miniMapMapRoot.position.z);
+        this._miniMapContent = this._miniMapMapRoot.getChildByName(this._currentMapName);
+        this._miniMapPoint = this._miniMapMapRoot.getChildByName("我的位置");
         this._miniMapIcon = this._miniMapPoint?.getChildByName("Icon")?.getComponent(Sprite) ?? null;
-        this._miniMapPlayer2Point = miniMapMask.getChildByName("玩家2");
+        this._miniMapPlayer2Point = this._miniMapMapRoot.getChildByName("玩家2");
         this._miniMapPlayer2Icon = this._miniMapPlayer2Point
             ?.getChildByName("Icon")
             ?.getComponent(Sprite) ?? null;
+        this._miniMapTaskPoint = this._miniMapMapRoot.getChildByName("任务")
+            ?? this._miniMapMapRoot.getChildByName("特别行动");
+        this._miniMapParacargoPoint = this._miniMapMapRoot.getChildByName("空投");
+        this._miniMapBombPlotPoint = this._miniMapMapRoot.getChildByName("轰炸区");
+        this._hasMiniMapTaskPoint = false;
+        if (this._miniMapTaskPoint) {
+            this._miniMapTaskMapPosition.set(this._miniMapTaskPoint.position);
+            this._miniMapTaskPoint.active = false;
+        }
 
         const mapNames = new Set(Array.from(ZRSJZ_MAP_CONFIG.values()).map(config => config.MapName));
-        miniMapMask.children.forEach(child => {
+        this._miniMapMapRoot.children.forEach(child => {
             if (mapNames.has(child.name)) {
                 child.active = child === this._miniMapContent;
             }
@@ -1032,10 +1129,83 @@ export class ZRSJZ_Game extends Component {
 
         this._miniMapPoint.active = true;
         this._miniMapPoint.setPosition(0, 0, this._miniMapPoint.position.z);
-        this._miniMapPoint.setSiblingIndex(miniMapMask.children.length - 1);
+        this._miniMapPoint.setSiblingIndex(this._miniMapMapRoot.children.length - 1);
         if (this._miniMapPlayer2Point) {
             this._miniMapPlayer2Point.active = isConfiguredTwoPlayer;
-            this._miniMapPlayer2Point.setSiblingIndex(miniMapMask.children.length - 1);
+            this._miniMapPlayer2Point.setSiblingIndex(this._miniMapMapRoot.children.length - 1);
+        }
+        if (this.CurMap) this.InitializeSpecialOperationPoints();
+        if (this._miniMapParacargoPoint) this._miniMapParacargoPoint.active = false;
+        if (this._miniMapBombPlotPoint) this._miniMapBombPlotPoint.active = false;
+    }
+
+    /** 按当前地图中实际放置的特别行动预制体数量创建同等数量的小地图图标。 */
+    private InitializeSpecialOperationPoints(): void {
+        if (!this.CurMap?.node || !this._miniMapMapRoot || !this._miniMapContent) return;
+
+        for (const marker of this._miniMapTaskMarkers) {
+            if (!marker.Node?.isValid || marker.Node === this._miniMapTaskPoint) continue;
+            marker.Node.removeFromParent();
+            marker.Node.destroy();
+        }
+        this._miniMapTaskMarkers.length = 0;
+        this._specialOperationTaskPoints.splice(
+            0,
+            this._specialOperationTaskPoints.length,
+            ...this.CurMap.node.getComponentsInChildren(ZRSJZ_SpecialOperationsTaskIcon)
+                .filter(point => point?.node?.isValid),
+        );
+
+        const template = this._miniMapTaskPoint;
+        if (!template) {
+            if (this._specialOperationTaskPoints.length > 0) {
+                console.warn("[ZRSJZ_Game] 小地图缺少任务图标模板节点");
+            }
+            return;
+        }
+        template.active = false;
+
+        const worldMapTransform = this.CurMap.Map?.getComponent(UITransform);
+        const miniMapTransform = this._miniMapContent.getComponent(UITransform);
+        if (!worldMapTransform || !miniMapTransform) return;
+        const worldMapSize = worldMapTransform.contentSize;
+        if (worldMapSize.width <= 0 || worldMapSize.height <= 0) return;
+
+        const worldMapAnchor = worldMapTransform.anchorPoint;
+        const miniMapSize = miniMapTransform.contentSize;
+        const miniMapAnchor = miniMapTransform.anchorPoint;
+        for (let index = 0; index < this._specialOperationTaskPoints.length; index++) {
+            const taskPoint = this._specialOperationTaskPoints[index];
+            const markerNode = index === 0 ? template : instantiate(template);
+            if (index > 0) markerNode.parent = this._miniMapMapRoot;
+            markerNode.name = `任务_${index}`;
+            markerNode.setSiblingIndex(this._miniMapMapRoot.children.length - 1);
+
+            worldMapTransform.convertToNodeSpaceAR(
+                taskPoint.node.worldPosition,
+                this._specialTaskWorldPosition,
+            );
+            const normalizedX = Math.max(0, Math.min(1,
+                this._specialTaskWorldPosition.x / worldMapSize.width + worldMapAnchor.x,
+            ));
+            const normalizedY = Math.max(0, Math.min(1,
+                this._specialTaskWorldPosition.y / worldMapSize.height + worldMapAnchor.y,
+            ));
+            const mapPosition = new Vec3(
+                (normalizedX - miniMapAnchor.x) * miniMapSize.width,
+                (normalizedY - miniMapAnchor.y) * miniMapSize.height,
+                markerNode.position.z,
+            );
+            markerNode.active = taskPoint.IsAvailable;
+            this._miniMapTaskMarkers.push({
+                Node: markerNode,
+                MapPosition: mapPosition,
+                TaskPoint: taskPoint,
+            });
+        }
+        this._hasMiniMapTaskPoint = this._miniMapTaskMarkers.length > 0;
+        if (this._hasMiniMapTaskPoint) {
+            this._miniMapTaskMapPosition.set(this._miniMapTaskMarkers[0].MapPosition);
         }
     }
 
@@ -1082,14 +1252,40 @@ export class ZRSJZ_Game extends Component {
             0,
         );
 
-        // “我的位置”与地图底图是 Mask 下的同级节点，固定在遮罩中心并只移动底图。
+        // 地图中部优先让玩家保持在遮罩中心；接近地图边界时底图停止，改由玩家标记移向边缘。
         this._miniMapPoint.setPosition(0, 0, this._miniMapPoint.position.z);
         const mapScale = this._miniMapContent.scale;
+        const desiredMapX = -this._miniMapPointPosition.x * mapScale.x;
+        const desiredMapY = -this._miniMapPointPosition.y * mapScale.y;
+        const clampedMapPosition = this.ClampMiniMapContentPosition(
+            desiredMapX,
+            desiredMapY,
+            miniMapTransform,
+            mapScale,
+        );
         this._miniMapContent.setPosition(
-            -this._miniMapPointPosition.x * mapScale.x,
-            -this._miniMapPointPosition.y * mapScale.y,
+            clampedMapPosition.x,
+            clampedMapPosition.y,
             this._miniMapContent.position.z,
         );
+        this._miniMapDisplayCenterPosition.set(
+            Math.abs(mapScale.x) > 0.0001
+                ? -clampedMapPosition.x / mapScale.x
+                : this._miniMapPointPosition.x,
+            Math.abs(mapScale.y) > 0.0001
+                ? -clampedMapPosition.y / mapScale.y
+                : this._miniMapPointPosition.y,
+            0,
+        );
+        for (const marker of this._miniMapTaskMarkers) {
+            if (!marker.Node?.isValid) continue;
+            marker.Node.setPosition(
+                (marker.MapPosition.x - this._miniMapDisplayCenterPosition.x) * mapScale.x,
+                (marker.MapPosition.y - this._miniMapDisplayCenterPosition.y) * mapScale.y,
+                marker.Node.position.z,
+            );
+            marker.Node.active = marker.TaskPoint?.IsAvailable ?? false;
+        }
 
         const player1 = this.GetPlayer(0)?.node;
         if (player1?.isValid) {
@@ -1102,7 +1298,7 @@ export class ZRSJZ_Game extends Component {
                 mapAnchor.x,
                 mapAnchor.y,
                 mapScale,
-                this._miniMapPointPosition,
+                this._miniMapDisplayCenterPosition,
                 this._miniMapPlayer1Position,
             );
             this._miniMapPoint.active = !this._playersGivenUpResurrection.has(0);
@@ -1118,16 +1314,123 @@ export class ZRSJZ_Game extends Component {
                 mapAnchor.x,
                 mapAnchor.y,
                 mapScale,
-                this._miniMapPointPosition,
+                this._miniMapDisplayCenterPosition,
                 this._miniMapPlayer2Position,
             );
             this._miniMapPlayer2Point.active = !this._playersGivenUpResurrection.has(1);
         }
+
+        const paracargoPosition = this.GetParacargoTargetWorldPosition();
+        this.RefreshMiniMapImportantPoint(
+            this._miniMapParacargoPoint,
+            paracargoPosition,
+            worldBounds,
+            mapSize.width,
+            mapSize.height,
+            mapAnchor.x,
+            mapAnchor.y,
+            mapScale,
+        );
+
+        const bombPlot = this.GetActiveBombPlot();
+        this.RefreshMiniMapImportantPoint(
+            this._miniMapBombPlotPoint,
+            bombPlot?.CenterWorldPosition ?? null,
+            worldBounds,
+            mapSize.width,
+            mapSize.height,
+            mapAnchor.x,
+            mapAnchor.y,
+            mapScale,
+        );
+        if (bombPlot && this._miniMapBombPlotPoint) {
+            const rangeTransform = this._miniMapBombPlotPoint.getComponent(UITransform);
+            if (rangeTransform) {
+                rangeTransform.setContentSize(
+                    bombPlot.Radius * 2 / worldBounds.width * mapSize.width * Math.abs(mapScale.x),
+                    bombPlot.Radius * 2 / worldBounds.height * mapSize.height * Math.abs(mapScale.y),
+                );
+                this._miniMapBombPlotPoint.setScale(1, 1, 1);
+            }
+        }
+    }
+
+    private RefreshMiniMapImportantPoint(
+        point: Node,
+        worldPosition: Readonly<Vec3> | null,
+        worldBounds: Rect,
+        mapWidth: number,
+        mapHeight: number,
+        anchorX: number,
+        anchorY: number,
+        mapScale: Vec3,
+    ): void {
+        if (!point) return;
+        if (!worldPosition) {
+            point.active = false;
+            return;
+        }
+        this.UpdateMiniMapPlayerPoint(
+            point,
+            worldPosition,
+            worldBounds,
+            mapWidth,
+            mapHeight,
+            anchorX,
+            anchorY,
+            mapScale,
+            this._miniMapDisplayCenterPosition,
+        );
+        point.active = true;
+    }
+
+    /**
+     * 限制底图移动范围，使底图四边始终位于小地图遮罩之外；
+     * 当底图某一轴比遮罩还小时，则在该轴居中显示。
+     */
+    private ClampMiniMapContentPosition(
+        desiredX: number,
+        desiredY: number,
+        mapTransform: UITransform,
+        mapScale: Readonly<Vec3>,
+    ): Vec3 {
+        const maskTransform = this._miniMapMask?.getComponent(UITransform);
+        if (!maskTransform) {
+            this._miniMapClampedContentPosition.set(desiredX, desiredY, 0);
+            return this._miniMapClampedContentPosition;
+        }
+
+        const mapSize = mapTransform.contentSize;
+        const mapAnchor = mapTransform.anchorPoint;
+        const maskSize = maskTransform.contentSize;
+        const maskAnchor = maskTransform.anchorPoint;
+        const scaledMapWidth = mapSize.width * Math.abs(mapScale.x);
+        const scaledMapHeight = mapSize.height * Math.abs(mapScale.y);
+
+        const maskLeft = -maskAnchor.x * maskSize.width;
+        const maskRight = (1 - maskAnchor.x) * maskSize.width;
+        const maskBottom = -maskAnchor.y * maskSize.height;
+        const maskTop = (1 - maskAnchor.y) * maskSize.height;
+        const minX = maskRight - (1 - mapAnchor.x) * scaledMapWidth;
+        const maxX = maskLeft + mapAnchor.x * scaledMapWidth;
+        const minY = maskTop - (1 - mapAnchor.y) * scaledMapHeight;
+        const maxY = maskBottom + mapAnchor.y * scaledMapHeight;
+
+        const centeredX = (maskLeft + maskRight) * 0.5
+            - (0.5 - mapAnchor.x) * scaledMapWidth;
+        const centeredY = (maskBottom + maskTop) * 0.5
+            - (0.5 - mapAnchor.y) * scaledMapHeight;
+        this._miniMapClampedContentPosition.set(
+            minX <= maxX ? Math.max(minX, Math.min(maxX, desiredX)) : centeredX,
+            minY <= maxY ? Math.max(minY, Math.min(maxY, desiredY)) : centeredY,
+            0,
+        );
+        return this._miniMapClampedContentPosition;
     }
 
     private UpdateMiniMapPlayerPoint(
         point: Node,
-        worldPosition: Vec3,
+        worldPosition: Readonly<Vec3>,
         worldBounds: Rect,
         mapWidth: number,
         mapHeight: number,
@@ -1197,9 +1500,393 @@ export class ZRSJZ_Game extends Component {
     }
 
     /** 敌人首次确认死亡时登记击杀，防止死亡表现或回收流程重复计数。 */
-    RecordKill(count: number = 1): void {
+    RecordKill(count: number = 1, killedEnemy: Node = null): void {
         if (!Number.isFinite(count) || count <= 0) return;
         this._killCount += Math.floor(count);
+        if (this._specialOperationState === "进行中"
+            && this._specialOperationTaskType === "高价值目标"
+            && killedEnemy === this._specialOperationTargetEnemy) {
+            this._specialOperationObjectiveCompleted = true;
+        }
+    }
+
+    /** 同一时刻只允许执行一个特别行动；完成或失败后可以接取剩余任务点。 */
+    AcceptSpecialOperation(
+        mapKey: string,
+        sourceTaskPoint: ZRSJZ_SpecialOperationsTaskIcon = null,
+        playerIndex: number = 0,
+    ): boolean {
+        if (this._isGameFinished || this._specialOperationState === "进行中") return false;
+        const baseConfig = ZRSJZ_SPECIAL_OPERATION_CONFIG.get(mapKey);
+        const taskType = baseConfig
+            ? sourceTaskPoint?.ResolveTaskType(baseConfig.TaskType)
+            : undefined;
+        const config = GetSpecialOperationConfig(mapKey, taskType);
+        if (mapKey !== ZRSJZ_GameData.Instance.CurMap || !config) return false;
+        if (config.TaskType === "待定") return false;
+        if (!sourceTaskPoint?.IsAvailable) return false;
+        const taskWorldPosition = sourceTaskPoint.node.worldPosition.clone();
+        const configuredTargetPrefab = sourceTaskPoint.HighValueTarget;
+        const configuredTargetPoint = sourceTaskPoint.HighValueTargetPoint;
+        const targetWorldPosition = configuredTargetPoint?.isValid
+            ? configuredTargetPoint.worldPosition.clone()
+            : taskWorldPosition;
+        const hasConfiguredTargetPoint = configuredTargetPoint?.isValid === true;
+        this._acceptedSpecialOperationMapKey = mapKey;
+        this._specialOperationStartTime = this._elapsedGameTime;
+        this._specialOperationState = "进行中";
+        this._specialOperationTaskType = config.TaskType;
+        this._specialOperationPlayerIndex = playerIndex === 1 ? 1 : 0;
+        this._specialOperationObjectiveCompleted = false;
+        const setupVersion = ++this._specialOperationSetupVersion;
+        this.CancelEvacuation();
+        this.HideSpecialOperationPoint(sourceTaskPoint, playerIndex);
+        this.PlayTaskStateAnimation("kaishi", "kaishi");
+        this.SetSpecialOperationCountdownVisible(true);
+        this.RefreshSpecialOperationCountdown();
+        if (config.TaskType === "高价值目标") {
+            void this.SpawnSpecialOperationTarget(
+                configuredTargetPrefab,
+                targetWorldPosition,
+                hasConfiguredTargetPoint,
+                setupVersion,
+            );
+        } else if (config.TaskType === "坚守轰炸区") {
+            const playerPosition = this.GetPlayer(this._specialOperationPlayerIndex)
+                ?.node?.worldPosition?.clone() ?? taskWorldPosition;
+            void this.StartHoldBombPlot(config, playerPosition, setupVersion);
+        } else if (config.TaskType === "破壁行动") {
+            this.StartBreakWallOperation();
+        }
+        return true;
+    }
+
+    IsSpecialOperationAccepted(mapKey: string = ZRSJZ_GameData.Instance.CurMap): boolean {
+        return this._specialOperationState === "进行中"
+            && this._acceptedSpecialOperationMapKey === mapKey;
+    }
+
+    IsSpecialOperationInProgress(): boolean {
+        return this._specialOperationState === "进行中";
+    }
+
+    public IsBreakWallOperationInProgress(): boolean {
+        return this._specialOperationState === "进行中"
+            && this._specialOperationTaskType === "破壁行动";
+    }
+
+    public NotifyBreakWallBoxOpened(mailbox: ZRSJZ_Mailbox): void {
+        if (!this.IsBreakWallOperationInProgress() || !this._breakWallMailboxes.includes(mailbox)) {
+            return;
+        }
+        const openedCount = this._breakWallMailboxes.reduce(
+            (sum, item) => sum + item.OpenedBoxCount,
+            0,
+        );
+        if (openedCount >= this._breakWallTotalBoxCount && this._breakWallTotalBoxCount > 0) {
+            this._specialOperationObjectiveCompleted = true;
+        }
+    }
+
+    GetSpecialOperationState(): "未领取" | "进行中" | "已完成" | "已失败" {
+        return this._specialOperationState;
+    }
+
+    /** 领取后按局内有效时间计时；完成时发放钞票，并逐项独立判定概率物资。 */
+    private UpdateSpecialOperation(): void {
+        if (this._specialOperationState !== "进行中") return;
+        const config = GetSpecialOperationConfig(
+            this._acceptedSpecialOperationMapKey,
+            this._specialOperationTaskType,
+        );
+        if (!config) {
+            this._specialOperationState = "已失败";
+            this.SetSpecialOperationCountdownVisible(false);
+            return;
+        }
+
+        if (config.TaskType === "坚守轰炸区" && this._specialOperationBombRadius > 0) {
+            const player = this.GetPlayer(this._specialOperationPlayerIndex)?.node;
+            if (player?.isValid) {
+                const dx = player.worldPosition.x - this._specialOperationBombCenter.x;
+                const dy = player.worldPosition.y - this._specialOperationBombCenter.y;
+                if (dx * dx + dy * dy > this._specialOperationBombRadius * this._specialOperationBombRadius) {
+                    this.FailSpecialOperation("已离开轰炸区，特别行动失败");
+                    return;
+                }
+            }
+        }
+
+        if (this._specialOperationObjectiveCompleted) {
+            this.CompleteSpecialOperation(config);
+            return;
+        }
+
+        if (this._elapsedGameTime - this._specialOperationStartTime >= config.TimeLimitSeconds) {
+            if (config.TaskType === "坚守轰炸区" && this._specialOperationBombRadius > 0) {
+                this.CompleteSpecialOperation(config);
+                return;
+            }
+            this.FailSpecialOperation("特别行动已超时");
+            return;
+        }
+        this.RefreshSpecialOperationCountdown();
+    }
+
+    private CompleteSpecialOperation(config: Readonly<ZRSJZ_SpecialOperationConfig>): void {
+        this._specialOperationState = "已完成";
+        this._specialOperationTargetEnemy = null;
+        this.SetSpecialOperationCountdownVisible(false);
+        if (config.TaskType === "坚守轰炸区" && this._specialOperationBombPlot?.node?.isValid) {
+            const bombPlot = this._specialOperationBombPlot;
+            if (this._activeBombPlot === bombPlot) this._activeBombPlot = null;
+            this._specialOperationBombPlot = null;
+            bombPlot.Cancel();
+            this.ScheduleNextBombPlot(false);
+        }
+        this._specialOperationBombRadius = 0;
+        const earnedAwards: ZRSJZ_MainTaskAwardConfig[] = [{
+            TaskAwardName: "钞票",
+            TaskAwardCount: config.GoldReward,
+        }];
+        for (const award of config.PropAwards) {
+            if (Math.random() >= award.Probability) continue;
+            earnedAwards.push({
+                TaskAwardName: award.PropName,
+                TaskAwardCount: award.Count,
+            });
+        }
+        ZRSJZ_UIManager.Instance.ShowPanel(
+            ZRSJZ_PANEL.获取奖励弹窗,
+            ...earnedAwards,
+        );
+    }
+
+    /** 破壁行动开始时重置9个邮箱箱位，并自动开启地图中的保险门。 */
+    private StartBreakWallOperation(): void {
+        this._breakWallMailboxes.splice(
+            0,
+            this._breakWallMailboxes.length,
+            ...(this.CurMap?.node?.getComponentsInChildren(ZRSJZ_Mailbox) ?? [])
+                .filter(mailbox => mailbox?.node?.isValid),
+        );
+        this._breakWallTotalBoxCount = this._breakWallMailboxes.reduce(
+            (sum, mailbox) => sum + mailbox.TotalBoxCount,
+            0,
+        );
+        if (this._breakWallTotalBoxCount <= 0) {
+            this.FailSpecialOperationSetup("地图中未配置破壁行动邮箱");
+            return;
+        }
+        for (const mailbox of this._breakWallMailboxes) mailbox.ResetForBreakWallTask();
+
+        const insuranceDoors = (this.CurMap?.node?.getComponentsInChildren(ZRSJZ_Door) ?? [])
+            .filter(door => door?.node?.isValid && door.Skin === "保险门");
+        for (const door of insuranceDoors) door.Open();
+        if (insuranceDoors.length === 0) {
+            console.warn("[ZRSJZ_Game] 破壁行动未找到 Skin=保险门 的门节点");
+        }
+        void ZRSJZ_UIManager.Instance.ShowTip(
+            `保险门已开启，请在限时内打开全部${this._breakWallTotalBoxCount}个邮箱箱位`,
+        );
+    }
+
+    /** 高价值目标优先使用任务点配置的敌人和地点，未配置时沿用地图默认规则。 */
+    private async SpawnSpecialOperationTarget(
+        configuredPrefab: Prefab,
+        taskWorldPosition: Readonly<Vec3>,
+        useExactPosition: boolean,
+        setupVersion: number,
+    ): Promise<void> {
+        const mapName = ZRSJZ_MAP_CONFIG.get(this._acceptedSpecialOperationMapKey)?.MapName;
+        const targetName = mapName === "城镇" ? "Boss1" : mapName === "沙漠" ? "Boss2" : "Boss3";
+        let prefab: Prefab = configuredPrefab;
+        if (!prefab) {
+            try {
+                prefab = await ZRSJZ_Tools.LoadPrefab(`Prefabs/Unit/Enemy/${targetName}`);
+            } catch (error) {
+                console.error(`[ZRSJZ_Game] 加载高价值目标失败: ${targetName}`, error);
+            }
+        }
+        if (setupVersion !== this._specialOperationSetupVersion
+            || this._specialOperationState !== "进行中"
+            || this._specialOperationTaskType !== "高价值目标") {
+            return;
+        }
+        if (!prefab || !this.CurMap?.Unit?.isValid) {
+            this.FailSpecialOperationSetup("高价值目标生成失败");
+            return;
+        }
+
+        const target = instantiate(prefab);
+        target.active = false;
+        target.parent = this.CurMap.Unit;
+        const mapBounds = this.CurMap.Map?.getComponent(UITransform)?.getBoundingBoxToWorld();
+        const spawnAngle = Math.random() * Math.PI * 2;
+        const desiredX = useExactPosition
+            ? taskWorldPosition.x
+            : taskWorldPosition.x + Math.cos(spawnAngle) * 600;
+        const desiredY = useExactPosition
+            ? taskWorldPosition.y
+            : taskWorldPosition.y + Math.sin(spawnAngle) * 600;
+        const spawnX = mapBounds
+            ? Math.max(mapBounds.xMin + 100, Math.min(mapBounds.xMax - 100, desiredX))
+            : desiredX;
+        const spawnY = mapBounds
+            ? Math.max(mapBounds.yMin + 100, Math.min(mapBounds.yMax - 100, desiredY))
+            : desiredY;
+        target.setWorldPosition(
+            spawnX,
+            spawnY,
+            taskWorldPosition.z,
+        );
+        this._specialOperationTargetEnemy = target;
+        target.active = true;
+        void ZRSJZ_UIManager.Instance.ShowTip("高价值目标已出现");
+    }
+
+    /** 删除旧轰炸区后，以接取瞬间的玩家坐标为圆心生成任务轰炸区。 */
+    private async StartHoldBombPlot(
+        config: Readonly<ZRSJZ_SpecialOperationConfig>,
+        playerWorldPosition: Readonly<Vec3>,
+        setupVersion: number,
+    ): Promise<void> {
+        this.RemoveActiveBombPlot();
+        this._bombPlotSpawnLoading = true;
+        const bombPlotNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/BombPlot");
+        this._bombPlotSpawnLoading = false;
+        if (setupVersion !== this._specialOperationSetupVersion
+            || this._specialOperationState !== "进行中"
+            || this._specialOperationTaskType !== "坚守轰炸区") {
+            if (bombPlotNode) ZRSJZ_PoolManager.Instance.PutNode(bombPlotNode);
+            return;
+        }
+        if (!bombPlotNode || !this.CurMap?.Map?.isValid || !this.CurMap?.Unit?.isValid) {
+            this.FailSpecialOperationSetup("任务轰炸区生成失败");
+            return;
+        }
+        const bombPlot = bombPlotNode.getComponent(ZRSJZ_BombPlot);
+        if (!bombPlot) {
+            ZRSJZ_PoolManager.Instance.PutNode(bombPlotNode);
+            this.FailSpecialOperationSetup("任务轰炸区缺少脚本");
+            return;
+        }
+
+        bombPlotNode.active = false;
+        bombPlotNode.parent = this.CurMap.Unit;
+        this._activeBombPlot = bombPlot;
+        this._specialOperationBombPlot = bombPlot;
+        this._specialOperationBombCenter.set(playerWorldPosition);
+        this._specialOperationBombRadius = Math.max(1, bombPlot.Radius);
+        const deployed = bombPlot.DeployAtWorldPosition(
+            playerWorldPosition,
+            this.CurMap.Map,
+            this.CurMap.Unit,
+            config.TimeLimitSeconds,
+            () => {
+                if (this._activeBombPlot === bombPlot) this._activeBombPlot = null;
+                if (this._specialOperationBombPlot === bombPlot) this._specialOperationBombPlot = null;
+                this.ScheduleNextBombPlot(false);
+            },
+        );
+        if (!deployed) {
+            this._activeBombPlot = null;
+            this._specialOperationBombPlot = null;
+            ZRSJZ_PoolManager.Instance.PutNode(bombPlotNode);
+            this.FailSpecialOperationSetup("任务轰炸区生成失败");
+        }
+    }
+
+    private RemoveActiveBombPlot(): void {
+        const bombPlot = this._activeBombPlot;
+        this._activeBombPlot = null;
+        if (this._specialOperationBombPlot === bombPlot) this._specialOperationBombPlot = null;
+        if (bombPlot?.node?.isValid) bombPlot.Cancel();
+    }
+
+    private CleanupFailedSpecialOperationObjective(): void {
+        if (this._specialOperationTargetEnemy?.isValid) {
+            this._specialOperationTargetEnemy.destroy();
+        }
+        this._specialOperationTargetEnemy = null;
+        if (this._specialOperationBombPlot?.node?.isValid) {
+            const bombPlot = this._specialOperationBombPlot;
+            if (this._activeBombPlot === bombPlot) this._activeBombPlot = null;
+            this._specialOperationBombPlot = null;
+            bombPlot.Cancel();
+            this.ScheduleNextBombPlot(false);
+        }
+        if (this._specialOperationTaskType === "破壁行动") {
+            for (const mailbox of this._breakWallMailboxes) mailbox.CancelBreakWallTask();
+        }
+        this._specialOperationBombRadius = 0;
+    }
+
+    private FailSpecialOperationSetup(tip: string): void {
+        this.FailSpecialOperation(tip);
+    }
+
+    private FailSpecialOperation(tip: string): void {
+        if (this._specialOperationState !== "进行中") return;
+        this._specialOperationState = "已失败";
+        ++this._specialOperationSetupVersion;
+        this.SetSpecialOperationCountdownVisible(false);
+        this.CleanupFailedSpecialOperationObjective();
+        this.PlayTaskStateAnimation("shibai", "shibai");
+        void ZRSJZ_UIManager.Instance.ShowTip(tip);
+    }
+
+    private RefreshSpecialOperationCountdown(): void {
+        if (!this._taskCountdownLabel || this._specialOperationState !== "进行中") return;
+        const config = GetSpecialOperationConfig(
+            this._acceptedSpecialOperationMapKey,
+            this._specialOperationTaskType,
+        );
+        if (!config) return;
+        const remainingSeconds = Math.max(
+            0,
+            Math.ceil(config.TimeLimitSeconds - (this._elapsedGameTime - this._specialOperationStartTime)),
+        );
+        this._taskCountdownLabel.string = this.FormatTime(remainingSeconds);
+    }
+
+    private SetSpecialOperationCountdownVisible(visible: boolean): void {
+        if (this._taskCountdownNode?.isValid) this._taskCountdownNode.active = visible;
+    }
+
+    private PlayTaskStateAnimation(skinName: string, animationName: string): void {
+        const taskState = this._taskStateNode;
+        const skeleton = this._taskStateSkeleton;
+        if (!taskState?.isValid || !skeleton) {
+            console.warn("[ZRSJZ_Game] Game场景缺少 TaskState Spine");
+            return;
+        }
+        const animationVersion = ++this._taskStateAnimationVersion;
+        taskState.active = true;
+        skeleton.setCompleteListener(null);
+        skeleton.setSkin(skinName);
+        skeleton.setSlotsToSetupPose();
+        skeleton.setAnimation(0, animationName, false);
+        skeleton.setCompleteListener(() => {
+            if (animationVersion !== this._taskStateAnimationVersion) return;
+            skeleton.setCompleteListener(null);
+            if (taskState?.isValid) taskState.active = false;
+        });
+    }
+
+    /** 接取后只关闭本次选中的场景接取点及其一一对应的地图图标。 */
+    private HideSpecialOperationPoint(
+        taskPoint: ZRSJZ_SpecialOperationsTaskIcon,
+        playerIndex: number,
+    ): void {
+        taskPoint?.Deactivate();
+        const marker = this._miniMapTaskMarkers.find(item => item.TaskPoint === taskPoint);
+        if (marker?.Node?.isValid) marker.Node.active = false;
+        ZRSJZ_EventManager.Emit(
+            ZRSJZ_MyEvent.ZRSJZ_PLAYER_SPECIAL_OPERATION,
+            null,
+            playerIndex === 1 ? 1 : 0,
+        );
     }
 
     //#region 战利品ID（背包跟保险箱）
