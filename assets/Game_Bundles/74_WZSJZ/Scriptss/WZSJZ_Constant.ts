@@ -114,6 +114,13 @@ export interface WZSJZ_EnemyConfig {
     SpawnPositionMode?: "random" | "center";
 }
 
+/** 所有Boss共用的韧性配置；专属攻击配置仍放在各Boss自己的常量中。 */
+export interface WZSJZ_BossConfig {
+    MaxTenacity: number;
+    TenacityDamageScale: number;
+    TenacityRecoveryDelay: number;
+}
+
 export class WZSJZ_Constant {
     public static readonly Panel = {
         LoadingPanel: "Panel/LoadingPanel",
@@ -503,6 +510,7 @@ export class WZSJZ_Constant {
         CellMoveEffectPrewarm: 1,
         CellUpgradeEffectPrewarm: 1,
         BossLaoSaiArrowPrewarm: 1,
+        BossDianYuZhangSlashPrewarm: 1,
         BlockBridgeDogBulletPrewarm: 1,
         BlockBridgeDogUltimatePrewarm: 1,
         SonicTrapPrewarm: 1,
@@ -531,6 +539,7 @@ export class WZSJZ_Constant {
         "哈夫克士兵": "Prefabs/单位/哈夫克士兵",
         "阿萨拉士兵": "Prefabs/单位/阿萨拉士兵",
         "牢赛": "Prefabs/单位/牢赛",
+        "典狱长": "Prefabs/单位/典狱长",
     };
 
     public static readonly EnemyConfigs: Record<string, WZSJZ_EnemyConfig> = {
@@ -577,13 +586,34 @@ export class WZSJZ_Constant {
             DeathDuration: 1.5,
             SpawnPositionMode: "center",
         },
+        "典狱长": {
+            MaxHealth: 1800,
+            MoveSpeed: 58,
+            AttackRange: 20,
+            AttackPositionOffset: 0,
+            AttackInterval: 2.8,
+            AttackDamage: 45,
+            MoveAnimation: "zoulu",
+            AttackAnimation: "gongji",
+            HitAnimation: "shouji",
+            HitDuration: 0.45,
+            DeathAnimation: "siwang",
+            DeathDuration: 1.6,
+            SpawnPositionMode: "center",
+        },
+    };
+
+    /** 所有Boss共用的状态条和破韧表现。 */
+    public static readonly BossCommon = {
+        HealthBarPrefabPath: "Prefabs/UI/血条",
+        TenacityBarPrefabPath: "Prefabs/UI/韧性条",
+        StatusBarTweenDuration: 0.3,
+        TenacityBreakStunDuration: 3,
     };
 
     /** 牢赛专属战斗数值；动画内的具体发箭时间在其专属脚本顶部调整。 */
     public static readonly BossLaoSai = {
         ArrowPrefabPath: "Prefabs/投掷物/Boss_牢赛_弓箭",
-        HealthBarPrefabPath: "Prefabs/UI/血条",
-        TenacityBarPrefabPath: "Prefabs/UI/韧性条",
         ArrowSpeed: 1050,
         ArrowHitDistance: 25,
         ArrowHitEffectDuration: 0.3,
@@ -596,6 +626,31 @@ export class WZSJZ_Constant {
         TenacityDamageScale: 1,
         /** 韧性清空并触发受击后，经过多少秒直接回满。 */
         TenacityRecoveryDelay: 5,
+    };
+
+    /** 典狱长：近战普通攻击，间隔释放一枚从右向左飞行的刀光。 */
+    public static readonly BossDianYuZhang = {
+        SkillEffectPrefabPath: "Prefabs/特效/典狱长技能特效",
+        MaxTenacity: 450,
+        TenacityDamageScale: 1,
+        TenacityRecoveryDelay: 6,
+        SkillMinInterval: 8,
+        SkillMaxInterval: 13,
+        SkillAnimation: "jineng",
+        IdleAnimation: "daiji",
+        /** 普通攻击动画开始后结算城墙伤害的时间。 */
+        NormalDamageDelay: 0.45,
+        NormalAnimationDuration: 1.05,
+        /** 技能动画开始后生成刀光的时间。 */
+        SkillSpawnDelay: 0.55,
+        SkillAnimationDuration: 1.25,
+        SkillDamage: 120,
+        SkillEffectSpeed: 720,
+        SkillEffectMaxDistance: 1100,
+        SkillEffectHitDistance: 35,
+        SkillEffectAnimation: "animation",
+        SkillLaunchOffsetX: -40,
+        SkillLaunchOffsetY: 65,
     };
 
     public static readonly GunBullet = {
