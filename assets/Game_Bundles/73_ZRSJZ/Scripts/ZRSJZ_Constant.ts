@@ -1151,6 +1151,23 @@ export interface ZRSJZ_MapBossConfig {
     Box: ZRSJZ_BoxConfig;
 }
 
+/** 地图空投配置。SpawnTimeSeconds <= 0 表示该关卡不生成空投。 */
+export interface ZRSJZ_ParacargoConfig {
+    SpawnTimeSeconds: number;
+    DropHeight: number;
+    DropDuration: number;
+    MinPropCount: number;
+    MaxPropCount: number;
+    GuaranteedEquipmentCount: number;
+    /** 0~5 对应白、绿、蓝、紫、金、红，空投装备不会低于该品质。 */
+    MinEquipmentQualityIndex: number;
+    /** 非保底栏位生成金/红物资的概率，其余栏位优先生成装备。 */
+    PropSlotChance: number;
+    /** 金色与红色物资的相对权重。 */
+    GoldPropWeight: number;
+    RedPropWeight: number;
+}
+
 export interface ZRSJZ_MapConfig {
     /** 选关界面显示的区域名称。 */
     DisplayName: string;
@@ -1172,6 +1189,8 @@ export interface ZRSJZ_MapConfig {
     ExclusiveRedProps: readonly string[]
     /** 所有关卡都能开出的通用红色物资，不在选关界面的专属掉落中展示。 */
     UniversalRedProps: readonly string[]
+    /** 本关卡的定时空投设置。 */
+    Paracargo: Readonly<ZRSJZ_ParacargoConfig>
     MapProp: string[][]
 }
 
@@ -1198,6 +1217,8 @@ const ZRSJZ_MAP_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.35, 1.65, 2.0
 const ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.3, 1.55, 1.85, 2.2];
 const ZRSJZ_MAP_SPEED_MULTIPLIERS: readonly number[] = [0.95, 1, 1.05, 1.1, 1.15, 1.2];
 const ZRSJZ_MAP_ATTACK_INTERVAL_MULTIPLIERS: readonly number[] = [1.05, 1, 0.95, 0.9, 0.85, 0.8];
+/** 六个模式进入战斗后触发空投的时间（秒），高难度更早提供争夺目标。 */
+export const ZRSJZ_PARACARGO_SPAWN_TIMES: readonly number[] = [10, 150, 135, 120, 105, 90];
 const ZRSJZ_MAP_PROP_TYPES: readonly string[] = ["物品", "房卡", "弹药", "头盔", "防弹衣"];//地图中允许掉落的类型
 /** 宝箱不掉落背包，其他装备最高只允许紫色（四级）；普通物资与弹药不受此限制。 */
 const ZRSJZ_MAP_BOX_EQUIPMENT_TYPES: readonly string[] = ["枪", "刀", "头盔", "防弹衣", "背包"];
@@ -1301,6 +1322,20 @@ function CreateMapModeConfig(
     const otherRedProps = ZRSJZ_MAP_PROP_POOL[5].filter(propName =>
         ZRSJZ_PROP_CONFIG.get(propName)?.PropType !== "物品"
     );
+    const paracargoConfig: ZRSJZ_ParacargoConfig = {
+        SpawnTimeSeconds: mapKey === "新手村" ? 0 : ZRSJZ_PARACARGO_SPAWN_TIMES[modeIndex],
+        DropHeight: 1800,
+        DropDuration: Math.max(3, 5 - modeIndex * 0.25),
+        MinPropCount: 5 + Math.floor(modeIndex / 2),
+        MaxPropCount: 7 + Math.floor(modeIndex / 2),
+        GuaranteedEquipmentCount: 2 + Math.floor(modeIndex / 3),
+        // 与普通箱子一致，装备最高只到第四级（紫色）；低难度空投最低蓝色，高难度最低紫色。
+        MinEquipmentQualityIndex: Math.min(3, 2 + Math.floor(modeIndex / 3)),
+        // 空投仍保底一件高价值物资，其余栏位只以较低概率继续生成物资。
+        PropSlotChance: Math.min(0.4, 0.25 + modeIndex * 0.03),
+        GoldPropWeight: 90 - modeIndex * 3,
+        RedPropWeight: 10 + modeIndex * 3,
+    };
 
     return {
         DisplayName: displayName,
@@ -1421,6 +1456,7 @@ function CreateMapModeConfig(
         ]),
         ExclusiveRedProps: exclusiveRedProps,
         UniversalRedProps: universalRedProps,
+        Paracargo: paracargoConfig,
         MapProp: ZRSJZ_MAP_PROP_POOL.map((props, qualityIndex) =>
             qualityIndex === 5
                 ? [...universalRedProps, ...exclusiveRedProps, ...otherRedProps]

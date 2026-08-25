@@ -93,7 +93,7 @@ export class ZRSJZ_Bullet extends Component {
         } else if (otherCollider.group === ZRSJZ_TIER.玩家 && otherCollider.node.getComponent(ZRSJZ_Player)) {
             this._isRemove = true;
             otherCollider.node.getComponent(ZRSJZ_Player).BeHit(this._harm);
-            this.CreateEffect();
+            this.CreateEffect2();
             this.scheduleOnce(() => {
                 this.Recycle();
             });
@@ -101,7 +101,7 @@ export class ZRSJZ_Bullet extends Component {
         } else if (otherCollider.group === ZRSJZ_TIER.敌人 && otherCollider.node.getComponent(ZRSJZ_EnemyBase)) {
             this._isRemove = true;
             otherCollider.node.getComponent(ZRSJZ_EnemyBase).BeHit(this._harm);
-            this.CreateEffect();
+            this.CreateEffect2();
             this.scheduleOnce(() => {
                 this.Recycle();
             });
@@ -142,6 +142,12 @@ export class ZRSJZ_Bullet extends Component {
 
     async CreateEffect() {
         const hitEffect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HitEffect");
+        hitEffect.parent = this.node.parent;
+        hitEffect.getComponent(ZRSJZ_Effect).Show(this.node.worldPosition, this._dirX, this._dirY);
+    }
+
+    async CreateEffect2() {
+        const hitEffect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/绿色血雾");
         hitEffect.parent = this.node.parent;
         hitEffect.getComponent(ZRSJZ_Effect).Show(this.node.worldPosition, this._dirX, this._dirY);
     }

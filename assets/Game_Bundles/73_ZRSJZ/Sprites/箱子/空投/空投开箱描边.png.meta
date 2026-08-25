@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "0b382418-6500-47ec-b630-a8fa450f3e42",
+  "uuid": "0c8fc105-445a-4748-8447-0f217bd09fdd",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "0b382418-6500-47ec-b630-a8fa450f3e42@6c48a",
-      "displayName": "降落",
+      "uuid": "0c8fc105-445a-4748-8447-0f217bd09fdd@6c48a",
+      "displayName": "空投开箱描边",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "0b382418-6500-47ec-b630-a8fa450f3e42",
+        "imageUuidOrDatabaseUri": "0c8fc105-445a-4748-8447-0f217bd09fdd",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,18 +34,18 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "0b382418-6500-47ec-b630-a8fa450f3e42@f9941",
-      "displayName": "降落",
+      "uuid": "0c8fc105-445a-4748-8447-0f217bd09fdd@f9941",
+      "displayName": "空投开箱描边",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": -15.5,
+        "offsetX": 0,
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 368,
+        "width": 399,
         "height": 598,
         "rawWidth": 399,
         "rawHeight": 598,
@@ -60,16 +60,16 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -184,
+            -199.5,
             -299,
             0,
-            184,
+            199.5,
             -299,
             0,
-            -184,
+            -199.5,
             299,
             0,
-            184,
+            199.5,
             299,
             0
           ],
@@ -84,38 +84,38 @@
           "uv": [
             0,
             598,
-            368,
+            399,
             598,
             0,
             0,
-            368,
+            399,
             0
           ],
           "nuv": [
             0,
             0,
-            0.9223057644110275,
+            1,
             0,
             0,
             1,
-            0.9223057644110275,
+            1,
             1
           ],
           "minPos": [
-            -184,
+            -199.5,
             -299,
             0
           ],
           "maxPos": [
-            184,
+            199.5,
             299,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "0b382418-6500-47ec-b630-a8fa450f3e42@6c48a",
+        "imageUuidOrDatabaseUri": "0c8fc105-445a-4748-8447-0f217bd09fdd@6c48a",
         "atlasUuid": "",
-        "trimType": "auto"
+        "trimType": "none"
       },
       "ver": "1.0.12",
       "imported": true,
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "0b382418-6500-47ec-b630-a8fa450f3e42@6c48a"
+    "redirect": "0c8fc105-445a-4748-8447-0f217bd09fdd@6c48a"
   }
 }

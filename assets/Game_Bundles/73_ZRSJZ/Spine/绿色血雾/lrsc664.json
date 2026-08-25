@@ -1,0 +1,50 @@
+{
+"skeleton": { "hash": "3mtkx1NCpBMDPl/dka/ZaS2VloE", "spine": "3.8.75", "images": "./images/", "audio": "" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "bone", "parent": "root", "length": 107.56, "rotation": 90 }
+],
+"slots": [
+	{ "name": "Blood_00027", "bone": "bone" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"Blood_00027": {
+				"Blood_00027": { "rotation": -90, "width": 125, "height": 125 },
+				"Blood_00028": { "rotation": -90, "width": 125, "height": 125 },
+				"Blood_00029": { "rotation": -90, "width": 125, "height": 125 },
+				"Blood_00030": { "rotation": -90, "width": 125, "height": 125 },
+				"Blood_00031": { "rotation": -90, "width": 125, "height": 125 }
+			}
+		}
+	}
+],
+"animations": {
+	"action": {
+		"slots": {
+			"Blood_00027": {
+				"attachment": [
+					{ "name": "Blood_00027" },
+					{ "time": 0.0667, "name": "Blood_00028" },
+					{ "time": 0.1333, "name": "Blood_00029" },
+					{ "time": 0.2, "name": "Blood_00030" },
+					{ "time": 0.2667, "name": "Blood_00031" },
+					{ "time": 0.3333, "name": null }
+				]
+			}
+		},
+		"bones": {
+			"bone": {
+				"translate": [
+					{ "x": 55, "y": 26 }
+				],
+				"scale": [
+					{ "x": 1.65, "y": 1.65 }
+				]
+			}
+		}
+	}
+}
+}

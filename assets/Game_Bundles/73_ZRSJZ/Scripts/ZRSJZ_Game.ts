@@ -13,6 +13,7 @@ import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_InventoryService } from './Service/ZRSJZ_InventoryService';
 import { ZRSJZ_TaskService } from './Service/ZRSJZ_TaskService';
+import { ZRSJZ_ParacargoBox } from './Unit/ZRSJZ_ParacargoBox';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Game')
@@ -93,6 +94,11 @@ export class ZRSJZ_Game extends Component {
     private _timeLimitSeconds: number = 0;
     private _killCount: number = 0;
     private _battleStarted: boolean = false;
+    /** 每局只请求一次空投，异步加载期间也用于阻止重复生成。 */
+    private _paracargoSpawnRequested: boolean = false;
+    /** 空投实际生成后记录其落点，供地图弹窗显示空投标记。 */
+    private _hasParacargoTarget: boolean = false;
+    private readonly _paracargoTargetWorldPosition: Vec3 = new Vec3();
     private readonly _evacuationDuration: number = 10;
     private _evacuationElapsed: number = 0;
     private _isEvacuating: boolean = false;
@@ -118,6 +124,9 @@ export class ZRSJZ_Game extends Component {
         this._elapsedGameTime = 0;
         this._killCount = 0;
         this._battleStarted = false;
+        this._paracargoSpawnRequested = false;
+        this._hasParacargoTarget = false;
+        this._paracargoTargetWorldPosition.set(0, 0, 0);
         this._evacuationElapsed = 0;
         this._isEvacuating = false;
         this._playerEvacuationPoints.clear();
@@ -299,6 +308,7 @@ export class ZRSJZ_Game extends Component {
                 : Number.POSITIVE_INFINITY;
             this._elapsedGameTime += deltaTime;
             this.RefreshGameTime();
+            void this.TrySpawnParacargo();
 
             if (this._isEvacuating) {
                 this._evacuationElapsed += deltaTime;
@@ -323,6 +333,53 @@ export class ZRSJZ_Game extends Component {
                 this.CompleteEvacuation();
             }
         }
+    }
+
+    /** 到达地图配置时间后，在 ParacargoPoints 的随机子节点上方生成一架空投。 */
+    private async TrySpawnParacargo(): Promise<void> {
+        if (this._paracargoSpawnRequested || this._isGameFinished || !this.CurMap?.node) return;
+        const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
+        const config = mapConfig?.Paracargo;
+        if (!mapConfig || !config || config.SpawnTimeSeconds <= 0) return;
+        if (this._elapsedGameTime < config.SpawnTimeSeconds) return;
+
+        this._paracargoSpawnRequested = true;
+        const pointRoot = this.CurMap.node.getChildByName("ParacargoPoints");
+        const points = pointRoot?.children.filter(point => point?.isValid) ?? [];
+        if (points.length === 0) {
+            console.warn(`[ZRSJZ_Game] 地图 ${mapConfig.MapName} 的 ParacargoPoints 没有可用落点`);
+            return;
+        }
+
+        const point = points[math.randomRangeInt(0, points.length)];
+        const targetWorldPosition = point.worldPosition.clone();
+        const paracargoNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/箱子/空投");
+        if (!paracargoNode) {
+            console.error("[ZRSJZ_Game] 加载空投预制体失败");
+            return;
+        }
+        if (this._isGameFinished || !this.CurMap?.Unit?.isValid) {
+            ZRSJZ_PoolManager.Instance.PutNode(paracargoNode);
+            return;
+        }
+
+        const paracargoBox = paracargoNode.getComponent(ZRSJZ_ParacargoBox);
+        if (!paracargoBox) {
+            console.error("[ZRSJZ_Game] 空投预制体缺少 ZRSJZ_ParacargoBox 组件");
+            ZRSJZ_PoolManager.Instance.PutNode(paracargoNode);
+            return;
+        }
+
+        paracargoNode.active = false;
+        paracargoNode.parent = this.CurMap.Unit;
+        this._paracargoTargetWorldPosition.set(targetWorldPosition);
+        this._hasParacargoTarget = true;
+        paracargoBox.Deploy(targetWorldPosition, config, mapConfig);
+    }
+
+    /** 空投尚未实际生成时返回 null；生成后返回空投的最终落点世界坐标。 */
+    public GetParacargoTargetWorldPosition(): Readonly<Vec3> | null {
+        return this._hasParacargoTarget ? this._paracargoTargetWorldPosition : null;
     }
 
     /** 玩家进入撤离点；所有存活玩家都在同一撤离点时才开始计时。 */

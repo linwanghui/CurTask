@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "BombEffect",
+    "_name": "绿色血雾",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,34 +13,31 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "BombEffect",
+    "_name": "绿色血雾",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
     "_children": [
       {
         "__id__": 2
-      },
-      {
-        "__id__": 8
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 14
+        "__id__": 8
       },
       {
-        "__id__": 16
+        "__id__": 10
       }
     ],
     "_prefab": {
-      "__id__": 18
+      "__id__": 12
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -1160.231,
-      "y": -538.759,
+      "x": -91.53,
+      "y": -435.696,
       "z": 0
     },
     "_lrot": {
@@ -52,8 +49,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 3,
-      "y": 3,
+      "x": 1,
+      "y": 1,
       "z": 1
     },
     "_mobility": 0,
@@ -167,11 +164,11 @@
       "a": 255
     },
     "_skeletonData": {
-      "__uuid__": "7f940fdb-98b8-462c-86a2-8d2830e85dc0",
+      "__uuid__": "9b30c36a-60c5-420d-b7de-ec89b0086431",
       "__expectedType__": "sp.SkeletonData"
     },
     "defaultSkin": "default",
-    "defaultAnimation": "skill1",
+    "defaultAnimation": "action",
     "_premultipliedAlpha": true,
     "_timeScale": 1,
     "_preCacheMode": 0,
@@ -203,142 +200,6 @@
     "nestedPrefabInstanceRoots": null
   },
   {
-    "__type__": "cc.Node",
-    "_name": "Bomb",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "_parent": {
-      "__id__": 1
-    },
-    "_children": [],
-    "_active": false,
-    "_components": [
-      {
-        "__id__": 9
-      },
-      {
-        "__id__": 11
-      }
-    ],
-    "_prefab": {
-      "__id__": 13
-    },
-    "_lpos": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_lrot": {
-      "__type__": "cc.Quat",
-      "x": 0,
-      "y": 0,
-      "z": 0,
-      "w": 1
-    },
-    "_lscale": {
-      "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
-      "z": 1
-    },
-    "_mobility": 0,
-    "_layer": 4,
-    "_euler": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 8
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 10
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 90.87000274658203,
-      "height": 137.64999389648438
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.8266754756910974,
-      "y": 0.8794043473971376
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "63qbU6TkRKvJWGfJvwnFq0"
-  },
-  {
-    "__type__": "sp.Skeleton",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 8
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 12
-    },
-    "_customMaterial": null,
-    "_srcBlendFactor": 2,
-    "_dstBlendFactor": 4,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_skeletonData": {
-      "__uuid__": "1f33abbb-9193-47f1-ae5a-46ef94639da2",
-      "__expectedType__": "sp.SkeletonData"
-    },
-    "defaultSkin": "1",
-    "defaultAnimation": "eff",
-    "_premultipliedAlpha": true,
-    "_timeScale": 1,
-    "_preCacheMode": 0,
-    "_cacheMode": 0,
-    "_sockets": [],
-    "_useTint": false,
-    "_debugMesh": false,
-    "_debugBones": false,
-    "_debugSlots": false,
-    "_enableBatch": false,
-    "loop": true,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "18guB3LUlG3KFKwUWutadz"
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "abL+z9m+FN+pZ0LWlmknqq",
-    "instance": null,
-    "targetOverrides": null,
-    "nestedPrefabInstanceRoots": null
-  },
-  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
@@ -348,7 +209,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 15
+      "__id__": 9
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -367,7 +228,7 @@
     "fileId": "58UrosyelMIqqX6KHuV8AG"
   },
   {
-    "__type__": "05ea2pmyLRGC6bXaRUHWhEJ",
+    "__type__": "b85e98ZIktH+LXedxnXe43h",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -376,15 +237,14 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 17
+      "__id__": 11
     },
-    "AniName": "skill1",
-    "NextAniName": "eff",
+    "AniName": "action",
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "89tST16PFJVpdCvltS2Iza"
+    "fileId": "b1I0VHMTpNh4GAP/advu4O"
   },
   {
     "__type__": "cc.PrefabInfo",

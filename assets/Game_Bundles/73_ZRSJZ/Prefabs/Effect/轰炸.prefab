@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "BombEffect",
+    "_name": "轰炸",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "BombEffect",
+    "_name": "轰炸",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -198,8 +198,6 @@
       "__id__": 0
     },
     "fileId": "0cOuR4c6hOGaxcvfSP6yBq",
-    "instance": null,
-    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -306,7 +304,7 @@
       "__uuid__": "1f33abbb-9193-47f1-ae5a-46ef94639da2",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "1",
+    "defaultSkin": "2",
     "defaultAnimation": "eff",
     "_premultipliedAlpha": true,
     "_timeScale": 1,

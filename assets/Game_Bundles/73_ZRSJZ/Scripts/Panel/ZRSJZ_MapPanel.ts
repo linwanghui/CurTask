@@ -15,6 +15,7 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
     CurPoint: Node = null;
     Player2Icon: Sprite = null;
     Player2Point: Node = null;
+    ParacargoPoint: Node = null;
     private _pointWorldPosition: Vec3 = new Vec3();
     private _pointParentPosition: Vec3 = new Vec3();
     private _playerMapPosition: Vec3 = new Vec3();
@@ -25,6 +26,8 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         this.CurPoint = find("Panel/我的位置", this.node);
         this.Player2Icon = find("Panel/玩家2/Icon", this.node)?.getComponent(Sprite) ?? null;
         this.Player2Point = find("Panel/玩家2", this.node);
+        this.ParacargoPoint = find("Panel/空投", this.node);
+        if (this.ParacargoPoint) this.ParacargoPoint.active = false;
     }
 
     public Show(...args: any[]): void {
@@ -56,15 +59,15 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
             this.Player2Icon.spriteFrame = player2IconArgument;
         }
 
-        this.RefreshPlayerPoints();
+        this.RefreshMapPoints();
         // Panel 的 Widget/适配组件会在本帧结束时调整地图尺寸与缩放，
         // 下一帧再校准一次，避免不同屏幕比例下标记产生偏移。
-        this.scheduleOnce(() => this.RefreshPlayerPoints(), 0);
+        this.scheduleOnce(() => this.RefreshMapPoints(), 0);
     }
 
     protected lateUpdate(): void {
         if (!this.node.activeInHierarchy || !this.CurMap) return;
-        this.RefreshPlayerPoints();
+        this.RefreshMapPoints();
     }
 
     public OnButtonClick(event: EventTouch): void {
@@ -162,6 +165,22 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
             );
         } else if (this.Player2Point) {
             this.Player2Point.active = false;
+        }
+    }
+
+    /** 同步玩家与空投等所有地图标记。 */
+    private RefreshMapPoints(): void {
+        this.RefreshPlayerPoints();
+
+        const paracargoPosition = ZRSJZ_Game.Instance?.GetParacargoTargetWorldPosition();
+        if (paracargoPosition) {
+            this.SetPointPosition(
+                this.ParacargoPoint,
+                paracargoPosition.x,
+                paracargoPosition.y,
+            );
+        } else if (this.ParacargoPoint) {
+            this.ParacargoPoint.active = false;
         }
     }
 }
