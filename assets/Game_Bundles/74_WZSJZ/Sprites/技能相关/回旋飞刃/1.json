@@ -1,0 +1,210 @@
+{
+"skeleton": { "hash": "GQwWOZxpwhr/7Gyh/vM4lUeNUfU", "spine": "3.8.75", "images": "./0/", "audio": "D:/2026/2d/动漫角色对决/特效1/特效500个【spine】/0279" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "fen03", "parent": "root" },
+	{ "name": "guang", "parent": "root" },
+	{ "name": "tuowei", "parent": "root" },
+	{ "name": "wq_q", "parent": "root" },
+	{ "name": "wiqi", "parent": "wq_q" },
+	{ "name": "wqg", "parent": "wiqi" },
+	{ "name": "wqq_q", "parent": "root" },
+	{ "name": "wqq", "parent": "wqq_q" },
+	{ "name": "wqq02", "parent": "wqq" }
+],
+"slots": [
+	{ "name": "texiao/skill0/wqq02", "bone": "wqq02" },
+	{ "name": "texiao/skill0/wqq", "bone": "wqq" },
+	{ "name": "texiao/skill0/wqq2", "bone": "wqq", "blend": "additive" },
+	{ "name": "texiao/skill0/wuqi", "bone": "wiqi" },
+	{ "name": "texiao/skill0/wqg02", "bone": "wqg", "blend": "additive" },
+	{ "name": "texiao/skill0/chongci", "bone": "tuowei", "blend": "additive" },
+	{ "name": "texiao/skill0/guan001", "bone": "guang", "blend": "additive" },
+	{ "name": "texiao/skill2/quan/quan_001", "bone": "fen03", "blend": "additive" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"texiao/skill0/guan001": {
+				"texiao/skill0/guan001": { "width": 84, "height": 75 }
+			},
+			"texiao/skill0/wuqi": {
+				"texiao/skill0/wuqi": { "x": -28.74, "y": -6.63, "scaleX": 4, "scaleY": 4, "width": 60, "height": 65 }
+			},
+			"texiao/skill0/wqq2": {
+				"texiao/skill0/wqq": { "x": -0.79, "y": -1.58, "width": 153, "height": 150 }
+			},
+			"texiao/skill2/quan/quan_001": {
+				"texiao/skill2/quan/quan_001": { "width": 282, "height": 106 },
+				"texiao/skill2/quan/quan_004": { "width": 282, "height": 106 },
+				"texiao/skill2/quan/quan_007": { "width": 282, "height": 106 },
+				"texiao/skill2/quan/quan_010": { "width": 282, "height": 106 },
+				"texiao/skill2/quan/quan_013": { "width": 282, "height": 106 },
+				"texiao/skill2/quan/quan_016": { "width": 282, "height": 106 }
+			},
+			"texiao/skill0/chongci": {
+				"texiao/skill0/chongci": { "width": 112, "height": 100 }
+			},
+			"texiao/skill0/wqg02": {
+				"texiao/skill0/wqg02": { "width": 98, "height": 95 }
+			},
+			"texiao/skill0/wqq": {
+				"texiao/skill0/wqq": { "x": -0.79, "y": -1.58, "width": 153, "height": 150 }
+			},
+			"texiao/skill0/wqq02": {
+				"texiao/skill0/wqq02": { "width": 170, "height": 161 }
+			}
+		}
+	}
+],
+"events": {
+	"dead": {}
+},
+"animations": {
+	"animation": {
+		"slots": {
+			"texiao/skill0/guan001": {
+				"color": [
+					{ "color": "ffffff60" }
+				],
+				"attachment": [
+					{ "name": "texiao/skill0/guan001" },
+					{ "time": 0.5, "name": null }
+				]
+			},
+			"texiao/skill0/wqq02": {
+				"color": [
+					{ "time": 0.4, "color": "ffffffff" },
+					{ "time": 0.5333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "texiao/skill0/wqq02" }
+				]
+			},
+			"texiao/skill0/chongci": {
+				"attachment": [
+					{ "name": "texiao/skill0/chongci" },
+					{ "time": 0.1333, "name": null },
+					{ "time": 0.3, "name": "texiao/skill0/chongci" }
+				]
+			},
+			"texiao/skill0/wqg02": {
+				"color": [
+					{ "time": 0.3, "color": "ffffffff" },
+					{ "time": 0.4, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "texiao/skill0/wqg02" },
+					{ "time": 0.4, "name": null }
+				]
+			},
+			"texiao/skill0/wqq2": {
+				"color": [
+					{ "color": "ffffff2e" }
+				],
+				"attachment": [
+					{ "name": "texiao/skill0/wqq" }
+				]
+			},
+			"texiao/skill0/wuqi": {
+				"color": [
+					{ "time": 0.3, "color": "ffffffff" },
+					{ "time": 0.4, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "texiao/skill0/wuqi" },
+					{ "time": 0.4, "name": null }
+				]
+			},
+			"texiao/skill0/wqq": {
+				"attachment": [
+					{ "name": "texiao/skill0/wqq" }
+				]
+			}
+		},
+		"bones": {
+			"tuowei": {
+				"scale": [
+					{ "x": 1.177, "y": 0.782 },
+					{ "time": 0.0333, "x": 2.228, "y": 0.887 },
+					{ "time": 0.1333, "x": 1.851, "y": 0.737, "curve": "stepped" },
+					{ "time": 0.2667, "x": 1.851, "y": 0.737 },
+					{ "time": 0.3, "x": -1.85, "y": 0.929 }
+				]
+			},
+			"guang": {
+				"translate": [
+					{ "x": -2.26, "y": 3.11 }
+				],
+				"scale": [
+					{ "x": 2.871, "y": 2.871 }
+				]
+			},
+			"wqg": {
+				"rotate": [
+					{ "angle": -58.25 }
+				],
+				"translate": [
+					{ "x": 1.84, "y": 1.11 }
+				],
+				"scale": [
+					{ "x": 3.429, "y": 3.429 }
+				]
+			},
+			"wqq": {
+				"rotate": [
+					{},
+					{ "time": 0.0667, "angle": 90 },
+					{ "time": 0.1333, "angle": 180 },
+					{ "time": 0.2, "angle": -90 },
+					{ "time": 0.2667 },
+					{ "time": 0.3333, "angle": 90 },
+					{ "time": 0.4, "angle": 180 },
+					{ "time": 0.4667, "angle": -90 },
+					{ "time": 0.5333 }
+				]
+			},
+			"wqq02": {
+				"scale": [
+					{},
+					{ "time": 0.0667, "x": 1.208, "y": 1.208 },
+					{ "time": 0.1333 },
+					{ "time": 0.2, "x": 1.208, "y": 1.208 },
+					{ "time": 0.2667 },
+					{ "time": 0.3333, "x": 1.208, "y": 1.208 },
+					{ "time": 0.4 },
+					{ "time": 0.4667, "x": 1.208, "y": 1.208 },
+					{ "time": 0.5333 }
+				]
+			},
+			"wiqi": {
+				"rotate": [
+					{},
+					{ "time": 0.1, "angle": 90 },
+					{ "time": 0.2, "angle": 180 },
+					{ "time": 0.3, "angle": -90 },
+					{ "time": 0.4 }
+				],
+				"scale": [
+					{ "x": 0.261, "y": 0.261 }
+				]
+			},
+			"wq_q": {
+				"scale": [
+					{ "y": 0.543, "curve": "stepped" },
+					{ "time": 0.2, "y": 0.543 },
+					{ "time": 0.4 }
+				]
+			},
+			"wqq_q": {
+				"scale": [
+					{ "y": 0.595 },
+					{ "time": 0.2667, "y": 0.657 },
+					{ "time": 0.5333, "y": 0.595 }
+				]
+			}
+		}
+	}
+}
+}

@@ -1,6 +1,5 @@
-import { _decorator, Color, Component, Node, Sprite } from 'cc';
+import { _decorator, Component, Node, Sprite } from 'cc';
 import type { WZSJZ_Boss_LaoSai } from './WZSJZ_Boss_LaoSai';
-import { WZSJZ_Constant } from './WZSJZ_Constant';
 const { ccclass } = _decorator;
 
 @ccclass('WZSJZ_BossTenacityBar')
@@ -12,13 +11,11 @@ export class WZSJZ_BossTenacityBar extends Component {
     public Configure(owner: WZSJZ_Boss_LaoSai, anchor: Node): void {
         this._owner = owner;
         this._anchor = anchor;
-        this._progress = this.node.getChildByName("血条顶")?.getComponent(Sprite) || null;
+        this._progress = this.node.getChildByName("韧性条顶")?.getComponent(Sprite) || null;
         if (this._progress) {
             this._progress.type = Sprite.Type.FILLED;
             this._progress.fillType = Sprite.FillType.HORIZONTAL;
             this._progress.fillStart = 0;
-            const color = WZSJZ_Constant.BossLaoSai.TenacityBarColor;
-            this._progress.color = new Color(color.R, color.G, color.B, color.A);
         }
         this.Refresh();
     }
