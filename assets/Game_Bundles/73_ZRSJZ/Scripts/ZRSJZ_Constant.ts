@@ -1168,6 +1168,14 @@ export interface ZRSJZ_ParacargoConfig {
     RedPropWeight: number;
 }
 
+/** 轰炸区刷新配置；所有随机时间均为闭区间内的均匀随机。 */
+export const ZRSJZ_BOMB_PLOT_SPAWN_CONFIG = Object.freeze({
+    FirstSpawnMinSeconds: 6,
+    FirstSpawnMaxSeconds: 12,
+    RepeatSpawnMinSeconds: 15,
+    RepeatSpawnMaxSeconds: 24,
+});
+
 export interface ZRSJZ_MapConfig {
     /** 选关界面显示的区域名称。 */
     DisplayName: string;
