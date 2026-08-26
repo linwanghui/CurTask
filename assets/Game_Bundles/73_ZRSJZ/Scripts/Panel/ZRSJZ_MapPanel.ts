@@ -1,4 +1,4 @@
-import { _decorator, EventTouch, find, Node, Sprite, SpriteFrame, UITransform, Vec3 } from 'cc';
+import { _decorator, EventTouch, find, instantiate, Layers, Node, Sprite, SpriteFrame, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -17,6 +17,9 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
     Player2Point: Node = null;
     ParacargoPoint: Node = null;
     BombPlotPoint: Node = null;
+    TaskPoint: Node = null;
+    readonly TaskPoints: Node[] = [];
+    private readonly _taskPointVisibility: boolean[] = [];
     private _pointWorldPosition: Vec3 = new Vec3();
     private _pointParentPosition: Vec3 = new Vec3();
     private _playerMapPosition: Vec3 = new Vec3();
@@ -24,26 +27,33 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
     private _rangeParentPosition: Vec3 = new Vec3();
 
     protected onLoad(): void {
-        this.Icon = find("Panel/我的位置/Icon", this.node)?.getComponent(Sprite) ?? null;
         this.AllMap = find("Panel/Map", this.node);
-        this.CurPoint = find("Panel/我的位置", this.node);
-        this.Player2Icon = find("Panel/玩家2/Icon", this.node)?.getComponent(Sprite) ?? null;
-        this.Player2Point = find("Panel/玩家2", this.node);
-        this.ParacargoPoint = find("Panel/空投", this.node);
-        if (this.ParacargoPoint) this.ParacargoPoint.active = false;
-        this.BombPlotPoint = find("Panel/轰炸区", this.node);
-        if (this.BombPlotPoint) this.BombPlotPoint.active = false;
     }
 
     public Show(...args: any[]): void {
         super.Show();
+        const requestedMap = args[0];
+        const miniMapRoot = args[3] instanceof Node ? args[3] as Node : null;
+        const taskMapPositions = Array.isArray(args[4])
+            ? (args[4] as unknown[]).filter(position => position instanceof Vec3) as Vec3[]
+            : [];
+        const taskPointVisibility = Array.isArray(args[5])
+            ? (args[5] as unknown[]).map(visible => visible === true)
+            : [];
+        if (miniMapRoot) {
+            this.CopyMiniMapNodes(
+                miniMapRoot,
+                requestedMap,
+                taskMapPositions,
+                taskPointVisibility,
+            );
+        }
         if (!this.AllMap || this.AllMap.children.length === 0) {
             console.warn("[ZRSJZ_MapPanel] 地图弹窗中没有可显示的地图节点");
             return;
         }
 
         this.AllMap.children.forEach(map => map.active = false);
-        const requestedMap = args[0];
         if (typeof requestedMap === "string") {
             this.CurMap = this.AllMap.getChildByName(requestedMap) ?? this.AllMap.children[0];
         } else {
@@ -54,6 +64,8 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
             this.CurMap = this.AllMap.children[mapIndex];
         }
         this.CurMap.active = true;
+
+        this.BindCopiedMapPoints();
 
         const iconArgument = args[1];
         if (this.Icon && iconArgument instanceof SpriteFrame) {
@@ -68,6 +80,66 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
         // Panel 的 Widget/适配组件会在本帧结束时调整地图尺寸与缩放，
         // 下一帧再校准一次，避免不同屏幕比例下标记产生偏移。
         this.scheduleOnce(() => this.RefreshMapPoints(), 0);
+    }
+
+    /** 每次打开弹窗都复制当前小地图 Map 的直属节点，确保两处地点信息完全一致。 */
+    private CopyMiniMapNodes(
+        miniMapRoot: Node,
+        requestedMap: unknown,
+        taskMapPositions: ReadonlyArray<Readonly<Vec3>>,
+        taskPointVisibility: ReadonlyArray<boolean>,
+    ): void {
+        if (!this.AllMap) return;
+        for (const oldNode of [...this.AllMap.children]) {
+            oldNode.removeFromParent();
+            oldNode.destroy();
+        }
+
+        this._taskPointVisibility.length = 0;
+        let taskIndex = 0;
+        for (const sourceNode of miniMapRoot.children) {
+            const copiedNode = instantiate(sourceNode);
+            copiedNode.parent = this.AllMap;
+            this.SetUILayerRecursively(copiedNode);
+            // 小地图底图会为跟随玩家而实时偏移；弹窗需要显示完整地图，所以恢复到中心。
+            if (typeof requestedMap === "string" && copiedNode.name === requestedMap) {
+                copiedNode.setPosition(0, 0, copiedNode.position.z);
+            }
+            if (copiedNode.name.startsWith("任务_")) {
+                const taskMapPosition = taskMapPositions[taskIndex];
+                this._taskPointVisibility.push(taskPointVisibility[taskIndex] === true);
+                taskIndex++;
+                if (taskMapPosition) {
+                    copiedNode.setPosition(taskMapPosition.x, taskMapPosition.y, copiedNode.position.z);
+                }
+            }
+        }
+    }
+
+    /** 小地图可能使用 Map 等场景层；复制到弹窗后整棵节点树统一改为项目自定义 UI 层。 */
+    private SetUILayerRecursively(root: Node): void {
+        root.layer = 1 << 0;
+        for (const child of root.children) this.SetUILayerRecursively(child);
+    }
+
+    private BindCopiedMapPoints(): void {
+        this.CurPoint = this.AllMap?.getChildByName("我的位置") ?? null;
+        this.Icon = this.CurPoint?.getChildByName("Icon")?.getComponent(Sprite) ?? null;
+        this.Player2Point = this.AllMap?.getChildByName("玩家2") ?? null;
+        this.Player2Icon = this.Player2Point?.getChildByName("Icon")?.getComponent(Sprite) ?? null;
+        this.ParacargoPoint = this.AllMap?.getChildByName("空投") ?? null;
+        this.BombPlotPoint = this.AllMap?.getChildByName("轰炸区") ?? null;
+        this.TaskPoints.splice(
+            0,
+            this.TaskPoints.length,
+            ...(this.AllMap?.children.filter(child => child.name.startsWith("任务_")) ?? []),
+        );
+        this.TaskPoint = this.TaskPoints[0] ?? null;
+        if (this.ParacargoPoint) this.ParacargoPoint.active = false;
+        if (this.BombPlotPoint) this.BombPlotPoint.active = false;
+        this.TaskPoints.forEach((taskPoint, index) => {
+            taskPoint.active = this._taskPointVisibility[index] === true;
+        });
     }
 
     protected lateUpdate(): void {

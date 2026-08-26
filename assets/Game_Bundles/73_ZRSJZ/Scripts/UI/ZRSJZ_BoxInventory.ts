@@ -17,6 +17,7 @@ const { ccclass } = _decorator;
 @ccclass('ZRSJZ_BoxInventory')
 export class ZRSJZ_BoxInventory extends ZRSJZ_Inventory {
     public BoxID: string = "";
+    private _disposeRequested: boolean = false;
 
     /** 物资仓库和背包一样，可以存放任意类型的道具。 */
     public IsAdaptive(_id: string): boolean {
@@ -46,10 +47,19 @@ export class ZRSJZ_BoxInventory extends ZRSJZ_Inventory {
     }
 
     public Dispose(): void {
+        if (this._disposeRequested) return;
+        this._disposeRequested = true;
         ZRSJZ_UIManager.Instance.InventoryMap.delete(this.InventoryMapKey);
-        if (this.node?.isValid) {
-            this.node.destroy();
+        if (this.node?.isValid) this.node.active = false;
+        void this.DestroyWhenIdle();
+    }
+
+    /** 等待 ShowPropItem 的异步格子刷新结束，避免销毁后继续访问空 node。 */
+    private async DestroyWhenIdle(): Promise<void> {
+        while (this._isShowingPropItem && this.node?.isValid) {
+            await new Promise<void>(resolve => setTimeout(resolve, 0));
         }
+        if (this.node?.isValid) this.node.destroy();
     }
 
     protected BelongsToInventory(

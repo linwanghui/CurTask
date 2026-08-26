@@ -468,14 +468,16 @@ export class ZRSJZ_UIManager extends Component {
 
     //展示获取金币特效
     public async ShowCurrencyEffect() {
-        if (this._curCurrencyUI.length <= 0) {
-            console.error("没有显示的金币框！");
-            return;
+        let TargetPos: Vec3 = new Vec3(0, 500, 0);
+        if (this._curCurrencyUI.length > 0) {
+            // console.error("没有显示的金币框！");
+            // return;
+            TargetPos = this._curCurrencyUI[this._curCurrencyUI.length - 1].getWorldPosition().clone();
         }
         const effect: Node = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/货币特效");
         effect.parent = this.node;
         effect.active = true;
-        effect.getComponent(ZRSJZ_CurrencyEffect).Show(this._curCurrencyUI[this._curCurrencyUI.length - 1].getWorldPosition().clone())
+        effect.getComponent(ZRSJZ_CurrencyEffect).Show(TargetPos);
     }
 
     //#region 获取UI

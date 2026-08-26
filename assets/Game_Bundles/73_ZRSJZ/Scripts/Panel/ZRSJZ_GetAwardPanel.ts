@@ -57,6 +57,7 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
                 ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
             } else {
                 ZRSJZ_InventoryService.AddPropByName(award.TaskAwardName, award.TaskAwardCount);
+                ZRSJZ_UIManager.Instance.ShowTip("道具" + award.TaskAwardName + " x" + award.TaskAwardCount + " 已添加到背包");
             }
         })
         this._awards = [];

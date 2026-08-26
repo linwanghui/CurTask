@@ -21,6 +21,7 @@ export enum ZRSJZ_PANEL {
     胜利弹窗 = "73_ZRSJZ/Prefabs/Panel/胜利弹窗",
     强化界面 = "73_ZRSJZ/Prefabs/Panel/强化界面",
     密码箱弹窗 = "73_ZRSJZ/Prefabs/Panel/密码箱弹窗",
+    破壁行动密码弹窗 = "73_ZRSJZ/Prefabs/Panel/破壁行动密码弹窗",
     医疗箱弹窗 = "73_ZRSJZ/Prefabs/Panel/医疗箱弹窗",
     死亡弹窗 = "73_ZRSJZ/Prefabs/Panel/死亡弹窗",
     双人模式死亡弹窗 = "73_ZRSJZ/Prefabs/Panel/双人模式死亡弹窗",
@@ -34,6 +35,7 @@ export enum ZRSJZ_PANEL {
     新手引导弹窗 = "73_ZRSJZ/Prefabs/Panel/新手引导弹窗",
     主线任务界面 = "73_ZRSJZ/Prefabs/Panel/主线任务界面",
     获取奖励弹窗 = "73_ZRSJZ/Prefabs/Panel/获取奖励弹窗",
+    特别行动弹窗 = "73_ZRSJZ/Prefabs/Panel/特别行动弹窗",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -1797,3 +1799,169 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
         TaskAwards: CreateMainTaskAwards(5000000, "6级子弹", "KK41-霰弹枪", "反应炉", "烽火奖杯"),
     }],
 ])
+
+//局内任务----特别行动
+
+/** 特别行动中的概率物资奖励。Probability 使用 0~1，例如 0.06 表示 6%。 */
+export interface ZRSJZ_SpecialOperationPropAwardConfig {
+    PropName: string;
+    Count: number;
+    Probability: number;
+}
+
+export type ZRSJZ_SpecialOperationTaskType = "高价值目标" | "坚守轰炸区" | "破壁行动" | "待定";
+
+/** 局内特别行动配置，后续调整任务难度、奖励或限时时只需修改此处。 */
+export interface ZRSJZ_SpecialOperationConfig {
+    TaskType: ZRSJZ_SpecialOperationTaskType;
+    TaskName: string;
+    TaskDesc: string;
+    TargetKillCount: number;
+    GoldReward: number;
+    PropAwards: ReadonlyArray<ZRSJZ_SpecialOperationPropAwardConfig>;
+    TimeLimitSeconds: number;
+}
+
+function CreateSpecialOperationPropAward(
+    PropName: string,
+    Probability: number,
+    Count: number = 1,
+): ZRSJZ_SpecialOperationPropAwardConfig {
+    return {
+        PropName,
+        Count: Math.max(1, Math.floor(Count)),
+        // 即使后续配置时误填过高数值，也保证特别行动单项掉率不超过 30%。
+        Probability: Math.max(0, Math.min(0.3, Probability)),
+    };
+}
+
+/**
+ * 局内任务----特别行动
+ * 难度顺序：小镇机密 → 小镇绝密 → 沙漠机密 → 沙漠绝密 → 极北机密 → 极北绝密。
+ * 概率物资为逐项独立判定，因此可能不掉落，也可能同时获得多件物资。
+ */
+export const ZRSJZ_SPECIAL_OPERATION_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SpecialOperationConfig>> = new Map([
+    ["五号小镇_机密行动", {
+        TaskType: "高价值目标",
+        TaskName: "高价值目标",
+        TaskDesc: "击败行动开始后出现的高价值目标。",
+        TargetKillCount: 1,
+        GoldReward: 60000,
+        PropAwards: [
+            CreateSpecialOperationPropAward("化石", 0.06),
+            CreateSpecialOperationPropAward("黄金方苹果", 0.04),
+        ],
+        TimeLimitSeconds: 180,
+    }],
+    ["五号小镇_绝密行动", {
+        TaskType: "坚守轰炸区",
+        TaskName: "坚守轰炸区",
+        TaskDesc: "必须在规定时间内留在轰炸区范围内，离开范围任务立即失败。",
+        TargetKillCount: 0,
+        GoldReward: 100000,
+        PropAwards: [
+            CreateSpecialOperationPropAward("实验数据", 0.09),
+            CreateSpecialOperationPropAward("曼德尔", 0.07),
+        ],
+        TimeLimitSeconds: 30,
+    }],
+    ["沙漠古迹_机密行动", {
+        TaskType: "高价值目标",
+        TaskName: "高价值目标",
+        TaskDesc: "击败行动开始后出现的高价值目标。",
+        TargetKillCount: 1,
+        GoldReward: 160000,
+        PropAwards: [
+            CreateSpecialOperationPropAward("金条", 0.13),
+            CreateSpecialOperationPropAward("劳力士", 0.10),
+        ],
+        TimeLimitSeconds: 160,
+    }],
+    ["沙漠古迹_绝密行动", {
+        TaskType: "坚守轰炸区",
+        TaskName: "坚守轰炸区",
+        TaskDesc: "必须在规定时间内留在轰炸区范围内，离开范围任务立即失败。",
+        TargetKillCount: 0,
+        GoldReward: 260000,
+        PropAwards: [
+            CreateSpecialOperationPropAward("军用地图匣", 0.18),
+            CreateSpecialOperationPropAward("刀片服务器", 0.14),
+        ],
+        TimeLimitSeconds: 28,
+    }],
+    ["极北之地_机密行动", {
+        TaskType: "高价值目标",
+        TaskName: "高价值目标",
+        TaskDesc: "击败行动开始后出现的高价值目标。",
+        TargetKillCount: 1,
+        GoldReward: 400000,
+        PropAwards: [
+            CreateSpecialOperationPropAward("显卡", 0.23),
+            CreateSpecialOperationPropAward("动力电池组", 0.18),
+        ],
+        TimeLimitSeconds: 140,
+    }],
+    ["极北之地_绝密行动", {
+        TaskType: "坚守轰炸区",
+        TaskName: "坚守轰炸区",
+        TaskDesc: "必须在规定时间内留在轰炸区范围内，离开范围任务立即失败。",
+        TargetKillCount: 0,
+        GoldReward: 600000,
+        PropAwards: [
+            CreateSpecialOperationPropAward("军用雷达", 0.28),
+            CreateSpecialOperationPropAward("医疗机器人", 0.23),
+        ],
+        TimeLimitSeconds: 25,
+    }],
+]);
+
+/**
+ * 获取任务点最终配置。任务类别由特别行动预制体实例的 TaskName 决定；
+ * 可填写“高价值目标 / 坚守轰炸区 / 破壁行动 / 待定”。无效值才回退到关卡默认类型。
+ */
+export function GetSpecialOperationConfig(
+    mapKey: string,
+    taskType?: ZRSJZ_SpecialOperationTaskType,
+): Readonly<ZRSJZ_SpecialOperationConfig> | undefined {
+    const baseConfig = ZRSJZ_SPECIAL_OPERATION_CONFIG.get(mapKey);
+    if (!baseConfig || !taskType || taskType === baseConfig.TaskType) return baseConfig;
+    const difficulty = ZRSJZ_MAP_CONFIG.get(mapKey)?.Difficulty ?? 1;
+    if (taskType === "高价值目标") {
+        return {
+            ...baseConfig,
+            TaskType: taskType,
+            TaskName: "高价值目标",
+            TaskDesc: "击败行动开始后出现的高价值目标。",
+            TargetKillCount: 1,
+            TimeLimitSeconds: Math.max(120, 190 - difficulty * 10),
+        };
+    }
+    if (taskType === "坚守轰炸区") {
+        return {
+            ...baseConfig,
+            TaskType: taskType,
+            TaskName: "坚守轰炸区",
+            TaskDesc: "必须在规定时间内留在轰炸区范围内，离开范围任务立即失败。",
+            TargetKillCount: 0,
+            TimeLimitSeconds: Math.max(22, 34 - difficulty * 2),
+        };
+    }
+    if (taskType === "破壁行动") {
+        return {
+            ...baseConfig,
+            TaskType: taskType,
+            TaskName: "破壁行动",
+            TaskDesc: "保险门将自动开启，请在限时内破解并开启邮箱中的全部9个箱位。",
+            TargetKillCount: 0,
+            TimeLimitSeconds: Math.max(240, 320 - difficulty * 10),
+        };
+    }
+    return {
+        ...baseConfig,
+        TaskType: "待定",
+        TaskName: "待定任务",
+        TaskDesc: "第三种特别行动暂未开放。",
+        TargetKillCount: 0,
+    };
+}
+

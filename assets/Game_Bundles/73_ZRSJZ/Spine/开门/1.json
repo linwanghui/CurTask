@@ -1,11 +1,11 @@
 {
 "skeleton": {
-	"hash": "ftFE4V1OdvdezDv2+s/cJn6MapU",
+	"hash": "g2qm33TA26qfV7RXfk9w0Nd1QrI",
 	"spine": "3.8.75",
-	"x": -229.48,
+	"x": -230.42,
 	"y": -273.64,
-	"width": 437,
-	"height": 565.93,
+	"width": 439.18,
+	"height": 578.34,
 	"images": "./images/",
 	"audio": "C:/Users/admin/Desktop/三角洲真人版/地图/门"
 },
@@ -13,7 +13,10 @@
 	{ "name": "root" },
 	{ "name": "骨骼", "parent": "root", "x": 5.69, "y": -36.74 },
 	{ "name": "bone", "parent": "骨骼", "length": 195.74, "rotation": 27.08, "x": -182.29, "y": -81.81 },
-	{ "name": "bone2", "parent": "骨骼", "length": 193.42, "rotation": -150.08, "x": 167.36, "y": 108.85 }
+	{ "name": "bone2", "parent": "骨骼", "length": 193.42, "rotation": -150.08, "x": 167.36, "y": 108.85 },
+	{ "name": "baozha", "parent": "root", "x": 1.08, "scaleX": 2.5, "scaleY": 2 },
+	{ "name": "jinguang", "parent": "root", "scaleX": 2.5, "scaleY": 2 },
+	{ "name": "ptshouji", "parent": "root", "scaleX": 2.5, "scaleY": 2 }
 ],
 "slots": [
 	{ "name": "zz", "bone": "root", "attachment": "zz" },
@@ -28,7 +31,17 @@
 	{ "name": "1_0000s_0003_雪地右门", "bone": "bone2", "attachment": "1_0000s_0003_雪地右门" },
 	{ "name": "1_0000s_0002_雪地左门", "bone": "bone", "attachment": "1_0000s_0002_雪地左门" },
 	{ "name": "1_0000s_0000_雪地右门梁", "bone": "root", "attachment": "1_0000s_0000_雪地右门梁" },
-	{ "name": "1_0000s_0001_雪地左门梁", "bone": "root", "attachment": "1_0000s_0001_雪地左门梁" }
+	{ "name": "1_0000s_0001_雪地左门梁", "bone": "root", "attachment": "1_0000s_0001_雪地左门梁" },
+	{ "name": "1_0004_保险右门", "bone": "bone2", "attachment": "1_0004_保险右门" },
+	{ "name": "1_0003_保险左门", "bone": "bone", "attachment": "1_0003_保险左门" },
+	{ "name": "1_0000_保险", "bone": "root", "attachment": "1_0000_保险" },
+	{ "name": "1_0001_保险左门门梁", "bone": "root", "attachment": "1_0001_保险左门门梁" },
+	{ "name": "1_0002_保险右门门梁", "bone": "root", "attachment": "1_0002_保险右门门梁" },
+	{ "name": "effect/ptshouji/1_00000", "bone": "ptshouji" },
+	{ "name": "effect/ptshouji/1_0", "bone": "ptshouji", "blend": "additive" },
+	{ "name": "effect/jin_00000", "bone": "jinguang", "blend": "additive" },
+	{ "name": "effect/baodian1/baodian_0000", "bone": "baozha" },
+	{ "name": "effect/baodian1/baodian_0", "bone": "baozha", "blend": "additive" }
 ],
 "skins": [
 	{
@@ -42,6 +55,69 @@
 					"vertices": [ 207.79, 9.18, 206.94, -9.5, 208.76, -14.51, 208.1, -50.34, 180.59, -67.34, 191.75, -73.85, 31.68, -178.89, -170.47, -268.74, -177.42, -258.38, -207.45, -273.64, -228.55, -264.32, -228.99, -224.57, -226.78, -221.65, -226.97, -202.05, -229.17, -200.52, -228.64, -187.6, -226.62, -186.62, -226.84, 45.06, -228.58, 46.27, -228.74, 65.33, -230.42, 95.94, 178.44, 304.7, 202.26, 293.58, 207.35, 285.24, 207.84, 264.36, 206.11, 261.99, 206.59, 12.62 ],
 					"color": "ce3a3aff"
 				}
+			},
+			"effect/jin_00000": {
+				"effect/jin_00000": { "width": 26, "height": 26 }
+			},
+			"effect/ptshouji/1_0": {
+				"effect/ptshouji/1_00000": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00001": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00003": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00005": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00007": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00009": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00011": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00013": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00015": { "width": 102, "height": 102 }
+			},
+			"effect/ptshouji/1_00000": {
+				"effect/ptshouji/1_00000": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00001": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00003": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00005": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00007": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00009": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00011": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00013": { "width": 102, "height": 102 },
+				"effect/ptshouji/1_00015": { "width": 102, "height": 102 }
+			},
+			"effect/baodian1/baodian_0": {
+				"effect/baodian1/baodian_0000": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0001": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0002": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0004": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0006": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0008": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0010": { "width": 158, "height": 131 }
+			},
+			"effect/baodian1/baodian_0000": {
+				"effect/baodian1/baodian_0000": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0001": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0002": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0004": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0006": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0008": { "width": 158, "height": 131 },
+				"effect/baodian1/baodian_0010": { "width": 158, "height": 131 }
+			}
+		}
+	},
+	{
+		"name": "保险门",
+		"attachments": {
+			"1_0004_保险右门": {
+				"1_0004_保险右门": { "x": 200.61, "y": -37.02, "rotation": 150.08, "width": 1000, "height": 1000 }
+			},
+			"1_0003_保险左门": {
+				"1_0003_保险左门": { "x": 195.91, "y": 37.6, "rotation": -27.08, "width": 1000, "height": 1000 }
+			},
+			"1_0002_保险右门门梁": {
+				"1_0002_保险右门门梁": { "x": -19.29, "y": 4.12, "width": 1000, "height": 1000 }
+			},
+			"1_0001_保险左门门梁": {
+				"1_0001_保险左门门梁": { "x": -19.29, "y": 4.12, "width": 1000, "height": 1000 }
+			},
+			"1_0000_保险": {
+				"1_0000_保险": { "x": -19.29, "y": 4.12, "width": 1000, "height": 1000 }
 			}
 		}
 	},
@@ -100,6 +176,13 @@
 "animations": {
 	"dj_kaim": {},
 	"gm": {
+		"slots": {
+			"1_0000_保险": {
+				"attachment": [
+					{ "name": null }
+				]
+			}
+		},
 		"bones": {
 			"bone": {
 				"translate": [
@@ -111,7 +194,166 @@
 					{ "x": 145.67, "y": 79.32 }
 				]
 			}
-		}
+		},
+		"deform": {
+			"default": {
+				"zz": {
+					"zz": [
+						{
+							"vertices": [ -15.88397, 3.97099, -14.994, 11.9, -16.89798, 7.13999, -16.36, 26.17999, 11.424, 4.046, 0, 0, 0, 0, 3.81, 2.28598, 5.842, -6.85797, 4.914, -8.37201, -3.09399, -1.09201, -3.63997, -15.106, -2.74197, -14.91797, -2.34001, -8.12001, 0, 0, 0, 0, -2.59996, 48.61996, -1.96698, 1.967, -3.37199, 4.49599, -2.79097, 12.582, 0, 0, -43.25497, -23.78003, -35.46497, 2.87, -13.53, -1.64001, -13.12, -10.25, -13.11996, -12.3, -14.42097, 32.18593 ]
+						}
+					]
+				}
+			}
+		},
+		"drawOrder": [
+			{
+				"offsets": [
+					{ "slot": "effect/jin_00000", "offset": 2 }
+				]
+			}
+		]
+	},
+	"保险门": {
+		"slots": {
+			"effect/jin_00000": {
+				"color": [
+					{ "time": 0.0333, "color": "ffffffff" },
+					{ "time": 0.5667, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "effect/jin_00000" }
+				]
+			},
+			"1_0000_保险": {
+				"color": [
+					{ "color": "ffffffff" },
+					{ "time": 0.1333, "color": "ffffff00" }
+				]
+			},
+			"effect/baodian1/baodian_0": {
+				"attachment": [
+					{ "name": "effect/baodian1/baodian_0000" },
+					{ "time": 0.0667, "name": "effect/baodian1/baodian_0001" },
+					{ "time": 0.1333, "name": "effect/baodian1/baodian_0002" },
+					{ "time": 0.2333, "name": "effect/baodian1/baodian_0004" },
+					{ "time": 0.3, "name": "effect/baodian1/baodian_0006" },
+					{ "time": 0.4, "name": "effect/baodian1/baodian_0008" },
+					{ "time": 0.5, "name": "effect/baodian1/baodian_0010" },
+					{ "time": 0.6, "name": null }
+				]
+			},
+			"effect/baodian1/baodian_0000": {
+				"color": [
+					{ "color": "ffffff94" }
+				],
+				"attachment": [
+					{ "name": "effect/baodian1/baodian_0000" },
+					{ "time": 0.0667, "name": "effect/baodian1/baodian_0001" },
+					{ "time": 0.1333, "name": "effect/baodian1/baodian_0002" },
+					{ "time": 0.2333, "name": "effect/baodian1/baodian_0004" },
+					{ "time": 0.3, "name": "effect/baodian1/baodian_0006" },
+					{ "time": 0.4, "name": "effect/baodian1/baodian_0008" },
+					{ "time": 0.5, "name": "effect/baodian1/baodian_0010" },
+					{ "time": 0.6, "name": null }
+				]
+			}
+		},
+		"bones": {
+			"bone": {
+				"rotate": [
+					{},
+					{ "time": 0.1333, "angle": 0.88 },
+					{ "time": 0.2667, "angle": -1.01 },
+					{ "time": 0.4, "angle": 0.88 },
+					{ "time": 0.5333, "angle": -1.01 },
+					{ "time": 0.6667, "angle": 0.88 },
+					{ "time": 0.9333, "angle": -1.01 },
+					{ "time": 1.1667, "angle": 0.88 },
+					{ "time": 1.4333, "angle": -1.01 }
+				],
+				"translate": [
+					{ "time": 0.5333 },
+					{ "time": 1.4333, "x": -157.78, "y": -83.96 }
+				]
+			},
+			"骨骼": {
+				"translate": [
+					{},
+					{ "time": 0.1333, "y": -3.3 },
+					{ "time": 0.2667 },
+					{ "time": 0.4, "y": -3.3 },
+					{ "time": 0.5333 },
+					{ "time": 0.6667, "y": -3.3 },
+					{ "time": 0.9333 }
+				]
+			},
+			"bone2": {
+				"rotate": [
+					{},
+					{ "time": 0.1333, "angle": 0.07 },
+					{ "time": 0.2667, "angle": -0.78 },
+					{ "time": 0.4, "angle": 0.07 },
+					{ "time": 0.5333, "angle": -0.78 },
+					{ "time": 0.6667, "angle": 0.07 },
+					{ "time": 0.9333, "angle": -0.78 },
+					{ "time": 1.1667, "angle": 0.07 },
+					{ "time": 1.4333, "angle": -0.78 }
+				],
+				"translate": [
+					{ "time": 0.5333 },
+					{ "time": 1.4333, "x": 145.67, "y": 79.32, "curve": "stepped" },
+					{ "time": 1.7667, "x": 145.67, "y": 79.32 }
+				]
+			},
+			"baozha": {
+				"translate": [
+					{ "y": 18.93, "curve": "stepped" },
+					{ "time": 0.2333, "y": 87.05 },
+					{ "time": 0.5667, "y": 94.36 }
+				],
+				"scale": [
+					{ "x": 1.5, "y": 1.5, "curve": "stepped" },
+					{ "time": 0.2333, "x": 1.5, "y": 1.5 },
+					{ "time": 0.5667, "x": 1.6, "y": 1.6 }
+				]
+			},
+			"jinguang": {
+				"translate": [
+					{ "x": 2.49, "y": -9.33 },
+					{ "time": 0.0667, "x": 10.6, "y": 66.29 },
+					{ "time": 0.2333, "x": 0.66, "y": 71.54 }
+				],
+				"scale": [
+					{ "x": 13.598, "y": 11.195 },
+					{ "time": 0.0667, "x": 15.487, "y": 15.204 },
+					{ "time": 0.2333, "x": 18.083, "y": 17.752 }
+				]
+			},
+			"ptshouji": {
+				"translate": [
+					{ "y": -68.12 }
+				]
+			}
+		},
+		"deform": {
+			"default": {
+				"zz": {
+					"zz": [
+						{
+							"vertices": [ -15.88397, 3.97099, -14.994, 11.9, -16.89798, 7.13999, -16.36, 26.17999, 11.424, 4.046, 0, 0, 0, 0, 3.81, 2.28598, 5.842, -6.85797, 4.914, -8.37201, -3.09399, -1.09201, -3.63997, -15.106, -2.74197, -14.91797, -2.34001, -8.12001, 0, 0, 0, 0, -2.59996, 48.61996, -1.96698, 1.967, -3.37199, 4.49599, -2.79097, 12.582, 0, 0, -43.25497, -23.78003, -35.46497, 2.87, -13.53, -1.64001, -13.12, -10.25, -13.11996, -12.3, -14.42097, 32.18593 ]
+						}
+					]
+				}
+			}
+		},
+		"drawOrder": [
+			{
+				"offsets": [
+					{ "slot": "effect/jin_00000", "offset": 2 }
+				]
+			}
+		]
 	},
 	"小镇": {
 		"bones": {

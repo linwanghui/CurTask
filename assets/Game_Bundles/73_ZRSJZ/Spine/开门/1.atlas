@@ -1,89 +1,180 @@
 
 1.png
-size: 777,255
+size: 1140,270
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
+1_0000_保险
+  rotate: false
+  xy: 958, 121
+  size: 96, 147
+  orig: 500, 500
+  offset: 219, 167
+  index: -1
 1_0000s_0000_小镇门梁左
-  rotate: true
-  xy: 2, 2
+  rotate: false
+  xy: 898, 86
   size: 28, 182
   orig: 500, 500
   offset: 141, 107
   index: -1
 1_0000s_0000_雪地右门梁
-  rotate: false
-  xy: 695, 68
+  rotate: true
+  xy: 185, 3
   size: 33, 185
   orig: 500, 500
   offset: 328, 213
   index: -1
 1_0000s_0001_小镇门梁右
   rotate: true
-  xy: 412, 4
+  xy: 898, 56
   size: 28, 181
   orig: 500, 500
   offset: 331, 212
   index: -1
 1_0000s_0001_雪地左门梁
   rotate: true
-  xy: 221, 2
+  xy: 372, 5
   size: 32, 189
   orig: 500, 500
   offset: 138, 108
   index: -1
 1_0000s_0002_小镇门左
-  rotate: true
-  xy: 464, 137
+  rotate: false
+  xy: 244, 39
   size: 116, 229
   orig: 500, 500
   offset: 141, 107
   index: -1
 1_0000s_0002_雪地左门
-  rotate: true
-  xy: 2, 133
+  rotate: false
+  xy: 122, 38
   size: 120, 230
   orig: 500, 500
   offset: 138, 109
   index: -1
 1_0000s_0003_小镇们右
-  rotate: true
-  xy: 234, 36
+  rotate: false
+  xy: 698, 50
   size: 97, 218
   orig: 500, 500
   offset: 247, 165
   index: -1
 1_0000s_0003_雪地右门
-  rotate: true
-  xy: 464, 34
+  rotate: false
+  xy: 595, 47
   size: 101, 221
   orig: 500, 500
   offset: 243, 165
   index: -1
-右门
+1_0001_保险左门门梁
   rotate: true
-  xy: 2, 32
+  xy: 842, 11
+  size: 38, 192
+  orig: 500, 500
+  offset: 143, 107
+  index: -1
+1_0002_保险右门门梁
+  rotate: true
+  xy: 563, 7
+  size: 31, 188
+  orig: 500, 500
+  offset: 326, 208
+  index: -1
+1_0003_保险左门
+  rotate: false
+  xy: 2, 34
+  size: 118, 234
+  orig: 500, 500
+  offset: 143, 107
+  index: -1
+1_0004_保险右门
+  rotate: false
+  xy: 362, 39
+  size: 111, 229
+  orig: 500, 500
+  offset: 246, 159
+  index: -1
+effect/baodian1/baodian_0000
+  rotate: false
+  xy: 809, 6
+  size: 31, 43
+  orig: 79, 66
+  offset: 26, 7
+  index: -1
+effect/baodian1/baodian_0001
+  rotate: false
+  xy: 1089, 14
+  size: 49, 50
+  orig: 79, 66
+  offset: 17, 5
+  index: -1
+effect/baodian1/baodian_0002
+  rotate: true
+  xy: 1081, 66
+  size: 64, 56
+  orig: 79, 66
+  offset: 13, 2
+  index: -1
+effect/baodian1/baodian_0004
+  rotate: true
+  xy: 1056, 200
+  size: 68, 63
+  orig: 79, 66
+  offset: 3, 0
+  index: -1
+effect/baodian1/baodian_0006
+  rotate: true
+  xy: 1056, 132
+  size: 66, 57
+  orig: 79, 66
+  offset: 2, 7
+  index: -1
+effect/baodian1/baodian_0008
+  rotate: false
+  xy: 1036, 2
+  size: 51, 52
+  orig: 79, 66
+  offset: 13, 12
+  index: -1
+effect/baodian1/baodian_0010
+  rotate: true
+  xy: 753, 4
+  size: 44, 54
+  orig: 79, 66
+  offset: 20, 12
+  index: -1
+effect/jin_00000
+  rotate: false
+  xy: 958, 108
+  size: 11, 11
+  orig: 13, 13
+  offset: 1, 1
+  index: -1
+右门
+  rotate: false
+  xy: 797, 51
   size: 99, 217
   orig: 99, 217
   offset: 0, 0
   index: -1
 右门梁
-  rotate: true
-  xy: 595, 4
+  rotate: false
+  xy: 928, 88
   size: 28, 180
   orig: 28, 180
   offset: 0, 0
   index: -1
 左门
-  rotate: true
-  xy: 234, 135
+  rotate: false
+  xy: 475, 40
   size: 118, 228
   orig: 118, 228
   offset: 0, 0
   index: -1
 左门梁
-  rotate: false
-  xy: 730, 72
+  rotate: true
+  xy: 2, 3
   size: 29, 181
   orig: 29, 181
   offset: 0, 0

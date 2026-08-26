@@ -1,4 +1,4 @@
-import { _decorator, Color, Component, Graphics, Node, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, Node, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bombing } from '../Skill/ZRSJZ_Bombing';
 const { ccclass, property } = _decorator;
@@ -27,6 +27,7 @@ export class ZRSJZ_BombPlot extends Component {
     private _finishCallback: () => void = null;
     private _running: boolean = false;
     private _deployVersion: number = 0;
+    private _currentBombingDuration: number = 0;
     private readonly _dropWorldPosition: Vec3 = new Vec3();
 
     public get IsRunning(): boolean {
@@ -56,6 +57,7 @@ export class ZRSJZ_BombPlot extends Component {
         this._effectParent = effectParent;
         this._finishCallback = onFinished;
         this._running = true;
+        this._currentBombingDuration = Math.max(0.1, this.BombingDuration);
 
         const radius = Math.max(1, this.Radius);
         const insetX = Math.min(radius, bounds.width * 0.5);
@@ -68,7 +70,6 @@ export class ZRSJZ_BombPlot extends Component {
             gameMap.worldPosition.z,
         );
         this.node.active = true;
-        this.DrawRange();
 
         this.scheduleOnce(() => {
             if (version !== this._deployVersion || !this.IsRunning) return;
@@ -77,11 +78,48 @@ export class ZRSJZ_BombPlot extends Component {
         return true;
     }
 
+    /** 在指定世界坐标生成轰炸区；特别行动用它将圆心精确放到接取玩家脚下。 */
+    public DeployAtWorldPosition(
+        worldPosition: Readonly<Vec3>,
+        gameMap: Node,
+        effectParent: Node,
+        bombingDuration: number,
+        onFinished: () => void = null,
+    ): boolean {
+        const mapTransform = gameMap?.getComponent(UITransform);
+        if (!mapTransform || !effectParent?.isValid || !worldPosition) return false;
+
+        this.unscheduleAllCallbacks();
+        const version = ++this._deployVersion;
+        this._effectParent = effectParent;
+        this._finishCallback = onFinished;
+        this._running = true;
+        this._currentBombingDuration = Math.max(0.1, bombingDuration);
+        this.node.setWorldPosition(worldPosition.x, worldPosition.y, gameMap.worldPosition.z);
+        this.node.active = true;
+        this.scheduleOnce(() => {
+            if (version !== this._deployVersion || !this.IsRunning) return;
+            this.BeginBombing(version);
+        }, Math.max(0, this.WarningDuration));
+        return true;
+    }
+
+    /** 立即删除当前轰炸区，不执行自然结束回调。 */
+    public Cancel(): void {
+        if (!this.node?.isValid) return;
+        this._running = false;
+        ++this._deployVersion;
+        this.unscheduleAllCallbacks();
+        this._finishCallback = null;
+        this._effectParent = null;
+        ZRSJZ_PoolManager.Instance.PutNode(this.node);
+    }
+
     private BeginBombing(version: number): void {
         void this.DropBomb(version);
         this.scheduleOnce(() => {
             if (version === this._deployVersion) this.Finish();
-        }, Math.max(0.1, this.BombingDuration));
+        }, Math.max(0.1, this._currentBombingDuration || this.BombingDuration));
     }
 
     /** 使用 sqrt(random) 取半径，使炸点在圆形面积内均匀分布，而不是挤在圆心。 */
@@ -121,17 +159,6 @@ export class ZRSJZ_BombPlot extends Component {
         const maxInterval = Math.max(minInterval, this.MinBombInterval, this.MaxBombInterval);
         this.scheduleOnce(() => void this.DropBomb(version),
             minInterval + Math.random() * (maxInterval - minInterval));
-    }
-
-    private DrawRange(): void {
-        const graphics = this.getComponent(Graphics) ?? this.addComponent(Graphics);
-        graphics.clear();
-        graphics.lineWidth = 30;
-        graphics.strokeColor = new Color(255, 45, 45, 210);
-        graphics.fillColor = new Color(255, 35, 35, 35);
-        graphics.circle(0, 0, Math.max(1, this.Radius));
-        graphics.fill();
-        graphics.stroke();
     }
 
     private Finish(): void {

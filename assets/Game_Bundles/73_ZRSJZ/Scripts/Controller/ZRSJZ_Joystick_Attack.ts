@@ -10,6 +10,8 @@ import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
 import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
+import { ZRSJZ_SpecialOperationsTaskIcon } from '../Unit/ZRSJZ_SpecialOperationsTaskIcon';
+import { ZRSJZ_Mailbox } from '../Unit/ZRSJZ_Mailbox';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Joystick_Attack')
@@ -30,9 +32,12 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     private _searchButton: Node = null;
     private _targetBox: ZRSJZ_Box = null;
+    private _targetMailbox: ZRSJZ_Mailbox = null;
     private _doorCardButton: Node = null;
     private _doorVideoButton: Node = null;
     private _targetDoor: ZRSJZ_Door = null;
+    private _taskButton: Node = null;
+    private _targetSpecialOperation: ZRSJZ_SpecialOperationsTaskIcon = null;
 
     private _attackSprite: Sprite = null;
     private _attackTouch: Touch = null;
@@ -50,6 +55,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
         this._searchButton = this.node.getChildByName('Search');
         this._doorCardButton = this.node.getChildByName('Crack');
         this._doorVideoButton = this.node.getChildByName('CrackByVideo');
+        this._taskButton = this.node.getChildByName('Task');
         this._attackSprite = this.node.getChildByName('Attack').getComponent(Sprite);
         this._switchSprite = this.node.getChildByName('Switch').getComponent(Sprite);
         this._slideSprite = this.node.getChildByPath('Slide/CD').getComponent(Sprite);
@@ -68,6 +74,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SPECIAL_OPERATION, this.ShowSpecialOperation, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshWeaponSwitchState, this);
     }
@@ -75,6 +82,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     protected onDisable(): void {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SPECIAL_OPERATION, this.ShowSpecialOperation, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.ShowEquipment, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshWeaponSwitchState, this);
     }
@@ -208,6 +216,23 @@ export class ZRSJZ_Joystick_Attack extends Component {
                 })
                 break;
             }
+            case "Task":
+                if (!this._targetSpecialOperation?.IsAvailable) {
+                    this.ShowSpecialOperation(null);
+                    break;
+                }
+                if (ZRSJZ_Game.Instance?.IsSpecialOperationInProgress()) {
+                    void ZRSJZ_UIManager.Instance.ShowTip("任务正在进行中");
+                    break;
+                }
+                ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+                    ZRSJZ_PANEL.特别行动弹窗,
+                    this.PlayerIndex,
+                    ZRSJZ_GameData.Instance.CurMap,
+                    this._targetSpecialOperation,
+                    this.PlayerIndex,
+                );
+                break;
         }
     }
 
@@ -296,6 +321,11 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //搜索
     Search() {
+        if (this._targetMailbox) {
+            ZRSJZ_InventoryService.SetActivePlayerIndex(this.PlayerIndex);
+            this._targetMailbox.TryOpenNext(this.PlayerIndex);
+            return;
+        }
         if (!this._targetBox) return;
         if (this._targetBox.IsBeingSearchedByOther(this.PlayerIndex)) {
             ZRSJZ_UIManager.Instance.ShowTip("另一名玩家正在搜索该箱子");
@@ -348,10 +378,11 @@ export class ZRSJZ_Joystick_Attack extends Component {
         })
     }
 
-    ShowSearch(box: ZRSJZ_Box, playerIndex?: number) {
+    ShowSearch(source: ZRSJZ_Box | ZRSJZ_Mailbox, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        this._targetBox = box;
-        this._searchButton.active = box != null;
+        this._targetBox = source instanceof ZRSJZ_Box ? source : null;
+        this._targetMailbox = source instanceof ZRSJZ_Mailbox ? source : null;
+        this._searchButton.active = source != null;
     }
 
     ShowDoor(door: ZRSJZ_Door, playerIndex?: number) {
@@ -359,6 +390,12 @@ export class ZRSJZ_Joystick_Attack extends Component {
         this._targetDoor = door;
         this._doorCardButton.active = door != null;
         this._doorVideoButton.active = door != null;
+    }
+
+    ShowSpecialOperation(taskPoint: ZRSJZ_SpecialOperationsTaskIcon, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        this._targetSpecialOperation = taskPoint?.IsAvailable ? taskPoint : null;
+        if (this._taskButton?.isValid) this._taskButton.active = this._targetSpecialOperation != null;
     }
 
     //装备切换
