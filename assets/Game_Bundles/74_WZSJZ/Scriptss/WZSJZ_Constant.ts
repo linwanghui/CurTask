@@ -511,6 +511,8 @@ export class WZSJZ_Constant {
         CellUpgradeEffectPrewarm: 1,
         BossLaoSaiArrowPrewarm: 1,
         BossDianYuZhangSlashPrewarm: 1,
+        EnemyCommonBulletPrewarm: 1,
+        BossGongZiBombPrewarm: 1,
         BlockBridgeDogBulletPrewarm: 1,
         BlockBridgeDogUltimatePrewarm: 1,
         SonicTrapPrewarm: 1,
@@ -540,6 +542,7 @@ export class WZSJZ_Constant {
         "阿萨拉士兵": "Prefabs/单位/阿萨拉士兵",
         "牢赛": "Prefabs/单位/牢赛",
         "典狱长": "Prefabs/单位/典狱长",
+        "公子": "Prefabs/单位/公子",
     };
 
     public static readonly EnemyConfigs: Record<string, WZSJZ_EnemyConfig> = {
@@ -601,6 +604,21 @@ export class WZSJZ_Constant {
             DeathDuration: 1.6,
             SpawnPositionMode: "center",
         },
+        "公子": {
+            MaxHealth: 1500,
+            MoveSpeed: 62,
+            AttackRange: 400,
+            AttackPositionOffset: 0,
+            AttackInterval: 1.2,
+            AttackDamage: 32,
+            MoveAnimation: "zoulu",
+            AttackAnimation: "gongji",
+            HitAnimation: "shouji",
+            HitDuration: 0.42,
+            DeathAnimation: "siwang",
+            DeathDuration: 1.5,
+            SpawnPositionMode: "center",
+        },
     };
 
     /** 所有Boss共用的状态条和破韧表现。 */
@@ -651,6 +669,40 @@ export class WZSJZ_Constant {
         SkillEffectAnimation: "animation",
         SkillLaunchOffsetX: -40,
         SkillLaunchOffsetY: 65,
+    };
+
+    /** 无碰撞检测的敌方直线子弹，未来远程敌人可共同使用。 */
+    public static readonly EnemyCommonBullet = {
+        PrefabPath: "Prefabs/投掷物/敌对通用子弹",
+        Speed: 1000,
+        HitDistance: 20,
+        HitEffectDuration: 0.25,
+    };
+
+    /** 公子：手枪普通攻击，技能向城墙抛掷炸弹；jineng2暂不使用。 */
+    public static readonly BossGongZi = {
+        BombPrefabPath: "Prefabs/特效/公子技能特效",
+        MaxTenacity: 380,
+        TenacityDamageScale: 1,
+        TenacityRecoveryDelay: 6,
+        IdleAnimation: "daiji",
+        SkillAnimation: "jineng",
+        NormalFireDelay: 0.1,
+        NormalAnimationDuration: 0.9,
+        SkillMinInterval: 9,
+        SkillMaxInterval: 15,
+        SkillThrowDelay: 0.5,
+        SkillAnimationDuration: 1.15,
+        BombDamage: 140,
+        BombSpeed: 620,
+        BombArcHeight: 240,
+        BombSpinSpeed: 360,
+        BombTargetOffsetY: 35,
+        BombExplosionAnimation: "animation",
+        /** 爆炸动画开始后延迟多少秒结算城墙伤害。 */
+        BombDamageDelay: 0.1,
+        BombExplosionFallbackDuration: 0.8,
+        LaunchPointNames: ["子弹发射点位", "子弹发射点"],
     };
 
     public static readonly GunBullet = {
