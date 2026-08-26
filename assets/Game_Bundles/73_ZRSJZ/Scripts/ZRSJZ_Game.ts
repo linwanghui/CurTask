@@ -1682,7 +1682,7 @@ export class ZRSJZ_Game extends Component {
 
         const insuranceDoors = (this.CurMap?.node?.getComponentsInChildren(ZRSJZ_Door) ?? [])
             .filter(door => door?.node?.isValid && door.Skin === "保险门");
-        for (const door of insuranceDoors) door.Open();
+        for (const door of insuranceDoors) door.OpenForBreakWallOperation();
         if (insuranceDoors.length === 0) {
             console.warn("[ZRSJZ_Game] 破壁行动未找到 Skin=保险门 的门节点");
         }

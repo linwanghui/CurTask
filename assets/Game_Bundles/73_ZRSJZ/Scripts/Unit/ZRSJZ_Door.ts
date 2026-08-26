@@ -18,6 +18,14 @@ export class ZRSJZ_Door extends Component {
     Collider: Node = null;
     private _isOpened: boolean = false;
 
+    public get IsInsuranceDoor(): boolean {
+        return this.Skin === "保险门";
+    }
+
+    public get CanOpenManually(): boolean {
+        return !this._isOpened && !this.IsInsuranceDoor;
+    }
+
     protected onLoad(): void {
         this.Spine = this.getComponent(sp.Skeleton);
         this.Sensor = this.getComponent(Collider2D);
@@ -29,7 +37,7 @@ export class ZRSJZ_Door extends Component {
     }
 
     public TryOpenWithRoomCard(playerIndex: number = 0): boolean {
-        if (this._isOpened) return false;
+        if (!this.CanOpenManually) return false;
         if (!ZRSJZ_InventoryService.HasEquippedRoomCard(this.RoomCard, playerIndex)) {
             ZRSJZ_UIManager.Instance.ShowTip(`需要在卡包中装备${this.RoomCard}`);
             return false;
@@ -45,6 +53,17 @@ export class ZRSJZ_Door extends Component {
     }
 
     public Open() {
+        if (this.IsInsuranceDoor) return;
+        this.OpenInternal();
+    }
+
+    /** 保险门只能由破壁行动开启，不能通过房卡或广告入口绕过。 */
+    public OpenForBreakWallOperation(): void {
+        if (!this.IsInsuranceDoor) return;
+        this.OpenInternal();
+    }
+
+    private OpenInternal(): void {
         if (this._isOpened) return;
         this._isOpened = true;
         this.Spine.setAnimation(0, this.Skin, false);

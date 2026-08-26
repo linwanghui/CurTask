@@ -30,6 +30,9 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
     @property({ displayName: "每秒自动增加进度", min: 0.1 })
     AutoProgressPerSecond: number = 4;
 
+    @property({ displayName: "扫描顺时针旋转速度（度/秒）", min: 1 })
+    ScanRotationSpeed: number = 120;
+
     private static readonly RANGE_MIN_X: number = -470;
     private static readonly RANGE_MAX_X: number = 540;
     private static readonly RANGE_MIN_WIDTH: number = 50;
@@ -41,6 +44,7 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
 
     private _rangeTemplate: Node = null;
     private _arrow: Node = null;
+    private _scan: Node = null;
     private _progressSprite: Sprite = null;
     private _progressLabel: Label = null;
     private _unlockButton: Button = null;
@@ -58,6 +62,7 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
     protected onLoad(): void {
         this._rangeTemplate = find("Panel/判断范围", this.node);
         this._arrow = find("Panel/箭头", this.node);
+        this._scan = find("Panel/扫描框/扫描", this.node);
         this._progressSprite = find("Panel/进度", this.node)?.getComponent(Sprite) ?? null;
         this._progressLabel = find("Panel/进度提示", this.node)?.getComponent(Label) ?? null;
         this._unlockButton = find("Panel/开锁", this.node)?.getComponent(Button) ?? null;
@@ -78,7 +83,13 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
     }
 
     protected update(deltaTime: number): void {
-        if (!this._isRunning || !this.node.activeInHierarchy) return;
+        if (!this.node.activeInHierarchy) return;
+        if (this._scan?.isValid) {
+            this._scan.angle = (
+                this._scan.angle - this.ScanRotationSpeed * Math.max(0, deltaTime)
+            ) % 360;
+        }
+        if (!this._isRunning) return;
         this.MoveArrow(deltaTime);
         this.SetProgress(this._progress + this.AutoProgressPerSecond * Math.max(0, deltaTime));
     }

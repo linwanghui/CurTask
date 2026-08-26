@@ -41,6 +41,7 @@ export class ZRSJZ_Mailbox extends Component {
     public get IsAvailable(): boolean {
         return this.node?.isValid
             && this.node.activeInHierarchy
+            && ZRSJZ_Game.Instance?.IsBreakWallOperationInProgress() === true
             && this._openedCount < this._icons.length;
     }
 

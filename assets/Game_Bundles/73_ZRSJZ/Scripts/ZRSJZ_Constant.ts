@@ -1953,7 +1953,7 @@ export function GetSpecialOperationConfig(
             TaskName: "破壁行动",
             TaskDesc: "保险门将自动开启，请在限时内破解并开启邮箱中的全部9个箱位。",
             TargetKillCount: 0,
-            TimeLimitSeconds: Math.max(240, 320 - difficulty * 10),
+            TimeLimitSeconds: Math.max(120, 240 - difficulty * 10),
         };
     }
     return {
