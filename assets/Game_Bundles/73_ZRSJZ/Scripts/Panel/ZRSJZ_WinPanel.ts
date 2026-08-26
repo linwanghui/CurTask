@@ -47,8 +47,8 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
         this.KillCount.string = args[2];
         this.ShowAllProp(args[3]);
         Tween.stopAllByTarget(this.Skeleton.node);
-        this.Skeleton.node.setPosition(Vec3.ZERO);
-        this.Skeleton.node.setScale(2, 2, 1);
+        // this.Skeleton.node.setPosition(Vec3.ZERO);
+        this.Skeleton.node.setScale(1, 1, 1);
         this.Skeleton.setAnimation(0, "shengli", false);
         this.Skeleton.setCompleteListener(() => {
             this.Skeleton.setAnimation(0, "daiji", true);
@@ -202,7 +202,7 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
                 if (this._isReturning) return;
                 this._isReturning = true;
                 await ZRSJZ_UIManager.Instance.FinishGameInventory(true);
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Star");
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Start");
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.胜利弹窗);
                 break;
         }

@@ -13,6 +13,10 @@ export class ZRSJZ_GameDataDefaults {
     public static Initialize(data: ZRSJZ_GameData): void {
         data.Gold = 100000;
         data.CurMap = "新手村";
+        data.Grade = 1;
+        data.CurExp = 0;
+        data.PendingExperience = 0;
+        data.MainTaskExperienceAwards = {};
         this.InitializePlayerKnife(data, 0);
         this.InitializePlayerKnife(data, 1);
 
@@ -27,6 +31,46 @@ export class ZRSJZ_GameDataDefaults {
 
     public static Migrate(data: ZRSJZ_GameData, savedData: any): boolean {
         let changed = false;
+        const normalizedGrade = Math.max(1, Math.min(60, Math.floor(Number(data.Grade) || 1)));
+        if (data.Grade !== normalizedGrade) {
+            data.Grade = normalizedGrade;
+            changed = true;
+        }
+        const normalizedExp = normalizedGrade >= 60
+            ? 0
+            : Math.max(0, Math.floor(Number(data.CurExp) || 0));
+        if (data.CurExp !== normalizedExp) {
+            data.CurExp = normalizedExp;
+            changed = true;
+        }
+        for (const field of [
+            "PendingExperience",
+            "TotalGamePlayed",
+            "TotalTimePlayed",
+            "TotalEvacuation",
+            "OptimumEvacuation",
+        ] as const) {
+            const normalizedValue = Math.max(0, Math.floor(Number(data[field]) || 0));
+            if (data[field] === normalizedValue) continue;
+            data[field] = normalizedValue;
+            changed = true;
+        }
+        if (!data.MainTaskExperienceAwards
+            || typeof data.MainTaskExperienceAwards !== "object"
+            || Array.isArray(data.MainTaskExperienceAwards)) {
+            data.MainTaskExperienceAwards = {};
+            changed = true;
+        } else {
+            for (const taskName of Object.keys(data.MainTaskExperienceAwards)) {
+                const normalizedAward = Math.max(
+                    0,
+                    Math.floor(Number(data.MainTaskExperienceAwards[taskName]) || 0),
+                );
+                if (data.MainTaskExperienceAwards[taskName] === normalizedAward) continue;
+                data.MainTaskExperienceAwards[taskName] = normalizedAward;
+                changed = true;
+            }
+        }
         if (savedData.WarehouseStorageVersion === undefined || data.WarehouseStorageVersion < 1) {
             changed = this.MigrateWarehouseStorage(data) || changed;
         }

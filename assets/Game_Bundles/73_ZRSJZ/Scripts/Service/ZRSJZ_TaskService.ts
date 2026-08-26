@@ -13,11 +13,16 @@ export class ZRSJZ_TaskService {
     }
 
     //领取任务奖励
-    public static GetTaskAward() {
+    public static GetTaskAward(experienceAward?: number) {
         const data = ZRSJZ_GameData.Instance;
         if (!data.CurMainTask) return;
-        data.MainTaskComplete.push(data.CurMainTask.TaskName);
-        const curIndex: number = Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys()).indexOf(data.CurMainTask.TaskName);
+        const taskName = data.CurMainTask.TaskName;
+        if (typeof experienceAward === "number" && Number.isFinite(experienceAward)) {
+            data.MainTaskExperienceAwards ??= {};
+            data.MainTaskExperienceAwards[taskName] = Math.max(0, Math.floor(experienceAward));
+        }
+        data.MainTaskComplete.push(taskName);
+        const curIndex: number = Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys()).indexOf(taskName);
         if (curIndex + 1 < Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys()).length) {
             data.NewMainTask = Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys())[curIndex + 1];
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, data.NewMainTask);

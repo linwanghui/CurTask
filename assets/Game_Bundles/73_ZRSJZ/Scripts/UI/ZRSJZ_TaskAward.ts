@@ -13,6 +13,9 @@ export class ZRSJZ_TaskAward extends Component {
     @property(SpriteFrame)
     GoldSF: SpriteFrame = null;
 
+    @property(SpriteFrame)
+    ExpSF: SpriteFrame = null;
+
     Bottom: Sprite = null;
     Icon: Sprite = null;
     Name: Label = null;
@@ -39,6 +42,9 @@ export class ZRSJZ_TaskAward extends Component {
         this.Count.string = count.toString();
         if (propName == "钞票") {
             this.Icon.spriteFrame = this.GoldSF;
+            this.Bottom.spriteFrame = this.BottomSF;
+        } else if (propName == "经验") {
+            this.Icon.spriteFrame = this.ExpSF;
             this.Bottom.spriteFrame = this.BottomSF;
         } else {
             ZRSJZ_UIManager.Instance.GetPropUI(propName).then(sf => {

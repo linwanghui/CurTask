@@ -1,5 +1,6 @@
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_FacilityService } from "./ZRSJZ_FacilityService";
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
 
 /** 收藏室属性和盲盒统计业务。 */
 export class ZRSJZ_BoxroomService {
@@ -16,6 +17,7 @@ export class ZRSJZ_BoxroomService {
         if (newLevel === 0) delete data.BoxroomPropLevel[propName];
         else data.BoxroomPropLevel[propName] = newLevel;
         ZRSJZ_GameData.SaveData();
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE);
     }
 
     public static SetBoxroomAttributeBonusBasisPoints(bonusBasisPoints: { [attributeName: string]: number }): void {

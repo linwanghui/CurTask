@@ -6,7 +6,6 @@ import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
-import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_DeathPanel')
@@ -26,7 +25,7 @@ export class ZRSJZ_DeathPanel extends ZRSJZ_Panel {
             case "关闭":
                 ZRSJZ_UIManager.Instance.HidePlayerPanel(this.PanelName, this.PlayerIndex);
                 if (ZRSJZ_Game.Instance.Players.every(player => player.IsDead)) {
-                    ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.失败弹窗, "死亡", ZRSJZ_Game.Instance.GetGameTime(), ZRSJZ_Game.Instance.GetKillCount());
+                    ZRSJZ_Game.Instance.FinishGameByDeath();
                 }
                 break;
             case "关闭双人模式复活弹窗":
@@ -49,11 +48,10 @@ export class ZRSJZ_DeathPanel extends ZRSJZ_Panel {
             case "安全撤离":
                 Banner.Instance.ShowVideoAd(() => {
                     ZRSJZ_UIManager.Instance.HidePlayerPanel(this.PanelName, this.PlayerIndex);
-                    ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.胜利弹窗, "VIP通道", ZRSJZ_Game.Instance.GetGameTime(), ZRSJZ_Game.Instance.GetKillCount(), ZRSJZ_Game.Instance.GetAllGoodsID());
+                    ZRSJZ_Game.Instance.FinishGameByVipEvacuation();
                 })
                 break;
         }
     }
 
 }
-

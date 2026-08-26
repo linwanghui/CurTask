@@ -33,8 +33,8 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
         this.BattleTime.string = args[1];
         this.KillCount.string = args[2];
         Tween.stopAllByTarget(this.Skeleton.node);
-        this.Skeleton.node.setPosition(Vec3.ZERO);
-        this.Skeleton.node.setScale(2, 2, 1);
+        // this.Skeleton.node.setPosition(Vec3.ZERO);
+        // this.Skeleton.node.setScale(2, 2, 1);
         this.Skeleton.setAnimation(0, "shibai", false);
         this.Skeleton.setCompleteListener(() => {
             this.Skeleton.setAnimation(0, "daiji", true);
@@ -55,7 +55,7 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
                 if (this._isReturning) return;
                 this._isReturning = true;
                 await ZRSJZ_UIManager.Instance.FinishGameInventory(false);
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Star");
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Start");
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.失败弹窗);
                 break;
         }

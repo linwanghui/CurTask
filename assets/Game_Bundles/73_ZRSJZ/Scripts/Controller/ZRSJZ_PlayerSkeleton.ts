@@ -145,6 +145,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     }
 
     private ApplyAimDirection(): void {
+        this.ApplyWeaponHandSlots();
         if (!this._mzBone || !this.HasDirection) return;
         const distance = 1000;
 
@@ -160,6 +161,26 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         this._mzBone.x = (localDirX * cos - localDirY * sin) * distance;
         this._mzBone.y = (localDirX * sin + localDirY * cos) * distance;
         this.Skeleton._skeleton.updateWorldTransform();
+    }
+
+    /**
+     * 部分角色皮肤的刀动画没有给对应手部槽写隐藏关键帧，镜像后的玩家2最明显，
+     * 会同时显示持枪手和持刀手。每帧绘制前按当前武器姿态兜底，只保留正确手部。
+     */
+    private ApplyWeaponHandSlots(): void {
+        const skeleton = this.Skeleton?._skeleton;
+        if (!skeleton) return;
+
+        for (let slotIndex = 0; slotIndex < skeleton.slots.length; slotIndex++) {
+            const slot = skeleton.slots[slotIndex];
+            const slotName = slot.data.name;
+            const isGunHand = slotName.includes("左手3拿枪手1");
+            const isKnifeHand = slotName.includes("左手3拿枪手2");
+            if (!isGunHand && !isKnifeHand) continue;
+
+            const shouldHide = this.IsKnife ? isKnifeHand : isGunHand;
+            slot.setAttachment(shouldHide ? null : skeleton.getAttachment(slotIndex, slotName));
+        }
     }
 
     async ShowEquipment(equipmentName: string, isEquipment: boolean = true): Promise<void> {
