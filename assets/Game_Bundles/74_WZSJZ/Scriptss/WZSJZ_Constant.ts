@@ -591,7 +591,7 @@ export class WZSJZ_Constant {
             MoveSpeed: 58,
             AttackRange: 20,
             AttackPositionOffset: 0,
-            AttackInterval: 2.8,
+            AttackInterval: 1.2,
             AttackDamage: 45,
             MoveAnimation: "zoulu",
             AttackAnimation: "gongji",
