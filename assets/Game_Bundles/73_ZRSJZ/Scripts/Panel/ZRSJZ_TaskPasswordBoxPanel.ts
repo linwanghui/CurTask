@@ -7,6 +7,7 @@ import {
     Label,
     Node,
     Sprite,
+    UIOpacity,
     UITransform,
 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
@@ -20,6 +21,9 @@ interface ZRSJZ_TaskPasswordRange {
     Node: Node;
     Width: number;
     IsHit: boolean;
+    Checked1: Node;
+    Checked2: Sprite;
+    FeedbackElapsed: number;
 }
 
 @ccclass('ZRSJZ_TaskPasswordBoxPanel')
@@ -41,10 +45,14 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
     private static readonly RANGE_MIN_GAP: number = 140;
     private static readonly ARROW_MIN_X: number = -615;
     private static readonly ARROW_MAX_X: number = 615;
+    private static readonly HIT_FEEDBACK_DURATION: number = 0.3;
+    private static readonly MISS_PENALTY_DURATION: number = 0.6;
 
     private _rangeTemplate: Node = null;
     private _arrow: Node = null;
     private _scan: Node = null;
+    private _errorFlash: Node = null;
+    private _errorOpacity: UIOpacity = null;
     private _progressSprite: Sprite = null;
     private _progressLabel: Label = null;
     private _unlockButton: Button = null;
@@ -52,6 +60,8 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
     private readonly _ranges: ZRSJZ_TaskPasswordRange[] = [];
     private _arrowDirection: number = 1;
     private _progress: number = 0;
+    private _penaltyRemaining: number = 0;
+    private _completionDelayRemaining: number = 0;
     private _isRunning: boolean = false;
     private _isTransitioningToGoods: boolean = false;
     private _targetBox: ZRSJZ_Box = null;
@@ -63,6 +73,13 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
         this._rangeTemplate = find("Panel/判断范围", this.node);
         this._arrow = find("Panel/箭头", this.node);
         this._scan = find("Panel/扫描框/扫描", this.node);
+        this._errorFlash = find("Panel/破译框/红", this.node);
+        if (this._errorFlash) {
+            this._errorFlash.active = true;
+            this._errorOpacity = this._errorFlash.getComponent(UIOpacity)
+                ?? this._errorFlash.addComponent(UIOpacity);
+            this._errorOpacity.opacity = 0;
+        }
         this._progressSprite = find("Panel/进度", this.node)?.getComponent(Sprite) ?? null;
         this._progressLabel = find("Panel/进度提示", this.node)?.getComponent(Label) ?? null;
         this._unlockButton = find("Panel/开锁", this.node)?.getComponent(Button) ?? null;
@@ -74,6 +91,7 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
 
     protected onDisable(): void {
         this._isRunning = false;
+        this.ResetFeedbackState();
         if (!this._isTransitioningToGoods) {
             this._targetBox?.EndSearch(this._playerIndex);
             const cancelCallback = this._cancelCallback;
@@ -90,6 +108,33 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
             ) % 360;
         }
         if (!this._isRunning) return;
+        this.UpdateRangeFeedback(deltaTime);
+        if (this._completionDelayRemaining > 0) {
+            this._completionDelayRemaining = Math.max(
+                0,
+                this._completionDelayRemaining - Math.max(0, deltaTime),
+            );
+            if (this._completionDelayRemaining <= 0) this.OpenUnlockedBox();
+            return;
+        }
+        if (this._penaltyRemaining > 0) {
+            this._penaltyRemaining = Math.max(
+                0,
+                this._penaltyRemaining - Math.max(0, deltaTime),
+            );
+            if (this._errorOpacity?.isValid) {
+                const progress = 1 - this._penaltyRemaining
+                    / ZRSJZ_TaskPasswordBoxPanel.MISS_PENALTY_DURATION;
+                // 在整段失败惩罚时间内形成两个完整的透明度脉冲。
+                const pulse = Math.sin(progress * Math.PI * 2);
+                this._errorOpacity.opacity = Math.round(pulse * pulse * 255);
+            }
+            if (this._penaltyRemaining <= 0) {
+                if (this._errorOpacity?.isValid) this._errorOpacity.opacity = 0;
+                if (this._unlockButton) this._unlockButton.interactable = true;
+            }
+            return;
+        }
         this.MoveArrow(deltaTime);
         this.SetProgress(this._progress + this.AutoProgressPerSecond * Math.max(0, deltaTime));
     }
@@ -134,6 +179,7 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
 
     private StartNewRound(): void {
         this._isRunning = true;
+        this.ResetFeedbackState();
         if (this._unlockButton) {
             this._unlockButton.enabled = true;
             this._unlockButton.interactable = true;
@@ -200,8 +246,21 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
             if (sprite) sprite.enabled = true;
             const mask = rangeNode.getChildByName("Mask");
             if (mask) mask.active = true;
+            const checked1 = rangeNode.getChildByName("Checked1");
+            if (checked1) checked1.active = false;
+            const checked2Node = rangeNode.getChildByName("Checked2");
+            const checked2 = checked2Node?.getComponent(Sprite) ?? null;
+            if (checked2Node) checked2Node.active = false;
+            if (checked2) checked2.fillRange = 0;
             this._rangeNodes.push(rangeNode);
-            this._ranges.push({ Node: rangeNode, Width: layout.Width, IsHit: false });
+            this._ranges.push({
+                Node: rangeNode,
+                Width: layout.Width,
+                IsHit: false,
+                Checked1: checked1,
+                Checked2: checked2,
+                FeedbackElapsed: 0,
+            });
         }
         if (this._ranges.length !== count) {
             console.error(`[ZRSJZ_TaskPasswordBoxPanel] 判定范围生成失败: ${this._ranges.length}/${count}`);
@@ -260,7 +319,12 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
     }
 
     private TryHitRange(): void {
-        if (!this._isRunning || !this._arrow) return;
+        if (
+            !this._isRunning
+            || !this._arrow
+            || this._penaltyRemaining > 0
+            || this._completionDelayRemaining > 0
+        ) return;
         ZRSJZ_AudioManager.Instance?.PlaySound("点击");
         const arrowWorldX = this._arrow.worldPosition.x;
         const target = this._ranges.find(range =>
@@ -272,6 +336,7 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
         );
         if (!target) {
             ZRSJZ_AudioManager.Instance?.PlaySound("SafeBoxF");
+            this.StartMissPenalty();
             return;
         }
 
@@ -281,21 +346,67 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
         if (sprite) sprite.enabled = false;
         const mask = target.Node.getChildByName("Mask");
         if (mask) mask.active = false;
+        target.FeedbackElapsed = 0;
+        if (target.Checked1?.isValid) target.Checked1.active = true;
+        if (target.Checked2?.node?.isValid) {
+            target.Checked2.node.active = true;
+            target.Checked2.fillRange = 0;
+        }
 
         const completedCount = this._ranges.filter(range => range.IsHit).length;
         // 每次有效命中都在当前值上增加一大段；不点击时仍由 update 缓慢增长。
-        this.SetProgress(this._progress + 100 / this._ranges.length);
-        if (completedCount === this._ranges.length) this.OpenUnlockedBox();
+        this.SetProgress(this._progress + 100 / this._ranges.length, false);
+        if (completedCount === this._ranges.length || this._progress >= 100) {
+            this._completionDelayRemaining = ZRSJZ_TaskPasswordBoxPanel.HIT_FEEDBACK_DURATION;
+            if (this._unlockButton) this._unlockButton.interactable = false;
+        }
     }
 
-    private SetProgress(progress: number): void {
+    private SetProgress(progress: number, openWhenFull: boolean = true): void {
         if (!this._isRunning) return;
         this._progress = Math.max(0, Math.min(100, progress));
         if (this._progressSprite) this._progressSprite.fillRange = this._progress / 100;
         if (this._progressLabel) {
             this._progressLabel.string = `[  ${Math.floor(this._progress)}%  ]`;
         }
-        if (this._progress >= 100) this.OpenUnlockedBox();
+        if (openWhenFull && this._progress >= 100) this.OpenUnlockedBox();
+    }
+
+    private StartMissPenalty(): void {
+        this._penaltyRemaining = ZRSJZ_TaskPasswordBoxPanel.MISS_PENALTY_DURATION;
+        if (this._errorOpacity?.isValid) this._errorOpacity.opacity = 0;
+        if (this._unlockButton) this._unlockButton.interactable = false;
+    }
+
+    private UpdateRangeFeedback(deltaTime: number): void {
+        const duration = ZRSJZ_TaskPasswordBoxPanel.HIT_FEEDBACK_DURATION;
+        const elapsed = Math.max(0, deltaTime);
+        for (const range of this._ranges) {
+            if (!range.Checked2?.node?.active) continue;
+            range.FeedbackElapsed = Math.min(duration, range.FeedbackElapsed + elapsed);
+            if (range.Checked2?.node?.isValid) {
+                const progress = range.FeedbackElapsed / duration;
+                // 缓出效果：开始快速填充，接近完成时逐渐减速。
+                range.Checked2.fillRange = 1 - Math.pow(1 - progress, 3);
+            }
+            if (range.FeedbackElapsed < duration) continue;
+            if (range.Checked1?.isValid) range.Checked1.active = false;
+            if (range.Checked2?.node?.isValid) range.Checked2.node.active = false;
+        }
+    }
+
+    private ResetFeedbackState(): void {
+        this._penaltyRemaining = 0;
+        this._completionDelayRemaining = 0;
+        if (this._errorOpacity?.isValid) this._errorOpacity.opacity = 0;
+        for (const range of this._ranges) {
+            range.FeedbackElapsed = 0;
+            if (range.Checked1?.isValid) range.Checked1.active = false;
+            if (range.Checked2?.node?.isValid) {
+                range.Checked2.fillRange = 0;
+                range.Checked2.node.active = false;
+            }
+        }
     }
 
     private OpenUnlockedBox(): void {
@@ -358,4 +469,3 @@ export class ZRSJZ_TaskPasswordBoxPanel extends ZRSJZ_Panel {
         );
     }
 }
-

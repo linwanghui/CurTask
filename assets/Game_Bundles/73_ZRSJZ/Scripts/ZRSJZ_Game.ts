@@ -1778,6 +1778,7 @@ export class ZRSJZ_Game extends Component {
         this._specialOperationBombPlot = bombPlot;
         this._specialOperationBombCenter.set(playerWorldPosition);
         this._specialOperationBombRadius = Math.max(1, bombPlot.Radius);
+        const taskPlayerIndex = this._specialOperationPlayerIndex;
         const deployed = bombPlot.DeployAtWorldPosition(
             playerWorldPosition,
             this.CurMap.Map,
@@ -1787,6 +1788,15 @@ export class ZRSJZ_Game extends Component {
                 if (this._activeBombPlot === bombPlot) this._activeBombPlot = null;
                 if (this._specialOperationBombPlot === bombPlot) this._specialOperationBombPlot = null;
                 this.ScheduleNextBombPlot(false);
+            },
+            {
+                DropRadius: Math.max(1, bombPlot.Radius * 0.5),
+                MinBombInterval: 0.25,
+                MaxBombInterval: 0.6,
+                GetDropCenter: () => {
+                    const player = this.GetPlayer(taskPlayerIndex)?.node;
+                    return player?.isValid ? player.worldPosition : playerWorldPosition;
+                },
             },
         );
         if (!deployed) {

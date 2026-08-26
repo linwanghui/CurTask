@@ -3,6 +3,13 @@ import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bombing } from '../Skill/ZRSJZ_Bombing';
 const { ccclass, property } = _decorator;
 
+export interface ZRSJZ_BombPlotDropOptions {
+    DropRadius?: number;
+    MinBombInterval?: number;
+    MaxBombInterval?: number;
+    GetDropCenter?: () => Readonly<Vec3> | null;
+}
+
 @ccclass('ZRSJZ_BombPlot')
 export class ZRSJZ_BombPlot extends Component {
     @property({ displayName: "轰炸区半径", min: 1 })
@@ -28,6 +35,10 @@ export class ZRSJZ_BombPlot extends Component {
     private _running: boolean = false;
     private _deployVersion: number = 0;
     private _currentBombingDuration: number = 0;
+    private _currentDropRadius: number = 0;
+    private _currentMinBombInterval: number = 0;
+    private _currentMaxBombInterval: number = 0;
+    private _getDropCenter: (() => Readonly<Vec3> | null) = null;
     private readonly _dropWorldPosition: Vec3 = new Vec3();
 
     public get IsRunning(): boolean {
@@ -58,6 +69,7 @@ export class ZRSJZ_BombPlot extends Component {
         this._finishCallback = onFinished;
         this._running = true;
         this._currentBombingDuration = Math.max(0.1, this.BombingDuration);
+        this.SetDropOptions();
 
         const radius = Math.max(1, this.Radius);
         const insetX = Math.min(radius, bounds.width * 0.5);
@@ -85,6 +97,7 @@ export class ZRSJZ_BombPlot extends Component {
         effectParent: Node,
         bombingDuration: number,
         onFinished: () => void = null,
+        dropOptions: Readonly<ZRSJZ_BombPlotDropOptions> = null,
     ): boolean {
         const mapTransform = gameMap?.getComponent(UITransform);
         if (!mapTransform || !effectParent?.isValid || !worldPosition) return false;
@@ -95,6 +108,7 @@ export class ZRSJZ_BombPlot extends Component {
         this._finishCallback = onFinished;
         this._running = true;
         this._currentBombingDuration = Math.max(0.1, bombingDuration);
+        this.SetDropOptions(dropOptions);
         this.node.setWorldPosition(worldPosition.x, worldPosition.y, gameMap.worldPosition.z);
         this.node.active = true;
         this.scheduleOnce(() => {
@@ -112,6 +126,7 @@ export class ZRSJZ_BombPlot extends Component {
         this.unscheduleAllCallbacks();
         this._finishCallback = null;
         this._effectParent = null;
+        this._getDropCenter = null;
         ZRSJZ_PoolManager.Instance.PutNode(this.node);
     }
 
@@ -127,8 +142,8 @@ export class ZRSJZ_BombPlot extends Component {
         if (version !== this._deployVersion || !this.IsRunning) return;
 
         const angle = Math.random() * Math.PI * 2;
-        const distance = Math.sqrt(Math.random()) * Math.max(1, this.Radius);
-        const center = this.node.worldPosition;
+        const distance = Math.sqrt(Math.random()) * this._currentDropRadius;
+        const center = this._getDropCenter?.() ?? this.node.worldPosition;
         this._dropWorldPosition.set(
             center.x + Math.cos(angle) * distance,
             center.y + Math.sin(angle) * distance,
@@ -155,10 +170,26 @@ export class ZRSJZ_BombPlot extends Component {
         }
 
         if (version !== this._deployVersion || !this.IsRunning) return;
-        const minInterval = Math.max(0.1, Math.min(this.MinBombInterval, this.MaxBombInterval));
-        const maxInterval = Math.max(minInterval, this.MinBombInterval, this.MaxBombInterval);
         this.scheduleOnce(() => void this.DropBomb(version),
-            minInterval + Math.random() * (maxInterval - minInterval));
+            this._currentMinBombInterval
+                + Math.random() * (this._currentMaxBombInterval - this._currentMinBombInterval));
+    }
+
+    private SetDropOptions(options: Readonly<ZRSJZ_BombPlotDropOptions> = null): void {
+        this._currentDropRadius = Math.max(1, options?.DropRadius ?? this.Radius);
+        this._currentMinBombInterval = Math.max(
+            0.1,
+            Math.min(
+                options?.MinBombInterval ?? this.MinBombInterval,
+                options?.MaxBombInterval ?? this.MaxBombInterval,
+            ),
+        );
+        this._currentMaxBombInterval = Math.max(
+            this._currentMinBombInterval,
+            options?.MinBombInterval ?? this.MinBombInterval,
+            options?.MaxBombInterval ?? this.MaxBombInterval,
+        );
+        this._getDropCenter = options?.GetDropCenter ?? null;
     }
 
     private Finish(): void {
@@ -169,6 +200,7 @@ export class ZRSJZ_BombPlot extends Component {
         const callback = this._finishCallback;
         this._finishCallback = null;
         this._effectParent = null;
+        this._getDropCenter = null;
         callback?.();
         ZRSJZ_PoolManager.Instance.PutNode(this.node);
     }
