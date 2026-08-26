@@ -31,6 +31,7 @@ import { WZSJZ_RecycleSystem } from './WZSJZ_RecycleSystem';
 import { WZSJZ_NameUnitSystem } from './WZSJZ_NameUnitSystem';
 import { WZSJZ_CommonEffectSystem } from './WZSJZ_CommonEffectSystem';
 import { WZSJZ_ShieldBrotherCombatSystem } from './WZSJZ_ShieldBrotherCombatSystem';
+import { WZSJZ_FengDogCombatSystem } from './WZSJZ_FengDogCombatSystem';
 import { WZSJZ_SkillSystem } from './WZSJZ_SkillSystem';
 import { WZSJZ_NodeInspectSystem } from './WZSJZ_NodeInspectSystem';
 import { WZSJZ_DragIndicatorSystem } from './WZSJZ_DragIndicatorSystem';
@@ -105,6 +106,7 @@ export class WZSJZ_GameManager extends Component {
     private _nameUnitSystem: WZSJZ_NameUnitSystem = null;
     private _commonEffectSystem: WZSJZ_CommonEffectSystem = null;
     private _shieldBrotherCombatSystem: WZSJZ_ShieldBrotherCombatSystem = null;
+    private _fengDogCombatSystem: WZSJZ_FengDogCombatSystem = null;
     private _skillSystem: WZSJZ_SkillSystem = null;
     private _nodeInspectSystem: WZSJZ_NodeInspectSystem = null;
     private _dragIndicatorSystem: WZSJZ_DragIndicatorSystem = null;
@@ -150,6 +152,9 @@ export class WZSJZ_GameManager extends Component {
         this._shieldBrotherCombatSystem = this.node.getComponent(WZSJZ_ShieldBrotherCombatSystem)
             || this.node.addComponent(WZSJZ_ShieldBrotherCombatSystem);
         this._shieldBrotherCombatSystem.Configure(this.FormationZone?.parent, this.DragLayer);
+        this._fengDogCombatSystem = this.node.getComponent(WZSJZ_FengDogCombatSystem)
+            || this.node.addComponent(WZSJZ_FengDogCombatSystem);
+        this._fengDogCombatSystem.Configure(this.FormationZone?.parent, this.DragLayer);
         this._cellEffectSystem = this.node.getComponent(WZSJZ_CellEffectSystem)
             || this.node.addComponent(WZSJZ_CellEffectSystem);
         this._cellEffectSystem.Configure(this.FormationZone?.parent, this.DragLayer);

@@ -1,0 +1,111 @@
+{
+"skeleton": {
+	"hash": "laAlLXtYzSYWxRA/c5GLUzXGZyQ",
+	"spine": "3.8.75",
+	"x": -33.24,
+	"y": 732.14,
+	"width": 41,
+	"height": 235.04,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/角色/技能/疯狗技能/电磁力场"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "bone", "parent": "root", "length": 103.08, "scaleX": 3.0871, "scaleY": 3.0871 },
+	{ "name": "bone2", "parent": "root", "length": 41.14, "rotation": -89.16, "x": -12.25, "y": 780.21 },
+	{ "name": "bone3", "parent": "bone2", "length": 77.16, "rotation": 179.36, "x": -18.7, "y": 0.03 }
+],
+"slots": [
+	{ "name": "拖尾", "bone": "bone3", "attachment": "拖尾" },
+	{ "name": "刀", "bone": "bone2", "attachment": "刀" },
+	{ "name": "1", "bone": "bone" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"刀": {
+				"刀": { "x": -2.94, "y": -0.45, "rotation": 89.16, "width": 41, "height": 102 }
+			},
+			"拖尾": {
+				"拖尾": { "x": 76.84, "y": 0.48, "scaleY": 1.4747, "rotation": -90.2, "width": 30, "height": 124 }
+			},
+			"1": {
+				"1": { "x": -7.93, "y": 24.64, "width": 120, "height": 119 },
+				"2": { "x": -1.43, "y": 21.64, "width": 127, "height": 127 },
+				"3": { "x": -0.93, "y": 19.14, "width": 110, "height": 112 },
+				"4": { "x": -2.93, "y": 17.14, "width": 124, "height": 118 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {
+		"slots": {
+			"1": {
+				"color": [
+					{ "time": 0.3333, "color": "ffffff00" },
+					{ "time": 0.5, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.4667, "color": "ffffffff" },
+					{ "time": 1.6, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.3333, "name": "1" },
+					{ "time": 0.4, "name": "2" },
+					{ "time": 0.4667, "name": "3" },
+					{ "time": 0.5333, "name": "4" },
+					{ "time": 0.6, "name": "1" },
+					{ "time": 0.6667, "name": "2" },
+					{ "time": 0.7333, "name": "3" },
+					{ "time": 0.8, "name": "4" },
+					{ "time": 0.8667, "name": "1" },
+					{ "time": 0.9333, "name": "2" },
+					{ "time": 1, "name": "3" },
+					{ "time": 1.0667, "name": "4" },
+					{ "time": 1.1333, "name": "1" },
+					{ "time": 1.2, "name": "2" },
+					{ "time": 1.2667, "name": "3" },
+					{ "time": 1.3333, "name": "4" },
+					{ "time": 1.4, "name": "1" },
+					{ "time": 1.4667, "name": "2" },
+					{ "time": 1.5333, "name": "3" },
+					{ "time": 1.6, "name": "4" }
+				]
+			},
+			"拖尾": {
+				"color": [
+					{ "color": "6fe0ffff" }
+				],
+				"attachment": [
+					{ "name": "拖尾" },
+					{ "time": 0.3333, "name": null }
+				]
+			},
+			"刀": {
+				"color": [
+					{ "time": 1.6, "color": "ffffffff" },
+					{ "time": 1.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "刀" }
+				]
+			}
+		},
+		"bones": {
+			"bone2": {
+				"translate": [
+					{},
+					{ "time": 0.3333, "x": 10.73, "y": -729.36 }
+				]
+			},
+			"bone": {
+				"scale": [
+					{ "time": 0.3333, "x": 0.203, "y": 0.203 },
+					{ "time": 0.5, "curve": "stepped" },
+					{ "time": 1.4667 }
+				]
+			}
+		}
+	}
+}
+}

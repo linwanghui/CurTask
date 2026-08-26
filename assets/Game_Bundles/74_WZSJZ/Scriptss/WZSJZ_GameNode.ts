@@ -16,6 +16,7 @@ import { WZSJZ_CombatSystem } from './WZSJZ_CombatSystem';
 import { WZSJZ_GameManager } from './WZSJZ_GameManager';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_ShieldBrotherCombatSystem } from './WZSJZ_ShieldBrotherCombatSystem';
+import { WZSJZ_FengDogCombatSystem } from './WZSJZ_FengDogCombatSystem';
 import { WZSJZ_NodeInspectSystem } from './WZSJZ_NodeInspectSystem';
 const { ccclass, property } = _decorator;
 
@@ -349,6 +350,8 @@ export class WZSJZ_GameNode extends Component {
             WZSJZ_CombatSystem.Instance?.UpdateKnife(this, deltaTime);
         } else if (this.Name === "红狗") {
             WZSJZ_CombatSystem.Instance?.UpdateRedDog(this, deltaTime);
+        } else if (this.Name === "疯狗") {
+            WZSJZ_FengDogCombatSystem.Instance?.UpdateFengDog(this, deltaTime);
         } else if (this.Name === "炮") {
             WZSJZ_CombatSystem.Instance?.UpdateCannon(this, deltaTime);
         } else if (this.Name === "雷") {

@@ -3,7 +3,7 @@ import { WZSJZ_Boss } from './WZSJZ_Boss';
 import { WZSJZ_BossSkill_GongZiBomb } from './WZSJZ_BossSkill_GongZiBomb';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_Enemy } from './WZSJZ_Enemy';
-import { WZSJZ_EnemyBullet } from './WZSJZ_EnemyBullet';
+import { WZSJZ_EnemyBulletPool } from './WZSJZ_EnemyBulletPool';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 type GongZiAttackState = "none" | "normal" | "skill";
@@ -13,9 +13,6 @@ const { ccclass } = _decorator;
 
 @ccclass('WZSJZ_Boss_GongZi')
 export class WZSJZ_Boss_GongZi extends WZSJZ_Boss {
-    private static _bulletPrefab: Prefab = null;
-    private static _bulletLoading: Promise<Prefab> = null;
-    private static readonly _bulletPool: NodePool = new NodePool();
     private static _bombPrefab: Prefab = null;
     private static _bombLoading: Promise<Prefab> = null;
     private static readonly _bombPool: NodePool = new NodePool();
@@ -46,7 +43,7 @@ export class WZSJZ_Boss_GongZi extends WZSJZ_Boss {
         this._normalAttackTimer = 0;
         this._actionTriggered = false;
         this.ResetSkillTimer();
-        void WZSJZ_Boss_GongZi.PrepareBulletPrefab();
+        void WZSJZ_EnemyBulletPool.Prepare();
         void WZSJZ_Boss_GongZi.PrepareBombPrefab();
         return true;
     }
@@ -121,25 +118,13 @@ export class WZSJZ_Boss_GongZi extends WZSJZ_Boss {
     }
 
     private async SpawnBullet(): Promise<void> {
-        const prefab = await WZSJZ_Boss_GongZi.PrepareBulletPrefab();
-        if (!prefab || !this.IsAlive || !this.Wall?.IsAlive
-            || !this._projectileLayer?.isValid) return;
-        const node = WZSJZ_Boss_GongZi._bulletPool.get() || instantiate(prefab);
-        node.setParent(this._projectileLayer);
-        node.setWorldPosition(this.GetLaunchPoint().worldPosition);
-        this.SetProjectileLayerRecursively(node, this._projectileLayer.layer);
-        const bullet = node.getComponent(WZSJZ_EnemyBullet);
-        if (!bullet?.Initialize(
+        if (!this.IsAlive || !this.Wall?.IsAlive || !this._projectileLayer?.isValid) return;
+        await WZSJZ_EnemyBulletPool.Spawn(
+            this._projectileLayer,
+            this.GetLaunchPoint().worldPosition.clone(),
             this.Wall,
             this.GetOutgoingAttackDamage(this.EnemyConfig.AttackDamage),
-            WZSJZ_Constant.EnemyCommonBullet.Speed,
-            WZSJZ_Constant.EnemyCommonBullet.HitDistance,
-            WZSJZ_Constant.EnemyCommonBullet.HitEffectDuration,
-            WZSJZ_Boss_GongZi.RecycleBullet,
-        )) {
-            node.active = false;
-            WZSJZ_Boss_GongZi._bulletPool.put(node);
-        }
+        );
     }
 
     private async SpawnBomb(): Promise<void> {
@@ -190,27 +175,6 @@ export class WZSJZ_Boss_GongZi extends WZSJZ_Boss {
         }
     }
 
-    private static async PrepareBulletPrefab(): Promise<Prefab> {
-        if (this._bulletPrefab) return this._bulletPrefab;
-        if (!this._bulletLoading) {
-            this._bulletLoading = WZSJZ_Incident.Loadprefab(
-                WZSJZ_Constant.EnemyCommonBullet.PrefabPath,
-            ).then((prefab) => {
-                this._bulletPrefab = prefab;
-                while (this._bulletPool.size()
-                    < WZSJZ_Constant.ObjectPool.EnemyCommonBulletPrewarm) {
-                    this._bulletPool.put(instantiate(prefab));
-                }
-                return prefab;
-            }).catch((error) => {
-                this._bulletLoading = null;
-                console.error("[WZSJZ] 敌对通用子弹加载失败。", error);
-                return null;
-            });
-        }
-        return this._bulletLoading;
-    }
-
     private static async PrepareBombPrefab(): Promise<Prefab> {
         if (this._bombPrefab) return this._bombPrefab;
         if (!this._bombLoading) {
@@ -231,12 +195,6 @@ export class WZSJZ_Boss_GongZi extends WZSJZ_Boss {
         }
         return this._bombLoading;
     }
-
-    private static RecycleBullet = (bullet: WZSJZ_EnemyBullet): void => {
-        if (!bullet?.node?.isValid) return;
-        bullet.node.active = false;
-        WZSJZ_Boss_GongZi._bulletPool.put(bullet.node);
-    };
 
     private static RecycleBomb = (bomb: WZSJZ_BossSkill_GongZiBomb): void => {
         if (!bomb?.node?.isValid) return;

@@ -14,6 +14,7 @@ import { WZSJZ_Skill_ShenBoXianJing } from './技能/WZSJZ_Skill_ShenBoXianJing'
 import { WZSJZ_Skill_ZhenDangMaiChong } from './技能/WZSJZ_Skill_ZhenDangMaiChong';
 import { WZSJZ_Skill_DianCiZhiMang } from './技能/WZSJZ_Skill_DianCiZhiMang';
 import { WZSJZ_Skill_HuiXuanFeiRen } from './技能/WZSJZ_Skill_HuiXuanFeiRen';
+import { WZSJZ_Skill_DianCiLiChang } from './技能/WZSJZ_Skill_DianCiLiChang';
 import { WZSJZ_Cell } from './WZSJZ_Cell';
 import { WZSJZ_DragIndicatorSystem } from './WZSJZ_DragIndicatorSystem';
 
@@ -45,6 +46,8 @@ export class WZSJZ_SkillSystem extends Component {
     private _electromagneticBlindPool: NodePool = new NodePool();
     private _boomerangBladePrefab: Prefab = null;
     private _boomerangBladePool: NodePool = new NodePool();
+    private _electromagneticFieldPrefab: Prefab = null;
+    private _electromagneticFieldPool: NodePool = new NodePool();
     private _formationCells: WZSJZ_Cell[] = [];
     private _infiniteSkills: boolean = false;
     private _dragIndicatorSystem: WZSJZ_DragIndicatorSystem = null;
@@ -68,6 +71,7 @@ export class WZSJZ_SkillSystem extends Component {
         this._shockPulsePool.clear();
         this._electromagneticBlindPool.clear();
         this._boomerangBladePool.clear();
+        this._electromagneticFieldPool.clear();
     }
 
     public Configure(
@@ -96,6 +100,7 @@ export class WZSJZ_SkillSystem extends Component {
         void this.PrepareShockPulse();
         void this.PrepareElectromagneticBlind();
         void this.PrepareBoomerangBlade();
+        void this.PrepareElectromagneticField();
         this.SyncSkillButtons();
     }
 
@@ -273,6 +278,8 @@ export class WZSJZ_SkillSystem extends Component {
                 return false;
             case "boomerang_blades":
                 return this.CastBoomerangBlades(config);
+            case "electromagnetic_field":
+                return this.CastElectromagneticField(config);
             default:
                 return false;
         }
@@ -479,6 +486,23 @@ export class WZSJZ_SkillSystem extends Component {
         while (this._boomerangBladePool.size()
             < WZSJZ_Constant.ObjectPool.BoomerangBladePrewarm) {
             this._boomerangBladePool.put(instantiate(this._boomerangBladePrefab));
+        }
+    }
+
+    private async PrepareElectromagneticField(): Promise<void> {
+        try {
+            this._electromagneticFieldPrefab = await WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.ElectromagneticField.PrefabPath,
+            );
+        } catch (error) {
+            console.error("[WZSJZ] 电磁力场特效预制体加载失败。", error);
+        }
+        if (!this.node?.isValid || !this._electromagneticFieldPrefab) return;
+        while (this._electromagneticFieldPool.size()
+            < WZSJZ_Constant.ObjectPool.ElectromagneticFieldPrewarm) {
+            this._electromagneticFieldPool.put(
+                instantiate(this._electromagneticFieldPrefab),
+            );
         }
     }
 
@@ -873,6 +897,111 @@ export class WZSJZ_SkillSystem extends Component {
         }
         blade.node.active = false;
         this._boomerangBladePool.put(blade.node);
+    };
+
+    private CastElectromagneticField(config: WZSJZ_SkillConfig): boolean {
+        if (!this._electromagneticFieldPrefab || !this._enemyArea || !this._projectileLayer) {
+            WZSJZ_UIManager.Instance.ShowText("技能资源尚未加载完成");
+            return false;
+        }
+        const owner = this._owners
+            .filter((item) => item?.node?.isValid && item.Name === config.OwnerName)
+            .sort((left, right) => right.Level - left.Level)[0];
+        if (!owner) return false;
+        const hasEnemy = this._enemyArea.children.some(
+            (child) => child.getComponent(WZSJZ_Enemy)?.IsAlive,
+        );
+        if (!hasEnemy) {
+            WZSJZ_UIManager.Instance.ShowText("当前没有可攻击的敌人");
+            return false;
+        }
+
+        const fieldConfig = WZSJZ_Constant.ElectromagneticField;
+        const skeleton = owner.node.getChildByName("图像")?.getComponent(sp.Skeleton);
+        const castDuration = Math.max(
+            0.01,
+            skeleton?.findAnimation(fieldConfig.SkillAnimation)?.duration
+                || fieldConfig.CastAnimationDuration,
+        );
+        if (skeleton) {
+            skeleton.setAnimation(0, fieldConfig.SkillAnimation, false);
+            skeleton.addAnimation(0, fieldConfig.IdleAnimation, true, 0);
+        }
+        // 技能动作期间占用自身攻击冷却，防止普通攻击动画覆盖jineng。
+        owner.StartAttackCooldown(castDuration);
+        const ownerLevel = owner.Level;
+        const receiveExperience = owner.CreateExperienceReceiver();
+        this.scheduleOnce(() => {
+            if (!this.node?.isValid || !this._enemyArea?.isValid) return;
+            const targets = this._enemyArea.children
+                .map((child) => child.getComponent(WZSJZ_Enemy))
+                .filter((enemy) => !!enemy?.IsAlive);
+            // 超过五名时洗牌抽取，避免总是命中children数组最前面的单位。
+            for (let index = targets.length - 1; index > 0; index--) {
+                const randomIndex = Math.floor(Math.random() * (index + 1));
+                [targets[index], targets[randomIndex]] = [targets[randomIndex], targets[index]];
+            }
+            for (const target of targets.slice(0, fieldConfig.MaxTargetCount)) {
+                this.SpawnElectromagneticField(
+                    target,
+                    ownerLevel,
+                    () => receiveExperience(fieldConfig.KillExperience),
+                );
+            }
+        }, castDuration);
+        return true;
+    }
+
+    private SpawnElectromagneticField(
+        target: WZSJZ_Enemy,
+        ownerLevel: number,
+        onKill: () => void,
+    ): boolean {
+        if (!target?.IsAlive || !this._electromagneticFieldPrefab) return false;
+        const config = WZSJZ_Constant.ElectromagneticField;
+        const effectNode = this._electromagneticFieldPool.get()
+            || instantiate(this._electromagneticFieldPrefab);
+        const targetPosition = target.node.worldPosition.clone();
+        effectNode.setParent(this._projectileLayer);
+        effectNode.setWorldPosition(targetPosition);
+        effectNode.angle = 0;
+        this.SetLayerRecursively(effectNode, this._projectileLayer.layer);
+        const effect = effectNode.getComponent(WZSJZ_Skill_DianCiLiChang);
+        if (!effect) {
+            console.error("[WZSJZ] 技能电磁力场特效缺少WZSJZ_Skill_DianCiLiChang脚本。");
+            effectNode.active = false;
+            this._electromagneticFieldPool.put(effectNode);
+            return false;
+        }
+        const damageIndex = Math.max(
+            0,
+            Math.min(config.DamagePerPulseByLevel.length - 1, ownerLevel - 1),
+        );
+        if (!effect.Initialize(
+            this._enemyArea,
+            targetPosition,
+            config.Radius,
+            config.DamagePerPulseByLevel[damageIndex],
+            config.DamageDelays,
+            config.AnimationName,
+            config.AnimationFallbackDuration,
+            this.RecycleElectromagneticField,
+            onKill,
+        )) {
+            effectNode.active = false;
+            this._electromagneticFieldPool.put(effectNode);
+            return false;
+        }
+        this.KeepProjectileLayerOnTop();
+        return true;
+    }
+
+    private RecycleElectromagneticField = (
+        effect: WZSJZ_Skill_DianCiLiChang,
+    ): void => {
+        if (!effect?.node?.isValid) return;
+        effect.node.active = false;
+        this._electromagneticFieldPool.put(effect.node);
     };
 
     private RemoveMissingComponents(node: Node): void {

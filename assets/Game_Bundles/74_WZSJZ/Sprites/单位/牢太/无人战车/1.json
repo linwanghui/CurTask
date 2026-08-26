@@ -1,0 +1,269 @@
+{
+"skeleton": {
+	"hash": "PAQquoscDvG5MpzmX2Q3GjkWdEo",
+	"spine": "3.8.75",
+	"x": -124.67,
+	"y": -15.02,
+	"width": 248.75,
+	"height": 176.17,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/敌人/牢太/无人战车"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "yanwu", "parent": "root", "length": 124.64, "rotation": -0.35, "x": 81.91, "y": 3.96 },
+	{ "name": "bone3", "parent": "root", "x": 79.08, "y": 65.14 },
+	{ "name": "luntai", "parent": "bone3", "length": 30, "x": -9.06, "y": -35.66 },
+	{ "name": "bone", "parent": "bone3", "x": -162.82, "y": 74.49 },
+	{ "name": "bone2", "parent": "root", "length": 50, "rotation": 180, "x": -92.53, "y": 140.05 },
+	{ "name": "luntai2", "parent": "bone3", "length": 30, "rotation": -59.49, "x": -159.24, "y": -35.66 },
+	{ "name": "posun", "parent": "root", "length": 100, "x": -0.58, "y": 65.89 },
+	{ "name": "bone4", "parent": "bone3", "x": -77.73, "y": -15.66 }
+],
+"slots": [
+	{ "name": "车身", "bone": "bone4", "attachment": "车身" },
+	{ "name": "轮胎", "bone": "luntai", "attachment": "轮胎" },
+	{ "name": "轮胎2", "bone": "luntai2", "attachment": "轮胎" },
+	{ "name": "1", "bone": "yanwu" },
+	{ "name": "炮口1", "bone": "bone" },
+	{ "name": "炮弹", "bone": "bone2" },
+	{ "name": "破损 (1)", "bone": "posun" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"车身": {
+				"车身": { "x": -1.26, "y": 41.68, "width": 248, "height": 140 }
+			},
+			"炮弹": {
+				"炮弹": { "x": 17.88, "y": 0.4, "rotation": 180, "width": 59, "height": 19 }
+			},
+			"轮胎2": {
+				"轮胎": { "width": 65, "height": 65 }
+			},
+			"炮口1": {
+				"炮口1": { "x": 0.33, "y": 0.03, "width": 35, "height": 51 },
+				"炮口2": { "x": 1.83, "y": 1.53, "width": 70, "height": 68 },
+				"炮口3": { "x": 0.83, "y": -0.47, "width": 82, "height": 80 },
+				"炮口4": { "x": -0.67, "y": 4.03, "width": 125, "height": 141 },
+				"炮口5": { "x": 0.83, "y": 4.03, "width": 106, "height": 121 },
+				"炮口6": { "x": -0.17, "y": 6.53, "width": 116, "height": 114 },
+				"炮口7": { "x": -4.67, "y": 2.53, "width": 103, "height": 106 }
+			},
+			"轮胎": {
+				"轮胎": { "width": 65, "height": 65 }
+			},
+			"破损 (1)": {
+				"破损 (1)": { "x": 0.5, "y": 0.5, "width": 99, "height": 105 },
+				"破损 (2)": { "x": 0.48, "y": 1, "rotation": -0.35, "width": 99, "height": 105 },
+				"破损 (3)": { "x": 0.48, "y": 1, "rotation": -0.35, "width": 99, "height": 105 },
+				"破损 (4)": { "x": 0.48, "y": 1, "rotation": -0.35, "width": 99, "height": 105 },
+				"破损 (5)": { "x": 0.48, "y": 1, "rotation": -0.35, "width": 99, "height": 105 },
+				"破损 (6)": { "x": 0.48, "y": 1, "rotation": -0.35, "width": 99, "height": 105 },
+				"破损 (7)": { "x": 0.48, "y": 1, "rotation": -0.35, "width": 99, "height": 105 },
+				"破损 (8)": { "x": 0.48, "y": 1, "rotation": -0.35, "width": 99, "height": 105 }
+			},
+			"1": {
+				"1": { "x": 64.88, "y": 37.77, "rotation": 0.35, "width": 165, "height": 92 },
+				"2": { "x": 66.38, "y": 38.78, "rotation": 0.35, "width": 160, "height": 100 },
+				"3": { "x": 70.36, "y": 41.3, "rotation": 0.35, "width": 146, "height": 103 },
+				"4": { "x": 73.86, "y": 40.83, "rotation": 0.35, "width": 141, "height": 102 },
+				"5": { "x": 73.34, "y": 44.82, "rotation": 0.35, "width": 136, "height": 102 },
+				"6": { "x": 73.85, "y": 42.33, "rotation": 0.35, "width": 133, "height": 99 },
+				"7": { "x": 77.42, "y": 30.85, "rotation": 0.35, "width": 128, "height": 76 },
+				"8": { "x": 77.44, "y": 28.85, "rotation": 0.35, "width": 114, "height": 74 }
+			}
+		}
+	}
+],
+"animations": {
+	"chuchang": {
+		"slots": {
+			"1": {
+				"attachment": [
+					{ "name": "1" },
+					{ "time": 0.0333, "name": "2" },
+					{ "time": 0.0667, "name": "3" },
+					{ "time": 0.1, "name": "4" },
+					{ "time": 0.1333, "name": "5" },
+					{ "time": 0.1667, "name": "6" },
+					{ "time": 0.2, "name": "7" },
+					{ "time": 0.2333, "name": "8" }
+				]
+			}
+		},
+		"bones": {
+			"luntai": {
+				"rotate": [
+					{},
+					{ "time": 0.0843, "angle": 88.26 },
+					{ "time": 0.1687, "angle": 179.65 },
+					{ "time": 0.253, "angle": -90.38 },
+					{ "time": 0.3374 }
+				]
+			},
+			"luntai2": {
+				"rotate": [
+					{},
+					{ "time": 0.0843, "angle": 88.26 },
+					{ "time": 0.1687, "angle": 179.65 },
+					{ "time": 0.253, "angle": -90.38 },
+					{ "time": 0.3374 }
+				]
+			},
+			"bone3": {
+				"rotate": [
+					{},
+					{ "time": 0.1687, "angle": -0.86 },
+					{ "time": 0.3374 }
+				],
+				"translate": [
+					{},
+					{ "time": 0.1687, "y": 1.86 },
+					{ "time": 0.3374 }
+				]
+			}
+		}
+	},
+	"gongji": {
+		"slots": {
+			"炮口1": {
+				"attachment": [
+					{ "time": 0.0333, "name": "炮口1" },
+					{ "time": 0.0667, "name": "炮口2" },
+					{ "time": 0.1, "name": "炮口3" },
+					{ "time": 0.1333, "name": "炮口4" },
+					{ "time": 0.1667, "name": "炮口5" },
+					{ "time": 0.2, "name": "炮口6" },
+					{ "time": 0.2333, "name": "炮口7" },
+					{ "time": 0.2667, "name": null }
+				]
+			}
+		},
+		"bones": {
+			"bone3": {
+				"rotate": [
+					{},
+					{ "time": 0.1667, "angle": -2.43 },
+					{ "time": 0.3333 }
+				],
+				"translate": [
+					{},
+					{ "time": 0.1667, "x": 4.4 },
+					{ "time": 0.3333 }
+				]
+			},
+			"luntai2": {
+				"translate": [
+					{},
+					{ "time": 0.1667, "x": -1.36, "y": 2.26 },
+					{ "time": 0.3333 }
+				]
+			}
+		}
+	},
+	"siwang": {
+		"slots": {
+			"轮胎2": {
+				"color": [
+					{ "time": 0.3333, "color": "ffffffff" },
+					{ "time": 0.5, "color": "ffffff00" }
+				]
+			},
+			"轮胎": {
+				"color": [
+					{ "time": 0.3333, "color": "ffffffff" },
+					{ "time": 0.5, "color": "ffffff00" }
+				]
+			},
+			"破损 (1)": {
+				"attachment": [
+					{ "name": "破损 (1)" },
+					{ "time": 0.0333, "name": "破损 (2)" },
+					{ "time": 0.0667, "name": "破损 (3)" },
+					{ "time": 0.1, "name": "破损 (4)" },
+					{ "time": 0.1333, "name": "破损 (5)" },
+					{ "time": 0.1667, "name": "破损 (6)" },
+					{ "time": 0.2, "name": "破损 (7)" },
+					{ "time": 0.2333, "name": "破损 (8)" },
+					{ "time": 0.2667, "name": null }
+				]
+			},
+			"车身": {
+				"color": [
+					{ "time": 0.3667, "color": "ffffffff" },
+					{ "time": 0.5, "color": "ffffff00" }
+				]
+			}
+		},
+		"bones": {
+			"posun": {
+				"translate": [
+					{ "x": 4.62, "y": 8.09 }
+				],
+				"scale": [
+					{ "x": 2.521, "y": 2.521 }
+				]
+			},
+			"bone4": {
+				"rotate": [
+					{ "time": 0.0333 },
+					{ "time": 0.2667, "angle": -114.12 },
+					{ "time": 0.5, "angle": 119.41 }
+				],
+				"translate": [
+					{ "time": 0.0333 },
+					{ "time": 0.5, "x": 400.26, "y": 890.17 }
+				]
+			},
+			"luntai2": {
+				"translate": [
+					{ "time": 0.0333 },
+					{ "time": 0.5, "x": -441.86, "y": 5.81 }
+				]
+			},
+			"luntai": {
+				"translate": [
+					{ "time": 0.0333 },
+					{ "time": 0.5, "x": 643.42, "y": -127.91 }
+				]
+			}
+		}
+	},
+	"yidong": {
+		"bones": {
+			"luntai": {
+				"rotate": [
+					{},
+					{ "time": 0.1667, "angle": 88.26 },
+					{ "time": 0.3333, "angle": 179.65 },
+					{ "time": 0.5, "angle": -90.38 },
+					{ "time": 0.6667 }
+				]
+			},
+			"luntai2": {
+				"rotate": [
+					{},
+					{ "time": 0.1667, "angle": 88.26 },
+					{ "time": 0.3333, "angle": 179.65 },
+					{ "time": 0.5, "angle": -90.38 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone3": {
+				"rotate": [
+					{},
+					{ "time": 0.3333, "angle": -0.86 },
+					{ "time": 0.6667 }
+				],
+				"translate": [
+					{},
+					{ "time": 0.3333, "y": 1.86 },
+					{ "time": 0.6667 }
+				]
+			}
+		}
+	}
+}
+}
