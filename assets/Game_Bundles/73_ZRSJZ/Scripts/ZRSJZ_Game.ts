@@ -18,6 +18,7 @@ import { ZRSJZ_BombPlot } from './Unit/ZRSJZ_BombPlot';
 import { ZRSJZ_SpecialOperationsTaskIcon } from './Unit/ZRSJZ_SpecialOperationsTaskIcon';
 import { ZRSJZ_Door } from './Unit/ZRSJZ_Door';
 import { ZRSJZ_Mailbox } from './Unit/ZRSJZ_Mailbox';
+import { ZRSJZ_GradeService } from './Service/ZRSJZ_GradeService';
 const { ccclass, property } = _decorator;
 
 interface ZRSJZ_MiniMapTaskMarker {
@@ -146,6 +147,8 @@ export class ZRSJZ_Game extends Component {
     private _evacuationElapsed: number = 0;
     private _isEvacuating: boolean = false;
     private _isGameFinished: boolean = false;
+    private _battleStatisticsStarted: boolean = false;
+    private _battleStatisticsFinalized: boolean = false;
     private _evacuationMethod: string = "固定撤离点";
     /** 记录每名玩家当前所在的撤离点；只有所有存活玩家位于同一撤离点才开始倒计时。 */
     private readonly _playerEvacuationPoints = new Map<number, string>();
@@ -198,6 +201,8 @@ export class ZRSJZ_Game extends Component {
         this._fullscreenPlayerIndex = -1;
         ZRSJZ_UIManager.SinglePlayerBattleIndex = -1;
         this._isGameFinished = false;
+        this._battleStatisticsStarted = false;
+        this._battleStatisticsFinalized = false;
         this.InitializeBattleTimer();
         this.SetEvacuationVisible(false);
         for (const direction of this._directions) {
@@ -224,6 +229,9 @@ export class ZRSJZ_Game extends Component {
     }
 
     protected onDisable(): void {
+        ZRSJZ_GradeService.FlushOnlineTime();
+        // 场景被主动退出时仍保留已开始战局统计，但不生成对局经验。
+        this.FinalizeBattleStatistics(false, 0, false);
         this.CancelEvacuation();
         this.SetSpecialOperationCountdownVisible(false);
         if (this._taskStateNode?.isValid) this._taskStateNode.active = false;
@@ -365,6 +373,7 @@ export class ZRSJZ_Game extends Component {
     }
 
     protected update(deltaTime: number): void {
+        ZRSJZ_GradeService.UpdateOnlineTime(deltaTime);
         if (this._battleStarted && !this.GamePaused && Number.isFinite(deltaTime) && deltaTime > 0) {
             const battleTimeBeforeTimeout = this._timeLimitSeconds > 0
                 ? Math.max(0, this._timeLimitSeconds - this._elapsedGameTime)
@@ -596,12 +605,17 @@ export class ZRSJZ_Game extends Component {
         this._battleStarted = false;
         this.GamePaused = true;
         this.SetEvacuationVisible(false);
+        const goodsIDs = this.GetAllGoodsID();
+        this.FinalizeBattleStatistics(
+            true,
+            ZRSJZ_GradeService.GetPropIDsValue(goodsIDs),
+        );
         ZRSJZ_UIManager.Instance.ShowPanel(
             ZRSJZ_PANEL.胜利弹窗,
             this._evacuationMethod,
             this.GetGameTime(),
             this.GetKillCount(),
-            this.GetAllGoodsID(),
+            goodsIDs,
         );
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 5);
         ZRSJZ_TaskService.CompleteTask(`进入[${ZRSJZ_GameData.Instance.CurMap}]并成功撤离`, 1);
@@ -614,6 +628,7 @@ export class ZRSJZ_Game extends Component {
         this._isGameFinished = true;
         this._battleStarted = false;
         this.GamePaused = true;
+        this.FinalizeBattleStatistics(false);
         this.SetSpecialOperationCountdownVisible(false);
         this.RefreshGameTime();
         ZRSJZ_UIManager.Instance.ShowPanel(
@@ -699,6 +714,7 @@ export class ZRSJZ_Game extends Component {
         this.ApplyControlModelVisibility();
         this.RefreshGameTime();
         this._battleStarted = true;
+        this.StartBattleStatistics();
         this.ScheduleNextBombPlot(true);
         for (const checked of this._checkedNodes.slice(0, this.Players.length)) {
             if (!checked) continue;
@@ -710,6 +726,35 @@ export class ZRSJZ_Game extends Component {
                 .start();
             checked.active = false;
         }
+    }
+
+    /** 新手教程不计入账号战绩；正式对局在战斗 UI 就绪时记为已开始。 */
+    private StartBattleStatistics(): void {
+        if (this.IsTutorial || this._battleStatisticsStarted) return;
+        this._battleStatisticsStarted = true;
+        this._battleStatisticsFinalized = false;
+        ZRSJZ_GradeService.RecordBattleStarted();
+    }
+
+    /** 每局只结算一次撤离统计与待发放经验；主动退出时不生成经验。 */
+    private FinalizeBattleStatistics(
+        evacuationSuccess: boolean,
+        evacuationValue: number = 0,
+        queueExperience: boolean = true,
+    ): void {
+        if (
+            !this._battleStatisticsStarted
+            || this._battleStatisticsFinalized
+            || this.IsTutorial
+        ) return;
+        this._battleStatisticsFinalized = true;
+        ZRSJZ_GradeService.RecordBattleFinished(
+            evacuationSuccess,
+            evacuationValue,
+            this._elapsedGameTime,
+            this._killCount,
+            queueExperience,
+        );
     }
 
     GetPlayer(playerIndex: number = 0): ZRSJZ_Player {
@@ -780,13 +825,14 @@ export class ZRSJZ_Game extends Component {
         this.RefreshPlayerViewportLayout();
     }
 
-    private FinishGameByDeath(): void {
+    public FinishGameByDeath(): void {
         if (this._isGameFinished) return;
 
         this.CancelEvacuation();
         this._isGameFinished = true;
         this._battleStarted = false;
         this.GamePaused = true;
+        this.FinalizeBattleStatistics(false);
         this.SetSpecialOperationCountdownVisible(false);
         this.RefreshGameTime();
         ZRSJZ_UIManager.Instance.ShowPanel(
@@ -794,6 +840,30 @@ export class ZRSJZ_Game extends Component {
             "死亡",
             this.GetGameTime(),
             this.GetKillCount(),
+        );
+    }
+
+    /** 看广告从死亡界面安全撤离，同样走正式成功结算。 */
+    public FinishGameByVipEvacuation(): void {
+        if (this._isGameFinished) return;
+
+        this.CancelEvacuation();
+        this._isGameFinished = true;
+        this._battleStarted = false;
+        this.GamePaused = true;
+        const goodsIDs = this.GetAllGoodsID();
+        this.FinalizeBattleStatistics(
+            true,
+            ZRSJZ_GradeService.GetPropIDsValue(goodsIDs),
+        );
+        this.SetSpecialOperationCountdownVisible(false);
+        this.RefreshGameTime();
+        ZRSJZ_UIManager.Instance.ShowPanel(
+            ZRSJZ_PANEL.胜利弹窗,
+            "VIP通道",
+            this.GetGameTime(),
+            this.GetKillCount(),
+            goodsIDs,
         );
     }
 
@@ -1682,7 +1752,7 @@ export class ZRSJZ_Game extends Component {
 
         const insuranceDoors = (this.CurMap?.node?.getComponentsInChildren(ZRSJZ_Door) ?? [])
             .filter(door => door?.node?.isValid && door.Skin === "保险门");
-        for (const door of insuranceDoors) door.Open();
+        for (const door of insuranceDoors) door.OpenForBreakWallOperation();
         if (insuranceDoors.length === 0) {
             console.warn("[ZRSJZ_Game] 破壁行动未找到 Skin=保险门 的门节点");
         }
@@ -1778,6 +1848,7 @@ export class ZRSJZ_Game extends Component {
         this._specialOperationBombPlot = bombPlot;
         this._specialOperationBombCenter.set(playerWorldPosition);
         this._specialOperationBombRadius = Math.max(1, bombPlot.Radius);
+        const taskPlayerIndex = this._specialOperationPlayerIndex;
         const deployed = bombPlot.DeployAtWorldPosition(
             playerWorldPosition,
             this.CurMap.Map,
@@ -1787,6 +1858,15 @@ export class ZRSJZ_Game extends Component {
                 if (this._activeBombPlot === bombPlot) this._activeBombPlot = null;
                 if (this._specialOperationBombPlot === bombPlot) this._specialOperationBombPlot = null;
                 this.ScheduleNextBombPlot(false);
+            },
+            {
+                DropRadius: Math.max(1, bombPlot.Radius * 0.5),
+                MinBombInterval: 0.25,
+                MaxBombInterval: 0.6,
+                GetDropCenter: () => {
+                    const player = this.GetPlayer(taskPlayerIndex)?.node;
+                    return player?.isValid ? player.worldPosition : playerWorldPosition;
+                },
             },
         );
         if (!deployed) {

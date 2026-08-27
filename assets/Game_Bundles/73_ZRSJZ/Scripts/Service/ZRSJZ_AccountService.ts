@@ -44,6 +44,7 @@ export class ZRSJZ_AccountService {
             this.SetCurSkin(role, skin);
         } else {
             ZRSJZ_GameData.SaveData();
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE);
         }
     }
 
@@ -53,6 +54,8 @@ export class ZRSJZ_AccountService {
         data.CurRole[roleIndex] = role;
         data.CurSkin[roleIndex] = skin;
         ZRSJZ_GameData.SaveData();
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN, roleIndex);
     }
 
     public static HasWeaponSkin(weaponName: string, skinName: string): boolean {

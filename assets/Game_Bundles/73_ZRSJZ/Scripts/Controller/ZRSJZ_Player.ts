@@ -1030,7 +1030,12 @@ export class ZRSJZ_Player extends Component {
                 this.PlayerIndex,
             );
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
-            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, otherCollider.node?.getComponent(ZRSJZ_Door), this.PlayerIndex);
+            const door = otherCollider.node.getComponent(ZRSJZ_Door);
+            if (door?.CanOpenManually) {
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, door, this.PlayerIndex);
+            } else {
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, null, this.PlayerIndex);
+            }
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node.name.startsWith("撤离点")) {
             //开始撤离
             ZRSJZ_Game.Instance.StartEvacuation(otherCollider.node.name, this.PlayerIndex);

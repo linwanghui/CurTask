@@ -7,6 +7,7 @@ import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_TaskAward } from '../UI/ZRSJZ_TaskAward';
 import { ZRSJZ_AccountService } from '../Service/ZRSJZ_AccountService';
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
+import { ZRSJZ_GradeService } from '../Service/ZRSJZ_GradeService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_GetAwardPanel')
@@ -51,15 +52,19 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
     }
 
     GetAwards() {
+        let exp = 0;
         this._awards.forEach(award => {
             if (award.TaskAwardName == "钞票") {
                 ZRSJZ_AccountService.ChangeGold(award.TaskAwardCount);
                 ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
+            } else if (award.TaskAwardName == "经验") {
+                exp = award.TaskAwardCount;
             } else {
                 ZRSJZ_InventoryService.AddPropByName(award.TaskAwardName, award.TaskAwardCount);
-                ZRSJZ_UIManager.Instance.ShowTip("道具" + award.TaskAwardName + " x" + award.TaskAwardCount + " 已添加到背包");
+                ZRSJZ_UIManager.Instance.ShowTip("道具已添加到背包");
             }
         })
+        if (exp != 0) ZRSJZ_GradeService.AddExperience(exp);
         this._awards = [];
     }
 

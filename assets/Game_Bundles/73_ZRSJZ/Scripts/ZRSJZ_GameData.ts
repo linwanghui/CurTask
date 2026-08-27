@@ -49,10 +49,10 @@ export class ZRSJZ_GameData {
     public FiringRangeLevel: number = 0;
     public FacilityLevel: Partial<Record<ZRSJZ_UpgradeFacilityName, number>> = {};
 
-    public HaveRole: string[] = ["威蓝", "小温"];
-    public CurRole: string[] = ["威蓝", "小温"];
-    public HaveSkin: string[] = ["威蓝", "小温"];
-    public CurSkin: string[] = ["威蓝", "小温"];
+    public HaveRole: string[] = ["威蓝", "泠汐"];
+    public CurRole: string[] = ["威蓝", "泠汐"];
+    public HaveSkin: string[] = ["威蓝", "泠汐"];
+    public CurSkin: string[] = ["威蓝", "泠汐"];
 
     public PropID: number = 0;
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};
@@ -81,8 +81,18 @@ export class ZRSJZ_GameData {
 
     //#region 任务
     public MainTaskComplete: string[] = [];//已完成的任务
+    public MainTaskExperienceAwards: { [taskName: string]: number } = {};//已领取任务的经验奖励快照
     public CurMainTask: { TaskName: string, TaskTargetName: string, CurCount: number } = null;//正在进行的任务
     public NewMainTask: string = "";//新任务
+
+    //#region 等级系统
+    public Grade: number = 1;//等级（1～60）
+    public CurExp: number = 0;//当前等级内经验
+    public PendingExperience: number = 0;//战局结算后、返回大厅时待发放的经验
+    public TotalGamePlayed: number = 0;//正式对局开始次数
+    public TotalTimePlayed: number = 0;//累计游戏在线时长（秒）
+    public TotalEvacuation: number = 0;//成功撤离次数
+    public OptimumEvacuation: number = 0;//最佳单局撤离带出价值
 
     //#region 收藏室
     public BoxroomPropLevel: { [propName: string]: number } = {};

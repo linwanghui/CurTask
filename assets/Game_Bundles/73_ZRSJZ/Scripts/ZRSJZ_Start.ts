@@ -7,6 +7,7 @@ import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
+import { ZRSJZ_GradeService } from "./Service/ZRSJZ_GradeService";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -32,6 +33,8 @@ export class ZRSJZ_Start extends Component {
         // this.SignBtn.active = !ZRSJZ_AccountService.IsSignInCompleted();
         ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
         this.ModelSwitch();
+        // 对局经验只在回到大厅、等级 UI 已注册事件后统一发放。
+        ZRSJZ_GradeService.ClaimPendingExperience();
     }
 
     protected onEnable(): void {
@@ -85,6 +88,9 @@ export class ZRSJZ_Start extends Component {
                 break;
             case "设置":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.设置界面);
+                break;
+            case "等级":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.等级弹窗);
                 break;
             case "主页":
                 ProjectEventManager.emit(ProjectEvent.返回主页按钮事件, () => {

@@ -38,6 +38,8 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_AUDIO_INIT: string = 'ZRSJZ_AUDIO_INIT';//声音初始化完毕
     public static ZRSJZ_MODEL_SWITCH: string = 'ZRSJZ_MODEL_SWITCH';//切换模式
     public static ZRSJZ_LOADOUT_PLAYER_CHANGE: string = 'ZRSJZ_LOADOUT_PLAYER_CHANGE';//仓库切换随身配置玩家
+    public static ZRSJZ_PLAYER_INFO_CHANGE: string = 'ZRSJZ_PLAYER_INFO_CHANGE';//等级、角色或账号统计发生变化
+    public static ZRSJZ_EXPERIENCE_ADDED: string = 'ZRSJZ_EXPERIENCE_ADDED';//玩家获得经验，用于播放等级增长表现
 
     public static ZRSJZ_TUTORIAL: string = 'ZRSJZ_TUTORIAL';//新手教程引导
     public static ZRSJZ_MAIN_TASK_SHOW: string = 'ZRSJZ_MAIN_TASK_SHOW';//主线任务Item显示UI

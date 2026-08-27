@@ -88,6 +88,10 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     protected update(dt: number): void {
+        if (this._targetMailbox && !this._targetMailbox.IsAvailable) {
+            this.ShowSearch(null);
+        }
+
         const player = ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex);
         if (this._bulletCount && player) {
             this._bulletCount.string =
@@ -207,7 +211,10 @@ export class ZRSJZ_Joystick_Attack extends Component {
                 break;
             case "CrackByVideo": {
                 const targetDoor = this._targetDoor;
-                if (!targetDoor) break;
+                if (!targetDoor?.CanOpenManually) {
+                    this.ShowDoor(null);
+                    break;
+                }
                 Banner.Instance.ShowVideoAd(() => {
                     targetDoor.Open();
                     if (this._targetDoor === targetDoor) {
@@ -380,16 +387,19 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     ShowSearch(source: ZRSJZ_Box | ZRSJZ_Mailbox, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        this._targetBox = source instanceof ZRSJZ_Box ? source : null;
-        this._targetMailbox = source instanceof ZRSJZ_Mailbox ? source : null;
-        this._searchButton.active = source != null;
+        const availableSource = source instanceof ZRSJZ_Mailbox && !source.IsAvailable
+            ? null
+            : source;
+        this._targetBox = availableSource instanceof ZRSJZ_Box ? availableSource : null;
+        this._targetMailbox = availableSource instanceof ZRSJZ_Mailbox ? availableSource : null;
+        this._searchButton.active = availableSource != null;
     }
 
     ShowDoor(door: ZRSJZ_Door, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        this._targetDoor = door;
-        this._doorCardButton.active = door != null;
-        this._doorVideoButton.active = door != null;
+        this._targetDoor = door?.CanOpenManually ? door : null;
+        this._doorCardButton.active = this._targetDoor != null;
+        this._doorVideoButton.active = this._targetDoor != null;
     }
 
     ShowSpecialOperation(taskPoint: ZRSJZ_SpecialOperationsTaskIcon, playerIndex?: number) {

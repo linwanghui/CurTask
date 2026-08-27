@@ -35,7 +35,9 @@ export enum ZRSJZ_PANEL {
     新手引导弹窗 = "73_ZRSJZ/Prefabs/Panel/新手引导弹窗",
     主线任务界面 = "73_ZRSJZ/Prefabs/Panel/主线任务界面",
     获取奖励弹窗 = "73_ZRSJZ/Prefabs/Panel/获取奖励弹窗",
+    涨经验弹窗 = "73_ZRSJZ/Prefabs/Panel/涨经验弹窗",
     特别行动弹窗 = "73_ZRSJZ/Prefabs/Panel/特别行动弹窗",
+    等级弹窗 = "73_ZRSJZ/Prefabs/Panel/等级弹窗",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -746,20 +748,20 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
         Skin: ["威蓝", "烬猎"],
         SkillPath: "Prefabs/Controller/Bomb",
     }],
-    ["小温", {
-        Name: "小温",
+    ["泠汐", {
+        Name: "泠汐",
         RoleDesc: "精通能量武器的远程输出角色，适合持续压制敌人。",
         SkillName: "激光",
         SkillDesc: "发射高能激光，对直线范围内的敌人造成伤害。",
-        Skin: ["小温", "夜喵"],
+        Skin: ["泠汐", "夜喵"],
         SkillPath: "Prefabs/Controller/Laser",
     }],
-    ["小雅", {
-        Name: "小雅",
+    ["灼戈", {
+        Name: "灼戈",
         RoleDesc: "攻守兼备的支援角色，能够提高队伍的生存能力。",
         SkillName: "护盾",
         SkillDesc: "展开能量护盾，在持续时间内抵挡敌人的攻击。",
-        Skin: ["小雅", "星栗"],
+        Skin: ["灼戈", "星栗"],
         SkillPath: "Prefabs/Controller/Shield",
     }],
 ])
@@ -776,9 +778,9 @@ export interface ZRSJZ_SkinConfig {
 export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> = new Map([
     ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.蓝色, UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0000_前刘海_蓝狼"] }],
     ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"] }],
-    ["小温", { Name: "小温", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
+    ["泠汐", { Name: "泠汐", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
     ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
-    ["小雅", { Name: "小雅", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [] }],
+    ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [] }],
     ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: ["wzt"] }],
 ])
 
@@ -1228,7 +1230,7 @@ const ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.3, 1.55,
 const ZRSJZ_MAP_SPEED_MULTIPLIERS: readonly number[] = [0.95, 1, 1.05, 1.1, 1.15, 1.2];
 const ZRSJZ_MAP_ATTACK_INTERVAL_MULTIPLIERS: readonly number[] = [1.05, 1, 0.95, 0.9, 0.85, 0.8];
 /** 六个模式进入战斗后触发空投的时间（秒），高难度更早提供争夺目标。 */
-export const ZRSJZ_PARACARGO_SPAWN_TIMES: readonly number[] = [10, 150, 135, 120, 105, 90];
+export const ZRSJZ_PARACARGO_SPAWN_TIMES: readonly number[] = [180, 150, 135, 120, 105, 90];
 const ZRSJZ_MAP_PROP_TYPES: readonly string[] = ["物品", "房卡", "弹药", "头盔", "防弹衣"];//地图中允许掉落的类型
 /** 宝箱不掉落背包，其他装备最高只允许紫色（四级）；普通物资与弹药不受此限制。 */
 const ZRSJZ_MAP_BOX_EQUIPMENT_TYPES: readonly string[] = ["枪", "刀", "头盔", "防弹衣", "背包"];
@@ -1513,11 +1515,13 @@ export interface ZRSJZ_MainTaskConfig {
  */
 function CreateMainTaskAwards(
     gold: number,
+    exp: number,
     ammoName: string,
     ...extraAwards: Array<string | ZRSJZ_MainTaskAwardConfig>
 ): ZRSJZ_MainTaskAwardConfig[] {
     return [
         { TaskAwardName: "钞票", TaskAwardCount: gold },
+        { TaskAwardName: "经验", TaskAwardCount: exp },
         { TaskAwardName: ammoName, TaskAwardCount: ZRSJZ_AMMO_MAX_COUNT },
         ...extraAwards.map(award => typeof award === "string"
             ? { TaskAwardName: award, TaskAwardCount: 1 }
@@ -1540,7 +1544,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(50000, "1级子弹", "CN8-突击步枪", "黑色手表", "量子U盘"),
+        TaskAwards: CreateMainTaskAwards(50000, 100, "1级子弹", "CN8-突击步枪", "黑色手表", "量子U盘"),
     }],
     ["弹药补给", {
         TaskName: "弹药补给",
@@ -1551,7 +1555,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(60000, "1级子弹", "一级头", "哑铃", "沙袋"),
+        TaskAwards: CreateMainTaskAwards(60000, 100, "1级子弹", "一级头", "哑铃", "沙袋"),
     }],
     ["物资变现", {
         TaskName: "物资变现",
@@ -1563,7 +1567,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(70000, "1级子弹", "一级甲", "切割刀", "工业图纸"),
+        TaskAwards: CreateMainTaskAwards(70000, 100, "1级子弹", "一级甲", "切割刀", "工业图纸"),
     }],
     ["强化", {
         TaskName: "强化",
@@ -1574,7 +1578,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(80000, "2级子弹", "一级包", "高精数显卡尺", "电动马达"),
+        TaskAwards: CreateMainTaskAwards(80000, 200, "2级子弹", "一级包", "高精数显卡尺", "电动马达"),
     }],
     ["小镇初探", {
         TaskName: "小镇初探",
@@ -1585,7 +1589,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(100000, "2级子弹", "二级头", "太阳能板", "脑机数据"),
+        TaskAwards: CreateMainTaskAwards(100000, 200, "2级子弹", "二级头", "太阳能板", "脑机数据"),
     }],
     ["街区清剿", {
         TaskName: "街区清剿",
@@ -1598,6 +1602,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
         ],
         TaskAwards: CreateMainTaskAwards(
             120000,
+            200,
             "2级子弹",
             "二级甲",
             CreateMainTaskPropAward("哑铃", 4),
@@ -1613,7 +1618,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(180000, "3级子弹", "二级包", "K50-轻机枪", "协议箱", "汽车燃油"),
+        TaskAwards: CreateMainTaskAwards(180000, 200, "3级子弹", "二级包", "K50-轻机枪", "协议箱", "汽车燃油"),
     }],
     ["重返小镇", {
         TaskName: "重返小镇",
@@ -1626,6 +1631,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
         ],
         TaskAwards: CreateMainTaskAwards(
             200000,
+            200,
             "3级子弹",
             "三级头",
             CreateMainTaskPropAward("脑机数据", 2),
@@ -1643,6 +1649,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
         ],
         TaskAwards: CreateMainTaskAwards(
             250000,
+            200,
             "3级子弹",
             "三级甲",
             CreateMainTaskPropAward("哑铃", 8),
@@ -1658,7 +1665,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(350000, "4级子弹", "三级包", "RK77-轻机枪", "高速阵列", "供能单元"),
+        TaskAwards: CreateMainTaskAwards(350000, 200, "4级子弹", "三级包", "RK77-轻机枪", "高速阵列", "供能单元"),
     }],
     ["踏入古迹", {
         TaskName: "踏入古迹",
@@ -1669,7 +1676,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(400000, "4级子弹", "四级头", "信息终端", "呼吸机"),
+        TaskAwards: CreateMainTaskAwards(400000, 200, "4级子弹", "四级头", "信息终端", "呼吸机"),
     }],
     ["遗迹清剿", {
         TaskName: "遗迹清剿",
@@ -1682,6 +1689,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
         ],
         TaskAwards: CreateMainTaskAwards(
             500000,
+            200,
             "4级子弹",
             "四级甲",
             CreateMainTaskPropAward("电动马达", 2),
@@ -1697,7 +1705,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(700000, "5级子弹", "四级包", "FS-霰弹枪", "军用电台", "军用雷达"),
+        TaskAwards: CreateMainTaskAwards(700000, 200, "5级子弹", "四级包", "FS-霰弹枪", "军用电台", "军用雷达"),
     }],
     ["深入禁地", {
         TaskName: "深入禁地",
@@ -1708,7 +1716,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(800000, "5级子弹", "五级头", "反应炉", "医疗机器人"),
+        TaskAwards: CreateMainTaskAwards(800000, 200, "5级子弹", "五级头", "反应炉", "医疗机器人"),
     }],
     ["沙海歼敌", {
         TaskName: "沙海歼敌",
@@ -1719,7 +1727,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 15,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(1000000, "5级子弹", "五级甲", "供能单元", "反应炉"),
+        TaskAwards: CreateMainTaskAwards(1000000, 200, "5级子弹", "五级甲", "供能单元", "反应炉"),
     }],
     ["古迹终战", {
         TaskName: "古迹终战",
@@ -1730,7 +1738,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(1300000, "6级子弹", "五级包", "ssv-狙击枪", "金条", "无人机"),
+        TaskAwards: CreateMainTaskAwards(1300000, 200, "6级子弹", "五级包", "ssv-狙击枪", "金条", "无人机"),
     }],
     ["北境远征", {
         TaskName: "北境远征",
@@ -1741,7 +1749,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(1500000, "6级子弹", "六级头", "军用电台", "动力电池组"),
+        TaskAwards: CreateMainTaskAwards(1500000, 200, "6级子弹", "六级头", "军用电台", "动力电池组"),
     }],
     ["雪原清剿", {
         TaskName: "雪原清剿",
@@ -1752,7 +1760,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 15,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(1800000, "6级子弹", "六级甲", "信息大终端", "军用雷达"),
+        TaskAwards: CreateMainTaskAwards(1800000, 200, "6级子弹", "六级甲", "信息大终端", "军用雷达"),
     }],
     ["冰原霸主", {
         TaskName: "冰原霸主",
@@ -1763,7 +1771,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(2200000, "6级子弹", "六级包", "W76-狙击枪", "飞行记录仪", "火箭燃料"),
+        TaskAwards: CreateMainTaskAwards(2200000, 200, "6级子弹", "六级包", "W76-狙击枪", "飞行记录仪", "火箭燃料"),
     }],
     ["终极潜入", {
         TaskName: "终极潜入",
@@ -1774,7 +1782,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(2500000, "6级子弹", "高级房卡", "碳纤维", "医疗机器人"),
+        TaskAwards: CreateMainTaskAwards(2500000, 200, "6级子弹", "高级房卡", "碳纤维", "医疗机器人"),
     }],
     ["极寒决战", {
         TaskName: "极寒决战",
@@ -1785,7 +1793,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 20,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(3000000, "6级子弹", "动力电池组", "坦克", "特供咖啡豆"),
+        TaskAwards: CreateMainTaskAwards(3000000, 200, "6级子弹", "动力电池组", "坦克", "特供咖啡豆"),
     }],
     ["北境终局", {
         TaskName: "北境终局",
@@ -1796,7 +1804,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(5000000, "6级子弹", "KK41-霰弹枪", "反应炉", "烽火奖杯"),
+        TaskAwards: CreateMainTaskAwards(5000000, 200, "6级子弹", "KK41-霰弹枪", "反应炉", "烽火奖杯"),
     }],
 ])
 
@@ -1953,7 +1961,7 @@ export function GetSpecialOperationConfig(
             TaskName: "破壁行动",
             TaskDesc: "保险门将自动开启，请在限时内破解并开启邮箱中的全部9个箱位。",
             TargetKillCount: 0,
-            TimeLimitSeconds: Math.max(240, 320 - difficulty * 10),
+            TimeLimitSeconds: Math.max(120, 240 - difficulty * 10),
         };
     }
     return {
