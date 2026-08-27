@@ -88,7 +88,7 @@ export interface WZSJZ_SkillConfig {
     Duration: number;
     EffectType: "wall_invincible" | "wall_heal" | "block_bridge_dog_artillery"
     | "sonic_trap" | "adjacent_overclock" | "shock_pulse" | "self_attack_speed"
-    | "electromagnetic_blind" | "boomerang_blades";
+    | "electromagnetic_blind" | "boomerang_blades" | "electromagnetic_field";
     EffectName?: string;
     EffectPrefabPath?: string;
     EffectPrewarm?: number;
@@ -227,6 +227,11 @@ export class WZSJZ_Constant {
             PrefabPath: "Prefabs/节点/红狗",
         },
         {
+            Name: "疯狗",
+            Parts: ["疯", "狗"],
+            PrefabPath: "Prefabs/节点/疯狗",
+        },
+        {
             Name: "麦小鼠",
             Parts: ["麦", "小鼠"],
             PrefabPath: "Prefabs/节点/麦小鼠",
@@ -250,6 +255,7 @@ export class WZSJZ_Constant {
         "Prefabs/节点/威",
         "Prefabs/节点/虫",
         "Prefabs/节点/红",
+        "Prefabs/节点/疯",
         "Prefabs/节点/麦",
         "Prefabs/节点/小鼠",
         "Prefabs/节点/幽默",
@@ -347,6 +353,36 @@ export class WZSJZ_Constant {
         PositionOffsetX: 0,
         PositionOffsetY: 55,
         AnimationName: "animation",
+        KillExperience: 1,
+    };
+
+    /** 疯狗普通攻击：和刀一样直接在目标处生成一次近战命中特效。 */
+    public static readonly FengDogAttackEffect = {
+        PrefabPath: "Prefabs/特效/疯狗普通攻击特效",
+        Duration: 0.5,
+        PositionOffsetX: 0,
+        PositionOffsetY: 55,
+        AnimationName: "animation",
+        KillExperience: 1,
+    };
+
+    /** 疯狗技能：技能动作结束后，向最多五名敌人投放多段范围伤害飞刀。 */
+    public static readonly ElectromagneticField = {
+        PrefabPath: "Prefabs/特效/技能电磁力场特效",
+        ButtonPrefabPath: "Prefabs/UI/技能按钮/电磁力场",
+        Cooldown: 60,
+        SkillAnimation: "jineng",
+        IdleAnimation: "daiji",
+        /** 无法从Spine读取jineng真实时长时使用的兜底等待时间。 */
+        CastAnimationDuration: 1.1,
+        MaxTargetCount: 5,
+        Radius: 170,
+        AnimationName: "animation",
+        /** 飞刀动画开始后的每次范围伤害时间点，可增删以调整段数。 */
+        DamageDelays: [0.65, 0.78, 0.91, 1.04],
+        /** 数组下标0～5分别对应疯狗1～6级的每段伤害。 */
+        DamagePerPulseByLevel: [8, 13, 21, 34, 55, 88],
+        AnimationFallbackDuration: 1.25,
         KillExperience: 1,
     };
 
@@ -470,6 +506,15 @@ export class WZSJZ_Constant {
             EffectPrewarm: 1,
         },
         {
+            Id: "电磁力场",
+            OwnerName: "疯狗",
+            ButtonPrefabPath: WZSJZ_Constant.ElectromagneticField.ButtonPrefabPath,
+            Cooldown: WZSJZ_Constant.ElectromagneticField.Cooldown,
+            Duration: WZSJZ_Constant.ElectromagneticField.CastAnimationDuration
+                + WZSJZ_Constant.ElectromagneticField.AnimationFallbackDuration,
+            EffectType: "electromagnetic_field",
+        },
+        {
             Id: "电磁致盲",
             OwnerName: "麦小鼠",
             ButtonPrefabPath: WZSJZ_Constant.ElectromagneticBlind.ButtonPrefabPath,
@@ -511,11 +556,18 @@ export class WZSJZ_Constant {
         CellUpgradeEffectPrewarm: 1,
         BossLaoSaiArrowPrewarm: 1,
         BossDianYuZhangSlashPrewarm: 1,
+        EnemyCommonBulletPrewarm: 1,
+        BossGongZiBombPrewarm: 1,
+        BossLaoTaiTankPrewarm: 1,
+        BossGuanTouShieldPrewarm: 1,
+        BossHunLuanSkillPrewarm: 1,
         BlockBridgeDogBulletPrewarm: 1,
         BlockBridgeDogUltimatePrewarm: 1,
         SonicTrapPrewarm: 1,
         ShockPulsePrewarm: 1,
         RedDogAttackEffectPrewarm: 1,
+        FengDogAttackEffectPrewarm: 1,
+        ElectromagneticFieldPrewarm: 1,
         WheatMouseBulletPrewarm: 1,
         ElectromagneticBlindPrewarm: 1,
         BoomerangBladePrewarm: 1,
@@ -540,6 +592,10 @@ export class WZSJZ_Constant {
         "阿萨拉士兵": "Prefabs/单位/阿萨拉士兵",
         "牢赛": "Prefabs/单位/牢赛",
         "典狱长": "Prefabs/单位/典狱长",
+        "公子": "Prefabs/单位/公子",
+        "牢太": "Prefabs/单位/牢太",
+        "光头": "Prefabs/单位/光头",
+        "混乱": "Prefabs/单位/混乱",
     };
 
     public static readonly EnemyConfigs: Record<string, WZSJZ_EnemyConfig> = {
@@ -601,6 +657,66 @@ export class WZSJZ_Constant {
             DeathDuration: 1.6,
             SpawnPositionMode: "center",
         },
+        "公子": {
+            MaxHealth: 1500,
+            MoveSpeed: 62,
+            AttackRange: 400,
+            AttackPositionOffset: 0,
+            AttackInterval: 1.2,
+            AttackDamage: 32,
+            MoveAnimation: "zoulu",
+            AttackAnimation: "gongji",
+            HitAnimation: "shouji",
+            HitDuration: 0.42,
+            DeathAnimation: "siwang",
+            DeathDuration: 1.5,
+            SpawnPositionMode: "center",
+        },
+        "牢太": {
+            MaxHealth: 1650,
+            MoveSpeed: 60,
+            AttackRange: 390,
+            AttackPositionOffset: 0,
+            AttackInterval: 2.35,
+            AttackDamage: 34,
+            MoveAnimation: "zoulu",
+            AttackAnimation: "gongji",
+            HitAnimation: "shouji",
+            HitDuration: 0.44,
+            DeathAnimation: "siwang",
+            DeathDuration: 1.55,
+            SpawnPositionMode: "center",
+        },
+        "光头": {
+            MaxHealth: 1750,
+            MoveSpeed: 58,
+            AttackRange: 400,
+            AttackPositionOffset: 0,
+            AttackInterval: 1,
+            AttackDamage: 36,
+            MoveAnimation: "zoulu",
+            AttackAnimation: "gongji",
+            HitAnimation: "shouji",
+            HitDuration: 0.44,
+            DeathAnimation: "siwang",
+            DeathDuration: 1.55,
+            SpawnPositionMode: "center",
+        },
+        "混乱": {
+            MaxHealth: 1800,
+            MoveSpeed: 58,
+            AttackRange: 410,
+            AttackPositionOffset: 0,
+            AttackInterval: 1.8,
+            AttackDamage: 38,
+            MoveAnimation: "zoulu",
+            AttackAnimation: "gongji",
+            HitAnimation: "shouji",
+            HitDuration: 0.44,
+            DeathAnimation: "siwang",
+            DeathDuration: 1.55,
+            SpawnPositionMode: "center",
+        },
     };
 
     /** 所有Boss共用的状态条和破韧表现。 */
@@ -616,7 +732,7 @@ export class WZSJZ_Constant {
         ArrowPrefabPath: "Prefabs/投掷物/Boss_牢赛_弓箭",
         ArrowSpeed: 1050,
         ArrowHitDistance: 25,
-        ArrowHitEffectDuration: 0.3,
+        ArrowHitEffectDuration: 0,
         SkillMinInterval: 8,
         SkillMaxInterval: 15,
         SkillArrowDamage: 28,
@@ -651,6 +767,121 @@ export class WZSJZ_Constant {
         SkillEffectAnimation: "animation",
         SkillLaunchOffsetX: -40,
         SkillLaunchOffsetY: 65,
+    };
+
+    /** 无碰撞检测的敌方直线子弹，未来远程敌人可共同使用。 */
+    public static readonly EnemyCommonBullet = {
+        PrefabPath: "Prefabs/投掷物/敌对通用子弹",
+        Speed: 1000,
+        HitDistance: 20,
+        HitEffectDuration: 0.25,
+    };
+
+    /** 公子：手枪普通攻击，技能向城墙抛掷炸弹；jineng2暂不使用。 */
+    public static readonly BossGongZi = {
+        BombPrefabPath: "Prefabs/特效/公子技能特效",
+        MaxTenacity: 380,
+        TenacityDamageScale: 1,
+        TenacityRecoveryDelay: 6,
+        IdleAnimation: "daiji",
+        SkillAnimation: "jineng",
+        NormalFireDelay: 0.1,
+        NormalAnimationDuration: 0.5,
+        SkillMinInterval: 9,
+        SkillMaxInterval: 15,
+        SkillThrowDelay: 0.5,
+        SkillAnimationDuration: 1.15,
+        BombDamage: 140,
+        BombSpeed: 620,
+        BombArcHeight: 240,
+        BombSpinSpeed: 360,
+        BombTargetOffsetY: 35,
+        BombExplosionAnimation: "animation",
+        /** 爆炸动画开始后延迟多少秒结算城墙伤害。 */
+        BombDamageDelay: 0.1,
+        BombExplosionFallbackDuration: 0.8,
+        LaunchPointNames: ["子弹发射点位", "子弹发射点"],
+    };
+
+    /** 牢太：远程射击，并召唤上下两辆临时战车。 */
+    public static readonly BossLaoTai = {
+        TankPrefabPath: "Prefabs/投掷物/Boss_牢太_战车",
+        MaxTenacity: 420,
+        TenacityDamageScale: 1,
+        TenacityRecoveryDelay: 6,
+        IdleAnimation: "daiji",
+        SkillAnimation: "jineng",
+        NormalFireDelay: 0.34,
+        NormalAnimationDuration: 0.95,
+        SkillMinInterval: 10,
+        SkillMaxInterval: 16,
+        TankSummonDelay: 0.55,
+        SkillAnimationDuration: 1.2,
+        TankVerticalOffset: 200,
+        TankSpawnEdgePadding: 40,
+        TankAreaEdgePadding: 45,
+        TankMoveSpeed: 420,
+        TankArrivalDistance: 10,
+        TankAttackDamage: 28,
+        TankAttackInterval: 0.75,
+        TankFireDelay: 0.28,
+        TankAttackAnimationDuration: 0.72,
+        TankAttackCount: 3,
+        TankEnterAnimation: "chuchang",
+        TankIdleAnimation: "yidong",
+        TankAttackAnimation: "gongji",
+        TankDeathAnimation: "siwang",
+        TankDeathFallbackDuration: 0.9,
+        LaunchPointNames: ["子弹发射点位", "子弹发射点"],
+    };
+
+    /** 光头：远程射击，技能期间由护罩提供生命与韧性双重无敌。 */
+    public static readonly BossGuanTou = {
+        ShieldPrefabPath: "Prefabs/特效/光头技能特效",
+        MaxTenacity: 440,
+        TenacityDamageScale: 1,
+        TenacityRecoveryDelay: 6,
+        IdleAnimation: "daiji",
+        SkillAnimation: "jineng",
+        NormalFireDelay: 0.12,
+        NormalAnimationDuration: 0.35,
+        SkillMinInterval: 10,
+        SkillMaxInterval: 16,
+        ShieldActivateDelay: 0.45,
+        SkillAnimationDuration: 1.1,
+        ShieldAnimation: "animation",
+        /** 护罩动画循环完成这些次数后解除无敌。 */
+        ShieldLoopCount: 5,
+        /** Spine未能正常回调时解除护罩的总兜底时间。 */
+        ShieldFallbackDuration: 10,
+        LaunchPointNames: ["子弹发射点位", "子弹发射点"],
+    };
+
+    /** 混乱：远程射击，技能直接在城墙位置生成一次伤害特效。 */
+    public static readonly BossHunLuan = {
+        SkillEffectPrefabPath: "Prefabs/特效/混乱技能特效",
+        MaxTenacity: 460,
+        TenacityDamageScale: 1,
+        TenacityRecoveryDelay: 6,
+        IdleAnimation: "daiji",
+        SkillAnimation: "jineng",
+        NormalFireDelay: 0.2,
+        NormalAnimationDuration: 0.7,
+        SkillMinInterval: 10,
+        SkillMaxInterval: 16,
+        /** Boss技能动画开始后，多久在墙上生成特效。 */
+        SkillEffectDelay: 0.5,
+        /** 技能动画开始后，每一枚附加子弹的发射时间；可增删数组项。 */
+        SkillBulletDelays: [0.75, 0.8, 0.85],
+        SkillAnimationDuration: 1.15,
+        SkillDamage: 150,
+        SkillEffectAnimation: "animation",
+        /** 特效出现后延迟多少秒伤害城墙。 */
+        SkillDamageDelay: 0.1,
+        SkillEffectFallbackDuration: 1.2,
+        SkillEffectOffsetX: 0,
+        SkillEffectOffsetY: 0,
+        LaunchPointNames: ["子弹发射点位", "子弹发射点"],
     };
 
     public static readonly GunBullet = {
@@ -1311,6 +1542,27 @@ export class WZSJZ_Constant {
                 { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 305, AttackInterval: 0.65, AttackRange: 1100, BulletSpeed: 1300 },
             ],
         },
+        "疯": {
+            Name: "疯",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
         "红": {
             Name: "红",
             AttackFireDelay: 0,
@@ -1354,6 +1606,28 @@ export class WZSJZ_Constant {
                 { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 128, AttackInterval: 0.78, AttackRange: 980 },
                 { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 205, AttackInterval: 0.66, AttackRange: 1040 },
                 { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 330, AttackInterval: 0.55, AttackRange: 1200 },
+            ],
+        },
+        "疯狗": {
+            Name: "疯狗",
+            AttackFireDelay: 0.25,
+            ResourceType: "none",
+            PurchaseWeight: 0,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 0,
+            IsNameUnit: true,
+            IdleAnimation: "daiji",
+            AttackAnimation: "gongji",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 20, AttackInterval: 1.2, AttackRange: 500 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 36, AttackInterval: 1.08, AttackRange: 560 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 62, AttackInterval: 0.96, AttackRange: 620 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 105, AttackInterval: 0.84, AttackRange: 680 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 175, AttackInterval: 0.72, AttackRange: 740 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 290, AttackInterval: 0.6, AttackRange: 800 },
             ],
         },
         "麦": {
