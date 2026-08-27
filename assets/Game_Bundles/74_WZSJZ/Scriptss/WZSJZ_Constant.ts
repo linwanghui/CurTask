@@ -131,7 +131,8 @@ export class WZSJZ_Constant {
         ShopPanel: "Panel/ShopPanel",
         SignInPanel: "Panel/SignInPanel",
         /** 兼容旧脚本属性名。 */
-        SignInPanelPanel: "Panel/SignInPanel"
+        SignInPanelPanel: "Panel/SignInPanel",
+        HookPanel: "Panel/HookPanel"
     };
 
     /** 首页体力与钻石配置。时间全部使用真实时间戳，不受游戏倍速影响。 */
@@ -152,6 +153,12 @@ export class WZSJZ_Constant {
         RecruitCardAmount: 1,
         KeyPrice: 50,
         KeyAmount: 1,
+    };
+
+    /** 每日挂机宝箱：领取当前档后才开始下一档倒计时。 */
+    public static readonly Hook = {
+        ChestDurationSeconds: 5 * 60,
+        DiamondRewards: [50, 100, 150, 200, 300] as ReadonlyArray<number>,
     };
 
     /** 七日签到按顺序领取；第七项领完后的下一个自然日重置。 */

@@ -37,6 +37,12 @@ export class WZSJZ_GameData extends Component {
     public PhysicalPowerRecoverTimestamp: number = 0;
     /** 七个下标分别表示本轮第1～7天是否已领取，值为0或1。 */
     public SignInClaimedDays: number[] = [0, 0, 0, 0, 0, 0, 0];
+    /** 本轮挂机宝箱所属的本地自然日，格式YYYY-MM-DD。 */
+    public HookRewardDate: string = "";
+    /** 今日已经按顺序领取的宝箱数量。 */
+    public HookClaimedCount: number = 0;
+    /** 当前未领取宝箱开始计时的Unix毫秒时间戳。 */
+    public HookChestStartTimestamp: number = 0;
 
 
 
@@ -176,6 +182,70 @@ export class WZSJZ_GameData extends Component {
         return true;
     }
 
+    public GetHookSnapshot(nowTimestamp: number = Date.now()): {
+        Claimed: boolean[];
+        CurrentIndex: number;
+        CurrentLevel: number;
+        Reward: number;
+        Progress: number;
+        RemainingSeconds: number;
+        CanClaim: boolean;
+        AllClaimed: boolean;
+    } {
+        this.RefreshHookDate(nowTimestamp);
+        const rewards = WZSJZ_Constant.Hook.DiamondRewards;
+        const allClaimed = this.HookClaimedCount >= rewards.length;
+        const currentIndex = allClaimed
+            ? Math.max(0, rewards.length - 1)
+            : this.HookClaimedCount;
+        const durationMs = WZSJZ_Constant.Hook.ChestDurationSeconds * 1000;
+        const elapsedMs = allClaimed
+            ? durationMs
+            : Math.max(0, nowTimestamp - this.HookChestStartTimestamp);
+        const progress = durationMs > 0
+            ? Math.max(0, Math.min(1, elapsedMs / durationMs))
+            : 1;
+        return {
+            Claimed: rewards.map((_, index) => index < this.HookClaimedCount),
+            CurrentIndex: currentIndex,
+            CurrentLevel: currentIndex + 1,
+            Reward: rewards[currentIndex] || 0,
+            Progress: progress,
+            RemainingSeconds: allClaimed
+                ? 0
+                : Math.max(0, Math.ceil((durationMs - elapsedMs) / 1000)),
+            CanClaim: !allClaimed && elapsedMs >= durationMs,
+            AllClaimed: allClaimed,
+        };
+    }
+
+    public ClaimHookReward(nowTimestamp: number = Date.now()): {
+        Success: boolean;
+        Amount?: number;
+        Level?: number;
+        AllClaimed?: boolean;
+    } {
+        const snapshot = this.GetHookSnapshot(nowTimestamp);
+        if (!snapshot.CanClaim) return { Success: false, AllClaimed: snapshot.AllClaimed };
+        const amount = snapshot.Reward;
+        const level = snapshot.CurrentLevel;
+        this.HookClaimedCount++;
+        // 下一档严格从领取这一刻开始计时，不能用上一档溢出的离线时间。
+        this.HookChestStartTimestamp = this.HookClaimedCount
+            < WZSJZ_Constant.Hook.DiamondRewards.length
+            ? nowTimestamp
+            : 0;
+        this.AddDiamond(amount);
+        const nextSnapshot = this.GetHookSnapshot(nowTimestamp);
+        WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.挂机宝箱变动, nextSnapshot);
+        return {
+            Success: true,
+            Amount: amount,
+            Level: level,
+            AllClaimed: nextSnapshot.AllClaimed,
+        };
+    }
+
     public GetSignInSnapshot(now: Date = new Date()): {
         ClaimedDays: boolean[];
         TodayIndex: number;
@@ -239,6 +309,9 @@ export class WZSJZ_GameData extends Component {
             RecruitCardCount: data.RecruitCardCount,
             PhysicalPowerRecoverTimestamp: data.PhysicalPowerRecoverTimestamp,
             SignInClaimedDays: data.SignInClaimedDays,
+            HookRewardDate: data.HookRewardDate,
+            HookClaimedCount: data.HookClaimedCount,
+            HookChestStartTimestamp: data.HookChestStartTimestamp,
             GameData: data.GameData,
             TimeDate: data.TimeDate,
         });
@@ -261,6 +334,10 @@ export class WZSJZ_GameData extends Component {
                     "PhysicalPowerRecoverTimestamp",
                 )
                 || !Object.prototype.hasOwnProperty.call(savedData, "SignInClaimedDays");
+            needsHomeResourceSave = needsHomeResourceSave
+                || !Object.prototype.hasOwnProperty.call(savedData, "HookRewardDate")
+                || !Object.prototype.hasOwnProperty.call(savedData, "HookClaimedCount")
+                || !Object.prototype.hasOwnProperty.call(savedData, "HookChestStartTimestamp");
             Object.assign(WZSJZ_GameData._instance, savedData);
             WZSJZ_GameData.Instance.DataUp();//判断存档版本升级
         } else {
@@ -269,6 +346,7 @@ export class WZSJZ_GameData extends Component {
         }
         WZSJZ_GameData._instance.NormalizeHomeResourceData(Date.now());
         WZSJZ_GameData._instance.RefreshSignInDate(new Date());
+        WZSJZ_GameData._instance.RefreshHookDate(Date.now());
         // 老存档缺少首页资源字段时，立即补齐并写回，而不是等下次自动保存。
         if (needsHomeResourceSave) WZSJZ_GameData.DateSave();
     }
@@ -290,6 +368,16 @@ export class WZSJZ_GameData extends Component {
         if (!Array.isArray(this.SignInClaimedDays)) this.SignInClaimedDays = [];
         this.SignInClaimedDays = WZSJZ_Constant.SignIn.Rewards.map(
             (_, index) => this.SignInClaimedDays[index] === 1 ? 1 : 0,
+        );
+        if (typeof this.HookRewardDate !== "string") this.HookRewardDate = "";
+        if (!Number.isFinite(this.HookClaimedCount)) this.HookClaimedCount = 0;
+        if (!Number.isFinite(this.HookChestStartTimestamp)) this.HookChestStartTimestamp = 0;
+        this.HookClaimedCount = Math.max(
+            0,
+            Math.min(
+                WZSJZ_Constant.Hook.DiamondRewards.length,
+                Math.floor(this.HookClaimedCount),
+            ),
         );
         if (this.PhysicalPower >= config.MaxPhysicalPower) {
             this.PhysicalPowerRecoverTimestamp = 0;
@@ -324,6 +412,58 @@ export class WZSJZ_GameData extends Component {
             changed = true;
         }
         if (changed) WZSJZ_GameData.DateSave();
+    }
+
+    /** 跨本地自然日时清空领取状态；第一档从发现新日期的时刻开始计时。 */
+    private RefreshHookDate(nowTimestamp: number): void {
+        const now = new Date(nowTimestamp);
+        const dateKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        let changed = false;
+        if (this.HookRewardDate !== dateKey) {
+            this.HookRewardDate = dateKey;
+            this.HookClaimedCount = 0;
+            this.HookChestStartTimestamp = nowTimestamp;
+            changed = true;
+        } else if (this.HookClaimedCount < WZSJZ_Constant.Hook.DiamondRewards.length
+            && (this.HookChestStartTimestamp <= 0
+                || this.HookChestStartTimestamp > nowTimestamp)) {
+            this.HookChestStartTimestamp = nowTimestamp;
+            changed = true;
+        } else if (this.HookClaimedCount >= WZSJZ_Constant.Hook.DiamondRewards.length
+            && this.HookChestStartTimestamp !== 0) {
+            this.HookChestStartTimestamp = 0;
+            changed = true;
+        }
+        if (changed) {
+            WZSJZ_GameData.DateSave();
+            WZSJZ_EventManager.EmitScene(
+                WZSJZ_EventManager.挂机宝箱变动,
+                this.GetHookSnapshotWithoutRefresh(nowTimestamp),
+            );
+        }
+    }
+
+    /** RefreshHookDate内部广播使用，避免再次进入日期刷新。 */
+    private GetHookSnapshotWithoutRefresh(nowTimestamp: number): any {
+        const rewards = WZSJZ_Constant.Hook.DiamondRewards;
+        const allClaimed = this.HookClaimedCount >= rewards.length;
+        const currentIndex = allClaimed ? rewards.length - 1 : this.HookClaimedCount;
+        const durationMs = WZSJZ_Constant.Hook.ChestDurationSeconds * 1000;
+        const elapsedMs = allClaimed
+            ? durationMs
+            : Math.max(0, nowTimestamp - this.HookChestStartTimestamp);
+        return {
+            Claimed: rewards.map((_, index) => index < this.HookClaimedCount),
+            CurrentIndex: currentIndex,
+            CurrentLevel: currentIndex + 1,
+            Reward: rewards[currentIndex] || 0,
+            Progress: Math.max(0, Math.min(1, elapsedMs / durationMs)),
+            RemainingSeconds: allClaimed
+                ? 0
+                : Math.max(0, Math.ceil((durationMs - elapsedMs) / 1000)),
+            CanClaim: !allClaimed && elapsedMs >= durationMs,
+            AllClaimed: allClaimed,
+        };
     }
 
     //存档版本升级

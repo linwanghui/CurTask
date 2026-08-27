@@ -43,6 +43,11 @@ export class WZSJZ_StartPanel extends Component {
             this.ShowShopPanel,
             this,
         );
+        canvas?.getChildByPath("左侧栏/挂机宝箱")?.on(
+            Button.EventType.CLICK,
+            this.ShowHookPanel,
+            this,
+        );
         this.RefreshResourceView();
     }
 
@@ -73,6 +78,9 @@ export class WZSJZ_StartPanel extends Component {
             case "商店":
                 this.ShowShopPanel();
                 break;
+            case "挂机宝箱":
+                this.ShowHookPanel();
+                break;
         }
     }
 
@@ -82,6 +90,10 @@ export class WZSJZ_StartPanel extends Component {
 
     private ShowShopPanel = (): void => {
         WZSJZ_UIManager.Instance.ShowPanel(WZSJZ_Constant.Panel.ShopPanel);
+    };
+
+    private ShowHookPanel = (): void => {
+        WZSJZ_UIManager.Instance.ShowPanel(WZSJZ_Constant.Panel.HookPanel);
     };
 
     private TryStartGame(): void {

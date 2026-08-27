@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "9fe62402-2080-406f-bbfa-3697d95be92a",
+  "uuid": "ab95fb41-3e63-4568-860f-874da877f891",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "9fe62402-2080-406f-bbfa-3697d95be92a@6c48a",
-      "displayName": "消耗体力底",
+      "uuid": "ab95fb41-3e63-4568-860f-874da877f891@6c48a",
+      "displayName": "技能-红",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "9fe62402-2080-406f-bbfa-3697d95be92a",
+        "imageUuidOrDatabaseUri": "ab95fb41-3e63-4568-860f-874da877f891",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "9fe62402-2080-406f-bbfa-3697d95be92a@f9941",
-      "displayName": "消耗体力底",
+      "uuid": "ab95fb41-3e63-4568-860f-874da877f891@f9941",
+      "displayName": "技能-红",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,14 +45,14 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 180,
-        "height": 71,
-        "rawWidth": 180,
-        "rawHeight": 71,
-        "borderTop": 31,
-        "borderBottom": 33,
-        "borderLeft": 41,
-        "borderRight": 42,
+        "width": 50,
+        "height": 50,
+        "rawWidth": 50,
+        "rawHeight": 50,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
         "packable": true,
         "pixelsToUnit": 100,
         "pivotX": 0.5,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -90,
-            -35.5,
+            -25,
+            -25,
             0,
-            90,
-            -35.5,
+            25,
+            -25,
             0,
-            -90,
-            35.5,
+            -25,
+            25,
             0,
-            90,
-            35.5,
+            25,
+            25,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            71,
-            180,
-            71,
+            50,
+            50,
+            50,
             0,
             0,
-            180,
+            50,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -90,
-            -35.5,
+            -25,
+            -25,
             0
           ],
           "maxPos": [
-            90,
-            35.5,
+            25,
+            25,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "9fe62402-2080-406f-bbfa-3697d95be92a@6c48a",
+        "imageUuidOrDatabaseUri": "ab95fb41-3e63-4568-860f-874da877f891@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "9fe62402-2080-406f-bbfa-3697d95be92a@6c48a"
+    "redirect": "ab95fb41-3e63-4568-860f-874da877f891@6c48a"
   }
 }
