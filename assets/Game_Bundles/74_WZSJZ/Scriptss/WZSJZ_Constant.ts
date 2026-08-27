@@ -125,7 +125,49 @@ export class WZSJZ_Constant {
     public static readonly Panel = {
         LoadingPanel: "Panel/LoadingPanel",
         IntroducePanel: "Panel/IntroducePanel",
-        CheatPanel: "Panel/CheatPanel"
+        CheatPanel: "Panel/CheatPanel",
+        GetPhysicalPowerPanel: "Panel/GetPhysicalPowerPanel",
+        GetDiamondPanel: "Panel/GetDiamondPanel",
+        ShopPanel: "Panel/ShopPanel",
+        SignInPanel: "Panel/SignInPanel",
+        /** 兼容旧脚本属性名。 */
+        SignInPanelPanel: "Panel/SignInPanel"
+    };
+
+    /** 首页体力与钻石配置。时间全部使用真实时间戳，不受游戏倍速影响。 */
+    public static readonly HomeResource = {
+        InitialPhysicalPower: 15,
+        MaxPhysicalPower: 30,
+        StartGamePhysicalPowerCost: 5,
+        PhysicalPowerRecoveryIntervalSeconds: 3 * 60,
+        PhysicalPowerAdReward: 10,
+        InitialDiamond: 300,
+        DiamondAdReward: 100,
+    };
+
+    /** 商店商品配置；数量、售价和广告奖励均从这里调整。 */
+    public static readonly Shop = {
+        VideoDiamondReward: 100,
+        RecruitCardPrice: 25,
+        RecruitCardAmount: 1,
+        KeyPrice: 50,
+        KeyAmount: 1,
+    };
+
+    /** 七日签到按顺序领取；第七项领完后的下一个自然日重置。 */
+    public static readonly SignIn = {
+        Rewards: [
+            { Type: "diamond", Amount: 100 },
+            { Type: "diamond", Amount: 300 },
+            { Type: "diamond", Amount: 100 },
+            { Type: "physical_power", Amount: 50 },
+            { Type: "diamond", Amount: 200 },
+            { Type: "physical_power", Amount: 100 },
+            { Type: "diamond", Amount: 1000 },
+        ] as ReadonlyArray<{
+            Type: "diamond" | "physical_power";
+            Amount: number;
+        }>,
     };
 
     public static readonly Cheat = {

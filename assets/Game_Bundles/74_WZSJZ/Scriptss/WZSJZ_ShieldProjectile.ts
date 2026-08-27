@@ -1,5 +1,6 @@
 import { _decorator, Animation, Collider2D, Component, Node, RigidBody2D, Vec3 } from 'cc';
 import { WZSJZ_Enemy } from './WZSJZ_Enemy';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -129,6 +130,7 @@ export class WZSJZ_ShieldProjectile extends Component {
 
     private HitEnemy(enemy: WZSJZ_Enemy): void {
         this._hitEnemies.add(enemy);
+        WZSJZ_AudioManager.Play('盾牌命中', 0.62, 0.06);
         const position = enemy.node.worldPosition;
         const effectPosition = new Vec3(position.x, position.y + this._aimHeight, position.z);
         enemy.ApplyKnockback(this._direction, this._knockbackDistance);

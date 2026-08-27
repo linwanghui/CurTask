@@ -5,6 +5,7 @@ import { WZSJZ_EconomySystem } from './WZSJZ_EconomySystem';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 import { WZSJZ_UIManager } from './WZSJZ_UIManager';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -46,6 +47,7 @@ export class WZSJZ_RecycleSystem extends Component {
         sourceCell.Occupant = null;
         gameNode.CurrentCell = null;
         gameNode.node.destroy();
+        WZSJZ_AudioManager.Play('回收', 0.75);
         this._economySystem?.AddResources(reward.Money, reward.Food);
         WZSJZ_UIManager.Instance.ShowText(this.GetRecycleText(materialName, reward));
         return true;
@@ -66,6 +68,7 @@ export class WZSJZ_RecycleSystem extends Component {
     }
 
     private OnRecycleClicked(): void {
+        WZSJZ_AudioManager.Play('操作失败', 0.55);
         WZSJZ_UIManager.Instance.ShowText("将物品拖入此处回收");
     }
 

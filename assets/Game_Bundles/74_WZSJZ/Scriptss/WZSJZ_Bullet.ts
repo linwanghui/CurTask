@@ -9,6 +9,7 @@ import {
 } from 'cc';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_Enemy } from './WZSJZ_Enemy';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_Bullet')
@@ -138,6 +139,7 @@ export class WZSJZ_Bullet extends Component {
 
     private HitTarget(): void {
         this._hasHit = true;
+        WZSJZ_AudioManager.Play(this._arcHeight > 0 ? '爆炸' : '子弹命中', this._arcHeight > 0 ? 0.78 : 0.45, 0.05);
         if (this._hitCallback) {
             this._hitCallback(this._lastDamageCenter.clone(), this._damage);
         } else {

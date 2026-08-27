@@ -10,6 +10,7 @@ import {
     Vec3,
 } from 'cc';
 import { WZSJZ_Enemy } from '../WZSJZ_Enemy';
+import { WZSJZ_AudioManager } from '../WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -54,6 +55,7 @@ export class WZSJZ_Skill_HuiXuanFeiRen extends Component {
         onKill: () => void,
         onHit: (position: Vec3) => void,
     ): boolean {
+        WZSJZ_AudioManager.Play('近战挥砍', 0.42, 0.08);
         const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
         if (!enemyArea?.isValid || length <= 0.0001 || speed <= 0
             || maxTravelDistance <= 0 || damage <= 0) {

@@ -2208,14 +2208,14 @@ export default class Banner {
         });
     }
     //拉取排行榜(会弹出抖音排行榜)（使用排行榜功能前一定要登入抖音，否则可能导致异常！）
-    TikTokRankingListGet() {
+    TikTokRankingListGet(Title: string = "财富排行榜") {
         //@ts-ignore
         tt.getImRankList({
             relationType: "all", // 总榜
             dataType: 0, //只圈选type为枚举类型的数据进行排序
             rankType: "day", //每天凌晨0点更新，只对当天0点到现在写入的数据进行排序
             suffix: "", //为空或不填，一般枚举类型不需要填后缀
-            rankTitle: "财富排行榜", //标题
+            rankTitle: Title, //标题
             zoneId: 'test',
             success(res) {
                 console.log(`getImRankData success res: ${res}`);

@@ -17,6 +17,7 @@ import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_ShieldProjectile } from './WZSJZ_ShieldProjectile';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -298,6 +299,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             this._shieldPool.put(shieldNode);
             return false;
         }
+        WZSJZ_AudioManager.Play('盾牌飞出', 0.66, 0.08);
         this.KeepProjectileLayerOnTop();
         return true;
     }
@@ -355,6 +357,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             pool.put(bulletNode);
             return;
         }
+        WZSJZ_AudioManager.Play('枪发射', 0.48, 0.04);
         this.KeepProjectileLayerOnTop();
     }
 

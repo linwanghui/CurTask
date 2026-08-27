@@ -1,26 +1,120 @@
-import { _decorator, Component, EventTouch, Node } from 'cc';
-import { WZSJZ_UIManager } from './WZSJZ_UIManager';
+import { _decorator, Button, Component, EventTouch, Label } from 'cc';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
-const { ccclass, property } = _decorator;
+import { WZSJZ_EventManager } from './WZSJZ_EventManager';
+import { WZSJZ_GameData } from './WZSJZ_GameData';
+import { WZSJZ_UIManager } from './WZSJZ_UIManager';
+
+const { ccclass } = _decorator;
 
 @ccclass('WZSJZ_StartPanel')
 export class WZSJZ_StartPanel extends Component {
-    start() {
+    private _physicalPowerLabel: Label = null;
+    private _physicalPowerTimeLabel: Label = null;
+    private _diamondLabel: Label = null;
+    private _nextClockRefreshTimestamp: number = 0;
+    private _isStartingGame: boolean = false;
 
+    protected onLoad(): void {
+        WZSJZ_EventManager.BindSceneEventNode(this.node);
+        this.node.on(WZSJZ_EventManager.体力变动, this.RefreshResourceView, this);
+        this.node.on(WZSJZ_EventManager.钻石变动, this.RefreshResourceView, this);
     }
 
+    protected start(): void {
+        const canvas = this.node.parent?.getChildByName("Canvas");
+        this._physicalPowerLabel = canvas
+            ?.getChildByPath("左上角/体力槽/文本")
+            ?.getComponent(Label) || null;
+        this._physicalPowerTimeLabel = canvas
+            ?.getChildByPath("左上角/体力槽/时间")
+            ?.getComponent(Label) || null;
+        this._diamondLabel = canvas
+            ?.getChildByPath("左上角/钻石槽/文本")
+            ?.getComponent(Label) || null;
+        // 场景中的签到Button当前没有序列化点击目标，在这里由节点生命周期托管监听。
+        canvas?.getChildByPath("左侧栏/签到")?.on(
+            Button.EventType.CLICK,
+            this.ShowSignInPanel,
+            this,
+        );
+        // 商店节点暂未在场景中序列化点击目标，由当前场景节点托管入口监听。
+        canvas?.getChildByPath("左侧栏/商店")?.on(
+            Button.EventType.CLICK,
+            this.ShowShopPanel,
+            this,
+        );
+        this.RefreshResourceView();
+    }
 
-
+    protected update(): void {
+        // 使用Date.now而非dt，倒计时不受O键五倍速和离线时间影响。
+        const now = Date.now();
+        if (now < this._nextClockRefreshTimestamp) return;
+        this._nextClockRefreshTimestamp = now + 1000;
+        this.RefreshResourceView();
+    }
 
     public OnButtonClick(event: EventTouch): void {
         switch (event.getCurrentTarget().name) {
             case "开始游戏":
-                WZSJZ_UIManager.Instance.ShowPanel(WZSJZ_Constant.Panel.LoadingPanel, ["WZSJZ_Game"]);
+                this.TryStartGame();
+                break;
+            case "体力":
+                WZSJZ_UIManager.Instance.ShowPanel(
+                    WZSJZ_Constant.Panel.GetPhysicalPowerPanel,
+                );
+                break;
+            case "钻石":
+                WZSJZ_UIManager.Instance.ShowPanel(WZSJZ_Constant.Panel.GetDiamondPanel);
+                break;
+            case "签到":
+                this.ShowSignInPanel();
+                break;
+            case "商店":
+                this.ShowShopPanel();
                 break;
         }
     }
 
+    private ShowSignInPanel = (): void => {
+        WZSJZ_UIManager.Instance.ShowPanel(WZSJZ_Constant.Panel.SignInPanel);
+    };
 
+    private ShowShopPanel = (): void => {
+        WZSJZ_UIManager.Instance.ShowPanel(WZSJZ_Constant.Panel.ShopPanel);
+    };
+
+    private TryStartGame(): void {
+        if (this._isStartingGame) return;
+        const cost = WZSJZ_Constant.HomeResource.StartGamePhysicalPowerCost;
+        if (!WZSJZ_GameData.Instance.TryConsumePhysicalPower(cost)) {
+            WZSJZ_UIManager.Instance.ShowPanel(
+                WZSJZ_Constant.Panel.GetPhysicalPowerPanel,
+            );
+            return;
+        }
+        this._isStartingGame = true;
+        WZSJZ_UIManager.Instance.ShowPanel(
+            WZSJZ_Constant.Panel.LoadingPanel,
+            ["WZSJZ_Game"],
+        );
+    }
+
+    private RefreshResourceView = (): void => {
+        const data = WZSJZ_GameData.Instance;
+        const snapshot = data.GetPhysicalPowerSnapshot(Date.now());
+        if (this._physicalPowerLabel) {
+            this._physicalPowerLabel.string = `${snapshot.Current}/${snapshot.Max}`;
+        }
+        if (this._diamondLabel) this._diamondLabel.string = `${data.Diamond}`;
+        if (!this._physicalPowerTimeLabel) return;
+        if (snapshot.Current >= snapshot.Max) {
+            this._physicalPowerTimeLabel.string = "体力已满";
+            return;
+        }
+        const minutes = Math.floor(snapshot.RemainingSeconds / 60);
+        const seconds = snapshot.RemainingSeconds % 60;
+        this._physicalPowerTimeLabel.string
+            = `${minutes}:${seconds.toString().padStart(2, "0")}后恢复一点`;
+    };
 }
-
-

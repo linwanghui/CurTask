@@ -1,5 +1,6 @@
 import { _decorator, Component, Quat, sp, Vec3 } from 'cc';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -121,6 +122,7 @@ export class WZSJZ_BossSkill_GongZiBomb extends Component {
     }
 
     private ApplyExplosionDamage = (): void => {
+        WZSJZ_AudioManager.Play('爆炸', 0.82, 0.1);
         if (!this._isExploding || this._damageApplied) return;
         this._damageApplied = true;
         this._wall?.TakeDamage(this._damage);

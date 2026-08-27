@@ -1,4 +1,5 @@
 import { _decorator, Component, director, Label, Node, Sprite, UITransform } from 'cc';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_Wall')
@@ -69,6 +70,7 @@ export class WZSJZ_Wall extends Component {
             return;
         }
         this._currentHealth = Math.max(0, this._currentHealth - damage);
+        WZSJZ_AudioManager.Play('城墙受击', 0.68, 0.08);
         this.RefreshView();
         if (this._currentHealth <= 0) {
             this._isDestroyed = true;
@@ -85,6 +87,7 @@ export class WZSJZ_Wall extends Component {
         this._currentHealth = Math.min(this._maxHealth, previous + amount);
         const healed = this._currentHealth - previous;
         if (healed > 0) {
+            WZSJZ_AudioManager.Play('治疗', 0.7, 0.15);
             this.RefreshView();
         }
         return healed;

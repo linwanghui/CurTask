@@ -8,6 +8,7 @@ import {
     Vec3,
 } from 'cc';
 import { WZSJZ_Enemy } from './WZSJZ_Enemy';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 const { ccclass, property } = _decorator;
 
@@ -67,6 +68,7 @@ export class WZSJZ_Bullet_XunHanHuoJian extends Component {
             return;
         }
         const center = this.node.worldPosition;
+        WZSJZ_AudioManager.Play('爆炸', 0.78, 0.08);
         const radiusSquared = this._damageRadius * this._damageRadius;
         // 复制数组，避免敌人死亡回池改变children时影响本轮范围伤害遍历。
         for (const child of [...this._enemyArea.children]) {

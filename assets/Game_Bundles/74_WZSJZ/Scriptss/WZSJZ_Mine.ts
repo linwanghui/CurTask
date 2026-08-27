@@ -9,6 +9,7 @@ import {
     Vec3,
 } from 'cc';
 import { WZSJZ_Enemy } from './WZSJZ_Enemy';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 const { ccclass } = _decorator;
 
 /** 地雷：定时存活、距离触发、播放爆炸后回到对象池。 */
@@ -97,6 +98,7 @@ export class WZSJZ_Mine extends Component {
 
     private Explode(): void {
         this._isExploding = true;
+        WZSJZ_AudioManager.Play('地雷爆炸', 0.82, 0.08);
         const center = this.node.worldPosition.clone();
         this._damageCallback?.(center, this._explosionRadius, this._damage);
         const mineImage = this.node.getChildByName("地雷");

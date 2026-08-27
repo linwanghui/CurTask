@@ -4,6 +4,7 @@ import { WZSJZ_Constant, WZSJZ_MaterialConfig } from './WZSJZ_Constant';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 import { WZSJZ_UIManager } from './WZSJZ_UIManager';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 const { ccclass } = _decorator;
 
 type MaterialWeightKey = "PurchaseWeight" | "ItemLockWeight";
@@ -65,12 +66,14 @@ export class WZSJZ_EconomySystem extends Component {
     public BuyMaterial(): boolean {
         const emptyCell = this._preparationCells.find((cell) => cell.IsUnlocked && cell.IsEmpty());
         if (!emptyCell) {
+            WZSJZ_AudioManager.Play('操作失败', 0.65);
             console.warn("[WZSJZ] 备战框已满，无法购买物资。");
             return false;
         }
         const moneyCost = this.CurrentMoneyCost;
         const foodCost = this.CurrentFoodCost;
         if (this._money < moneyCost || this._food < foodCost) {
+            WZSJZ_AudioManager.Play('操作失败', 0.65);
             WZSJZ_UIManager.Instance.ShowText(this.GetInsufficientResourceText(moneyCost, foodCost));
             return false;
         }
@@ -91,6 +94,7 @@ export class WZSJZ_EconomySystem extends Component {
             return false;
         }
         this.RefreshViews();
+        WZSJZ_AudioManager.Play('购买成功', 0.75);
         return true;
     }
 

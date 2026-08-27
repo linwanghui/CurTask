@@ -5,6 +5,7 @@ import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_BossHealthBar } from './WZSJZ_BossHealthBar';
 import { WZSJZ_BossTenacityBar } from './WZSJZ_BossTenacityBar';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -33,6 +34,10 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
     /** 子类只需返回自己的Boss数值配置。 */
     protected GetBossConfig(): WZSJZ_BossConfig {
         return null;
+    }
+
+    protected PlayDamageAudio(isDead: boolean): void {
+        WZSJZ_AudioManager.Play(isDead ? 'Boss死亡' : 'Boss受击', isDead ? 0.9 : 0.58, 0.08);
     }
 
     public Initialize(

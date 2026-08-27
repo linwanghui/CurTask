@@ -19,6 +19,7 @@ import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_Mine } from './WZSJZ_Mine';
 import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 const { ccclass } = _decorator;
 
 /** 战斗域：统一管理刷怪、索敌、攻击表现和所有战斗对象池。 */
@@ -655,6 +656,7 @@ export class WZSJZ_CombatSystem extends Component {
             this._gunBulletPool.put(bulletNode);
             return false;
         }
+        WZSJZ_AudioManager.Play('枪发射', 0.52, 0.04);
         this.KeepCombatLayersOnTop();
         return true;
     }
@@ -696,6 +698,7 @@ export class WZSJZ_CombatSystem extends Component {
             this._cannonBulletPool.put(bulletNode);
             return false;
         }
+        WZSJZ_AudioManager.Play('炮发射', 0.72, 0.08);
         this.KeepCombatLayersOnTop();
         return true;
     }
@@ -837,6 +840,7 @@ export class WZSJZ_CombatSystem extends Component {
         const animation = effectNode.getChildByName("命中特效")?.getComponent(Animation);
         animation?.stop();
         animation?.play();
+        WZSJZ_AudioManager.Play('近战挥砍', 0.58, 0.05);
         this.scheduleOnce(() => {
             if (effectNode.isValid) {
                 animation?.stop();
@@ -870,6 +874,7 @@ export class WZSJZ_CombatSystem extends Component {
             skeleton.clearTracks();
             skeleton.setAnimation(0, config.AnimationName, false);
         }
+        WZSJZ_AudioManager.Play('近战挥砍', 0.62, 0.05);
         this.scheduleOnce(() => {
             if (effectNode?.isValid) {
                 skeleton?.clearTracks();
