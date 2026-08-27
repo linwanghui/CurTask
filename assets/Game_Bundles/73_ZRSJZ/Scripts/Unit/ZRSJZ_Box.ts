@@ -9,6 +9,7 @@ import {
 } from '../ZRSJZ_Constant';
 import { ZRSJZ_BoxInventory } from '../UI/ZRSJZ_BoxInventory';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
 const { ccclass, property } = _decorator;
 
 const ZRSJZ_LOOT_QUALITY_ORDER: readonly ZRSJZ_PROP_QUALITY[] = [
@@ -335,8 +336,13 @@ export class ZRSJZ_Box extends Component {
             return [];
         }
 
-        const weights = availableQualities.map(item =>
+        const baseWeights = availableQualities.map(item =>
             Math.max(0, this._boxConfig.Probability[item.index] ?? 0),
+        );
+        const redWeightIndex = availableQualities.findIndex(item => item.index === 5);
+        const weights = ZRSJZ_BoosterShotService.ApplyRedProbabilityToWeights(
+            baseWeights,
+            redWeightIndex,
         );
         const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
         const loot: string[] = [];

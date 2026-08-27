@@ -45,6 +45,8 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_MAIN_TASK_SHOW: string = 'ZRSJZ_MAIN_TASK_SHOW';//主线任务Item显示UI
     public static ZRSJZ_MAIN_TASK_CHECK: string = 'ZRSJZ_MAIN_TASK_CHECK';//主线任务Item选中
     public static ZRSJZ_MAIN_TASK_ADD: string = 'ZRSJZ_MAIN_TASK_ADD';//主线任务Item添加
+    public static ZRSJZ_BOOSTER_SHOT_REFRESH: string = 'ZRSJZ_BOOSTER_SHOT_REFRESH';//刷新增强针UI
+
 }
 
 export class ZRSJZ_EventManager {

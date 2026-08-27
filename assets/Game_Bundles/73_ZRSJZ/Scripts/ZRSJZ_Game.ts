@@ -19,6 +19,7 @@ import { ZRSJZ_SpecialOperationsTaskIcon } from './Unit/ZRSJZ_SpecialOperationsT
 import { ZRSJZ_Door } from './Unit/ZRSJZ_Door';
 import { ZRSJZ_Mailbox } from './Unit/ZRSJZ_Mailbox';
 import { ZRSJZ_GradeService } from './Service/ZRSJZ_GradeService';
+import { ZRSJZ_BoosterShotService } from './Service/ZRSJZ_BoosterShotService';
 const { ccclass, property } = _decorator;
 
 interface ZRSJZ_MiniMapTaskMarker {
@@ -237,6 +238,12 @@ export class ZRSJZ_Game extends Component {
         if (this._taskStateNode?.isValid) this._taskStateNode.active = false;
         ZRSJZ_UIManager.IsBattle = false;
         ZRSJZ_UIManager.SinglePlayerBattleIndex = -1;
+    }
+
+    protected onDestroy(): void {
+        // 增强针是单局消耗品：无论撤离、失败还是主动退出，离开本局后均失效。
+        ZRSJZ_BoosterShotService.ClearCurrentBoosterShot();
+        if (ZRSJZ_Game.Instance === this) ZRSJZ_Game.Instance = null;
     }
 
     protected lateUpdate(): void {

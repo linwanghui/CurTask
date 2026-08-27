@@ -28,7 +28,11 @@ export class ZRSJZ_LoadingPanel extends ZRSJZ_Panel {
     }
 
     public Show(...args: any[]): void {
-        super.Show();
+        super.Show(() => {
+            if (args.length >= 2) {
+                args[1]();
+            }
+        });
 
         const sceneName = typeof args[0] === "string" ? args[0] : "";
         this._sceneName = sceneName;

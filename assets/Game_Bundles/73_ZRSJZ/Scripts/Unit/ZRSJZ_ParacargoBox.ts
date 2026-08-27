@@ -8,6 +8,7 @@ import {
 } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
 import { ZRSJZ_Box } from './ZRSJZ_Box';
 const { ccclass, property } = _decorator;
 
@@ -221,7 +222,8 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
         const totalWeight = goldWeight + redWeight;
         if (totalWeight <= 0) return this.PushRandomUnique(target, available);
 
-        const selectedPool = Math.random() * totalWeight < goldWeight ? goldProps : redProps;
+        const redProbability = ZRSJZ_BoosterShotService.GetBoostedRedProbability(redWeight / totalWeight);
+        const selectedPool = Math.random() < redProbability ? redProps : goldProps;
         target.push(selectedPool[Math.floor(Math.random() * selectedPool.length)]);
         return true;
     }
@@ -233,4 +235,3 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
         return true;
     }
 }
-

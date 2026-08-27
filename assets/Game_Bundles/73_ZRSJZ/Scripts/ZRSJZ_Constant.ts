@@ -38,6 +38,9 @@ export enum ZRSJZ_PANEL {
     涨经验弹窗 = "73_ZRSJZ/Prefabs/Panel/涨经验弹窗",
     特别行动弹窗 = "73_ZRSJZ/Prefabs/Panel/特别行动弹窗",
     等级弹窗 = "73_ZRSJZ/Prefabs/Panel/等级弹窗",
+    助战礼包弹窗 = "73_ZRSJZ/Prefabs/Panel/助战礼包弹窗",
+    增强针弹窗 = "73_ZRSJZ/Prefabs/Panel/增强针弹窗",
+    增强针替换弹窗 = "73_ZRSJZ/Prefabs/Panel/增强针替换弹窗",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -1223,6 +1226,51 @@ const ZRSJZ_MAP_REQUIRED_VALUES: readonly number[] = [
     0, 150_000, 500_000, 1_200_000, 3_000_000, 7_000_000,
 ];
 
+/** 助战礼包内容。装备名称直接关联 ZRSJZ_PROP_CONFIG，修改后会同步影响展示和实际发放。 */
+export interface ZRSJZ_AssistFightingGiftConfig {
+    WeaponName: string;
+    HelmetName: string;
+    ArmorName: string;
+    BackpackName: string;
+    AmmoName: string;
+    /** 随身弹药栏固定为六格，此处配置发放的满额弹匣数量。 */
+    AmmoStackCount: number;
+}
+
+/**
+ * 按关卡 Difficulty（1~6）配置助战礼包。
+ * 各件装备的实际价值取自 ZRSJZ_PROP_CONFIG，便于后续独立调整装备或单价。
+ */
+export const ZRSJZ_ASSIST_FIGHTING_GIFT_CONFIG: ReadonlyMap<
+    number,
+    Readonly<ZRSJZ_AssistFightingGiftConfig>
+> = new Map([
+    [1, {
+        WeaponName: "CN8-突击步枪", HelmetName: "二级头", ArmorName: "二级甲",
+        BackpackName: "二级包", AmmoName: "1级子弹", AmmoStackCount: 6,
+    }],
+    [2, {
+        WeaponName: "DX9-冲锋枪", HelmetName: "三级头", ArmorName: "三级甲",
+        BackpackName: "三级包", AmmoName: "2级子弹", AmmoStackCount: 6,
+    }],
+    [3, {
+        WeaponName: "K50-轻机枪", HelmetName: "四级头", ArmorName: "四级甲",
+        BackpackName: "四级包", AmmoName: "3级子弹", AmmoStackCount: 6,
+    }],
+    [4, {
+        WeaponName: "RK77-轻机枪", HelmetName: "五级头", ArmorName: "五级甲",
+        BackpackName: "五级包", AmmoName: "4级子弹", AmmoStackCount: 6,
+    }],
+    [5, {
+        WeaponName: "FS-霰弹枪", HelmetName: "六级头", ArmorName: "六级甲",
+        BackpackName: "六级包", AmmoName: "5级子弹", AmmoStackCount: 6,
+    }],
+    [6, {
+        WeaponName: "W76-狙击枪", HelmetName: "六级头", ArmorName: "六级甲",
+        BackpackName: "六级包", AmmoName: "6级子弹", AmmoStackCount: 6,
+    }],
+]);
+
 const ZRSJZ_MAP_TIME_LIMITS: readonly number[] = [18, 16, 14, 13, 12, 11];
 const ZRSJZ_MAP_HP_MULTIPLIERS: readonly number[] = [0.9, 1.15, 1.5, 1.95, 2.55, 3.25];
 const ZRSJZ_MAP_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.35, 1.65, 2.05, 2.5];
@@ -1972,4 +2020,58 @@ export function GetSpecialOperationConfig(
         TargetKillCount: 0,
     };
 }
+
+//#region 增强针
+//增强针配置
+export interface ZRSJZ_BoosterShotConfig {
+    Name: string;// 名称
+    UnlockType: string;//解锁类型--钞票/视频
+    Price: number;//金额/次数
+    Booster: string;//增强类型
+    Count: number;//增强额度
+    Desc: string;//描述
+}
+
+export const ZRSJZ_BOOSTER_SHOT_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BoosterShotConfig>> = new Map([
+    ["生命针", {
+        Name: "生命针",
+        UnlockType: "钞票",
+        Price: 100000,
+        Booster: "生命",
+        Count: 50,
+        Desc: "增加50点生命值"
+    }],
+    ["防御针", {
+        Name: "防御针",
+        UnlockType: "钞票",
+        Price: 300000,
+        Booster: "防御",
+        Count: 20,
+        Desc: "敌人伤害降低20%"
+    }],
+    ["攻击针", {
+        Name: "攻击针",
+        UnlockType: "钞票",
+        Price: 1000000,
+        Booster: "攻击力",
+        Count: 15,
+        Desc: "玩家伤害增加15%"
+    }],
+    ["爆率针", {
+        Name: "爆率针",
+        UnlockType: "视频",
+        Price: 1,
+        Booster: "爆率",
+        Count: 50,
+        Desc: "大红掉落的概率增加50%"
+    }],
+    ["移速针", {
+        Name: "移速针",
+        UnlockType: "视频",
+        Price: 1,
+        Booster: "移速",
+        Count: 20,
+        Desc: "玩家移速增加20%"
+    }],
+])
 

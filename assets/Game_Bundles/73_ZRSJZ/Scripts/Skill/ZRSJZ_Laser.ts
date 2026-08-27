@@ -34,7 +34,7 @@ export class ZRSJZ_Laser extends ZRSJZ_Skill {
         );
 
         results.forEach(result => {
-            result.collider.node.getComponent(ZRSJZ_EnemyBase)?.BeHit(this.SkillDamage);
+            result.collider.node.getComponent(ZRSJZ_EnemyBase)?.BeHit(this.Harm);
         })
     }
 

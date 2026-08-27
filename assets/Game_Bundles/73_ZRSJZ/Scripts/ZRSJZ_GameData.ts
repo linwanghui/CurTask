@@ -81,7 +81,7 @@ export class ZRSJZ_GameData {
 
     //#region 任务
     public MainTaskComplete: string[] = [];//已完成的任务
-    public MainTaskExperienceAwards: { [taskName: string]: number } = {};//已领取任务的经验奖励快照
+    public MainTaskExperienceAwards: { [taskName: string]: number } = {};//任务发布时的经验奖励快照
     public CurMainTask: { TaskName: string, TaskTargetName: string, CurCount: number } = null;//正在进行的任务
     public NewMainTask: string = "";//新任务
 
@@ -93,6 +93,10 @@ export class ZRSJZ_GameData {
     public TotalTimePlayed: number = 0;//累计游戏在线时长（秒）
     public TotalEvacuation: number = 0;//成功撤离次数
     public OptimumEvacuation: number = 0;//最佳单局撤离带出价值
+
+    //#region 增强针
+    BoosterShotData: { [Key: string]: number } = {};//增强针数据
+    CurBoosterShot: string = "";
 
     //#region 收藏室
     public BoxroomPropLevel: { [propName: string]: number } = {};

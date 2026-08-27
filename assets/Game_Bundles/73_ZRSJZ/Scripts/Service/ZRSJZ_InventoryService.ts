@@ -1,5 +1,6 @@
 import {
     ZRSJZ_AMMO_MAX_COUNT,
+    ZRSJZ_AssistFightingGiftConfig,
     ZRSJZ_GridData,
     ZRSJZ_INVENTORY,
     ZRSJZ_PROP_CONFIG,
@@ -117,6 +118,70 @@ export class ZRSJZ_InventoryService {
         if (playerIndex === 1) data.Player2AmmoID = normalizedIDs;
         else data.AmmoID = normalizedIDs;
         ZRSJZ_GameData.SaveData();
+    }
+
+    /**
+     * 用助战礼包完整替换指定玩家的枪、头盔、防弹衣、背包和六格弹药。
+     * 原装备实例不会销毁，而是解除玩家归属后放回综合仓库；近战武器保持不变。
+     */
+    public static ApplyAssistFightingGift(
+        gift: Readonly<ZRSJZ_AssistFightingGiftConfig>,
+        playerIndex: number = this._activePlayerIndex,
+    ): boolean {
+        const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
+        const equipment = [
+            { name: gift.WeaponName, type: "枪", slot: 0, inventory: ZRSJZ_INVENTORY.武器_枪 },
+            { name: gift.HelmetName, type: "头盔", slot: 1, inventory: ZRSJZ_INVENTORY.武器_头盔 },
+            { name: gift.ArmorName, type: "防弹衣", slot: 2, inventory: ZRSJZ_INVENTORY.武器_防弹衣 },
+            { name: gift.BackpackName, type: "背包", slot: 3, inventory: ZRSJZ_INVENTORY.武器_背包 },
+        ] as const;
+        const ammoConfig = ZRSJZ_PROP_CONFIG.get(gift.AmmoName);
+        if (
+            equipment.some(item => ZRSJZ_PROP_CONFIG.get(item.name)?.PropType !== item.type)
+            || ammoConfig?.PropType !== "弹药"
+        ) {
+            console.error("[ZRSJZ_InventoryService] 助战礼包存在无效装备配置", gift);
+            return false;
+        }
+
+        const data = ZRSJZ_GameData.Instance;
+        const weaponryIDs = this.GetWeaponryIDs(normalizedPlayerIndex);
+        const ammoIDs = this.GetAmmoIDs(normalizedPlayerIndex);
+        const replacedIDs = new Set<string>([
+            ...weaponryIDs.slice(0, 4),
+            ...ammoIDs,
+        ].filter(Boolean));
+        replacedIDs.forEach(propID => this.ReturnPropToWarehouse(propID));
+
+        for (const item of equipment) {
+            const propID = this.AddPropByName(item.name, 1);
+            const prop = data.PropData[propID];
+            if (!prop) return false;
+            this.PlaceAssistGiftProp(prop, item.inventory, 0, 0, normalizedPlayerIndex);
+            weaponryIDs[item.slot] = propID;
+        }
+
+        const stackCount = Math.max(0, Math.min(6, Math.floor(gift.AmmoStackCount || 0)));
+        const newAmmoIDs: string[] = [];
+        for (let index = 0; index < stackCount; index++) {
+            const propID = this.AddPropByName(gift.AmmoName, ZRSJZ_AMMO_MAX_COUNT);
+            const prop = data.PropData[propID];
+            if (!prop) return false;
+            this.PlaceAssistGiftProp(
+                prop,
+                ZRSJZ_INVENTORY.弹药,
+                index % 3,
+                Math.floor(index / 3),
+                normalizedPlayerIndex,
+            );
+            newAmmoIDs.push(propID);
+        }
+        while (newAmmoIDs.length < 6) newAmmoIDs.push("");
+        if (normalizedPlayerIndex === 1) data.Player2AmmoID = newAmmoIDs;
+        else data.AmmoID = newAmmoIDs;
+
+        this.NotifyInventoryChanged();
+        return true;
     }
 
     public static ChangePropGridPos(propID: string, index: number, x: number, y: number, isRotate?: boolean): void {
@@ -289,6 +354,39 @@ export class ZRSJZ_InventoryService {
         gridData.GridX = -1;
         gridData.GridY = -1;
         return gridData;
+    }
+
+    private static ReturnPropToWarehouse(propID: string): void {
+        const prop = ZRSJZ_GameData.Instance.PropData[propID];
+        if (!prop) return;
+        prop.CurInventory = ZRSJZ_INVENTORY.仓库_全部;
+        prop.OwnerPlayerIndex = -1;
+        prop.SourceBoxID = "";
+        for (const gridData of prop.GridData ?? []) {
+            gridData.GridX = -1;
+            gridData.GridY = -1;
+        }
+    }
+
+    private static PlaceAssistGiftProp(
+        prop: ZRSJZ_PropData,
+        inventory: ZRSJZ_INVENTORY,
+        gridX: number,
+        gridY: number,
+        playerIndex: number,
+    ): void {
+        prop.CurInventory = inventory;
+        prop.OwnerPlayerIndex = playerIndex;
+        prop.SourceBoxID = "";
+        for (const gridData of prop.GridData ?? []) {
+            gridData.GridX = -1;
+            gridData.GridY = -1;
+        }
+        if (prop.GridData?.[1]) {
+            prop.GridData[1].GridX = gridX;
+            prop.GridData[1].GridY = gridY;
+            prop.GridData[1].IsRotate = false;
+        }
     }
 
     private static RefreshRoomCardIDs(playerIndex: number): void {

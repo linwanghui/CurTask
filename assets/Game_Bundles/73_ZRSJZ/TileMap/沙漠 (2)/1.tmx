@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="150" height="100" tilewidth="100" tileheight="100" infinite="0" nextlayerid="147" nextobjectid="2">
+ <editorsettings>
+  <export target="1..tmx" format="tmx"/>
+ </editorsettings>
+ <tileset firstgid="1" name="重组右上" tilewidth="100" tileheight="100" tilecount="1600" columns="40">
+  <image source="重组右上.png" width="4000" height="4000"/>
+ </tileset>
+ <tileset firstgid="1601" name="重组右下" tilewidth="100" tileheight="100" tilecount="918" columns="34">
+  <image source="重组右下.png" width="3400" height="2700"/>
+ </tileset>
+ <tileset firstgid="2519" name="重组左上" tilewidth="100" tileheight="100" tilecount="1147" columns="31">
+  <image source="重组左上.png" width="3100" height="3700"/>
+ </tileset>
+ <tileset firstgid="3666" name="重组左下" tilewidth="100" tileheight="100" tilecount="1120" columns="40">
+  <image source="重组左下.png" width="4000" height="2800"/>
+ </tileset>
+ <layer id="140" name="图块层 47" width="150" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt3UduFFEUheEa2G1jm6WQmZrMEshMTWYJwCVMTWYJZKYmswQyU5PZBz/Coxammq66Vd3N/0ln2FId6T3pTKq6KP5sdrwoNpHNZAvZSraR7WQH2Tm+zA+lv5jj3Bwih8kRcpQcI8fJCXLSc6U+zHNuLpJL5DK5Qq6Sa+Q6ueG5Uh8WODcPySPymDwhT8kz8py88FypD4ucm4/kE/lMvpCv5Bv5Tn64v9SH8U5RdMgEmSQryBSZJjNkZcf9pfq5v5TB/aUM7i9lcH+pDe4vZXB/KYP7SxncX2qD+0sZ3F/K4P5SBveX2uD+Ugb3lzK4v5TB/aU2uL+Uwf2lDL3sL+lf9bK/pDKrxopiNVlD1pJ1ZD3ZQDaOtf10Gla7ODu7yR6yl+wj+8kBctBzpT6d4uycJmdIkLPkHDlPLniu1KebnJ1b5Da5Q+6Se+Q+eeC50jLK9tNL8oq8Jm/IW/KOvCcfPFdahvtJGdxPyuB+Uj/cT8rgflIG95MyuJ/UD/eTMriflMH9pAzuJ9Xt13sx7ifVzfdilMH3YpTB92KUwfeS1Qb3lzK4v5TB/aUM//P+4vmDHkGfoFfQL+gZ9A16xyxp+xlH1SjvL54/6BH0CXoF/YKeQd+gd8x5rtKM8v7i+YMeQZ+gV9Av6Bn0DXrH/NK58v+06zfK+4vnD3oEfYJeQb+gZ9A36B0LS+fK/9Ou3zDvr172Ez2CPkGvoF/QM+gb9I7FpXPl97yaN8j3uJf9NNMpYppMkRVkkkyQDhnv/D5Xfs+reYN8j3vdT2X8nmrzBvke97qfyvg91ea1eY/r2k9Vub+al3mP69pPVbm/mpd5j+vaT1W5v5qXeY/r2k9Vub+aV/UeD8J+qsr91byyezwI+6kq91fzyu7xIOynqtxfzSu7x4Own6pyfzWv7B4Pw36qyv3VLO7xUOynqtxfyuD+Ugb3l9rg/lIG95cyuL+Uwf2lNri/lMH9pQxl+6v7/UepF2X7q/v9R6kO3ftLqkP3/pLq0L2/pDp07y9JkiRJkiRJkiRJkiRJkiSNtp/s5fDw
+  </data>
+ </layer>
+ <layer id="141" name="图块层 48" width="150" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt3cdzVlUch/G7yBsUpIj6Z9iAAURjd6eCCiplCwLiDhEs8EPcYmewgKBgoWzpTYWgomLdxgKCqHT9A3yULGHeN/fmnJtkns/Ms9IZz82ce+e7SSyKC5Y3iuJFeoleplfoVXqNXqcVjULqsS3cm620jbbTDtpJu2g37fFeqYQu7s1P9DP9Qr/SETpKv9ExupVuo9vpDrqT7qK76R7vnS6i0V4U7TSILqPLaTANoStoKM3i7jxGs2kOzaXHaR494b1SCe4vpeD+UgruL6Xg/lId3F9Kwf2lFNxfSsH9pTq4v5SC+0spuL+UgvtLdXB/KQX3l1JwfykF95fq4P5SCu4vpdDK/pJ6qpX9JVV1bVtRXEfX0w10I42i0TSmre7Tqb+awt15mB6hR2kqTaPpNMN7pZKe4+4spiUUtJSep2X0gvdKJb3P3fmAPqSPaANtpE202XulS2i2n76mw/QNfUvf0ff0A/3ovdIluJ+UgvtJKbifVIb7SSm4n5SC+0kpuJ9UhvtJKbiflIL7SSm4n9RT93Iv7qP7aSJNogfoQXqIJrufVMJ87sWTtICeooW0iJ6mZ+hZ741KWMW9WU3v0BpaS+/Se7SO1nuvVMIB7k0nHaTP6HP6gg7Rl/SV90olnOTenKLTdIbO0jk6T3/TP23+XrJ6n7+XrBT8vWSl4O8lKwX/Lozq4P5SCu6voujwu93r3F9FMbPhd7u3DeT9xfmCcwbnDc4dnD94juB5gucKvlPx37/n3/PKrz+/x5wvOGdw3uDcwfmD5wieJ3iumNl9r/x7Xvn15/eY8wXnDM4bnDs4f/AcwfMEzxXLu++Vf081v/78HnO+4JzBeYNzB+cPniN4nuC5Ykv3vfLvqebXl9/jVvYT5wzOG5w7OH/wHMHzBM8VXd33qhn3V351vset7Ce+N8F3J/j+BN+h4HsUfJeC71PwnYpW/jvur/zqfI9b3U9Vub/yq/M9bnU/VeX+yi/le5xrP1Xl/sqvynucaz9V5f7Kr8p7nGs/VeX+yq/Ke5xrP1Xl/sqv2Xu8kt6gN+kteptW0eoL/7xP7Keq3F957eXnuY8+pk/oU9pPB6iz8f973if2U1Xur7yO8/P8nU7QH/Qn/UUn6dQA+lm7v/Iaxu4YTiPoShpJV9HVdM0A+n/suL/yGsvPcxyNp5toAt1Mt1DHALpXzbi/lIL7Sym4v5SC+0t1cH8pBfeXUqi6v6SLqbq/pDKa7S+pjGb7Syqj2f6Symi2vyRJkiRJkiRJkiRJkiRJkiRJ6gv+BfXs5FY=
+  </data>
+ </layer>
+ <layer id="143" name="图块层 50" width="150" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt3D1OgkEUBdApoQfFjajoRvBvL65ZBFtvYkvxmcnA+8g5ye2neMWdl8y09me1bG2d3CS3ySa5Wzbocp8Zekgek23ylDybKzrtMkMvyWvylrwnH+YKAACuyteitX3ynRySY/KzuPSpmDv7L0aw/2IE+y8AALh+9l+MYP/FCPZfjGD/BQAAAAAAAMBUP4v2eUwOyXeyT76SS5+Lebtbts9NcpvcJOtktTRX9HnODD0l2+QxeUjuzRWdPjJD78lb8pq8JDtzBQAAAAAAAACcmX/TGMG/aYzg3zRG8G8aAABcv+r7L29t56n6/stb23mqvv/y1naequ+/zvnWtnonYLpK/al6J2C6Sv2peidgukr9qXonYLo5/VWif9VRqT/10r/qqNSfeulfdVTqT730rzrm1J966V+MoH8xgv7FCPoXAEzn/sgI7o+M4P7ICO6PXMKp/gW9TvUv6HWqf0GvU/0LAAAAAAAAAAAAAOC/fgFgCbuf
+  </data>
+ </layer>
+ <layer id="144" name="图块层 51" width="150" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt2zduG2EUhdEpxV5xGw6iwjYcFJfh3GgXzgtxXojjGhRb30ZwZxgjP46G/znA1woi8Yo7AKfrAAAAAAD4H44Xuu4knaazdJ4uFob+rxi7xUnXLaXltJJW09pk6P+KsVvPDU3TRtpMW2nbXXFFO7mh3bSX9tNBOnRXFLO/qGB/cWm60B2tp9vpVrqZbqQ+f8v+4tJubmgn3U/30t10p+dd2V9cepYbepqepMfpUXqYHvS8rb+xv9rxNvfzJr1Or9LL9CI9L7gr+6sdX3I/n9On9DF9SO/Tu4K7sr/a8is39DP9SN/Tt/S14K7sLwCAehfZcefpLJ2mk3RcsO1oy9qkO1pNK2k5LaXFibviarZzQ1tpM22kaVp3V1zRYW7oIO2nvbSbdtwVMEP2OBXscSrY41Swx+nDfqKC/UQF+4kK9hN92E9UsJ+oYD9RwX4CrjPvjVLBe6NU8N4oFbw3yhDsLyrYX1Swv6hgfzEE+4sK9hcV7C8q2F8MYez7q89vHcf+mcdg7Purz28dx/6Zx2Ds+6vPbx3H/pnHYOz7q89vHcf+mefB0FvEuyLzaegt4l2R+TT0FvGuyHwaeotcp3dFht4ELWnpux56E7Skpe966E3Qkpa+66E3QUt813+0tAmYnZY2AbPT0iZgdmwCAPh3nh+p4PmRCp4fqeD5kSHYX1Swv6hgf1HB/gIAAAAAAAAAAAAAAFr2G4tcRFU=
+  </data>
+ </layer>
+ <layer id="142" name="图块层 49" width="150" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt0rWRUAEARdEf7UbIomXgFuKyEW4hbmXgVgZuZeBWBm45t4Uf7SycM3PzF7xhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4H+ycWIYNtXm2lJba1ttrx21s3bV9MRML2U2OdZfjteJOlmn6nSdqbN1rs7XBb9ihIv95VJdrit1ta7V9bpRN+tW3fYrRrjTX+7WvbpfD+phParH9aSe1jO/YoTn/eVFvaxX9bre1Nt6V+/rQ330K0b41F8+15f6Wt/qe/2on/Wrftcfv2KEOZPDMLfm1fyaqgW1sBbV4lpSSydneimzybL+srxW1MpaVatrTa2tdbW+NvgVI+zuL3tqb+2r/XWgDtahOlxH6qhfAQAAAAAAAAAAAAAAAAAAAMA/7y9WPjEe
+  </data>
+ </layer>
+ <layer id="146" name="图块层 53" width="150" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt1T1qAmEUhtGvjpUWUUmyjMT06mpM9jDbys9CNC7DiD+Vb68wICMD4znw9Ld44ZYCAAAAAAAANOH3oVQ/6Tt9pbbvoRvW2dJfWqWlXdGQY7Z0SPu0sysaMu6VapSG6bF3vit/kmu8Z0uT9JZeL+zKn+QW/Eluoe5PwjXq/iQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADcu02/lP+07bd9CV3yNCjlOb0M2r6ELplmT7M0tysatMiePtKnXQEAAAAAAAAAAAAAAAAAAAAA0AEnztsyig==
+  </data>
+ </layer>
+ <layer id="145" name="图块层 52" width="150" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt2MdyjQEYh/FP2cho5+g7vSXKQu92eo3eu2hD9LLQJcpCHSVIMIMkOjegW5GiuwKksdF5XIEz+Zgzxzy/mWf/Lv6rNwikv29iJAgm0WSaQlNpGk2nGTSTZtFsmkNzI/G+WIlgMzvZQltpG22nHbSTdlEGZdJu2kN73ZVicIGdXKRcyqN8ukSX6QpdpWt0nW7QTXelGDxhJwVUSEVUTE/pGT2nF/SSXtFreuOuFINP7OQzfaGv9I2+0w/6+XtD0SCoQlWpGlWPxvtiJYKm7KQZNacW1JJaUWtqQ22pHbWnZEpxV4rBIHYymIbQUBpGw2kEjaRRNJrG0FhKdVeKwXJ2soLSaSWtotW0htbSOlpPG2gjbXJXisFRdnKMjtMJyqKTdIpOUzbl0Bk6S+fclSRJkqT/UEmNICilMiqnCvpQI95XKdHVTAqCWlSb6lBdiiTF+yolumQ2lEIdqCN1os7uSiENYUNDaRgNpxE00l0ppDQ2tIgW0xJaSsvclULKYEOZtJv20F7a564U0nk2dIEuUi7lUb67kiRJkiRJ0j/WJSkIulI36k49qKd/KYU0lg2l0jgaTxNoortSSOlsaCWtotW0hta6K4W0nw0doIN0iA7TEXelkK6yoWt0nW7QTbrlrhTSYzb0hAqokIqo2F0ppFI2VEblVEEf6KO7kiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiRJf3A8EgQnKItO0ik6TdmUE4n3dUpUt9nOHbpL9+g+PaCH9MhdqZLesp139J5KqJTKqJwq3JUqKRoNgnpUnxpQQ2pEjalJNN7XKVH1Yju9qQ/1pX7UnwbQQHelSprNdubQXJpH82kBLaQ0dyVJkiRJkiRJkiRJkiRJkiRJkiRJkiRJkiTpH/gFbP6Mpw==
+  </data>
+ </layer>
+ <objectgroup id="133" name="对象层 1"/>
+</map>

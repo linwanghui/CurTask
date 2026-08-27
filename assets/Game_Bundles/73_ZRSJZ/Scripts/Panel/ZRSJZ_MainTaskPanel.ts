@@ -9,7 +9,6 @@ import { ZRSJZ_TaskService } from '../Service/ZRSJZ_TaskService';
 import { ZRSJZ_TaskAward } from '../UI/ZRSJZ_TaskAward';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_GradeService } from '../Service/ZRSJZ_GradeService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_MainTaskPanel')
@@ -101,7 +100,7 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
         this.TaskTargetComplete.active = taskState == 2 || taskState == 3;
         const curCount = taskState == 0 ? 0 : taskState == 1 ? ZRSJZ_GameData.Instance.CurMainTask.CurCount : this._curTaskConfig.TaskTargets[0].TaskTargetCount;
         this.TaskTargetDesc.string = `${this._curTaskConfig.TaskTargets[0].TaskTargetName}(${curCount}/${this._curTaskConfig.TaskTargets[0].TaskTargetCount})`
-        this.ShowAward(taskName, taskState, this._curTaskConfig.TaskAwards);
+        this.ShowAward(taskName, this._curTaskConfig.TaskAwards);
         this.GetTask.active = taskState == 0;
         this.GetAward.active = taskState == 2;
         this.Underway.active = taskState == 1;
@@ -109,13 +108,12 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
 
     ShowAward(
         taskName: string,
-        taskState: number,
         awards: ReadonlyArray<ZRSJZ_MainTaskAwardConfig>,
     ) {
         for (let i = this.TaskAward.children.length - 1; i >= 0; i--) {
             ZRSJZ_PoolManager.Instance.PutNode(this.TaskAward.children[i]);
         }
-        this.ResolveAwards(taskName, taskState, awards).forEach(award => {
+        this.ResolveAwards(taskName, awards).forEach(award => {
             ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/TaskAward").then(awardNode => {
                 awardNode.parent = this.TaskAward;
                 awardNode.active = true;
@@ -143,36 +141,26 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
             case "领取奖励":
                 const resolvedAwards = this.ResolveAwards(
                     this._curTask,
-                    ZRSJZ_TaskService.GetTaskState(this._curTask),
                     this._curTaskConfig.TaskAwards,
                 );
                 ZRSJZ_UIManager.Instance.ShowPanel(
                     ZRSJZ_PANEL.获取奖励弹窗,
                     ...resolvedAwards,
                 );
-                ZRSJZ_TaskService.GetTaskAward(
-                    resolvedAwards.find(award => award.TaskAwardName === "经验")?.TaskAwardCount,
-                );
+                ZRSJZ_TaskService.GetTaskAward();
                 break;
         }
     }
 
-    /** 经验奖励显示值与实际发放值保持一致，并恰好补足到下一级。 */
+    /** 经验奖励始终读取任务发布时的快照，显示值和实际发放值保持一致。 */
     private ResolveAwards(
         taskName: string,
-        taskState: number,
         awards: ReadonlyArray<ZRSJZ_MainTaskAwardConfig>,
     ): ZRSJZ_MainTaskAwardConfig[] {
-        const savedExperienceAward = ZRSJZ_GameData.Instance.MainTaskExperienceAwards?.[taskName];
         return awards.map(award => {
             let awardCount = award.TaskAwardCount;
             if (award.TaskAwardName === "经验") {
-                // 已领取任务只读取领取时的快照；旧存档无快照时固定使用配置值。
-                awardCount = taskState === 3
-                    ? (typeof savedExperienceAward === "number" && Number.isFinite(savedExperienceAward)
-                        ? savedExperienceAward
-                        : award.TaskAwardCount)
-                    : ZRSJZ_GradeService.GetExperienceToNextLevel();
+                awardCount = ZRSJZ_TaskService.GetTaskExperienceAward(taskName);
             }
             return {
                 TaskAwardName: award.TaskAwardName,
