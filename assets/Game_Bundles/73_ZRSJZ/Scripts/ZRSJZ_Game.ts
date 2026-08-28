@@ -166,6 +166,7 @@ export class ZRSJZ_Game extends Component {
 
     protected onLoad(): void {
         ZRSJZ_Game.Instance = this;
+        ZRSJZ_InventoryService.ResetBackpackExpansion();
         this.ResolveBattleSceneNodes();
         this.ResolveSpecialOperationUI();
         this.ConfigureSceneControlModels();
@@ -243,6 +244,8 @@ export class ZRSJZ_Game extends Component {
     protected onDestroy(): void {
         // 增强针是单局消耗品：无论撤离、失败还是主动退出，离开本局后均失效。
         ZRSJZ_BoosterShotService.ClearCurrentBoosterShot();
+        // 背包免费扩容同样仅在当前对局有效。
+        ZRSJZ_InventoryService.ResetBackpackExpansion();
         if (ZRSJZ_Game.Instance === this) ZRSJZ_Game.Instance = null;
     }
 

@@ -69,7 +69,6 @@ export class ZRSJZ_GameData {
     public Player2WeaponryID: string[] = ["", "", "", "", ""];
     public Player2AmmoID: string[] = ["", "", "", "", "", ""];
     public Player2RoomCard: string[] = ["", "", ""];
-
     public SignInClaimedCount: number = 0;
     public SignInLastClaimDate: string = "";
 

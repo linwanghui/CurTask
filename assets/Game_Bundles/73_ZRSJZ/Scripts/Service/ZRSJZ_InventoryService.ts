@@ -12,6 +12,8 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager
 /** 道具、装备、仓库、弹药及房卡相关业务。 */
 export class ZRSJZ_InventoryService {
     private static _activePlayerIndex: number = 0;
+    /** 单局扩容状态；只存在内存中，玩家1和玩家2互不影响。 */
+    private static _backpackExpanded: boolean[] = [false, false];
 
     public static SetActivePlayerIndex(playerIndex: number): void {
         this._activePlayerIndex = playerIndex === 1 ? 1 : 0;
@@ -34,6 +36,24 @@ export class ZRSJZ_InventoryService {
     public static GetRoomCardIDs(playerIndex: number = this._activePlayerIndex): string[] {
         const data = ZRSJZ_GameData.Instance;
         return playerIndex === 1 ? data.Player2RoomCard : data.RoomCard;
+    }
+
+    public static IsBackpackExpanded(playerIndex: number = this._activePlayerIndex): boolean {
+        const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
+        return this._backpackExpanded[normalizedPlayerIndex] === true;
+    }
+
+    /** 每名玩家每局只能领取一次。 */
+    public static ExpandBackpack(playerIndex: number = this._activePlayerIndex): boolean {
+        const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
+        if (this._backpackExpanded[normalizedPlayerIndex]) return false;
+        this._backpackExpanded[normalizedPlayerIndex] = true;
+        return true;
+    }
+
+    /** 开始或离开对局时清空本局扩容。 */
+    public static ResetBackpackExpansion(): void {
+        this._backpackExpanded = [false, false];
     }
 
     public static IsPlayerInventory(inventory: ZRSJZ_INVENTORY): boolean {
@@ -175,6 +195,68 @@ export class ZRSJZ_InventoryService {
                 normalizedPlayerIndex,
             );
             newAmmoIDs.push(propID);
+        }
+        while (newAmmoIDs.length < 6) newAmmoIDs.push("");
+        if (normalizedPlayerIndex === 1) data.Player2AmmoID = newAmmoIDs;
+        else data.AmmoID = newAmmoIDs;
+
+        this.NotifyInventoryChanged();
+        return true;
+    }
+
+    /**
+     * 将三种礼包弹药装备到指定玩家的六格弹药栏。
+     * 每种 120 发会按单格 60 发拆成两组，不依赖全局活动玩家，
+     * 因此双人模式下不会改动另一名玩家的弹药。
+     */
+    public static ApplyAmmoGift(
+        ammoNames: readonly string[],
+        countPerAmmo: number,
+        playerIndex: number = this._activePlayerIndex,
+    ): boolean {
+        const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
+        const normalizedNames = ammoNames.slice(0, 3);
+        const totalPerAmmo = Math.max(0, Math.floor(countPerAmmo));
+        if (
+            normalizedNames.length !== 3
+            || new Set(normalizedNames).size !== 3
+            || totalPerAmmo <= 0
+            || normalizedNames.some(name => ZRSJZ_PROP_CONFIG.get(name)?.PropType !== "弹药")
+        ) {
+            console.error("[ZRSJZ_InventoryService] 弹药大礼包配置无效", ammoNames, countPerAmmo);
+            return false;
+        }
+
+        const stackCountPerAmmo = Math.ceil(totalPerAmmo / ZRSJZ_AMMO_MAX_COUNT);
+        if (stackCountPerAmmo * normalizedNames.length > 6) {
+            console.error("[ZRSJZ_InventoryService] 弹药大礼包超出六格弹药栏容量");
+            return false;
+        }
+
+        const data = ZRSJZ_GameData.Instance;
+        this.GetAmmoIDs(normalizedPlayerIndex)
+            .filter(Boolean)
+            .forEach(propID => this.ReturnPropToWarehouse(propID));
+
+        const newAmmoIDs: string[] = [];
+        for (const ammoName of normalizedNames) {
+            let remaining = totalPerAmmo;
+            while (remaining > 0) {
+                const count = Math.min(ZRSJZ_AMMO_MAX_COUNT, remaining);
+                const propID = this.AddPropByName(ammoName, count);
+                const prop = data.PropData[propID];
+                if (!prop) return false;
+                const slotIndex = newAmmoIDs.length;
+                this.PlaceAssistGiftProp(
+                    prop,
+                    ZRSJZ_INVENTORY.弹药,
+                    slotIndex % 3,
+                    Math.floor(slotIndex / 3),
+                    normalizedPlayerIndex,
+                );
+                newAmmoIDs.push(propID);
+                remaining -= count;
+            }
         }
         while (newAmmoIDs.length < 6) newAmmoIDs.push("");
         if (normalizedPlayerIndex === 1) data.Player2AmmoID = newAmmoIDs;

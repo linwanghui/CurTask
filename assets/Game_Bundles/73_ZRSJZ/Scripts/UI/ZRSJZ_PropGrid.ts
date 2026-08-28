@@ -322,16 +322,17 @@ export class ZRSJZ_PropGrid extends Component {
                 // 小范围移动视为手指抖动，超过阈值后锁定本次触摸方向。
                 if (ZRSJZ_Tools.IsSlide(this._inventory)) {
 
-                    if (offsetY * offsetY > offsetX * offsetX) {
+                    if (offsetY * offsetY > offsetX * offsetX + 10) {
                         this._touchID = -1;
                         this.EmitPropMove(true);
                         ZRSJZ_UIManager.DraggingPlayerIndex = -1;
                         return;
                     }
-                    if (offsetX * offsetX < 10) return;
-                } else if (offsetX * offsetX + offsetY * offsetY < 2) {
-                    return;
+                    // if (offsetX * offsetX < 10) return;
                 }
+                // else if (offsetX * offsetX + offsetY * offsetY < 2) {
+                //     return;
+                // }
 
                 this._dragAxis = 1;
                 event.propagationStopped = true;

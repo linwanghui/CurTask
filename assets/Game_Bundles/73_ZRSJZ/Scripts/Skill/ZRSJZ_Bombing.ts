@@ -10,7 +10,7 @@ export class ZRSJZ_Bombing extends ZRSJZ_Bomb {
 
     Init(): void {
         super.Init();
-        this.SkillRange = 200;
+        this.SkillRange = 400;
     }
     Attack() {
         let players = director.getScene()?.getComponentsInChildren(ZRSJZ_Player) ?? [];
