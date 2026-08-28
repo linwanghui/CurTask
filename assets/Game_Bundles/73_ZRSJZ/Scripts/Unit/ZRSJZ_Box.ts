@@ -287,6 +287,11 @@ export class ZRSJZ_Box extends Component {
         return this._nextLootIndex < this.LootProps.length;
     }
 
+    /** 子类可指定某件刚搜索到的物资是否需要观看视频解锁。 */
+    ConsumeRewardVideoLock(_propName: string): boolean {
+        return false;
+    }
+
     /** 延迟创建本箱子独享的库存节点。 */
     async GetBoxInventory(): Promise<ZRSJZ_BoxInventory> {
         if (this._boxInventory?.node?.isValid) {

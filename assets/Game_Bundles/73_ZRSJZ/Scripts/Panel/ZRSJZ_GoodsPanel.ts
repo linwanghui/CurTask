@@ -322,6 +322,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
             propData.SourceBoxID = goods.BoxID;
             propData.IsSearchLocked = true;
+            propData.IsRewardVideoLocked = box?.ConsumeRewardVideoLock(propName) === true;
             const placeholderGrid = this.GetPlaceholderGrid(placeholder);
             this.ClearSearchReservation(placeholder);
             if (placeholderGrid) {

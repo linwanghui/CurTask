@@ -10,6 +10,7 @@ import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import type { ZRSJZ_Inventory } from './ZRSJZ_Inventory';
+import Banner from 'db://assets/Scripts/Banner';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PropGrid')
@@ -28,6 +29,7 @@ export class ZRSJZ_PropGrid extends Component {
     CountLabel: Label = null;
     Check: Node = null;
     Checked: Node = null;
+    Video: Node = null;
 
     PropID: string = "";
     PropName: string = "";
@@ -56,6 +58,7 @@ export class ZRSJZ_PropGrid extends Component {
     private _lastTapTime: number = 0;
     private _pendingTapPropID: string = "";
     private _isQuickTransferring: boolean = false;
+    private _isUnlockingRewardVideo: boolean = false;
 
     public get GridX(): number {
         return this._gridX;
@@ -127,6 +130,7 @@ export class ZRSJZ_PropGrid extends Component {
             this.CountLabel = this.node.getChildByName("Count").getComponent(Label);
             this.Check = this.node.getChildByName("未选");
             this.Checked = this.node.getChildByName("勾选");
+            this.Video = this.node.getChildByName("video");
         }
 
         // 对象池节点每次复用时都必须清理上一次道具留下的交互和显示状态。
@@ -149,6 +153,7 @@ export class ZRSJZ_PropGrid extends Component {
         this._lastTapTime = 0;
         this._pendingTapPropID = "";
         this._isQuickTransferring = false;
+        this._isUnlockingRewardVideo = false;
         this._propGridSF = null;
         this._propSF = null;
         this.UIOpacity.opacity = 255;
@@ -159,6 +164,7 @@ export class ZRSJZ_PropGrid extends Component {
         this.ApplyOrientation(false, 1, 1);
         this.Check.active = false;
         this.Checked.active = false;
+        if (this.Video) this.Video.active = false;
 
         if (propID == "") {
             this._gridType = "灰";
@@ -170,6 +176,7 @@ export class ZRSJZ_PropGrid extends Component {
         this.PropData = ZRSJZ_GameData.Instance.PropData[propID];
         if (!this.PropData) return;
         this.ApplySearchLockedState();
+        this.ApplyRewardVideoLockedState();
         const propName = this.PropData.Name;
         this.PropName = propName;
         if (!ZRSJZ_PROP_CONFIG.has(propName)) {
@@ -298,6 +305,11 @@ export class ZRSJZ_PropGrid extends Component {
             || this.PropID == ""
             || this.IsSearchLocked()
         ) return;
+        if (this.IsRewardVideoLocked()) {
+            event.propagationStopped = true;
+            this.UnlockRewardVideo();
+            return;
+        }
         if (this._touchID == -1) {
             this._touchID = event.getID();
             ZRSJZ_UIManager.DraggingPlayerIndex = this.GetPanelPlayerIndex();
@@ -312,7 +324,12 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     OnTouchMove(event: EventTouch) {
-        if (this.PropID == "" || this._isSelling || this.IsSearchLocked()) return;
+        if (
+            this.PropID == ""
+            || this._isSelling
+            || this.IsSearchLocked()
+            || this.IsRewardVideoLocked()
+        ) return;
         if (event.getID() == this._touchID) {
             if (!this._isMove && this._dragAxis === 0) {
                 const location = event.getUILocation();
@@ -320,6 +337,11 @@ export class ZRSJZ_PropGrid extends Component {
                 const offsetY = location.y - this._touchStartPos.y;
 
                 // 小范围移动视为手指抖动，超过阈值后锁定本次触摸方向。
+
+                if (offsetX * offsetX + offsetY * offsetY < 2) {
+                    return;
+                }
+
                 if (ZRSJZ_Tools.IsSlide(this._inventory)) {
 
                     if (offsetY * offsetY > offsetX * offsetX + 10) {
@@ -330,9 +352,7 @@ export class ZRSJZ_PropGrid extends Component {
                     }
                     // if (offsetX * offsetX < 10) return;
                 }
-                // else if (offsetX * offsetX + offsetY * offsetY < 2) {
-                //     return;
-                // }
+
 
                 this._dragAxis = 1;
                 event.propagationStopped = true;
@@ -384,7 +404,7 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     OnTouchEnd(event: EventTouch) {
-        if (this.PropID == "" || this.IsSearchLocked()) return;
+        if (this.PropID == "" || this.IsSearchLocked() || this.IsRewardVideoLocked()) return;
         if (event.getID() == this._touchID) {
             this._touchID = -1;
             if (this._isMove) {
@@ -565,7 +585,7 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     OnTouchCancel(event: EventTouch) {
-        if (this.PropID == "" || this.IsSearchLocked()) return;
+        if (this.PropID == "" || this.IsSearchLocked() || this.IsRewardVideoLocked()) return;
         if (event.getID() == this._touchID) {
             this._touchID = -1;
             if (this._isMove) {
@@ -810,6 +830,35 @@ export class ZRSJZ_PropGrid extends Component {
             this._touchID = -1;
             this._dragAxis = 0;
         }
+    }
+
+    private IsRewardVideoLocked(): boolean {
+        return this.PropData?.IsRewardVideoLocked === true;
+    }
+
+    private ApplyRewardVideoLockedState(): void {
+        if (this.Video) this.Video.active = this.IsRewardVideoLocked();
+        if (this.IsRewardVideoLocked()) {
+            this._touchID = -1;
+            this._dragAxis = 0;
+        }
+    }
+
+    private UnlockRewardVideo(): void {
+        if (this._isUnlockingRewardVideo || !this.IsRewardVideoLocked()) return;
+        this._isUnlockingRewardVideo = true;
+        const propID = this.PropID;
+        Banner.Instance.ShowVideoAd(() => {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            if (propData) {
+                propData.IsRewardVideoLocked = false;
+                ZRSJZ_GameData.SaveData();
+            }
+            if (this.node?.isValid && this.PropID === propID) {
+                this._isUnlockingRewardVideo = false;
+                this.ApplyRewardVideoLockedState();
+            }
+        });
     }
 
     async ChangePosByGrid(

@@ -673,6 +673,8 @@ export class ZRSJZ_PropData {
     public SourceBoxID: string = "";
     /** 搜索动画尚未完成时禁止显示和拖动；普通道具默认为 false。 */
     public IsSearchLocked: boolean = false;
+    /** 空投保底红色物资的视频锁；观看激励视频后解除。 */
+    public IsRewardVideoLocked: boolean = false;
     public UnitPrice: number;//单价
     public MaxCount: number;//最大堆叠数
     public CurCount: number;//当前堆叠数
@@ -778,15 +780,16 @@ export interface ZRSJZ_SkinConfig {
     UnlockPrice: number,
     Skin: string,
     Headset: string[],
+    EntranceAnis: string[];
 }
 
 export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> = new Map([
-    ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.蓝色, UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0000_前刘海_蓝狼"] }],
-    ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"] }],
-    ["泠汐", { Name: "泠汐", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [] }],
-    ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [] }],
-    ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [] }],
-    ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: ["wzt"] }],
+    ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.蓝色, UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0000_前刘海_蓝狼"], EntranceAnis: ["cc_ll"] }],
+    ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
+    ["泠汐", { Name: "泠汐", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
+    ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
+    ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [], EntranceAnis: ["cc_w"] }],
+    ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
 ])
 
 //玩家动画
@@ -1280,7 +1283,7 @@ const ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.3, 1.55,
 const ZRSJZ_MAP_SPEED_MULTIPLIERS: readonly number[] = [0.95, 1, 1.05, 1.1, 1.15, 1.2];
 const ZRSJZ_MAP_ATTACK_INTERVAL_MULTIPLIERS: readonly number[] = [1.05, 1, 0.95, 0.9, 0.85, 0.8];
 /** 六个模式进入战斗后触发空投的时间（秒），高难度更早提供争夺目标。 */
-export const ZRSJZ_PARACARGO_SPAWN_TIMES: readonly number[] = [180, 150, 135, 120, 105, 90];
+export const ZRSJZ_PARACARGO_SPAWN_TIMES: readonly number[] = [18, 150, 135, 120, 105, 90];
 const ZRSJZ_MAP_PROP_TYPES: readonly string[] = ["物品", "房卡", "弹药", "头盔", "防弹衣"];//地图中允许掉落的类型
 /** 宝箱不掉落背包，其他装备最高只允许紫色（四级）；普通物资与弹药不受此限制。 */
 const ZRSJZ_MAP_BOX_EQUIPMENT_TYPES: readonly string[] = ["枪", "刀", "头盔", "防弹衣", "背包"];

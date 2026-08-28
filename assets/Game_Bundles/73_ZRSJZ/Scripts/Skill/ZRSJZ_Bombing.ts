@@ -16,7 +16,7 @@ export class ZRSJZ_Bombing extends ZRSJZ_Bomb {
         let players = director.getScene()?.getComponentsInChildren(ZRSJZ_Player) ?? [];
         players = players.filter(player => !player.IsDead);
         players.forEach(player => {
-            if (Vec3.distance(this.node.worldPosition, player.node.worldPosition) < this.SkillRange) {
+            if (Vec3.distance(this.node.worldPosition, player.node.worldPosition) < this.SkillRange || Vec3.distance(this.node.worldPosition, player.Other.worldPosition) < this.SkillRange) {
                 player.BeHit(this.SkillDamage);
             }
         })

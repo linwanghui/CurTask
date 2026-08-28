@@ -57,7 +57,7 @@ export class ZRSJZ_Bomb extends ZRSJZ_Skill {
         const currentPosition = this.node.worldPosition;
         enemys = enemys.filter(enemy => !enemy.IsDead);
         enemys.forEach(enemy => {
-            if (Vec3.distance(this.node.worldPosition, enemy.node.worldPosition) < this.SkillRange) {
+            if (Vec3.distance(this.node.worldPosition, enemy.node.worldPosition) < this.SkillRange || Vec3.distance(this.node.worldPosition, enemy.Other.worldPosition) < this.SkillRange) {
                 enemy.BeHit(this.Harm);
             }
         })

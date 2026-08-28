@@ -37,6 +37,7 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
     private _rigidBody: RigidBody2D = null;
     private _visualInitialized: boolean = false;
     private _landed: boolean = false;
+    private _rewardVideoLockPending: boolean = false;
 
     public get IsLanded(): boolean {
         return this._landed;
@@ -69,6 +70,7 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
         this._landed = false;
         this.BoxName = "空投";
         this.ConfigureFixedLoot(this.GenerateHighValueLoot(config, mapConfig));
+        this._rewardVideoLockPending = true;
         this.SetInteractionEnabled(false);
         this.ApplyIcon(0);
         if (this.Checked?.node) this.Checked.node.active = false;
@@ -129,6 +131,18 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
         return this._landed && super.TryBeginSearch(playerIndex);
     }
 
+    /** 每个空投只锁住第一件保底红色物资。 */
+    public ConsumeRewardVideoLock(propName: string): boolean {
+        if (!this._rewardVideoLockPending) return false;
+        const propConfig = ZRSJZ_PROP_CONFIG.get(propName);
+        if (
+            propConfig?.Quality !== ZRSJZ_PROP_QUALITY.红色
+            || propConfig.PropType !== "物品"
+        ) return false;
+        this._rewardVideoLockPending = false;
+        return true;
+    }
+
     private OnLanded(): void {
         if (!this.node.isValid) return;
         this._landed = true;
@@ -163,6 +177,15 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
             ...(mapConfig.MapProp[4] ?? []),
             ...(mapConfig.MapProp[5] ?? []),
         ])).filter(propName => ZRSJZ_PROP_CONFIG.get(propName)?.PropType === "物品");
+        const guaranteedRedProps = Array.from(new Set([
+            ...(mapConfig.MapProp[5] ?? []),
+            ...(mapConfig.UniversalRedProps ?? []),
+            ...(mapConfig.ExclusiveRedProps ?? []),
+        ])).filter(propName => {
+            const prop = ZRSJZ_PROP_CONFIG.get(propName);
+            return prop?.PropType === "物品"
+                && prop.Quality === ZRSJZ_PROP_QUALITY.红色;
+        });
         const equipmentProps = Array.from(ZRSJZ_PROP_CONFIG.values())
             .filter(prop => {
                 const qualityIndex = ZRSJZ_PARACARGO_QUALITY_ORDER.indexOf(prop.Quality);
@@ -174,8 +197,11 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
             .map(prop => prop.Name);
 
         const loot: string[] = [];
-        // 至少保留一件高价值物资，但红色物资按配置显著降权。
-        this.PushWeightedHighValueProp(loot, highValueProps, config);
+        // 第一件固定为当前地图允许的红色物资，搜索出来后需要观看视频解锁。
+        if (!this.PushRandomUnique(loot, guaranteedRedProps)) {
+            console.warn(`[ZRSJZ_ParacargoBox] ${mapConfig.MapName} 没有可用的红色物资配置`);
+            this.PushWeightedHighValueProp(loot, highValueProps, config);
+        }
         const equipmentCount = Math.min(
             Math.max(0, totalCount - 1),
             Math.max(0, Math.floor(config.GuaranteedEquipmentCount)),

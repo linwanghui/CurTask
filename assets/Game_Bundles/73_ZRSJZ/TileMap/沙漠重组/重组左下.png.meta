@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "c8ca58a0-257e-4fe1-a58b-d3b7cd0f47c8",
+  "uuid": "04873820-8869-489f-977f-e06c8639b70f",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "c8ca58a0-257e-4fe1-a58b-d3b7cd0f47c8@6c48a",
-      "displayName": "C-_Users_admin_Desktop_三角洲真人版_沙漠地图---副本",
+      "uuid": "04873820-8869-489f-977f-e06c8639b70f@6c48a",
+      "displayName": "重组左下",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "c8ca58a0-257e-4fe1-a58b-d3b7cd0f47c8",
+        "imageUuidOrDatabaseUri": "04873820-8869-489f-977f-e06c8639b70f",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "c8ca58a0-257e-4fe1-a58b-d3b7cd0f47c8@f9941",
-      "displayName": "C-_Users_admin_Desktop_三角洲真人版_沙漠地图---副本",
+      "uuid": "04873820-8869-489f-977f-e06c8639b70f@f9941",
+      "displayName": "重组左下",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -46,9 +46,9 @@
         "trimX": 0,
         "trimY": 0,
         "width": 4000,
-        "height": 4000,
+        "height": 2800,
         "rawWidth": 4000,
-        "rawHeight": 4000,
+        "rawHeight": 2800,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -61,16 +61,16 @@
         "vertices": {
           "rawPosition": [
             -2000,
-            -2000,
+            -1400,
             0,
             2000,
-            -2000,
+            -1400,
             0,
             -2000,
-            2000,
+            1400,
             0,
             2000,
-            2000,
+            1400,
             0
           ],
           "indexes": [
@@ -83,9 +83,9 @@
           ],
           "uv": [
             0,
+            2800,
             4000,
-            4000,
-            4000,
+            2800,
             0,
             0,
             4000,
@@ -103,17 +103,17 @@
           ],
           "minPos": [
             -2000,
-            -2000,
+            -1400,
             0
           ],
           "maxPos": [
             2000,
-            2000,
+            1400,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "c8ca58a0-257e-4fe1-a58b-d3b7cd0f47c8@6c48a",
+        "imageUuidOrDatabaseUri": "04873820-8869-489f-977f-e06c8639b70f@6c48a",
         "atlasUuid": "",
         "trimType": "none"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "c8ca58a0-257e-4fe1-a58b-d3b7cd0f47c8@6c48a"
+    "redirect": "04873820-8869-489f-977f-e06c8639b70f@6c48a"
   }
 }
