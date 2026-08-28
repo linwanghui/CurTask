@@ -1,0 +1,430 @@
+{
+"skeleton": {
+	"hash": "Ef++0XvKwaDTVoVabojZeMkwpZE",
+	"spine": "3.8.75",
+	"x": -791,
+	"y": -246.5,
+	"width": 1582,
+	"height": 493,
+	"images": "./images/",
+	"audio": "D:/2026/2d/三角洲（卡通真人版）/动画/先锋行动"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "1", "parent": "root", "length": 321.56, "rotation": -46.74 },
+	{ "name": "齿轮底", "parent": "1", "length": 100, "rotation": 46.74, "color": "ff00e5ff" },
+	{ "name": "行动", "parent": "1", "rotation": 46.74, "x": 260.58, "y": 279.69 },
+	{ "name": "先锋", "parent": "1", "rotation": 46.74, "x": -255.28, "y": -280.14 },
+	{ "name": "宝箱图标", "parent": "1", "length": 269.08, "rotation": 136.74 },
+	{ "name": "箭头", "parent": "1", "rotation": 46.74, "x": -89.12, "y": -91.58 },
+	{ "name": "箭头底", "parent": "1", "length": 318.27, "rotation": -43.26 },
+	{ "name": "外圈", "parent": "1", "length": 309.48, "rotation": -133.26 },
+	{ "name": "内圈", "parent": "1", "length": 200, "rotation": 87.7 },
+	{ "name": "行动2", "parent": "1", "rotation": 46.74, "x": 260.58, "y": 279.69 },
+	{ "name": "先锋2", "parent": "1", "rotation": 46.74, "x": -255.28, "y": -280.14 },
+	{ "name": "宝箱图标2", "parent": "1", "length": 269.08, "rotation": 136.74 },
+	{ "name": "箭头2", "parent": "1", "rotation": 46.74, "x": -90.22, "y": -90.54 },
+	{ "name": "箭头3", "parent": "1", "rotation": 46.74, "x": -90.22, "y": -90.54 },
+	{ "name": "jiantouzu", "parent": "root", "x": -365.95, "y": -150.21 },
+	{ "name": "箭头4", "parent": "1", "rotation": 46.74, "x": 84.37, "y": 94.99, "scaleX": -1 },
+	{ "name": "箭头5", "parent": "1", "rotation": 46.74, "x": 118.39, "y": 131.14, "scaleX": -1 },
+	{ "name": "箭头6", "parent": "1", "rotation": 46.74, "x": 119.5, "y": 130.09, "scaleX": -1 },
+	{ "name": "1tx", "parent": "1", "length": 532.6, "rotation": -177.31, "scaleX": 1.0411, "scaleY": 1.0411 }
+],
+"slots": [
+	{ "name": "箭头底", "bone": "箭头底", "attachment": "箭头底" },
+	{ "name": "箭头", "bone": "箭头" },
+	{ "name": "箭头6", "bone": "箭头6" },
+	{ "name": "箭头2", "bone": "箭头2" },
+	{ "name": "箭头5", "bone": "箭头5" },
+	{ "name": "箭头3", "bone": "箭头3" },
+	{ "name": "箭头4", "bone": "箭头4" },
+	{ "name": "先锋2", "bone": "先锋2", "attachment": "先锋" },
+	{ "name": "先锋", "bone": "先锋", "attachment": "先锋" },
+	{ "name": "行动2", "bone": "行动2", "attachment": "行动" },
+	{ "name": "行动", "bone": "行动", "attachment": "行动" },
+	{ "name": "齿轮底", "bone": "齿轮底", "attachment": "齿轮底" },
+	{ "name": "外圈", "bone": "外圈", "attachment": "外圈" },
+	{ "name": "内圈", "bone": "内圈", "attachment": "内圈" },
+	{ "name": "宝箱图标2", "bone": "宝箱图标2" },
+	{ "name": "宝箱图标", "bone": "宝箱图标", "attachment": "宝箱图标" },
+	{ "name": "保险箱2", "bone": "宝箱图标2" },
+	{ "name": "保险箱", "bone": "宝箱图标", "attachment": "保险箱" },
+	{ "name": "tx", "bone": "1tx" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"先锋": {
+				"先锋": { "x": 1.04, "y": 6.08, "width": 287, "height": 162 }
+			},
+			"tx": {
+				"tx": { "scaleX": 2.5972, "scaleY": 2.5972, "rotation": -135.95, "width": 658, "height": 439 }
+			},
+			"保险箱": {
+				"保险箱": { "x": -116.43, "y": -2.34, "rotation": -90, "width": 279, "height": 123 }
+			},
+			"保险箱2": {
+				"保险箱": { "x": -116.43, "y": -2.34, "rotation": -90, "width": 279, "height": 123 }
+			},
+			"箭头底": {
+				"箭头底": { "rotation": 90, "width": 1582, "height": 252 }
+			},
+			"先锋2": {
+				"先锋": { "x": 1.04, "y": 6.08, "width": 287, "height": 162 }
+			},
+			"宝箱图标2": {
+				"宝箱图标": { "rotation": -90, "width": 216, "height": 288 }
+			},
+			"行动2": {
+				"行动": { "x": 2.26, "y": -1.91, "width": 286, "height": 162 }
+			},
+			"行动": {
+				"行动": { "x": 2.26, "y": -1.91, "width": 286, "height": 162 }
+			},
+			"内圈": {
+				"内圈": { "rotation": -40.96, "width": 285, "height": 285 }
+			},
+			"齿轮底": {
+				"齿轮底": { "width": 466, "height": 493 }
+			},
+			"箭头": {
+				"箭头": { "x": 0.97, "y": -2.13, "width": 169, "height": 180 }
+			},
+			"箭头2": {
+				"箭头": { "x": 0.97, "y": -2.13, "width": 169, "height": 180 }
+			},
+			"箭头3": {
+				"箭头": { "x": 0.97, "y": -2.13, "width": 169, "height": 180 }
+			},
+			"箭头4": {
+				"箭头": { "x": 0.97, "y": -2.13, "width": 169, "height": 180 }
+			},
+			"箭头5": {
+				"箭头": { "x": 0.97, "y": -2.13, "width": 169, "height": 180 }
+			},
+			"箭头6": {
+				"箭头": { "x": 0.97, "y": -2.13, "width": 169, "height": 180 }
+			},
+			"外圈": {
+				"外圈": { "rotation": 180, "width": 406, "height": 406 }
+			},
+			"宝箱图标": {
+				"宝箱图标": { "rotation": -90, "width": 216, "height": 288 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {
+		"slots": {
+			"行动2": {
+				"color": [
+					{ "time": 0.5667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.5667, "name": "行动" }
+				]
+			},
+			"保险箱": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "ffffffff" }
+				],
+				"attachment": [
+					{ "time": 2, "name": null }
+				]
+			},
+			"箭头3": {
+				"color": [
+					{ "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.5, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 1.3333, "name": "箭头" }
+				]
+			},
+			"箭头5": {
+				"color": [
+					{ "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.1667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 1, "name": "箭头" }
+				]
+			},
+			"内圈": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "ffffffff" }
+				],
+				"attachment": [
+					{ "time": 2, "name": null }
+				]
+			},
+			"箭头6": {
+				"color": [
+					{ "color": "ffffffff", "curve": "stepped" },
+					{ "time": 0.8333, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.6667, "name": "箭头" }
+				]
+			},
+			"外圈": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "ffffffff" }
+				],
+				"attachment": [
+					{ "time": 2, "name": null }
+				]
+			},
+			"保险箱2": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 0.5, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.5, "name": "保险箱" }
+				]
+			},
+			"箭头4": {
+				"color": [
+					{ "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.5, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 1.3333, "name": "箭头" }
+				]
+			},
+			"箭头底": {
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.5, "name": "箭头底" },
+					{ "time": 2, "name": null }
+				]
+			},
+			"行动": {
+				"color": [
+					{ "time": 1.8333, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.5, "name": "行动" },
+					{ "time": 2, "name": null }
+				]
+			},
+			"宝箱图标2": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 0.5, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.5, "name": "宝箱图标" }
+				]
+			},
+			"箭头2": {
+				"color": [
+					{ "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.1667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 1, "name": "箭头" }
+				]
+			},
+			"先锋2": {
+				"color": [
+					{ "time": 0.5667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.5667, "name": "先锋" }
+				]
+			},
+			"宝箱图标": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "ffffffff" }
+				],
+				"attachment": [
+					{ "time": 2, "name": null }
+				]
+			},
+			"先锋": {
+				"color": [
+					{ "time": 1.8333, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.5, "name": "先锋" },
+					{ "time": 2, "name": null }
+				]
+			},
+			"箭头": {
+				"color": [
+					{ "color": "ffffffff", "curve": "stepped" },
+					{ "time": 0.8333, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.6667, "name": "箭头" }
+				]
+			},
+			"齿轮底": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "ffffffff" }
+				],
+				"attachment": [
+					{ "name": "齿轮底" },
+					{ "time": 2, "name": null }
+				]
+			}
+		},
+		"bones": {
+			"先锋": {
+				"translate": [
+					{ "time": 0.5, "x": 139.43, "y": 148.16, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5667, "x": -0.71, "y": -0.76, "curve": "stepped" },
+					{ "time": 1.8333, "x": -0.71, "y": -0.76, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "x": 261.75, "y": 278.14 }
+				],
+				"scale": [
+					{ "x": 0.976, "y": 0.976 }
+				]
+			},
+			"1": {
+				"scale": [
+					{ "x": 2, "y": 2, "curve": "stepped" },
+					{ "time": 0.1667, "x": 2, "y": 2, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "curve": "stepped" },
+					{ "time": 1.8333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "x": 0.222, "y": 0.222 }
+				]
+			},
+			"行动": {
+				"translate": [
+					{ "time": 0.5, "x": -151.94, "y": -161.46, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5667, "curve": "stepped" },
+					{ "time": 1.8333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "x": -272.3, "y": -289.35 }
+				]
+			},
+			"箭头底": {
+				"scale": [
+					{ "time": 0.5, "y": 0.454, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6, "curve": "stepped" },
+					{ "time": 1.8, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "y": 0.412 }
+				]
+			},
+			"箭头": {
+				"translate": [
+					{ "time": 0.6667, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "x": -315.01, "y": -334.73 }
+				]
+			},
+			"齿轮底": {
+				"rotate": [
+					{ "time": 0.5, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "angle": -46.47, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "angle": -86.43, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "angle": -134.89, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8333, "angle": 178.75 }
+				]
+			},
+			"宝箱图标": {
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "x": 1.323, "y": 1.323, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "x": 0.889, "y": 0.889, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"外圈": {
+				"rotate": [
+					{ "time": 0.5, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "angle": 39.65, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "angle": 91.76, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "angle": 140.55, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8333, "angle": -179.77 }
+				]
+			},
+			"行动2": {
+				"scale": [
+					{ "time": 0.5667, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "x": 1.765, "y": 1.765 }
+				]
+			},
+			"先锋2": {
+				"scale": [
+					{ "time": 0.5667, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "x": 1.765, "y": 1.765 }
+				]
+			},
+			"宝箱图标2": {
+				"translate": [
+					{ "time": 0.5, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "x": -49.88, "y": 46.94 }
+				],
+				"scale": [
+					{ "time": 0.5, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "x": 1.555, "y": 1.555 }
+				]
+			},
+			"箭头2": {
+				"translate": [
+					{ "time": 1, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "x": -315.01, "y": -334.73 }
+				]
+			},
+			"箭头3": {
+				"translate": [
+					{ "time": 1.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8333, "x": -315.01, "y": -334.73 }
+				]
+			},
+			"箭头4": {
+				"translate": [
+					{ "time": 1.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8333, "x": 315.53, "y": 335.29 }
+				]
+			},
+			"箭头5": {
+				"translate": [
+					{ "time": 1, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "x": 281.51, "y": 299.14 }
+				]
+			},
+			"箭头6": {
+				"translate": [
+					{ "time": 0.6667, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "x": 281.51, "y": 299.14 }
+				]
+			}
+		}
+	}
+}
+}

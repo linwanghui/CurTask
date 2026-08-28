@@ -2,6 +2,7 @@ import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, Collider2D, Component, Node, sp } from 'cc';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_AudioManager } from "../Manager/ZRSJZ_AudioManager";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Door')
@@ -66,6 +67,7 @@ export class ZRSJZ_Door extends Component {
     private OpenInternal(): void {
         if (this._isOpened) return;
         this._isOpened = true;
+        ZRSJZ_AudioManager.Instance.PlaySound("开门");
         this.Spine.setAnimation(0, this.Skin, false);
         this.Spine.setCompleteListener(() => {
             this.Sensor.enabled = false;

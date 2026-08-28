@@ -130,6 +130,10 @@ export class ZRSJZ_Game extends Component {
     private _specialOperationBombRadius: number = 0;
     private readonly _breakWallMailboxes: ZRSJZ_Mailbox[] = [];
     private _breakWallTotalBoxCount: number = 0;
+    private _breakWallAvailabilityRolled: boolean = false;
+    private _breakWallAvailableThisBattle: boolean = false;
+    private _breakWallIntroShown: boolean = false;
+    private _vanguardIntroNode: Node = null;
     private _taskStateNode: Node = null;
     private _taskStateSkeleton: sp.Skeleton = null;
     private _taskCountdownNode: Node = null;
@@ -185,6 +189,9 @@ export class ZRSJZ_Game extends Component {
         this._specialOperationBombRadius = 0;
         this._breakWallMailboxes.length = 0;
         this._breakWallTotalBoxCount = 0;
+        this._breakWallAvailabilityRolled = false;
+        this._breakWallAvailableThisBattle = false;
+        this._breakWallIntroShown = false;
         this._miniMapTaskMarkers.length = 0;
         this._specialOperationTaskPoints.length = 0;
         this.SetSpecialOperationCountdownVisible(false);
@@ -231,6 +238,7 @@ export class ZRSJZ_Game extends Component {
     }
 
     protected onDisable(): void {
+        this.DestroyVanguardOperationIntro();
         ZRSJZ_GradeService.FlushOnlineTime();
         // 场景被主动退出时仍保留已开始战局统计，但不生成对局经验。
         this.FinalizeBattleStatistics(false, 0, false);
@@ -726,6 +734,7 @@ export class ZRSJZ_Game extends Component {
         this._battleStarted = true;
         this.StartBattleStatistics();
         this.ScheduleNextBombPlot(true);
+        void this.ShowVanguardOperationIntro();
         for (const checked of this._checkedNodes.slice(0, this.Players.length)) {
             if (!checked) continue;
             tween(checked)
@@ -1221,7 +1230,21 @@ export class ZRSJZ_Game extends Component {
 
     /** 按当前地图中实际放置的特别行动预制体数量创建同等数量的小地图图标。 */
     private InitializeSpecialOperationPoints(): void {
-        if (!this.CurMap?.node || !this._miniMapMapRoot || !this._miniMapContent) return;
+        if (!this.CurMap?.node) return;
+
+        const taskPoints = this.CurMap.node.getComponentsInChildren(ZRSJZ_SpecialOperationsTaskIcon)
+            .filter(point => point?.node?.isValid);
+        if (!this._breakWallAvailabilityRolled) {
+            this._breakWallAvailabilityRolled = true;
+            const breakWallPoints = taskPoints.filter(point => point.TaskName === "破壁行动");
+            this._breakWallAvailableThisBattle = breakWallPoints.length > 0
+                && Math.random() < 0.3;
+            if (!this._breakWallAvailableThisBattle) {
+                for (const taskPoint of breakWallPoints) taskPoint.Deactivate();
+            }
+        }
+
+        if (!this._miniMapMapRoot || !this._miniMapContent) return;
 
         for (const marker of this._miniMapTaskMarkers) {
             if (!marker.Node?.isValid || marker.Node === this._miniMapTaskPoint) continue;
@@ -1232,8 +1255,7 @@ export class ZRSJZ_Game extends Component {
         this._specialOperationTaskPoints.splice(
             0,
             this._specialOperationTaskPoints.length,
-            ...this.CurMap.node.getComponentsInChildren(ZRSJZ_SpecialOperationsTaskIcon)
-                .filter(point => point?.node?.isValid),
+            ...taskPoints.filter(point => point.IsAvailable),
         );
 
         const template = this._miniMapTaskPoint;
@@ -1287,6 +1309,65 @@ export class ZRSJZ_Game extends Component {
         if (this._hasMiniMapTaskPoint) {
             this._miniMapTaskMapPosition.set(this._miniMapTaskMarkers[0].MapPosition);
         }
+    }
+
+    /** 抽中破壁行动时，入场播放一次先锋行动提示动画。 */
+    private async ShowVanguardOperationIntro(): Promise<void> {
+        if (
+            !this._breakWallAvailableThisBattle
+            || this._breakWallIntroShown
+            || this._isGameFinished
+        ) return;
+        this._breakWallIntroShown = true;
+
+        try {
+            const prefab = await ZRSJZ_Tools.LoadPrefab("Prefabs/Panel/先锋行动弹窗");
+            if (
+                ZRSJZ_Game.Instance !== this
+                || !this.node?.activeInHierarchy
+                || this._isGameFinished
+            ) return;
+
+            const panelRoot = ZRSJZ_UIManager.Instance?.node?.getChildByName("Panel");
+            if (!panelRoot?.isValid) {
+                console.warn("[ZRSJZ_Game] 找不到先锋行动弹窗挂载层");
+                return;
+            }
+
+            this.DestroyVanguardOperationIntro();
+            const introNode = instantiate(prefab);
+            this._vanguardIntroNode = introNode;
+            introNode.active = false;
+            introNode.parent = panelRoot;
+            introNode.setPosition(0, 0, 0);
+            introNode.setSiblingIndex(panelRoot.children.length - 1);
+
+            const skeleton = find("Panel/Spine", introNode)?.getComponent(sp.Skeleton) ?? null;
+            if (!skeleton) {
+                console.warn("[ZRSJZ_Game] 先锋行动弹窗缺少 Panel/Spine 组件");
+                this.DestroyVanguardOperationIntro();
+                return;
+            }
+
+            introNode.active = true;
+            skeleton.setCompleteListener(null);
+            skeleton.setCompleteListener((trackEntry: any) => {
+                if (trackEntry?.animation?.name !== "animation") return;
+                skeleton.setCompleteListener(null);
+                this.DestroyVanguardOperationIntro();
+            });
+            skeleton.setAnimation(0, "animation", false);
+        } catch (error) {
+            console.error("[ZRSJZ_Game] 先锋行动弹窗加载失败", error);
+            this.DestroyVanguardOperationIntro();
+        }
+    }
+
+    private DestroyVanguardOperationIntro(): void {
+        if (this._vanguardIntroNode?.isValid) {
+            this._vanguardIntroNode.destroy();
+        }
+        this._vanguardIntroNode = null;
     }
 
     /**

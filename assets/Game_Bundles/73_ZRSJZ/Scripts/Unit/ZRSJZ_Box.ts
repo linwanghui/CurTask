@@ -10,6 +10,7 @@ import {
 import { ZRSJZ_BoxInventory } from '../UI/ZRSJZ_BoxInventory';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 const ZRSJZ_LOOT_QUALITY_ORDER: readonly ZRSJZ_PROP_QUALITY[] = [
@@ -43,6 +44,9 @@ export class ZRSJZ_Box extends Component {
 
     @property
     BoxName: string = '';
+
+    @property
+    AudioName: string = '开箱子';
 
     @property
     IsInit: boolean = false;
@@ -213,6 +217,7 @@ export class ZRSJZ_Box extends Component {
         this.State = ZRSJZ_BOX_STATE.OPENED;
         if (this.Icon) this.Icon.spriteFrame = this.IconSF[this.State];
         if (this.Checked) this.Checked.spriteFrame = this.CheckedSF[this.State];
+        ZRSJZ_AudioManager.Instance.PlaySound(this.AudioName);
         return true;
     }
 

@@ -64,14 +64,15 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     protected async start(): Promise<void> {
         await this.InitSkinQualityFrames();
         this.SkillIconSFs.forEach(sf => this._skillIconMap.set(sf.name, sf));
-        const savedRole = ZRSJZ_GameData.Instance.CurRole[0];
-        const defaultRole = ZRSJZ_ROLE_CONFIG.has(savedRole)
-            ? savedRole
-            : Array.from(ZRSJZ_ROLE_CONFIG.keys())[0];
-        if (defaultRole) this.ShowRoleDesc(defaultRole);
+        // const savedRole = ZRSJZ_GameData.Instance.CurRole[0];
+        // const defaultRole = ZRSJZ_ROLE_CONFIG.has(savedRole)
+        //     ? savedRole
+        //     : Array.from(ZRSJZ_ROLE_CONFIG.keys())[0];
+        // if (defaultRole) this.ShowRoleDesc(defaultRole);
     }
 
     protected onEnable(): void {
+        this.Skeleton.node.active = false;
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.ShowRoleDesc, this);
     }
 
