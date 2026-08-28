@@ -967,23 +967,31 @@ export class ZRSJZ_UIManager extends Component {
 
         if (!isEvacuationSuccess) {
             const knifeIndex = 4;
-            for (let index = 0; index < ZRSJZ_GameData.Instance.WeaponryID.length; index++) {
-                if (index === knifeIndex) continue;
+            // 双人模式下两名玩家的装备引用完全独立。必须在删除道具
+            // 实例的同时清空两组 ID，否则玩家2回到大厅后会被误判为持枪。
+            for (const playerIndex of [0, 1]) {
+                const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(playerIndex);
+                for (let index = 0; index < weaponryIDs.length; index++) {
+                    if (index === knifeIndex) continue;
 
-                const equipmentID = ZRSJZ_GameData.Instance.WeaponryID[index];
-                ZRSJZ_GameData.Instance.WeaponryID[index] = "";
-                if (!equipmentID) continue;
+                    const equipmentID = weaponryIDs[index];
+                    weaponryIDs[index] = "";
+                    if (!equipmentID) continue;
 
-                affectedPropIDs.add(equipmentID);
-                delete ZRSJZ_GameData.Instance.PropData[equipmentID];
+                    affectedPropIDs.add(equipmentID);
+                    delete ZRSJZ_GameData.Instance.PropData[equipmentID];
+                }
+
+                for (const ammoID of ZRSJZ_InventoryService.GetAmmoIDs(playerIndex)) {
+                    if (!ammoID) continue;
+                    affectedPropIDs.add(ammoID);
+                    delete ZRSJZ_GameData.Instance.PropData[ammoID];
+                }
+                ZRSJZ_InventoryService.SetAmmoID([], playerIndex);
+
+                if (playerIndex === 1) ZRSJZ_GameData.Instance.Player2RoomCard = ["", "", ""];
+                else ZRSJZ_GameData.Instance.RoomCard = ["", "", ""];
             }
-
-            for (const ammoID of ZRSJZ_GameData.Instance.AmmoID) {
-                if (!ammoID) continue;
-                affectedPropIDs.add(ammoID);
-                delete ZRSJZ_GameData.Instance.PropData[ammoID];
-            }
-            ZRSJZ_GameData.Instance.AmmoID = ["", "", "", "", "", ""];
 
             const lostInventories = new Set<ZRSJZ_INVENTORY>([
                 ZRSJZ_INVENTORY.武器_枪,
@@ -1001,7 +1009,6 @@ export class ZRSJZ_UIManager extends Component {
                 affectedPropIDs.add(propID);
                 delete ZRSJZ_GameData.Instance.PropData[propID];
             }
-            ZRSJZ_GameData.Instance.RoomCard = ["", "", ""];
         }
 
         // 先保存最终数据，避免后续 UI 节点异步清理失败时丢失结算结果。
@@ -1072,10 +1079,19 @@ export class ZRSJZ_UIManager extends Component {
                 delete ZRSJZ_GameData.Instance.PropData[propID];
             }
         }
-        ZRSJZ_GameData.Instance.WeaponryID = ZRSJZ_GameData.Instance.WeaponryID
-            .map(propID => ZRSJZ_GameData.Instance.PropData[propID] ? propID : "");
-        ZRSJZ_GameData.Instance.AmmoID = ZRSJZ_GameData.Instance.AmmoID
-            .map(propID => ZRSJZ_GameData.Instance.PropData[propID] ? propID : "");
+        for (const playerIndex of [0, 1]) {
+            const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(playerIndex)
+                .map(propID => ZRSJZ_GameData.Instance.PropData[propID] ? propID : "");
+            const ammoIDs = ZRSJZ_InventoryService.GetAmmoIDs(playerIndex)
+                .map(propID => ZRSJZ_GameData.Instance.PropData[propID] ? propID : "");
+            if (playerIndex === 1) {
+                ZRSJZ_GameData.Instance.Player2WeaponryID = weaponryIDs;
+                ZRSJZ_GameData.Instance.Player2AmmoID = ammoIDs;
+            } else {
+                ZRSJZ_GameData.Instance.WeaponryID = weaponryIDs;
+                ZRSJZ_GameData.Instance.AmmoID = ammoIDs;
+            }
+        }
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         ZRSJZ_GameData.SaveData();
 

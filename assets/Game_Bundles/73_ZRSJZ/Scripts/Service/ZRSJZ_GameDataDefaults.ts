@@ -21,6 +21,9 @@ export class ZRSJZ_GameDataDefaults {
         this.InitializePlayerKnife(data, 1);
 
         const task = ZRSJZ_MAIN_TASK_CONFIG.get("初入禁区");
+        data.MainTaskExperienceAwards[task.TaskName] = task.TaskAwards.find(
+            award => award.TaskAwardName === "经验",
+        )?.TaskAwardCount ?? 0;
         data.CurMainTask = {
             TaskName: task.TaskName,
             TaskTargetName: task.TaskTargets[0].TaskTargetName,
@@ -31,6 +34,12 @@ export class ZRSJZ_GameDataDefaults {
 
     public static Migrate(data: ZRSJZ_GameData, savedData: any): boolean {
         let changed = false;
+        // 旧版本曾把背包扩容写入存档；扩容现为单局状态，迁移时清除旧字段。
+        const legacyData = data as ZRSJZ_GameData & { BackpackExpanded?: boolean[] };
+        if (Object.prototype.hasOwnProperty.call(legacyData, "BackpackExpanded")) {
+            delete legacyData.BackpackExpanded;
+            changed = true;
+        }
         const normalizedGrade = Math.max(1, Math.min(60, Math.floor(Number(data.Grade) || 1)));
         if (data.Grade !== normalizedGrade) {
             data.Grade = normalizedGrade;

@@ -264,6 +264,20 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
 
     private async TryEnterSelectedLevel(): Promise<void> {
         const mapKey = this.GetSelectedMapKey();
+        const config = ZRSJZ_MAP_CONFIG.get(mapKey);
+        if (!config) {
+            await ZRSJZ_UIManager.Instance.ShowTip("该关卡暂未开放");
+            return;
+        }
+        ZRSJZ_UIManager.Instance.ShowPanel(
+            ZRSJZ_PANEL.助战礼包弹窗,
+            mapKey,
+            () => void this.EnterSelectedLevel(mapKey),
+        );
+    }
+
+    /** 礼包领取完成后再次校验战备价值，再正式进入关卡。 */
+    private async EnterSelectedLevel(mapKey: string): Promise<void> {
         const result = this.CanEnterLevel(mapKey);
         if (!result.CanEnter) {
             await ZRSJZ_UIManager.Instance.ShowTip(result.Reason);
@@ -271,8 +285,8 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
         }
         ZRSJZ_GameData.Instance.CurMap = mapKey;
         ZRSJZ_GameData.SaveData();
-        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Game");
-        ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.选关界面);
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Game", () => ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.选关界面));
+
     }
 
     private FormatValue(value: number): string {

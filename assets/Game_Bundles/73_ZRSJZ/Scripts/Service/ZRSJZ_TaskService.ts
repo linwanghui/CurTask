@@ -1,6 +1,7 @@
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
 import { ZRSJZ_MAIN_TASK_CONFIG } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
+import { ZRSJZ_GradeService } from "./ZRSJZ_GradeService";
 
 export class ZRSJZ_TaskService {
 
@@ -13,18 +14,17 @@ export class ZRSJZ_TaskService {
     }
 
     //领取任务奖励
-    public static GetTaskAward(experienceAward?: number) {
+    public static GetTaskAward() {
         const data = ZRSJZ_GameData.Instance;
         if (!data.CurMainTask) return;
         const taskName = data.CurMainTask.TaskName;
-        if (typeof experienceAward === "number" && Number.isFinite(experienceAward)) {
-            data.MainTaskExperienceAwards ??= {};
-            data.MainTaskExperienceAwards[taskName] = Math.max(0, Math.floor(experienceAward));
-        }
+        this.GetTaskExperienceAward(taskName);
         data.MainTaskComplete.push(taskName);
         const curIndex: number = Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys()).indexOf(taskName);
         if (curIndex + 1 < Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys()).length) {
             data.NewMainTask = Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys())[curIndex + 1];
+            // 新任务发布时立即固定经验，之后玩家等级和当前经验变化都不会改写奖励。
+            this.GetTaskExperienceAward(data.NewMainTask);
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, data.NewMainTask);
         }
         data.CurMainTask = null;
@@ -37,6 +37,8 @@ export class ZRSJZ_TaskService {
         const data = ZRSJZ_GameData.Instance;
         if (!data.NewMainTask || !ZRSJZ_MAIN_TASK_CONFIG.has(data.NewMainTask)) return;
         const task = ZRSJZ_MAIN_TASK_CONFIG.get(data.NewMainTask);
+        // 兼容没有发布快照的旧存档；一旦生成后只读取，不再重新计算。
+        this.GetTaskExperienceAward(task.TaskName);
         data.CurMainTask = {
             TaskName: task.TaskName,
             TaskTargetName: task.TaskTargets[0].TaskTargetName,
@@ -45,6 +47,29 @@ export class ZRSJZ_TaskService {
         data.NewMainTask = "";
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW);
         ZRSJZ_GameData.SaveData();
+    }
+
+    /** 获取任务发布时的经验奖励；只有旧存档缺少快照时才会补建一次。 */
+    public static GetTaskExperienceAward(taskName: string): number {
+        const data = ZRSJZ_GameData.Instance;
+        data.MainTaskExperienceAwards ??= {};
+        const savedAward = data.MainTaskExperienceAwards[taskName];
+        if (typeof savedAward === "number" && Number.isFinite(savedAward)) {
+            return Math.max(0, Math.floor(savedAward));
+        }
+
+        const configuredAward = ZRSJZ_MAIN_TASK_CONFIG.get(taskName)?.TaskAwards.find(
+            award => award.TaskAwardName === "经验",
+        )?.TaskAwardCount ?? 0;
+        // 已完成的旧任务无法还原当时的动态值，沿用配置值；当前/新任务在此刻固定。
+        const experienceAward = Math.max(0, Math.floor(
+            data.MainTaskComplete.includes(taskName)
+                ? configuredAward
+                : ZRSJZ_GradeService.GetExperienceToNextLevel(),
+        ));
+        data.MainTaskExperienceAwards[taskName] = experienceAward;
+        ZRSJZ_GameData.SaveData();
+        return experienceAward;
     }
 
     /**

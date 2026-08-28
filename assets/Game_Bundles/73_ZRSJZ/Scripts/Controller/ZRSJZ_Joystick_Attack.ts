@@ -161,6 +161,11 @@ export class ZRSJZ_Joystick_Attack extends Component {
                 this.Reload();
             } else {
                 ZRSJZ_UIManager.Instance.ShowTip("没有子弹");
+                ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+                    ZRSJZ_PANEL.弹药大礼包弹窗,
+                    this.PlayerIndex,
+                    this.PlayerIndex,
+                );
             }
             return;
         }

@@ -18,6 +18,7 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_CURRENCY_CHANGE: string = 'ZRSJZ_CURRENCY_CHANGE';//货币发生变动
     public static ZRSJZ_PROP_MOVE: string = 'ZRSJZ_PROP_MOVE';//道具拖动
     public static ZRSJZ_INVENTORY_CHANGE: string = 'ZRSJZ_INVENTORY_CHANGE';//道具所属库存发生变化
+    public static ZRSJZ_BACKPACK_EXPANDED: string = 'ZRSJZ_BACKPACK_EXPANDED';//指定玩家领取背包扩容
     public static ZRSJZ_GRID_SHOW: string = 'ZRSJZ_GRID_SHOW';//格子显示
     public static ZRSJZ_GRID_MOVE: string = 'ZRSJZ_GRID_MOVE';//格子移动
     public static ZRSJZ_EMPTY_GRID_REMOVE: string = 'ZRSJZ_EMPTY_GRID_REMOVE';//删除格子
@@ -45,6 +46,8 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_MAIN_TASK_SHOW: string = 'ZRSJZ_MAIN_TASK_SHOW';//主线任务Item显示UI
     public static ZRSJZ_MAIN_TASK_CHECK: string = 'ZRSJZ_MAIN_TASK_CHECK';//主线任务Item选中
     public static ZRSJZ_MAIN_TASK_ADD: string = 'ZRSJZ_MAIN_TASK_ADD';//主线任务Item添加
+    public static ZRSJZ_BOOSTER_SHOT_REFRESH: string = 'ZRSJZ_BOOSTER_SHOT_REFRESH';//刷新增强针UI
+
 }
 
 export class ZRSJZ_EventManager {

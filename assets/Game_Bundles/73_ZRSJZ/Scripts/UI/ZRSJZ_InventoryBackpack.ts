@@ -25,20 +25,29 @@ export class ZRSJZ_InventoryBackpack extends ZRSJZ_Inventory {
         };
     }
 
+    /** 领取扩容后重建当前玩家的格子，已有道具位置保持不变。 */
+    public async RefreshCapacity(): Promise<void> {
+        while (this._isShowingPropItem) {
+            await new Promise<void>(resolve => setTimeout(resolve, 0));
+        }
+        await this.Init(ZRSJZ_INVENTORY.背包, this.PlayerViewIndex);
+    }
+
     private GetCurrentBackpackRow(): number {
         const backpackID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerViewIndex)[3];
-        if (!backpackID) return ZRSJZ_InventoryBackpack.DEFAULT_ROW;
+        const expansionRows = ZRSJZ_InventoryService.IsBackpackExpanded(this.PlayerViewIndex) ? 2 : 0;
+        if (!backpackID) return ZRSJZ_InventoryBackpack.DEFAULT_ROW + expansionRows;
 
         const backpackData = ZRSJZ_GameData.Instance.PropData[backpackID];
         const capacity = backpackData
             ? ZRSJZ_PROP_PROPERTY.get(backpackData.Name)?.["容量"]
             : 0;
-        if (!capacity || capacity <= 0) return ZRSJZ_InventoryBackpack.DEFAULT_ROW;
+        if (!capacity || capacity <= 0) return ZRSJZ_InventoryBackpack.DEFAULT_ROW + expansionRows;
 
         return Math.max(
             ZRSJZ_InventoryBackpack.DEFAULT_ROW,
             Math.ceil(capacity / ZRSJZ_InventoryBackpack.COL),
-        );
+        ) + expansionRows;
     }
 
 }
