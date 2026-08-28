@@ -3,6 +3,7 @@ import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_EnemyBullet } from './WZSJZ_EnemyBullet';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 /** 所有敌方远程单位共享的通用子弹池。 */
 export class WZSJZ_EnemyBulletPool {
@@ -56,6 +57,7 @@ export class WZSJZ_EnemyBulletPool {
             this._pool.put(node);
             return false;
         }
+        WZSJZ_AudioManager.Play('枪发射', 0.4, 0.05);
         return true;
     }
 

@@ -17,6 +17,7 @@ import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 import { WZSJZ_ShieldProjectile } from './WZSJZ_ShieldProjectile';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -164,7 +165,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }
 
         gameNode.StartAttackCooldown(gameNode.GetAttackInterval(levelConfig.AttackInterval));
-        const projectileConfig = gameNode.Name === "麦小鼠"
+        const projectileConfig = this.UsesWheatMouseProjectile(gameNode.Name)
             ? WZSJZ_Constant.WheatMouseProjectile
             : WZSJZ_Constant.BlockBridgeDogProjectile;
         gameNode.PlayAttackAnimation(
@@ -298,6 +299,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             this._shieldPool.put(shieldNode);
             return false;
         }
+        WZSJZ_AudioManager.Play('盾牌飞出', 0.66, 0.08);
         this.KeepProjectileLayerOnTop();
         return true;
     }
@@ -314,7 +316,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         if (!levelConfig?.AttackDamage || !levelConfig.AttackRange || !levelConfig.BulletSpeed) {
             return;
         }
-        const isWheatMouse = owner.Name === "麦小鼠";
+        const isWheatMouse = this.UsesWheatMouseProjectile(owner.Name);
         const projectileConfig = isWheatMouse
             ? WZSJZ_Constant.WheatMouseProjectile
             : WZSJZ_Constant.BlockBridgeDogProjectile;
@@ -355,6 +357,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             pool.put(bulletNode);
             return;
         }
+        WZSJZ_AudioManager.Play('枪发射', 0.48, 0.04);
         this.KeepProjectileLayerOnTop();
     }
 
@@ -368,6 +371,11 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }
         bullet.unscheduleAllCallbacks();
         pool.put(bullet.node);
+    }
+
+    /** 麦小鼠与鸟人共用麦小鼠子弹资源和对象池。 */
+    private UsesWheatMouseProjectile(name: string): boolean {
+        return name === "麦小鼠" || name === "鸟人";
     }
 
     private FindNearestEnemy(origin: Vec3, attackRange: number): WZSJZ_Enemy | null {

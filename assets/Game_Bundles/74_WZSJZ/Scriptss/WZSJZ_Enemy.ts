@@ -2,6 +2,7 @@ import { _decorator, Component, Node, sp, UITransform, Vec3 } from 'cc';
 import { WZSJZ_Constant, WZSJZ_EnemyConfig } from './WZSJZ_Constant';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_CommonEffectSystem } from './WZSJZ_CommonEffectSystem';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_Enemy')
@@ -211,6 +212,7 @@ export class WZSJZ_Enemy extends Component {
         }
         this._currentHealth = Math.max(0, this._currentHealth - damage);
         if (this._currentHealth > 0) {
+            this.PlayDamageAudio(false);
             // Boss会在这里同步扣除韧性；即使正在震颤也不能跳过该数值结算。
             const shouldEnterHitReaction = allowHitReaction
                 && this.ShouldEnterHitReaction(damage);
@@ -225,6 +227,7 @@ export class WZSJZ_Enemy extends Component {
             return false;
         }
         this._isDead = true;
+        this.PlayDamageAudio(true);
         this._hitReactionTimer = 0;
         this._tremorTimer = 0;
         this._blindTimer = 0;
@@ -241,6 +244,11 @@ export class WZSJZ_Enemy extends Component {
     /** 普通敌人每次受伤都硬直；Boss 可覆盖为韧性清空时才硬直。 */
     protected ShouldEnterHitReaction(damage: number): boolean {
         return true;
+    }
+
+    /** Boss覆盖此方法即可替换受击与死亡声音。 */
+    protected PlayDamageAudio(isDead: boolean): void {
+        WZSJZ_AudioManager.Play(isDead ? '敌人死亡' : '敌人受击', isDead ? 0.7 : 0.42, 0.06);
     }
 
     private GetStatusEffectAnchor(name: string): Node {

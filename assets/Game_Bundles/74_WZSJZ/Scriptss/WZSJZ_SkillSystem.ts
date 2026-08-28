@@ -15,6 +15,8 @@ import { WZSJZ_Skill_ZhenDangMaiChong } from './技能/WZSJZ_Skill_ZhenDangMaiCh
 import { WZSJZ_Skill_DianCiZhiMang } from './技能/WZSJZ_Skill_DianCiZhiMang';
 import { WZSJZ_Skill_HuiXuanFeiRen } from './技能/WZSJZ_Skill_HuiXuanFeiRen';
 import { WZSJZ_Skill_DianCiLiChang } from './技能/WZSJZ_Skill_DianCiLiChang';
+import { WZSJZ_Skill_ZhenDangFuChong } from './技能/WZSJZ_Skill_ZhenDangFuChong';
+import { WZSJZ_Skill_ZhuiMingBaoZhu } from './技能/WZSJZ_Skill_ZhuiMingBaoZhu';
 import { WZSJZ_Cell } from './WZSJZ_Cell';
 import { WZSJZ_DragIndicatorSystem } from './WZSJZ_DragIndicatorSystem';
 
@@ -48,6 +50,10 @@ export class WZSJZ_SkillSystem extends Component {
     private _boomerangBladePool: NodePool = new NodePool();
     private _electromagneticFieldPrefab: Prefab = null;
     private _electromagneticFieldPool: NodePool = new NodePool();
+    private _diveStrikePrefab: Prefab = null;
+    private _diveStrikePool: NodePool = new NodePool();
+    private _homingSpiderPrefab: Prefab = null;
+    private _homingSpiderPool: NodePool = new NodePool();
     private _formationCells: WZSJZ_Cell[] = [];
     private _infiniteSkills: boolean = false;
     private _dragIndicatorSystem: WZSJZ_DragIndicatorSystem = null;
@@ -72,6 +78,8 @@ export class WZSJZ_SkillSystem extends Component {
         this._electromagneticBlindPool.clear();
         this._boomerangBladePool.clear();
         this._electromagneticFieldPool.clear();
+        this._diveStrikePool.clear();
+        this._homingSpiderPool.clear();
     }
 
     public Configure(
@@ -101,6 +109,8 @@ export class WZSJZ_SkillSystem extends Component {
         void this.PrepareElectromagneticBlind();
         void this.PrepareBoomerangBlade();
         void this.PrepareElectromagneticField();
+        void this.PrepareDiveStrike();
+        void this.PrepareHomingSpider();
         this.SyncSkillButtons();
     }
 
@@ -280,6 +290,10 @@ export class WZSJZ_SkillSystem extends Component {
                 return this.CastBoomerangBlades(config);
             case "electromagnetic_field":
                 return this.CastElectromagneticField(config);
+            case "dive_strike":
+                return this.CastDiveStrike(config);
+            case "homing_spider":
+                return this.CastHomingSpider(config);
             default:
                 return false;
         }
@@ -503,6 +517,40 @@ export class WZSJZ_SkillSystem extends Component {
             this._electromagneticFieldPool.put(
                 instantiate(this._electromagneticFieldPrefab),
             );
+        }
+    }
+
+    private async PrepareDiveStrike(): Promise<void> {
+        try {
+            this._diveStrikePrefab = await WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.DiveStrike.PrefabPath,
+            );
+        } catch (error) {
+            console.error("[WZSJZ] 震荡俯冲特效预制体加载失败。", error);
+        }
+        if (!this.node?.isValid || !this._diveStrikePrefab) {
+            return;
+        }
+        while (this._diveStrikePool.size()
+            < WZSJZ_Constant.ObjectPool.DiveStrikePrewarm) {
+            this._diveStrikePool.put(instantiate(this._diveStrikePrefab));
+        }
+    }
+
+    private async PrepareHomingSpider(): Promise<void> {
+        try {
+            this._homingSpiderPrefab = await WZSJZ_Incident.Loadprefab(
+                WZSJZ_Constant.HomingSpider.PrefabPath,
+            );
+        } catch (error) {
+            console.error("[WZSJZ] 夺命小蜘蛛预制体加载失败。", error);
+        }
+        if (!this.node?.isValid || !this._homingSpiderPrefab) {
+            return;
+        }
+        while (this._homingSpiderPool.size()
+            < WZSJZ_Constant.ObjectPool.HomingSpiderPrewarm) {
+            this._homingSpiderPool.put(instantiate(this._homingSpiderPrefab));
         }
     }
 
@@ -908,12 +956,13 @@ export class WZSJZ_SkillSystem extends Component {
             .filter((item) => item?.node?.isValid && item.Name === config.OwnerName)
             .sort((left, right) => right.Level - left.Level)[0];
         if (!owner) return false;
-        const hasEnemy = this._enemyArea.children.some(
-            (child) => child.getComponent(WZSJZ_Enemy)?.IsAlive,
-        );
-        if (!hasEnemy) {
-            WZSJZ_UIManager.Instance.ShowText("当前没有可攻击的敌人");
-            return false;
+        const liveEnemies = this._enemyArea.children
+            .map((child) => child.getComponent(WZSJZ_Enemy))
+            .filter((enemy) => !!enemy?.IsAlive);
+        for (let index = liveEnemies.length - 1; index > 0; index--) {
+            const randomIndex = Math.floor(Math.random() * (index + 1));
+            [liveEnemies[index], liveEnemies[randomIndex]]
+                = [liveEnemies[randomIndex], liveEnemies[index]];
         }
 
         const fieldConfig = WZSJZ_Constant.ElectromagneticField;
@@ -1002,6 +1051,245 @@ export class WZSJZ_SkillSystem extends Component {
         if (!effect?.node?.isValid) return;
         effect.node.active = false;
         this._electromagneticFieldPool.put(effect.node);
+    };
+
+    private CastDiveStrike(config: WZSJZ_SkillConfig): boolean {
+        if (!this._diveStrikePrefab || !this._enemyArea || !this._projectileLayer) {
+            WZSJZ_UIManager.Instance.ShowText("技能资源尚未加载完成");
+            return false;
+        }
+        const owner = this._owners
+            .filter((item) => item?.node?.isValid && item.Name === config.OwnerName)
+            .sort((left, right) => right.Level - left.Level)[0];
+        if (!owner) {
+            return false;
+        }
+
+        const targets = this._enemyArea.children
+            .map((child) => child.getComponent(WZSJZ_Enemy))
+            .filter((enemy) => !!enemy?.IsAlive);
+        if (targets.length <= 0) {
+            WZSJZ_UIManager.Instance.ShowText("当前没有可攻击的敌人");
+            return false;
+        }
+        for (let index = targets.length - 1; index > 0; index--) {
+            const randomIndex = Math.floor(Math.random() * (index + 1));
+            [targets[index], targets[randomIndex]] = [targets[randomIndex], targets[index]];
+        }
+        const positions = targets
+            .slice(0, WZSJZ_Constant.DiveStrike.MaxTargetCount)
+            .map((target) => target.node.worldPosition.clone());
+
+        const diveConfig = WZSJZ_Constant.DiveStrike;
+        const skeleton = owner.node.getChildByName("图像")?.getComponent(sp.Skeleton);
+        const castDuration = Math.max(
+            0.01,
+            skeleton?.findAnimation(diveConfig.SkillAnimation)?.duration
+                || diveConfig.CastAnimationFallbackDuration,
+        );
+        if (skeleton) {
+            skeleton.setAnimation(0, diveConfig.SkillAnimation, false);
+            skeleton.addAnimation(0, diveConfig.IdleAnimation, true, 0);
+        }
+        // 技能动作期间避免普通攻击抢占同一条Spine轨道。
+        owner.StartAttackCooldown(castDuration);
+
+        const receiveExperience = owner.CreateExperienceReceiver();
+        const damage = WZSJZ_Constant.GetDiveStrikeDamage(owner.Level);
+        let spawnedCount = 0;
+        for (const position of positions) {
+            if (this.SpawnDiveStrike(
+                position,
+                damage,
+                () => receiveExperience(diveConfig.KillExperience),
+            )) {
+                spawnedCount++;
+            }
+        }
+        return spawnedCount > 0;
+    }
+
+    private SpawnDiveStrike(
+        position: Vec3,
+        damage: number,
+        onKill: () => void,
+    ): boolean {
+        const effectNode = this._diveStrikePool.get()
+            || instantiate(this._diveStrikePrefab);
+        effectNode.setParent(this._projectileLayer);
+        effectNode.setWorldPosition(position);
+        effectNode.angle = 0;
+        this.SetLayerRecursively(effectNode, this._projectileLayer.layer);
+        const effect = effectNode.getComponent(WZSJZ_Skill_ZhenDangFuChong)
+            || effectNode.addComponent(WZSJZ_Skill_ZhenDangFuChong);
+        const config = WZSJZ_Constant.DiveStrike;
+        if (!effect.Initialize(
+            this._enemyArea,
+            config.Radius,
+            damage,
+            config.DamageTriggerDelay,
+            config.AnimationName,
+            config.AnimationFallbackDuration,
+            this.RecycleDiveStrike,
+            onKill,
+        )) {
+            effectNode.active = false;
+            this._diveStrikePool.put(effectNode);
+            return false;
+        }
+        this.KeepProjectileLayerOnTop();
+        return true;
+    }
+
+    private RecycleDiveStrike = (
+        effect: WZSJZ_Skill_ZhenDangFuChong,
+    ): void => {
+        if (!effect?.node?.isValid) {
+            return;
+        }
+        effect.node.active = false;
+        this._diveStrikePool.put(effect.node);
+    };
+
+    private CastHomingSpider(config: WZSJZ_SkillConfig): boolean {
+        if (!this._homingSpiderPrefab || !this._enemyArea || !this._projectileLayer) {
+            WZSJZ_UIManager.Instance.ShowText("技能资源尚未加载完成");
+            return false;
+        }
+        const owner = this._owners
+            .filter((item) => item?.node?.isValid && item.Name === config.OwnerName)
+            .sort((left, right) => right.Level - left.Level)[0];
+        if (!owner) {
+            return false;
+        }
+        const liveEnemies = this._enemyArea.children
+            .map((child) => child.getComponent(WZSJZ_Enemy))
+            .filter((enemy) => !!enemy?.IsAlive);
+        if (liveEnemies.length <= 0) {
+            WZSJZ_UIManager.Instance.ShowText("当前没有可攻击的敌人");
+            return false;
+        }
+
+        const spiderConfig = WZSJZ_Constant.HomingSpider;
+        const skeleton = owner.node.getChildByName("图像")?.getComponent(sp.Skeleton);
+        const castDuration = Math.max(
+            0.01,
+            skeleton?.findAnimation(spiderConfig.SkillAnimation)?.duration
+                || spiderConfig.CastAnimationFallbackDuration,
+        );
+        if (skeleton) {
+            skeleton.setAnimation(0, spiderConfig.SkillAnimation, false);
+            skeleton.addAnimation(0, spiderConfig.IdleAnimation, true, 0);
+        }
+        owner.StartAttackCooldown(castDuration);
+
+        const receiveExperience = owner.CreateExperienceReceiver();
+        const spawnPositions = this.BuildHomingSpiderSpawnPositions(
+            owner,
+            liveEnemies[0]?.node.worldPosition.x ?? this.GetEnemyAreaCenterWorldX(),
+        );
+        const damage = WZSJZ_Constant.GetHomingSpiderDamage(owner.Level);
+        let spawnedCount = 0;
+        for (let index = 0; index < spawnPositions.length; index++) {
+            const initialTarget = liveEnemies.length > 0
+                ? liveEnemies[index % liveEnemies.length]
+                : null;
+            if (this.SpawnHomingSpider(
+                spawnPositions[index],
+                damage,
+                initialTarget,
+                () => receiveExperience(spiderConfig.KillExperience),
+            )) {
+                spawnedCount++;
+            }
+        }
+        return spawnedCount > 0;
+    }
+
+    private GetEnemyAreaCenterWorldX(): number {
+        const bounds = this._enemyArea?.getComponent(UITransform)?.getBoundingBoxToWorld();
+        return bounds
+            ? (bounds.xMin + bounds.xMax) * 0.5
+            : this._enemyArea?.worldPosition.x || 0;
+    }
+
+    private BuildHomingSpiderSpawnPositions(
+        owner: WZSJZ_GameNode,
+        enemyWorldX: number,
+    ): Vec3[] {
+        const config = WZSJZ_Constant.HomingSpider;
+        const wall = this._wallDisplayNode?.getComponent(WZSJZ_Wall);
+        const launchNode = owner.node.getChildByName(config.LaunchNodeName)
+            || owner.node;
+        const fallback = launchNode.worldPosition;
+        if (!wall?.node?.isValid) {
+            const direction = enemyWorldX >= fallback.x ? 1 : -1;
+            return config.SpawnVerticalOffsets.map((offsetY) => new Vec3(
+                fallback.x + direction * config.SpawnForwardOffset,
+                fallback.y + offsetY,
+                fallback.z,
+            ));
+        }
+
+        const wallCenter = wall.node.worldPosition;
+        const enemyDirection = enemyWorldX >= wallCenter.x ? 1 : -1;
+        const spawnX = wall.GetFrontWorldX(enemyWorldX)
+            + enemyDirection * config.SpawnForwardOffset;
+        return config.SpawnVerticalOffsets.map((offsetY) => new Vec3(
+            spawnX,
+            wallCenter.y + offsetY,
+            fallback.z,
+        ));
+    }
+
+    private SpawnHomingSpider(
+        position: Vec3,
+        damage: number,
+        initialTarget: WZSJZ_Enemy,
+        onKill: () => void,
+    ): boolean {
+        const spiderNode = this._homingSpiderPool.get()
+            || instantiate(this._homingSpiderPrefab);
+        spiderNode.setParent(this._projectileLayer);
+        spiderNode.setWorldPosition(position);
+        spiderNode.angle = 0;
+        this.SetLayerRecursively(spiderNode, this._projectileLayer.layer);
+        const spider = spiderNode.getComponent(WZSJZ_Skill_ZhuiMingBaoZhu)
+            || spiderNode.addComponent(WZSJZ_Skill_ZhuiMingBaoZhu);
+        const spiderConfig = WZSJZ_Constant.HomingSpider;
+        if (!spider.Initialize(
+            this._enemyArea,
+            spiderConfig.MoveSpeed,
+            spiderConfig.ArrivalDistance,
+            spiderConfig.ExplosionRadius,
+            damage,
+            initialTarget,
+            spiderConfig.EntranceAnimation,
+            spiderConfig.WalkAnimation,
+            spiderConfig.WalkAnimationSpeed,
+            spiderConfig.ExplosionAnimation,
+            spiderConfig.EntranceFallbackDuration,
+            spiderConfig.ExplosionFallbackDuration,
+            spiderConfig.ExplosionDamageDelay,
+            this.RecycleHomingSpider,
+            onKill,
+        )) {
+            spiderNode.active = false;
+            this._homingSpiderPool.put(spiderNode);
+            return false;
+        }
+        this.KeepProjectileLayerOnTop();
+        return true;
+    }
+
+    private RecycleHomingSpider = (
+        spider: WZSJZ_Skill_ZhuiMingBaoZhu,
+    ): void => {
+        if (!spider?.node?.isValid) {
+            return;
+        }
+        spider.node.active = false;
+        this._homingSpiderPool.put(spider.node);
     };
 
     private RemoveMissingComponents(node: Node): void {

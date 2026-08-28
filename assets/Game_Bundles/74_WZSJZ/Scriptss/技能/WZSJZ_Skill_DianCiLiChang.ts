@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, sp, Vec3 } from 'cc';
 import { WZSJZ_Enemy } from '../WZSJZ_Enemy';
+import { WZSJZ_AudioManager } from '../WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -40,6 +41,7 @@ export class WZSJZ_Skill_DianCiLiChang extends Component {
             .map((delay) => Math.max(0, delay))
             .sort((left, right) => left - right);
         this._nextDamageIndex = 0;
+        WZSJZ_AudioManager.Play('电磁脉冲', 0.65, 0.1);
         this._elapsed = 0;
         this._animationCompleted = false;
         this._onRecycle = onRecycle;

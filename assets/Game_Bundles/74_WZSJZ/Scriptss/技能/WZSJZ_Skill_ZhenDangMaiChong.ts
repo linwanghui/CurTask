@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, sp, UITransform, Vec3 } from 'cc';
 import { WZSJZ_Enemy } from '../WZSJZ_Enemy';
+import { WZSJZ_AudioManager } from '../WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -47,6 +48,7 @@ export class WZSJZ_Skill_ZhenDangMaiChong extends Component {
         this._effectDuration = Math.max(this._hitTriggerDelay, effectDuration);
         this._elapsed = 0;
         this._hasAppliedHit = false;
+        WZSJZ_AudioManager.Play('电磁脉冲', 0.68, 0.1);
         this._knockbackDistance = Math.max(0, knockbackDistance);
         this._stunDuration = Math.max(0, stunDuration);
         this._bossTenacityDamage = Math.max(0, bossTenacityDamage);

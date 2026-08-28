@@ -1,5 +1,6 @@
 import { _decorator, Component, EventTouch, Label, Node, Sprite, Vec2 } from 'cc';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 const { ccclass } = _decorator;
 
 @ccclass('WZSJZ_SkillButtom')
@@ -75,6 +76,7 @@ export class WZSJZ_SkillButtom extends Component {
             return;
         }
         this._remaining = this._isInfiniteCooldown ? 0 : this._cooldown;
+        WZSJZ_AudioManager.Play('技能释放', 0.75, 0.08);
         this.RefreshCooldownView();
     }
 
@@ -130,6 +132,7 @@ export class WZSJZ_SkillButtom extends Component {
         const used = !!this._onTargetEnd?.(event.getUILocation(), cancelled);
         if (used) {
             this._remaining = this._isInfiniteCooldown ? 0 : this._cooldown;
+            WZSJZ_AudioManager.Play('技能释放', 0.75, 0.08);
             this.RefreshCooldownView();
         }
         event.propagationStopped = true;

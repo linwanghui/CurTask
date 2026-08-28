@@ -4,6 +4,11 @@ const { ccclass, property } = _decorator;
 @ccclass('WZSJZ_EventManager')
 export class WZSJZ_EventManager {
     public static 货币变动 = "文字三角洲_货币变动";//参数为变动后的值
+    public static 体力变动 = "文字三角洲_体力变动";//参数：当前体力、体力上限
+    public static 钻石变动 = "文字三角洲_钻石变动";//参数：当前钻石
+    public static 招募卡变动 = "文字三角洲_招募卡变动";//参数：当前招募卡数量
+    public static 钥匙变动 = "文字三角洲_钥匙变动";//参数：当前钥匙数量
+    public static 挂机宝箱变动 = "文字三角洲_挂机宝箱变动";//参数：挂机宝箱快照
     public static 游戏开始 = "文字三角洲_游戏开始";//参数为当前围墙组件
     public static 拖拽物变化 = "文字三角洲_拖拽物变化";//参数为当前拖拽物，拖拽结束时为null
     public static 布阵变化 = "文字三角洲_布阵变化";//拖拽落位、合成、交换或回收后触发

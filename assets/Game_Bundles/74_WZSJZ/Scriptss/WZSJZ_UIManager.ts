@@ -17,6 +17,7 @@ import {
 import Banner from '../../../Scripts/Banner';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { BundleManager } from '../../../Scripts/Framework/Managers/BundleManager';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_UIManager')
@@ -31,25 +32,48 @@ export class WZSJZ_UIManager extends Component {
     private _isFiveTimesSpeed: boolean = false;
     private _isPKeyPressed: boolean = false;
     private _isOKeyPressed: boolean = false;
-    public static get Instance() {
-        if (!this._instance) {
-            this._instance = new WZSJZ_UIManager();
+    public static get Instance(): WZSJZ_UIManager {
+        // Component不能通过new创建；热重载或场景切换后应从当前场景找回真实组件。
+        if (!this._instance?.node || !isValid(this._instance.node)) {
+            this._instance = director.getScene()
+                ?.getComponentInChildren(WZSJZ_UIManager) || null;
+            this._instance?.EnsurePanelDictionaries();
         }
-
         return this._instance;
     }
     protected onLoad(): void {
+        // 返回开始场景时场景里会再次带入一个UIManager，保留原常驻实例即可。
+        if (WZSJZ_UIManager._instance
+            && WZSJZ_UIManager._instance !== this
+            && WZSJZ_UIManager._instance.node
+            && isValid(WZSJZ_UIManager._instance.node)) {
+            this.node.destroy();
+            return;
+        }
         WZSJZ_UIManager._instance = this;
+        this.EnsurePanelDictionaries();
+        WZSJZ_AudioManager.Initialize();
         this.InstallGlobalTimeScale();
         this.RegisterHotkeys();
     }
 
     start() {
-        director.addPersistRootNode(this.node);
+        if (WZSJZ_UIManager._instance === this
+            && this.node.parent === director.getScene()) {
+            director.addPersistRootNode(this.node);
+        }
+    }
+
+    protected onDestroy(): void {
+        if (WZSJZ_UIManager._instance === this) {
+            WZSJZ_UIManager._instance = null;
+        }
     }
 
     //*** 路径 或者 Bundle名称/路径 */
     public HidePanel(panelPath: string, callback?: Function) {
+        this.EnsurePanelDictionaries();
+        WZSJZ_AudioManager.Play('界面关闭', 0.55, 0.08);
         if (this._panelDict.hasOwnProperty(panelPath)) {
             let panel = this._panelDict[panelPath];
             if (panel && isValid(panel)) {
@@ -83,6 +107,7 @@ export class WZSJZ_UIManager extends Component {
 
     //关闭所有界面(功能)
     public HideAllPanel() {
+        this.EnsurePanelDictionaries();
         for (let panelPath in this._panelDict) {
             // 排除LoadingPanel，不进行隐藏
             if (panelPath !== WZSJZ_Constant.Panel.LoadingPanel) {
@@ -103,9 +128,11 @@ export class WZSJZ_UIManager extends Component {
     }
 
     public ShowPanel(panelPath: string, args?: any, cb?: Function) {
+        this.EnsurePanelDictionaries();
         if (this._loadingPanelDict[panelPath]) {
             return;
         }
+        WZSJZ_AudioManager.Play('界面打开', 0.55, 0.08);
 
         let idxSplit = panelPath.lastIndexOf('/');
         let scriptName = `WZSJZ_` + panelPath.slice(idxSplit + 1);
@@ -191,6 +218,15 @@ export class WZSJZ_UIManager extends Component {
         nd.position = v3(0, 0, 0);
         nd.getChildByName("内容").getComponent(Label).string = txt;
         tween(nd).to(1.5, { position: v3(0, 200, 0) }, { easing: "backOut" }).call(() => { nd.destroy() }).start();
+    }
+
+    private EnsurePanelDictionaries(): void {
+        if (!this._panelDict || typeof this._panelDict !== 'object') {
+            this._panelDict = {};
+        }
+        if (!this._loadingPanelDict || typeof this._loadingPanelDict !== 'object') {
+            this._loadingPanelDict = {};
+        }
     }
 
     /** 全局调试热键：P打开修改界面，O在1倍与5倍游戏速度之间切换。 */

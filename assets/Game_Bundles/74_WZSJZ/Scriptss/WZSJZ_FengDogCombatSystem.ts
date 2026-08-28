@@ -4,6 +4,7 @@ import { WZSJZ_Enemy } from './WZSJZ_Enemy';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -101,6 +102,7 @@ export class WZSJZ_FengDogCombatSystem extends Component {
         if (!levelConfig?.AttackRange) return;
         const target = this.FindNearestEnemy(gameNode.node.worldPosition, levelConfig.AttackRange);
         if (!target || !this.SpawnAttackEffect(target)) return;
+        WZSJZ_AudioManager.Play('近战挥砍', 0.68, 0.05);
         if (target.TakeDamage(gameNode.GetAttackDamage())) {
             gameNode.CreateExperienceReceiver()(
                 WZSJZ_Constant.FengDogAttackEffect.KillExperience,
