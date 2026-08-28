@@ -48,6 +48,11 @@ export class WZSJZ_StartPanel extends Component {
             this.ShowHookPanel,
             this,
         );
+        canvas?.getChildByPath("右侧栏/图鉴")?.on(
+            Button.EventType.CLICK,
+            this.ShowHandBookPanel,
+            this,
+        );
         this.RefreshResourceView();
     }
 
@@ -81,6 +86,9 @@ export class WZSJZ_StartPanel extends Component {
             case "挂机宝箱":
                 this.ShowHookPanel();
                 break;
+            case "图鉴":
+                this.ShowHandBookPanel();
+                break;
         }
     }
 
@@ -94,6 +102,10 @@ export class WZSJZ_StartPanel extends Component {
 
     private ShowHookPanel = (): void => {
         WZSJZ_UIManager.Instance.ShowPanel(WZSJZ_Constant.Panel.HookPanel);
+    };
+
+    private ShowHandBookPanel = (): void => {
+        WZSJZ_UIManager.Instance.ShowPanel(WZSJZ_Constant.Panel.HandBookPanel);
     };
 
     private TryStartGame(): void {

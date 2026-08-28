@@ -165,7 +165,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }
 
         gameNode.StartAttackCooldown(gameNode.GetAttackInterval(levelConfig.AttackInterval));
-        const projectileConfig = gameNode.Name === "麦小鼠"
+        const projectileConfig = this.UsesWheatMouseProjectile(gameNode.Name)
             ? WZSJZ_Constant.WheatMouseProjectile
             : WZSJZ_Constant.BlockBridgeDogProjectile;
         gameNode.PlayAttackAnimation(
@@ -316,7 +316,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         if (!levelConfig?.AttackDamage || !levelConfig.AttackRange || !levelConfig.BulletSpeed) {
             return;
         }
-        const isWheatMouse = owner.Name === "麦小鼠";
+        const isWheatMouse = this.UsesWheatMouseProjectile(owner.Name);
         const projectileConfig = isWheatMouse
             ? WZSJZ_Constant.WheatMouseProjectile
             : WZSJZ_Constant.BlockBridgeDogProjectile;
@@ -371,6 +371,11 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }
         bullet.unscheduleAllCallbacks();
         pool.put(bullet.node);
+    }
+
+    /** 麦小鼠与鸟人共用麦小鼠子弹资源和对象池。 */
+    private UsesWheatMouseProjectile(name: string): boolean {
+        return name === "麦小鼠" || name === "鸟人";
     }
 
     private FindNearestEnemy(origin: Vec3, attackRange: number): WZSJZ_Enemy | null {

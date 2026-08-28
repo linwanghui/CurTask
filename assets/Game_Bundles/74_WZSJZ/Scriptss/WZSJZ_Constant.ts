@@ -83,12 +83,15 @@ export interface WZSJZ_NameCombinationConfig {
 export interface WZSJZ_SkillConfig {
     Id: string;
     OwnerName: string;
+    /** 图鉴中展示的玩法说明；冷却时间由面板直接读取Cooldown拼接。 */
+    Description: string;
     ButtonPrefabPath: string;
     Cooldown: number;
     Duration: number;
     EffectType: "wall_invincible" | "wall_heal" | "block_bridge_dog_artillery"
     | "sonic_trap" | "adjacent_overclock" | "shock_pulse" | "self_attack_speed"
-    | "electromagnetic_blind" | "boomerang_blades" | "electromagnetic_field";
+    | "electromagnetic_blind" | "boomerang_blades" | "electromagnetic_field"
+    | "dive_strike" | "homing_spider";
     EffectName?: string;
     EffectPrefabPath?: string;
     EffectPrewarm?: number;
@@ -132,7 +135,10 @@ export class WZSJZ_Constant {
         SignInPanel: "Panel/SignInPanel",
         /** 兼容旧脚本属性名。 */
         SignInPanelPanel: "Panel/SignInPanel",
-        HookPanel: "Panel/HookPanel"
+        HookPanel: "Panel/HookPanel",
+        HandBookPanel: "Panel/HandBookPanel",
+        /** 兼容已经使用的旧属性名。 */
+        Handbook: "Panel/HandBookPanel"
     };
 
     /** 首页体力与钻石配置。时间全部使用真实时间戳，不受游戏倍速影响。 */
@@ -290,6 +296,16 @@ export class WZSJZ_Constant {
             Parts: ["幽默", "男"],
             PrefabPath: "Prefabs/节点/幽默男",
         },
+        {
+            Name: "鸟人",
+            Parts: ["鸟", "人"],
+            PrefabPath: "Prefabs/节点/鸟人",
+        },
+        {
+            Name: "蛛蛛侠",
+            Parts: ["蛛蛛", "侠"],
+            PrefabPath: "Prefabs/节点/蛛蛛侠",
+        },
     ];
 
     /** 未在场景 MaterialPrefabs 数组中绑定的新物资，可在这里动态补充。 */
@@ -309,6 +325,10 @@ export class WZSJZ_Constant {
         "Prefabs/节点/小鼠",
         "Prefabs/节点/幽默",
         "Prefabs/节点/男",
+        "Prefabs/节点/鸟",
+        "Prefabs/节点/人",
+        "Prefabs/节点/蛛蛛",
+        "Prefabs/节点/侠",
     ];
 
     /** 堵桥狗大招：动画本身表现从天而降，脚本只在落点定时结算范围伤害。 */
@@ -483,11 +503,58 @@ export class WZSJZ_Constant {
         KillExperience: 1,
     };
 
+    /** 鸟人技能：随机选择最多三个存活敌人的当前位置进行范围俯冲。 */
+    public static readonly DiveStrike = {
+        PrefabPath: "Prefabs/特效/技能震荡俯冲特效",
+        ButtonPrefabPath: "Prefabs/UI/技能按钮/震荡俯冲",
+        Cooldown: 45,
+        MaxTargetCount: 3,
+        Radius: 180,
+        DamageTriggerDelay: 0.5,
+        DamageByLevel: [70, 115, 185, 300, 485, 785],
+        AnimationName: "animation",
+        AnimationFallbackDuration: 1.5,
+        SkillAnimation: "jineng",
+        IdleAnimation: "daiji",
+        CastAnimationFallbackDuration: 0.8,
+        KillExperience: 1,
+    };
+
+    /** 蛛蛛侠技能：小蜘蛛出场后追踪最近敌人，抵达时爆炸造成高额范围伤害。 */
+    public static readonly HomingSpider = {
+        PrefabPath: "Prefabs/投掷物/夺命小蜘蛛",
+        ButtonPrefabPath: "Prefabs/UI/技能按钮/追命爆蛛",
+        Cooldown: 50,
+        /** 从城墙朝敌方一侧的外边缘继续向前生成，避免小蜘蛛从后排起跑。 */
+        SpawnForwardOffset: 100,
+        /** 一次生成两只，分别位于城墙中心上方和下方。 */
+        SpawnVerticalOffsets: [110, -110],
+        MoveSpeed: 520,
+        WalkAnimationSpeed: 2,
+        ArrivalDistance: 35,
+        ExplosionRadius: 180,
+        /** 数组下标0～5分别对应蛛蛛侠1～6级的爆炸伤害。 */
+        DamageByLevel: [160, 260, 420, 680, 1100, 1780],
+        EntranceAnimation: "chuchang",
+        WalkAnimation: "zoulu",
+        ExplosionAnimation: "baozha",
+        EntranceFallbackDuration: 2,
+        ExplosionFallbackDuration: 1.9,
+        /** 爆炸动画开始后多少秒结算伤害，可按实际爆炸帧调整。 */
+        ExplosionDamageDelay: 1,
+        SkillAnimation: "jineng",
+        IdleAnimation: "daiji",
+        CastAnimationFallbackDuration: 0.8,
+        LaunchNodeName: "子弹发射点位",
+        KillExperience: 1,
+    };
+
     /** 角色技能配置；同一个角色可以配置多条技能。 */
     public static readonly CharacterSkills: WZSJZ_SkillConfig[] = [
         {
             Id: "绝对防线",
             OwnerName: "盾哥",
+            Description: "展开绝对防线，使城墙进入5秒无敌状态。",
             ButtonPrefabPath: "Prefabs/UI/技能按钮/绝对防线",
             Cooldown: 30,
             Duration: 5,
@@ -499,6 +566,7 @@ export class WZSJZ_Constant {
         {
             Id: "绝对防线",
             OwnerName: "堵桥狗",
+            Description: "锁定最多3名敌人发射火炮；敌人不足时会轰击随机位置，落地造成范围伤害。",
             ButtonPrefabPath: WZSJZ_Constant.BlockBridgeDogUltimate.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.BlockBridgeDogUltimate.Cooldown,
             Duration: WZSJZ_Constant.BlockBridgeDogUltimate.RecycleDelay,
@@ -507,6 +575,7 @@ export class WZSJZ_Constant {
         {
             Id: "声波陷阱",
             OwnerName: "老黑",
+            Description: "拖动选择落点并布置声波陷阱，连续释放3轮声波，使范围内敌人暂停移动和攻击。",
             ButtonPrefabPath: WZSJZ_Constant.SonicTrap.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.SonicTrap.Cooldown,
             Duration: WZSJZ_Constant.SonicTrap.PulseCount
@@ -516,6 +585,7 @@ export class WZSJZ_Constant {
         {
             Id: "纳米修复",
             OwnerName: "哈基蜂",
+            Description: "在城墙上启动纳米修复，根据哈基蜂等级回复城墙生命值。",
             ButtonPrefabPath: WZSJZ_Constant.NanoRepair.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.NanoRepair.Cooldown,
             Duration: WZSJZ_Constant.NanoRepair.EffectDuration,
@@ -527,6 +597,7 @@ export class WZSJZ_Constant {
         {
             Id: "超频指令",
             OwnerName: "老板",
+            Description: "使周围一圈单位超频5秒：攻击单位提高伤害，收益单位提高每秒产出。",
             ButtonPrefabPath: WZSJZ_Constant.OverclockCommand.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.OverclockCommand.Cooldown,
             Duration: WZSJZ_Constant.OverclockCommand.Duration,
@@ -538,6 +609,7 @@ export class WZSJZ_Constant {
         {
             Id: "震荡脉冲",
             OwnerName: "威虫",
+            Description: "向前方三个方向释放震荡脉冲，将命中的普通敌人击退300距离并眩晕3秒；Boss未破韧时只扣除韧性。",
             ButtonPrefabPath: WZSJZ_Constant.ShockPulse.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.ShockPulse.Cooldown,
             Duration: WZSJZ_Constant.ShockPulse.StunDuration,
@@ -546,6 +618,7 @@ export class WZSJZ_Constant {
         {
             Id: "猎杀协议",
             OwnerName: "红狗",
+            Description: "启动猎杀协议10秒，大幅提高自身攻击速度，攻击动画也会同步加速。",
             ButtonPrefabPath: WZSJZ_Constant.HuntProtocol.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.HuntProtocol.Cooldown,
             Duration: WZSJZ_Constant.HuntProtocol.Duration,
@@ -557,6 +630,7 @@ export class WZSJZ_Constant {
         {
             Id: "电磁力场",
             OwnerName: "疯狗",
+            Description: "技能动作结束后，对场上最多5名敌人投放电磁飞刀，在落点连续造成多段范围伤害。",
             ButtonPrefabPath: WZSJZ_Constant.ElectromagneticField.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.ElectromagneticField.Cooldown,
             Duration: WZSJZ_Constant.ElectromagneticField.CastAnimationDuration
@@ -566,6 +640,7 @@ export class WZSJZ_Constant {
         {
             Id: "电磁致盲",
             OwnerName: "麦小鼠",
+            Description: "拖动选择区域，持续造成每0.5秒一次的伤害，并使命中敌人致盲5秒；重复命中会刷新致盲时间。",
             ButtonPrefabPath: WZSJZ_Constant.ElectromagneticBlind.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.ElectromagneticBlind.Cooldown,
             Duration: WZSJZ_Constant.ElectromagneticBlind.EffectDuration,
@@ -577,11 +652,31 @@ export class WZSJZ_Constant {
         {
             Id: "回旋飞刃",
             OwnerName: "幽默男",
+            Description: "向前方20°、0°、-20°发射3枚回旋飞刃，到达最远距离后返回；同一敌人去程和返程各可受击一次。",
             ButtonPrefabPath: WZSJZ_Constant.BoomerangBlades.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.BoomerangBlades.Cooldown,
             Duration: WZSJZ_Constant.BoomerangBlades.MaxTravelDistance
                 / WZSJZ_Constant.BoomerangBlades.Speed * 2,
             EffectType: "boomerang_blades",
+        },
+        {
+            Id: "震荡俯冲",
+            OwnerName: "鸟人",
+            Description: "随机锁定场上最多3名敌人的位置发动俯冲，短暂延迟后对每个落点造成范围伤害。",
+            ButtonPrefabPath: WZSJZ_Constant.DiveStrike.ButtonPrefabPath,
+            Cooldown: WZSJZ_Constant.DiveStrike.Cooldown,
+            Duration: WZSJZ_Constant.DiveStrike.AnimationFallbackDuration,
+            EffectType: "dive_strike",
+        },
+        {
+            Id: "追命爆蛛",
+            OwnerName: "蛛蛛侠",
+            Description: "召唤夺命小蜘蛛，出场后追踪最近敌人，抵达目标位置时造成高额范围爆炸伤害。",
+            ButtonPrefabPath: WZSJZ_Constant.HomingSpider.ButtonPrefabPath,
+            Cooldown: WZSJZ_Constant.HomingSpider.Cooldown,
+            Duration: WZSJZ_Constant.HomingSpider.EntranceFallbackDuration
+                + WZSJZ_Constant.HomingSpider.ExplosionFallbackDuration,
+            EffectType: "homing_spider",
         },
     ];
 
@@ -620,6 +715,8 @@ export class WZSJZ_Constant {
         WheatMouseBulletPrewarm: 1,
         ElectromagneticBlindPrewarm: 1,
         BoomerangBladePrewarm: 1,
+        DiveStrikePrewarm: 1,
+        HomingSpiderPrewarm: 1,
     };
 
     /** 防止单位停在攻击范围临界点时因浮点误差反复进入移动状态。 */
@@ -1807,6 +1904,134 @@ export class WZSJZ_Constant {
                 { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 340, AttackInterval: 0.64, AttackRange: 1100, BulletSpeed: 1300 },
             ],
         },
+        "鸟": {
+            Name: "鸟",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "人": {
+            Name: "人",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "鸟人": {
+            Name: "鸟人",
+            AttackFireDelay: 0.25,
+            ResourceType: "none",
+            PurchaseWeight: 0,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 0,
+            IsNameUnit: true,
+            IdleAnimation: "daiji",
+            AttackAnimation: "gongji",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 36, AttackInterval: 1.55, AttackRange: 1100, BulletSpeed: 1450 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 59, AttackInterval: 1.4, AttackRange: 1140, BulletSpeed: 1500 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 97, AttackInterval: 1.25, AttackRange: 1180, BulletSpeed: 1550 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 158, AttackInterval: 1.1, AttackRange: 1220, BulletSpeed: 1600 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 255, AttackInterval: 0.95, AttackRange: 1260, BulletSpeed: 1650 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 410, AttackInterval: 0.8, AttackRange: 1300, BulletSpeed: 1700 },
+            ],
+        },
+        "蛛蛛": {
+            Name: "蛛蛛",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "侠": {
+            Name: "侠",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: 5,
+            ItemLockWeight: 3,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 2,
+            IsNameUnit: true,
+            IdleAnimation: "animation",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "蛛蛛侠": {
+            Name: "蛛蛛侠",
+            AttackFireDelay: 0.15,
+            ResourceType: "none",
+            PurchaseWeight: 0,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 6,
+            UpgradeTimes: 5,
+            MergeSameLevelCount: 0,
+            IsNameUnit: true,
+            IdleAnimation: "daiji",
+            AttackAnimation: "gongji",
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 34, AttackInterval: 1.4, AttackRange: 1000, BulletSpeed: 1150 },
+                { Level: 2, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 56, AttackInterval: 1.25, AttackRange: 1030, BulletSpeed: 1200 },
+                { Level: 3, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 92, AttackInterval: 1.1, AttackRange: 1060, BulletSpeed: 1250 },
+                { Level: 4, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 150, AttackInterval: 0.95, AttackRange: 1090, BulletSpeed: 1300 },
+                { Level: 5, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 245, AttackInterval: 0.82, AttackRange: 1120, BulletSpeed: 1350 },
+                { Level: 6, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0, AttackDamage: 395, AttackInterval: 0.7, AttackRange: 1150, BulletSpeed: 1400 },
+            ],
+        },
     };
 
     public static GetMaterialConfig(name: string): WZSJZ_MaterialConfig | null {
@@ -1839,6 +2064,22 @@ export class WZSJZ_Constant {
             Math.floor(level) - 1,
         ));
         return Math.max(0, this.BoomerangBlades.DamageByLevel[index] || 0);
+    }
+
+    public static GetDiveStrikeDamage(level: number): number {
+        const index = Math.max(0, Math.min(
+            this.DiveStrike.DamageByLevel.length - 1,
+            Math.floor(level) - 1,
+        ));
+        return Math.max(0, this.DiveStrike.DamageByLevel[index] || 0);
+    }
+
+    public static GetHomingSpiderDamage(level: number): number {
+        const index = Math.max(0, Math.min(
+            this.HomingSpider.DamageByLevel.length - 1,
+            Math.floor(level) - 1,
+        ));
+        return Math.max(0, this.HomingSpider.DamageByLevel[index] || 0);
     }
 
     public static GetMaterialLevelConfig(
