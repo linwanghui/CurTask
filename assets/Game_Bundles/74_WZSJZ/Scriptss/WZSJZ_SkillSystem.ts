@@ -57,6 +57,7 @@ export class WZSJZ_SkillSystem extends Component {
     private _formationCells: WZSJZ_Cell[] = [];
     private _infiniteSkills: boolean = false;
     private _dragIndicatorSystem: WZSJZ_DragIndicatorSystem = null;
+    private _isCombatRoundActive: boolean = false;
 
     protected onLoad(): void {
         this.node.on(
@@ -67,6 +68,11 @@ export class WZSJZ_SkillSystem extends Component {
         this.node.on(
             WZSJZ_EventManager.修改无限技能,
             this.OnCheatToggleInfiniteSkills,
+            this,
+        );
+        this.node.on(
+            WZSJZ_EventManager.战斗阶段变动,
+            this.OnCombatPhaseChanged,
             this,
         );
     }
@@ -89,15 +95,17 @@ export class WZSJZ_SkillSystem extends Component {
         formationCells: WZSJZ_Cell[] = [],
         dragIndicatorSystem?: WZSJZ_DragIndicatorSystem,
     ): void {
-        this._skillBar = preparationZone?.getChildByName("技能栏") || null;
         this._wallDisplayNode = wallDisplayNode;
         this._canvas = canvas || preparationZone?.parent || null;
+        this._skillBar = this._canvas?.getChildByName("技能栏")
+            || preparationZone?.getChildByName("技能栏")
+            || null;
         this._enemyArea = this._canvas?.getChildByName("敌方单位") || null;
         this._formationCells = formationCells;
         this._dragIndicatorSystem = dragIndicatorSystem || null;
         this.SetupProjectileLayer();
         if (!this._skillBar) {
-            console.error("[WZSJZ] 操作区下没有找到“技能栏”节点。");
+            console.error("[WZSJZ] Canvas或操作区下没有找到“技能栏”节点。");
             return;
         }
         for (const config of WZSJZ_Constant.CharacterSkills) {
@@ -187,6 +195,7 @@ export class WZSJZ_SkillSystem extends Component {
                 () => this.ExecuteSkill(config),
                 this._infiniteSkills,
             );
+            button.SetCombatActive(this._isCombatRoundActive);
             if (config.EffectType === "sonic_trap") {
                 button.ConfigureTargeting(
                     (position) => this.BeginSonicTrapTargeting(
@@ -232,6 +241,14 @@ export class WZSJZ_SkillSystem extends Component {
             this._infiniteSkills ? "无限技能已开启" : "无限技能已关闭",
         );
     }
+
+    private OnCombatPhaseChanged = (active: boolean): void => {
+        this._isCombatRoundActive = !!active;
+        for (const entry of this._activeButtons) {
+            entry.ButtonNode?.getComponent(WZSJZ_SkillButtom)
+                ?.SetCombatActive(this._isCombatRoundActive);
+        }
+    };
 
     private ExecuteSkill(config: WZSJZ_SkillConfig): boolean {
         switch (config.EffectType) {

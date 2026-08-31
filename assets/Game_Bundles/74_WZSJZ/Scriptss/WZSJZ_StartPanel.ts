@@ -3,6 +3,7 @@ import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import { WZSJZ_GameData } from './WZSJZ_GameData';
 import { WZSJZ_UIManager } from './WZSJZ_UIManager';
+import { WZSJZ_HomeLevelSelector } from './WZSJZ_HomeLevelSelector';
 
 const { ccclass } = _decorator;
 
@@ -13,6 +14,7 @@ export class WZSJZ_StartPanel extends Component {
     private _diamondLabel: Label = null;
     private _nextClockRefreshTimestamp: number = 0;
     private _isStartingGame: boolean = false;
+    private _levelSelector: WZSJZ_HomeLevelSelector = null;
 
     protected onLoad(): void {
         WZSJZ_EventManager.BindSceneEventNode(this.node);
@@ -31,6 +33,9 @@ export class WZSJZ_StartPanel extends Component {
         this._diamondLabel = canvas
             ?.getChildByPath("左上角/钻石槽/文本")
             ?.getComponent(Label) || null;
+        this._levelSelector = this.node.getComponent(WZSJZ_HomeLevelSelector)
+            || this.node.addComponent(WZSJZ_HomeLevelSelector);
+        this._levelSelector.Configure(canvas);
         // 场景中的签到Button当前没有序列化点击目标，在这里由节点生命周期托管监听。
         canvas?.getChildByPath("左侧栏/签到")?.on(
             Button.EventType.CLICK,
@@ -110,8 +115,10 @@ export class WZSJZ_StartPanel extends Component {
 
     private TryStartGame(): void {
         if (this._isStartingGame) return;
+        const gameData = WZSJZ_GameData.Instance;
+        if (!gameData.IsLevelUnlocked(gameData.SelectedLevel)) return;
         const cost = WZSJZ_Constant.HomeResource.StartGamePhysicalPowerCost;
-        if (!WZSJZ_GameData.Instance.TryConsumePhysicalPower(cost)) {
+        if (!gameData.TryConsumePhysicalPower(cost)) {
             WZSJZ_UIManager.Instance.ShowPanel(
                 WZSJZ_Constant.Panel.GetPhysicalPowerPanel,
             );

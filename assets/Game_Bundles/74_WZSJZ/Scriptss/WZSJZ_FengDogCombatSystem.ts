@@ -27,7 +27,7 @@ export class WZSJZ_FengDogCombatSystem extends Component {
 
     protected onLoad(): void {
         WZSJZ_FengDogCombatSystem._instance = this;
-        this.node.on(WZSJZ_EventManager.游戏开始, () => this._isGameStarted = true, this);
+        this.node.on(WZSJZ_EventManager.战斗阶段变动, this.OnCombatPhaseChanged, this);
     }
 
     protected onDestroy(): void {
@@ -64,6 +64,9 @@ export class WZSJZ_FengDogCombatSystem extends Component {
             } else {
                 gameNode.ReduceAttackCooldown(deltaTime);
             }
+            return;
+        }
+        if (!this._isGameStarted) {
             return;
         }
         if (!this.CanAttack(gameNode)) {
@@ -160,6 +163,13 @@ export class WZSJZ_FengDogCombatSystem extends Component {
     private CanAttack(gameNode: WZSJZ_GameNode): boolean {
         return this._isGameStarted && !!gameNode?.node?.isValid
             && !gameNode.IsDragging && gameNode.CurrentCell?.Zone === "formation";
+    }
+
+    private OnCombatPhaseChanged(active: boolean): void {
+        this._isGameStarted = !!active;
+        if (!this._isGameStarted) {
+            this._pendingAttacks.clear();
+        }
     }
 
     private async PrepareAttackEffect(): Promise<void> {

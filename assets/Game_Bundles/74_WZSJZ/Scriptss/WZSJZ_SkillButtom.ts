@@ -20,6 +20,7 @@ export class WZSJZ_SkillButtom extends Component {
     private _onTargetMove: ((uiPosition: Vec2) => void) = null;
     private _onTargetEnd: ((uiPosition: Vec2, cancelled: boolean) => boolean) = null;
     private _onTargetTap: (() => void) = null;
+    private _isCombatActive: boolean = false;
 
     protected onLoad(): void {
         this.node.on(Node.EventType.TOUCH_START, this.OnTouchStart, this);
@@ -64,7 +65,7 @@ export class WZSJZ_SkillButtom extends Component {
     }
 
     protected update(deltaTime: number): void {
-        if (this._isInfiniteCooldown || this._remaining <= 0) {
+        if (!this._isCombatActive || this._isInfiniteCooldown || this._remaining <= 0) {
             return;
         }
         this._remaining = Math.max(0, this._remaining - deltaTime);
@@ -72,7 +73,9 @@ export class WZSJZ_SkillButtom extends Component {
     }
 
     private OnClicked(): void {
-        if ((!this._isInfiniteCooldown && this._remaining > 0) || !this._onUse?.()) {
+        if (!this._isCombatActive
+            || (!this._isInfiniteCooldown && this._remaining > 0)
+            || !this._onUse?.()) {
             return;
         }
         this._remaining = this._isInfiniteCooldown ? 0 : this._cooldown;
@@ -81,7 +84,8 @@ export class WZSJZ_SkillButtom extends Component {
     }
 
     private OnTouchStart(event: EventTouch): void {
-        if (!this._isTargetedSkill
+        if (!this._isCombatActive
+            || !this._isTargetedSkill
             || (!this._isInfiniteCooldown && this._remaining > 0)) {
             return;
         }
@@ -144,6 +148,14 @@ export class WZSJZ_SkillButtom extends Component {
             this._remaining = 0;
         }
         this.RefreshCooldownView();
+    }
+
+    public SetCombatActive(active: boolean): void {
+        this._isCombatActive = active;
+        if (!active && this._isTargeting) {
+            this._isTargeting = false;
+            this._hasTargetMoved = false;
+        }
     }
 
     private RefreshCooldownView(): void {

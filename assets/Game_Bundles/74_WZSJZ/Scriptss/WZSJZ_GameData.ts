@@ -43,6 +43,10 @@ export class WZSJZ_GameData extends Component {
     public HookClaimedCount: number = 0;
     /** 当前未领取宝箱开始计时的Unix毫秒时间戳。 */
     public HookChestStartTimestamp: number = 0;
+    /** 已通关的最高关卡；0表示新玩家尚未通关第一关。 */
+    public HighestClearedLevel: number = 0;
+    /** 首页当前正在查看的关卡，开始游戏时也以此字段为准。 */
+    public SelectedLevel: number = 1;
 
 
 
@@ -147,6 +151,71 @@ export class WZSJZ_GameData extends Component {
         WZSJZ_GameData.DateSave();
         WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.钻石变动, this.Diamond);
         return add;
+    }
+
+    public GetLevelProgressSnapshot(): {
+        SelectedLevel: number;
+        HighestClearedLevel: number;
+        HighestUnlockedLevel: number;
+        MaximumPreviewLevel: number;
+        IsSelectedLevelUnlocked: boolean;
+        BossName: string;
+        AnimationIndex: number;
+    } {
+        this.NormalizeLevelProgressData();
+        const highestUnlockedLevel = this.HighestClearedLevel + 1;
+        const maximumPreviewLevel = highestUnlockedLevel + 1;
+        const cycle = WZSJZ_Constant.HomeLevel.BossCycle;
+        const animationIndex = cycle.length > 0
+            ? (this.SelectedLevel - 1) % cycle.length
+            : 0;
+        return {
+            SelectedLevel: this.SelectedLevel,
+            HighestClearedLevel: this.HighestClearedLevel,
+            HighestUnlockedLevel: highestUnlockedLevel,
+            MaximumPreviewLevel: maximumPreviewLevel,
+            IsSelectedLevelUnlocked: this.SelectedLevel <= highestUnlockedLevel,
+            BossName: cycle[animationIndex] || "",
+            AnimationIndex: animationIndex,
+        };
+    }
+
+    public IsLevelUnlocked(level: number): boolean {
+        this.NormalizeLevelProgressData();
+        const safeLevel = Math.max(1, Math.floor(level));
+        return safeLevel <= this.HighestClearedLevel + 1;
+    }
+
+    /** 首页翻页使用；最多只允许查看当前进度之后的一关锁定预览。 */
+    public SelectLevel(level: number): boolean {
+        this.NormalizeLevelProgressData();
+        const maximumPreviewLevel = this.HighestClearedLevel + 2;
+        const nextLevel = Math.max(1, Math.min(Math.floor(level), maximumPreviewLevel));
+        if (nextLevel === this.SelectedLevel) return false;
+        this.SelectedLevel = nextLevel;
+        WZSJZ_GameData.DateSave();
+        WZSJZ_EventManager.EmitScene(
+            WZSJZ_EventManager.关卡进度变动,
+            this.GetLevelProgressSnapshot(),
+        );
+        return true;
+    }
+
+    /** 结算时调用：只能通关当前已解锁关卡，并自动开放下一关。 */
+    public CompleteLevel(level: number): boolean {
+        this.NormalizeLevelProgressData();
+        const completedLevel = Math.max(1, Math.floor(level));
+        if (completedLevel > this.HighestClearedLevel + 1
+            || completedLevel <= this.HighestClearedLevel) {
+            return false;
+        }
+        this.HighestClearedLevel = completedLevel;
+        WZSJZ_GameData.DateSave();
+        WZSJZ_EventManager.EmitScene(
+            WZSJZ_EventManager.关卡进度变动,
+            this.GetLevelProgressSnapshot(),
+        );
+        return true;
     }
 
     /** 使用钻石购买招募卡，并以一次存档提交两项资源变动。 */
@@ -312,6 +381,8 @@ export class WZSJZ_GameData extends Component {
             HookRewardDate: data.HookRewardDate,
             HookClaimedCount: data.HookClaimedCount,
             HookChestStartTimestamp: data.HookChestStartTimestamp,
+            HighestClearedLevel: data.HighestClearedLevel,
+            SelectedLevel: data.SelectedLevel,
             GameData: data.GameData,
             TimeDate: data.TimeDate,
         });
@@ -338,6 +409,9 @@ export class WZSJZ_GameData extends Component {
                 || !Object.prototype.hasOwnProperty.call(savedData, "HookRewardDate")
                 || !Object.prototype.hasOwnProperty.call(savedData, "HookClaimedCount")
                 || !Object.prototype.hasOwnProperty.call(savedData, "HookChestStartTimestamp");
+            needsHomeResourceSave = needsHomeResourceSave
+                || !Object.prototype.hasOwnProperty.call(savedData, "HighestClearedLevel")
+                || !Object.prototype.hasOwnProperty.call(savedData, "SelectedLevel");
             Object.assign(WZSJZ_GameData._instance, savedData);
             WZSJZ_GameData.Instance.DataUp();//判断存档版本升级
         } else {
@@ -345,6 +419,7 @@ export class WZSJZ_GameData extends Component {
             needsHomeResourceSave = true;
         }
         WZSJZ_GameData._instance.NormalizeHomeResourceData(Date.now());
+        WZSJZ_GameData._instance.NormalizeLevelProgressData();
         WZSJZ_GameData._instance.RefreshSignInDate(new Date());
         WZSJZ_GameData._instance.RefreshHookDate(Date.now());
         // 老存档缺少首页资源字段时，立即补齐并写回，而不是等下次自动保存。
@@ -386,6 +461,19 @@ export class WZSJZ_GameData extends Component {
             || this.PhysicalPowerRecoverTimestamp > nowTimestamp) {
             this.PhysicalPowerRecoverTimestamp = nowTimestamp;
         }
+    }
+
+    private NormalizeLevelProgressData(): void {
+        this.HighestClearedLevel = Number.isFinite(this.HighestClearedLevel)
+            ? Math.max(0, Math.floor(this.HighestClearedLevel))
+            : 0;
+        this.SelectedLevel = Number.isFinite(this.SelectedLevel)
+            ? Math.max(1, Math.floor(this.SelectedLevel))
+            : 1;
+        this.SelectedLevel = Math.min(
+            this.SelectedLevel,
+            this.HighestClearedLevel + 2,
+        );
     }
 
     private RefreshSignInDate(now: Date): void {

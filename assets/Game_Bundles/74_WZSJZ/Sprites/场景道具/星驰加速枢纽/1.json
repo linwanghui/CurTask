@@ -1,0 +1,468 @@
+{
+"skeleton": {
+	"hash": "u3nkwtimYOfdsxCKq8Rqc+T+RZs",
+	"spine": "3.8.75",
+	"x": -80.5,
+	"y": -80.5,
+	"width": 161,
+	"height": 161,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/特殊道具/赤焰超载核心"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "光底", "parent": "root", "length": 100 },
+	{ "name": "光", "parent": "root", "length": 100, "rotation": 90 },
+	{ "name": "星驰加速枢纽", "parent": "root", "length": 100, "rotation": 180 },
+	{ "name": "攻速", "parent": "root", "color": "bd00ffff" },
+	{
+		"name": "bone2",
+		"parent": "root",
+		"x": 36.72,
+		"y": -29.64,
+		"scaleX": 0.7909,
+		"scaleY": 0.7909,
+		"color": "00ff1bff"
+	},
+	{
+		"name": "bone3",
+		"parent": "root",
+		"x": 15.51,
+		"y": -0.75,
+		"scaleX": 0.8804,
+		"scaleY": 0.8804,
+		"color": "f3ff00ff"
+	},
+	{
+		"name": "bone6",
+		"parent": "root",
+		"rotation": 90.02,
+		"x": 0.57,
+		"y": 13.95,
+		"scaleX": 0.6939,
+		"scaleY": 0.6939,
+		"color": "f3ff00ff"
+	},
+	{ "name": "bone7", "parent": "root", "rotation": 90.02, "x": 0.24, "y": -14.34, "color": "f3ff00ff" },
+	{
+		"name": "bone8",
+		"parent": "root",
+		"rotation": -179.64,
+		"x": -22.46,
+		"y": 0.79,
+		"scaleX": 0.8236,
+		"scaleY": 0.8236,
+		"color": "f3ff00ff"
+	},
+	{
+		"name": "bone9",
+		"parent": "root",
+		"rotation": 132.65,
+		"x": -9.99,
+		"y": 6.84,
+		"scaleX": 0.8242,
+		"scaleY": 0.8242,
+		"color": "f3ff00ff"
+	},
+	{
+		"name": "bone10",
+		"parent": "root",
+		"rotation": 39.34,
+		"x": 10.87,
+		"y": 7.9,
+		"scaleX": 0.7559,
+		"scaleY": 0.7559,
+		"color": "f3ff00ff"
+	},
+	{
+		"name": "bone11",
+		"parent": "root",
+		"rotation": -45.53,
+		"x": 4,
+		"y": -7.41,
+		"scaleX": 0.8407,
+		"scaleY": 0.8407,
+		"color": "f3ff00ff"
+	},
+	{
+		"name": "bone12",
+		"parent": "root",
+		"rotation": -133.72,
+		"x": -11.57,
+		"y": -11.64,
+		"scaleX": 0.5415,
+		"scaleY": 0.5415,
+		"color": "f3ff00ff"
+	},
+	{
+		"name": "bone4",
+		"parent": "root",
+		"x": 21.02,
+		"y": -22.47,
+		"scaleX": 0.7909,
+		"scaleY": 0.7909,
+		"color": "00ff1bff"
+	},
+	{
+		"name": "bone5",
+		"parent": "root",
+		"x": -18.14,
+		"y": -33.22,
+		"scaleX": 0.7909,
+		"scaleY": 0.7909,
+		"color": "00ff1bff"
+	},
+	{
+		"name": "bone13",
+		"parent": "root",
+		"x": -39.31,
+		"y": -21.35,
+		"scaleX": 0.7909,
+		"scaleY": 0.7909,
+		"color": "00ff1bff"
+	},
+	{ "name": "攻速2", "parent": "root", "color": "bd00ffff" },
+	{ "name": "攻速3", "parent": "root", "color": "bd00ffff" }
+],
+"slots": [
+	{ "name": "光底", "bone": "光底", "attachment": "光底" },
+	{ "name": "光", "bone": "光", "attachment": "光" },
+	{ "name": "粒子", "bone": "bone3", "attachment": "粒子" },
+	{ "name": "粒子2", "bone": "bone6", "attachment": "粒子" },
+	{ "name": "粒子3", "bone": "bone7", "attachment": "粒子" },
+	{ "name": "粒子4", "bone": "bone8", "attachment": "粒子" },
+	{ "name": "粒子5", "bone": "bone9", "attachment": "粒子" },
+	{ "name": "粒子6", "bone": "bone10", "attachment": "粒子" },
+	{ "name": "粒子7", "bone": "bone11", "attachment": "粒子" },
+	{ "name": "粒子8", "bone": "bone12", "attachment": "粒子" },
+	{ "name": "星驰加速枢纽", "bone": "星驰加速枢纽", "attachment": "星驰加速枢纽" },
+	{ "name": "箭头", "bone": "bone2" },
+	{ "name": "箭头2", "bone": "bone4" },
+	{ "name": "箭头3", "bone": "bone5" },
+	{ "name": "箭头4", "bone": "bone13" },
+	{ "name": "攻速", "bone": "攻速", "attachment": "攻速" },
+	{ "name": "攻速2", "bone": "攻速2", "color": "ffffff85" },
+	{ "name": "攻速3", "bone": "攻速3", "color": "ffffff85" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"箭头3": {
+				"箭头": { "x": 0.36, "y": 5.55, "scaleX": 1.2424, "scaleY": 1.2424, "width": 15, "height": 15 }
+			},
+			"攻速": {
+				"攻速": { "width": 43, "height": 58 }
+			},
+			"光": {
+				"光": { "x": -2.07, "y": -5.7, "rotation": -90, "width": 143, "height": 149 }
+			},
+			"星驰加速枢纽": {
+				"星驰加速枢纽": { "rotation": 180, "width": 93, "height": 102 }
+			},
+			"箭头": {
+				"箭头": { "x": 0.36, "y": 5.55, "scaleX": 1.2424, "scaleY": 1.2424, "width": 15, "height": 15 }
+			},
+			"箭头2": {
+				"箭头": { "x": 0.36, "y": 5.55, "scaleX": 1.2424, "scaleY": 1.2424, "width": 15, "height": 15 }
+			},
+			"光底": {
+				"光底": { "width": 161, "height": 161 }
+			},
+			"箭头4": {
+				"箭头": { "x": 0.36, "y": 5.55, "scaleX": 1.2424, "scaleY": 1.2424, "width": 15, "height": 15 }
+			},
+			"攻速2": {
+				"攻速": { "width": 43, "height": 58 }
+			},
+			"攻速3": {
+				"攻速": { "width": 43, "height": 58 }
+			},
+			"粒子2": {
+				"粒子": { "x": 0.59, "y": 0.75, "scaleX": 0.8794, "width": 28, "height": 18 }
+			},
+			"粒子3": {
+				"粒子": { "x": 0.59, "y": 0.75, "scaleX": 0.8794, "width": 28, "height": 18 }
+			},
+			"粒子4": {
+				"粒子": { "x": 0.59, "y": 0.75, "scaleX": 0.8794, "width": 28, "height": 18 }
+			},
+			"粒子5": {
+				"粒子": { "x": 0.59, "y": 0.75, "scaleX": 0.8794, "width": 28, "height": 18 }
+			},
+			"粒子6": {
+				"粒子": { "x": 0.59, "y": 0.75, "scaleX": 0.8794, "width": 28, "height": 18 }
+			},
+			"粒子7": {
+				"粒子": { "x": 0.59, "y": 0.75, "scaleX": 0.8794, "width": 28, "height": 18 }
+			},
+			"粒子8": {
+				"粒子": { "x": 0.59, "y": 0.75, "scaleX": 0.8794, "width": 28, "height": 18 }
+			},
+			"粒子": {
+				"粒子": { "x": 0.59, "y": 0.75, "scaleX": 0.8794, "width": 28, "height": 18 }
+			}
+		}
+	}
+],
+"animations": {
+	"daiji": {
+		"slots": {
+			"粒子": {
+				"color": [
+					{ "time": 0.6667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffff00" }
+				]
+			},
+			"箭头3": {
+				"color": [
+					{ "time": 0.9, "color": "ffffff00" },
+					{ "time": 1.3333, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.8, "color": "ffffffff" },
+					{ "time": 2, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.9, "name": "箭头" }
+				]
+			},
+			"箭头2": {
+				"color": [
+					{ "time": 0.7333, "color": "ffffff00" },
+					{ "time": 1.1667, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.6333, "color": "ffffffff" },
+					{ "time": 1.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.7333, "name": "箭头" }
+				]
+			},
+			"箭头": {
+				"color": [
+					{ "time": 0.5333, "color": "ffffff00" },
+					{ "time": 0.9667, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.4333, "color": "ffffffff" },
+					{ "time": 1.6333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.5333, "name": "箭头" }
+				]
+			},
+			"粒子2": {
+				"color": [
+					{ "time": 1.4667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8, "color": "ffffff00" }
+				]
+			},
+			"粒子7": {
+				"color": [
+					{ "time": 1.3333, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.6667, "color": "ffffff00" }
+				]
+			},
+			"粒子6": {
+				"color": [
+					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "color": "ffffff00" }
+				]
+			},
+			"粒子3": {
+				"color": [
+					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "color": "ffffff00" }
+				]
+			},
+			"粒子4": {
+				"color": [
+					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "color": "ffffff00" }
+				]
+			},
+			"箭头4": {
+				"color": [
+					{ "time": 0.3333, "color": "ffffff00" },
+					{ "time": 0.7667, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.2333, "color": "ffffffff" },
+					{ "time": 1.4333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.3333, "name": "箭头" }
+				]
+			},
+			"攻速": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "color": "ffffffff" }
+				]
+			},
+			"攻速3": {
+				"color": [
+					{ "time": 1.3333, "color": "ffffff85" },
+					{ "time": 1.6667, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 1, "name": "攻速" }
+				]
+			},
+			"攻速2": {
+				"color": [
+					{ "time": 0.6667, "color": "ffffff85" },
+					{ "time": 1, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.3333, "name": "攻速" }
+				]
+			},
+			"光": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "color": "ffffff00" }
+				]
+			},
+			"粒子5": {
+				"color": [
+					{ "time": 1.3333, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.6667, "color": "ffffff00" }
+				]
+			},
+			"粒子8": {
+				"color": [
+					{ "time": 1.6667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "color": "ffffff00" }
+				]
+			}
+		},
+		"bones": {
+			"光底": {
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 0.798, "y": 0.798, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2 }
+				]
+			},
+			"光": {
+				"rotate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "angle": -29.14, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "angle": -60.35 }
+				]
+			},
+			"bone3": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 45.44 }
+				]
+			},
+			"攻速": {
+				"scale": [
+					{ "x": 0.419, "y": 0.419, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333 }
+				]
+			},
+			"bone2": {
+				"translate": [
+					{ "time": 0.5333, "y": -7.93 },
+					{ "time": 1.6333, "y": 69.16 }
+				],
+				"scale": [
+					{ "time": 0.5333, "x": 0.451, "y": 0.451 },
+					{ "time": 0.9667, "x": 1.125, "y": 1.125 }
+				]
+			},
+			"星驰加速枢纽": {
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "x": 0.931, "y": 0.931, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "x": 0.931, "y": 0.931, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2 }
+				]
+			},
+			"bone6": {
+				"translate": [
+					{ "time": 0.8, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8, "x": 0.41, "y": 45.28 }
+				]
+			},
+			"bone7": {
+				"translate": [
+					{ "time": 0.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "x": 0.44, "y": -35 }
+				]
+			},
+			"bone8": {
+				"translate": [
+					{ "time": 0.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "x": -42.65, "y": 0.2 }
+				]
+			},
+			"bone9": {
+				"translate": [
+					{ "time": 0.6667, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.6667, "x": -31.57, "y": 29.51 }
+				]
+			},
+			"bone10": {
+				"translate": [
+					{ "time": 0.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "x": 34.43, "y": 20 }
+				]
+			},
+			"bone11": {
+				"translate": [
+					{ "time": 0.6667, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.6667, "x": 33.64, "y": -33.06 }
+				]
+			},
+			"bone12": {
+				"translate": [
+					{ "time": 1, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "x": -38.96, "y": -33.59 }
+				]
+			},
+			"bone4": {
+				"translate": [
+					{ "time": 0.7333, "y": -27.44 },
+					{ "time": 1.8333, "y": 56.42 }
+				],
+				"scale": [
+					{ "time": 0.7333, "x": 0.451, "y": 0.451 },
+					{ "time": 1.1667, "x": 1.125, "y": 1.125 }
+				]
+			},
+			"bone5": {
+				"translate": [
+					{ "time": 0.9, "y": -27.44 },
+					{ "time": 2, "y": 56.42 }
+				],
+				"scale": [
+					{ "time": 0.9, "x": 0.451, "y": 0.451 },
+					{ "time": 1.3333, "x": 1.125, "y": 1.125 }
+				]
+			},
+			"bone13": {
+				"translate": [
+					{ "time": 0.3333, "y": -27.44 },
+					{ "time": 1.4333, "y": 56.42 }
+				],
+				"scale": [
+					{ "time": 0.3333, "x": 0.451, "y": 0.451 },
+					{ "time": 0.7667, "x": 1.125, "y": 1.125 }
+				]
+			},
+			"攻速2": {
+				"scale": [
+					{ "time": 0.3333 },
+					{ "time": 1, "x": 1.98, "y": 1.98 }
+				]
+			},
+			"攻速3": {
+				"scale": [
+					{ "time": 1 },
+					{ "time": 1.6667, "x": 1.98, "y": 1.98 }
+				]
+			}
+		}
+	}
+}
+}

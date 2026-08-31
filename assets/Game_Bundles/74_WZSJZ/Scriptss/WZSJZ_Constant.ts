@@ -48,6 +48,16 @@ export interface WZSJZ_MaterialConfig {
     UpgradeTimes: number;
     /** 当前玩法为两个相同等级物资合成。 */
     MergeSameLevelCount: number;
+    /** 功能性节点没有等级，只在其专属系统中按战斗阶段工作。 */
+    IsFunctionalNode?: boolean;
+    /** 功能性节点在详情界面使用的图片路径。 */
+    IntroduceSpritePath?: string;
+    /** 功能性节点的技能说明，依次填入详情界面的三行说明区域。 */
+    SkillDescription?: string[];
+    /** 是否显示等级节点；功能性节点、钥匙等无等级物品可关闭。 */
+    ShowLevel?: boolean;
+    /** 单局通过购买最多刷新多少个；未填写表示不限制。 */
+    MaxPurchaseSpawnsPerGame?: number;
     /** 名字单位可通过经验升级，并在单独存在时播放待机动画。 */
     IsNameUnit?: boolean;
     /** Spine待机动画名；未填写时使用 daiji。 */
@@ -138,7 +148,8 @@ export class WZSJZ_Constant {
         HookPanel: "Panel/HookPanel",
         HandBookPanel: "Panel/HandBookPanel",
         /** 兼容已经使用的旧属性名。 */
-        Handbook: "Panel/HandBookPanel"
+        Handbook: "Panel/HandBookPanel",
+        ReturnPanel: "Panel/ReturnPanel"
     };
 
     /** 首页体力与钻石配置。时间全部使用真实时间戳，不受游戏倍速影响。 */
@@ -151,6 +162,50 @@ export class WZSJZ_Constant {
         InitialDiamond: 300,
         DiamondAdReward: 100,
     };
+
+    /** 首页关卡按此顺序无限循环展示Boss动画；数组下标对应“主页动画/0~5”。 */
+    public static readonly HomeLevel = {
+        BossCycle: ["牢赛", "牢太", "光头", "典狱长", "公子", "混乱"],
+    };
+
+    /** 单局关卡回合流程；数值均集中配置，方便后续调整节奏。 */
+    public static readonly StageFlow = {
+        NormalEnemyCount: 10,
+        NormalEnemySpawnInterval: 0.08,
+        BossSpawnDelay: 0.25,
+        CombatDuration: 60,
+        PreparationTweenDuration: 0.35,
+        PreparationOffscreenMargin: 40,
+        SkillBarCombatBottom: 10,
+        CampaignCycleAttributeIncrease: 0.25,
+        BossRoundAttributeIncrease: 0.15,
+        BossRetreatSpeedMultiplier: 1.5,
+        BossRetreatArrivalDistance: 8,
+        VictoryReturnDelay: 1.8,
+    };
+
+    public static readonly RoundAnnouncement = {
+        EnterX: -2000,
+        CenterX: 0,
+        ExitX: 2000,
+        EnterDuration: 0.3,
+        HoldDuration: 1,
+        ExitDuration: 0.3,
+        IncomingAudio: "界面打开",
+        RetreatAudio: "界面关闭",
+        AudioVolume: 0.9,
+    };
+
+    public static GetCampaignAttributeMultiplier(level: number): number {
+        const cycleLength = Math.max(1, this.HomeLevel.BossCycle.length);
+        const cycleIndex = Math.floor((Math.max(1, Math.floor(level)) - 1) / cycleLength);
+        return 1 + cycleIndex * this.StageFlow.CampaignCycleAttributeIncrease;
+    }
+
+    public static GetBossRoundAttributeMultiplier(round: number): number {
+        return 1 + Math.max(0, Math.floor(round) - 1)
+            * this.StageFlow.BossRoundAttributeIncrease;
+    }
 
     /** 商店商品配置；数量、售价和广告奖励均从这里调整。 */
     public static readonly Shop = {
@@ -238,6 +293,8 @@ export class WZSJZ_Constant {
     /** 名字单位与多格名字组合的统一规则。 */
     public static readonly NameUnit = {
         FormationColumns: 5,
+        /** 每局随机开放的组合角色数量；购买和道具锁只会出现这些角色所需的文字。 */
+        CombinationChoicesPerGame: 3,
         /** 下标0对应1级升2级；满级不会再读取经验需求。 */
         ExperienceToNextLevel: [10, 20, 40, 80, 160],
         /** 喂给组合角色时，按被消耗文字等级，给予每一个组成文字的经验。 */
@@ -310,6 +367,10 @@ export class WZSJZ_Constant {
 
     /** 未在场景 MaterialPrefabs 数组中绑定的新物资，可在这里动态补充。 */
     public static readonly RuntimeMaterialPrefabPaths: string[] = [
+        "Prefabs/节点/纳米维修台",
+        "Prefabs/节点/赤焰超载核心",
+        "Prefabs/节点/星驰加速枢纽",
+        "Prefabs/节点/聚变发电机",
         "Prefabs/节点/堵桥",
         "Prefabs/节点/狗",
         "Prefabs/节点/老",
@@ -330,6 +391,60 @@ export class WZSJZ_Constant {
         "Prefabs/节点/蛛蛛",
         "Prefabs/节点/侠",
     ];
+
+    /** 功能性节点：只有位于布阵区且本轮战斗开始后才会工作。 */
+    public static readonly NanoRepairStation = {
+        Name: "纳米维修台",
+        SkillInterval: 10,
+        WallHealAmount: 100,
+        PurchaseWeight: 2,
+        MaxSpawnsPerGame: 1,
+        SkillAnimation: "jineng",
+        IdleAnimation: "daiji",
+        SkillDescription: [
+            "技能：纳米修复",
+            "每隔10秒发动一次",
+            "恢复城墙100点生命值",
+        ],
+    };
+
+    /** 赤焰超载核心：战斗中强化周围八个邻格内的攻击单位。 */
+    public static readonly FlameOverloadCore = {
+        Name: "赤焰超载核心",
+        AttackBonusRate: 0.2,
+        IncludeDiagonalCells: true,
+        PurchaseWeight: 2,
+        SkillDescription: [
+            "被动：赤焰超载",
+            "战斗中周围邻格单位",
+            "攻击力增加20%",
+        ],
+    };
+
+    /** 星驰加速枢纽：战斗中强化周围八个邻格内的资源产出单位。 */
+    public static readonly StarSpeedHub = {
+        Name: "星驰加速枢纽",
+        ProductionBonusRate: 0.2,
+        IncludeDiagonalCells: true,
+        PurchaseWeight: 2,
+        SkillDescription: [
+            "被动：星驰加速",
+            "战斗中周围邻格单位",
+            "资源产出增加20%",
+        ],
+    };
+
+    /** 聚变发电机：上阵后在每轮开始时延长Boss逃离倒计时。 */
+    public static readonly FusionGenerator = {
+        Name: "聚变发电机",
+        ExtraCombatDuration: 10,
+        PurchaseWeight: 2,
+        SkillDescription: [
+            "被动：聚变供能",
+            "上阵时每轮战斗时间",
+            "增加10秒",
+        ],
+    };
 
     /** 堵桥狗大招：动画本身表现从天而降，脚本只在落点定时结算范围伤害。 */
     public static readonly BlockBridgeDogUltimate = {
@@ -717,6 +832,7 @@ export class WZSJZ_Constant {
         BoomerangBladePrewarm: 1,
         DiveStrikePrewarm: 1,
         HomingSpiderPrewarm: 1,
+        SniperBulletHitEffectPrewarm: 1,
     };
 
     /** 防止单位停在攻击范围临界点时因浮点误差反复进入移动状态。 */
@@ -1073,6 +1189,11 @@ export class WZSJZ_Constant {
             PrefabPath: "Prefabs/特效/眩晕特效",
             FallbackDuration: 3,
         },
+        SniperBulletHit: {
+            EffectName: "狙击子弹击中特效",
+            PrefabPath: "Prefabs/特效/狙击子弹击中特效",
+            FallbackDuration: 0.3333,
+        },
     };
 
     /** 普通攻击骨骼动画同步参数。动画会在本次攻击间隔的该比例内播完，留少量待机过渡。 */
@@ -1256,6 +1377,75 @@ export class WZSJZ_Constant {
             MergeSameLevelCount: 0,
             Levels: [
                 { Level: 1, SpritePath: "Sprites/游戏内/钥匙", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "纳米维修台": {
+            Name: "纳米维修台",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: WZSJZ_Constant.NanoRepairStation.PurchaseWeight,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 1,
+            UpgradeTimes: 0,
+            MergeSameLevelCount: 0,
+            IsFunctionalNode: true,
+            SkillDescription: WZSJZ_Constant.NanoRepairStation.SkillDescription,
+            ShowLevel: false,
+            MaxPurchaseSpawnsPerGame: WZSJZ_Constant.NanoRepairStation.MaxSpawnsPerGame,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "赤焰超载核心": {
+            Name: "赤焰超载核心",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: WZSJZ_Constant.FlameOverloadCore.PurchaseWeight,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 1,
+            UpgradeTimes: 0,
+            MergeSameLevelCount: 0,
+            IsFunctionalNode: true,
+            SkillDescription: WZSJZ_Constant.FlameOverloadCore.SkillDescription,
+            ShowLevel: false,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "星驰加速枢纽": {
+            Name: "星驰加速枢纽",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: WZSJZ_Constant.StarSpeedHub.PurchaseWeight,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 1,
+            UpgradeTimes: 0,
+            MergeSameLevelCount: 0,
+            IsFunctionalNode: true,
+            SkillDescription: WZSJZ_Constant.StarSpeedHub.SkillDescription,
+            ShowLevel: false,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "聚变发电机": {
+            Name: "聚变发电机",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: WZSJZ_Constant.FusionGenerator.PurchaseWeight,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 1,
+            UpgradeTimes: 0,
+            MergeSameLevelCount: 0,
+            IsFunctionalNode: true,
+            SkillDescription: WZSJZ_Constant.FusionGenerator.SkillDescription,
+            ShowLevel: false,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
             ],
         },
         "枪": {

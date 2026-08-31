@@ -45,7 +45,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
 
     protected onLoad(): void {
         WZSJZ_ShieldBrotherCombatSystem._instance = this;
-        this.node.on(WZSJZ_EventManager.游戏开始, this.OnGameStart, this);
+        this.node.on(WZSJZ_EventManager.战斗阶段变动, this.OnCombatPhaseChanged, this);
     }
 
     protected onDestroy(): void {
@@ -79,8 +79,10 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             }
             return;
         }
-        if (!this._isGameStarted || gameNode.IsDragging
-            || gameNode.CurrentCell?.Zone !== "formation") {
+        if (!this._isGameStarted) {
+            return;
+        }
+        if (gameNode.IsDragging || gameNode.CurrentCell?.Zone !== "formation") {
             gameNode.ResetAttackCooldown();
             return;
         }
@@ -137,6 +139,9 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
 
     /** 使用堵桥狗普通子弹的组合角色共用此入口，角色数值仍分别读取Constant。 */
     public UpdateSharedBulletCharacter(gameNode: WZSJZ_GameNode, deltaTime: number): void {
+        if (!this._isGameStarted) {
+            return;
+        }
         if (this._pendingAttacks.has(gameNode)) {
             if (!this.CanCompleteDelayedAttack(gameNode)) {
                 this._pendingAttacks.delete(gameNode);
@@ -193,8 +198,11 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         }, delay);
     }
 
-    private OnGameStart(): void {
-        this._isGameStarted = true;
+    private OnCombatPhaseChanged(active: boolean): void {
+        this._isGameStarted = !!active;
+        if (!this._isGameStarted) {
+            this._pendingAttacks.clear();
+        }
     }
 
     private async PrepareShieldPrefab(): Promise<void> {
@@ -346,7 +354,14 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             owner.GetAttackDamage(),
             levelConfig.BulletSpeed,
             (projectile) => this.RecycleSharedBullet(projectile, pool),
-            (_position, hitDamage) => {
+            (position, hitDamage) => {
+                if (isWheatMouse) {
+                    const hitEffect = WZSJZ_Constant.CommonEffect.SniperBulletHit;
+                    WZSJZ_CommonEffectSystem.Instance?.Play(
+                        hitEffect.EffectName,
+                        position,
+                    );
+                }
                 if (target.TakeDamage(hitDamage)) {
                     receiveExperience(projectileConfig.KillExperience);
                 }

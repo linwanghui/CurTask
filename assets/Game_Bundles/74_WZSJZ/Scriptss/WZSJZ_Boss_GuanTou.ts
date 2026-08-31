@@ -200,8 +200,10 @@ export class WZSJZ_Boss_GuanTou extends WZSJZ_Boss {
 
     private ResetSkillTimer(): void {
         const config = WZSJZ_Constant.BossGuanTou;
-        this._nextSkillTimer = config.SkillMinInterval
-            + Math.random() * Math.max(0, config.SkillMaxInterval - config.SkillMinInterval);
+        this._nextSkillTimer = this.ScaleDuration(
+            config.SkillMinInterval
+                + Math.random() * Math.max(0, config.SkillMaxInterval - config.SkillMinInterval),
+        );
     }
 
     private SetShieldLayerRecursively(node: Node, layer: number): void {

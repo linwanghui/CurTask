@@ -1,0 +1,123 @@
+{
+"skeleton": {
+	"hash": "/O42n8phggpWpJiNr6QFlFsbgPk",
+	"spine": "3.8.75",
+	"x": -81.5,
+	"y": -81.5,
+	"width": 163,
+	"height": 163,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/特殊道具/聚能发电机"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "光底", "parent": "root", "length": 100 },
+	{ "name": "光", "parent": "root", "length": 100, "rotation": 90 },
+	{ "name": "聚变发电机", "parent": "root", "length": 100, "rotation": 180 },
+	{ "name": "tx", "parent": "root", "x": 7.19, "y": -6.68 }
+],
+"slots": [
+	{ "name": "光底", "bone": "光底", "attachment": "光底" },
+	{ "name": "光", "bone": "光" },
+	{ "name": "聚变发电机", "bone": "聚变发电机", "attachment": "聚变发电机" },
+	{ "name": "1", "bone": "tx" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"光": {
+				"光": { "rotation": -90, "width": 145, "height": 151 }
+			},
+			"光底": {
+				"光底": { "width": 163, "height": 163 }
+			},
+			"1": {
+				"1": { "x": -2.55, "y": 6.41, "width": 112, "height": 94 },
+				"2": { "x": -2.55, "y": 4.91, "width": 108, "height": 91 },
+				"3": { "x": -2.05, "y": 4.41, "width": 111, "height": 110 },
+				"4": { "x": -1.05, "y": 4.41, "width": 99, "height": 90 }
+			},
+			"聚变发电机": {
+				"聚变发电机": { "rotation": 180, "width": 112, "height": 97 }
+			}
+		}
+	}
+],
+"animations": {
+	"daiji": {
+		"slots": {
+			"1": {
+				"attachment": [
+					{ "name": "1" },
+					{ "time": 0.0667, "name": "2" },
+					{ "time": 0.1333, "name": "3" },
+					{ "time": 0.2, "name": "4" },
+					{ "time": 0.2667, "name": "1" },
+					{ "time": 0.3333, "name": "2" },
+					{ "time": 0.4, "name": "3" },
+					{ "time": 0.4667, "name": "4" },
+					{ "time": 0.5333, "name": "1" },
+					{ "time": 0.6, "name": "2" },
+					{ "time": 0.6667, "name": "3" },
+					{ "time": 0.7333, "name": "4" },
+					{ "time": 0.8, "name": null },
+					{ "time": 1.2, "name": "1" },
+					{ "time": 1.2667, "name": "2" },
+					{ "time": 1.3333, "name": "3" },
+					{ "time": 1.4, "name": "4" },
+					{ "time": 1.4667, "name": "1" },
+					{ "time": 1.5333, "name": "2" },
+					{ "time": 1.6, "name": "3" },
+					{ "time": 1.6667, "name": "4" },
+					{ "time": 1.7333, "name": "1" },
+					{ "time": 1.8, "name": "2" },
+					{ "time": 1.8667, "name": "3" },
+					{ "time": 1.9333, "name": "4" },
+					{ "time": 2, "name": null }
+				]
+			},
+			"光": {
+				"color": [
+					{ "color": "ffffff00" },
+					{ "time": 1, "color": "ffffffff" },
+					{ "time": 2, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "光" }
+				]
+			}
+		},
+		"bones": {
+			"光底": {
+				"scale": [
+					{},
+					{ "time": 1, "x": 0.834, "y": 0.834 },
+					{ "time": 2 }
+				]
+			},
+			"光": {
+				"rotate": [
+					{},
+					{ "time": 1, "angle": -44.81 },
+					{ "time": 2, "angle": -83.43 }
+				],
+				"scale": [
+					{ "x": 0.854, "y": 0.854 },
+					{ "time": 1 },
+					{ "time": 2, "x": 0.854, "y": 0.854 }
+				]
+			},
+			"聚变发电机": {
+				"scale": [
+					{},
+					{ "time": 0.5, "x": 0.915, "y": 0.915 },
+					{ "time": 1 },
+					{ "time": 1.5, "x": 0.915, "y": 0.915 },
+					{ "time": 2 }
+				]
+			}
+		}
+	}
+}
+}

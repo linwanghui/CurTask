@@ -3,6 +3,7 @@ import { WZSJZ_Constant, WZSJZ_EnemyConfig } from './WZSJZ_Constant';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_CommonEffectSystem } from './WZSJZ_CommonEffectSystem';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
+import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_Enemy')
@@ -23,6 +24,10 @@ export class WZSJZ_Enemy extends Component {
     private _knockbackElapsed: number = 0;
     private _knockbackDuration: number = 0;
     private _recycleCallback: ((enemy: WZSJZ_Enemy) => void) | null = null;
+    private _runtimeStatMultiplier: number = 1;
+    private _spawnWorldPosition: Vec3 = new Vec3();
+    private _isRetreating: boolean = false;
+    private _hasEscaped: boolean = false;
 
     public get IsAlive(): boolean {
         return !this._isDead && this._currentHealth > 0;
@@ -34,6 +39,18 @@ export class WZSJZ_Enemy extends Component {
 
     public get MaxHealth(): number {
         return this._config?.MaxHealth || 1;
+    }
+
+    public get RuntimeStatMultiplier(): number {
+        return this._runtimeStatMultiplier;
+    }
+
+    public get IsRetreating(): boolean {
+        return this._isRetreating;
+    }
+
+    public get HasEscaped(): boolean {
+        return this._hasEscaped;
     }
 
     protected get Wall(): WZSJZ_Wall {
@@ -49,11 +66,20 @@ export class WZSJZ_Enemy extends Component {
         recycleCallback: (enemy: WZSJZ_Enemy) => void,
         enemyProjectileLayer: Node = null,
         healthBarLayer: Node = null,
+        statMultiplier: number = 1,
     ): boolean {
         this.unscheduleAllCallbacks();
         this._wall = wall;
         this._recycleCallback = recycleCallback;
-        this._config = WZSJZ_Constant.GetEnemyConfig(this.node.name);
+        const baseConfig = WZSJZ_Constant.GetEnemyConfig(this.node.name);
+        this._runtimeStatMultiplier = Math.max(0.01, statMultiplier || 1);
+        this._config = baseConfig ? {
+            ...baseConfig,
+            MaxHealth: baseConfig.MaxHealth * this._runtimeStatMultiplier,
+            MoveSpeed: baseConfig.MoveSpeed * this._runtimeStatMultiplier,
+            AttackRange: baseConfig.AttackRange * this._runtimeStatMultiplier,
+            AttackInterval: baseConfig.AttackInterval / this._runtimeStatMultiplier,
+        } : null;
         this._skeleton = this.getComponentInChildren(sp.Skeleton);
         if (!this._config || !this._wall) {
             console.error(`[WZSJZ] ${this.node.name} 缺少敌人数值配置或城墙目标。`);
@@ -67,6 +93,9 @@ export class WZSJZ_Enemy extends Component {
         this._hitReactionTimer = 0;
         this._tremorTimer = 0;
         this._blindTimer = 0;
+        this._spawnWorldPosition.set(this.node.worldPosition);
+        this._isRetreating = false;
+        this._hasEscaped = false;
         this.ClearKnockback();
         if (this._skeleton) {
             this._skeleton.timeScale = 1;
@@ -77,7 +106,7 @@ export class WZSJZ_Enemy extends Component {
     }
 
     protected update(deltaTime: number): void {
-        if (!this._config || !this.IsAlive || !this._wall?.IsAlive) {
+        if (!this._config || !this.IsAlive) {
             return;
         }
         if (this._blindTimer > 0) {
@@ -104,6 +133,13 @@ export class WZSJZ_Enemy extends Component {
             this._hitReactionTimer = Math.max(0, this._hitReactionTimer - deltaTime);
             return;
         }
+
+        if (this._isRetreating) {
+            this.UpdateRetreat(deltaTime);
+            return;
+        }
+
+        if (!this._wall?.IsAlive) return;
 
         const current = this.node.worldPosition;
         const wallFrontX = this._wall.GetFrontWorldX(current.x);
@@ -194,7 +230,14 @@ export class WZSJZ_Enemy extends Component {
     }
 
     public GetOutgoingAttackDamage(baseDamage: number): number {
-        return this._blindTimer > 0 ? 0 : Math.max(0, baseDamage);
+        return this._blindTimer > 0
+            ? 0
+            : Math.max(0, baseDamage * this._runtimeStatMultiplier);
+    }
+
+    /** 攻击/技能间隔随属性倍率缩短，供Boss专属状态机复用。 */
+    protected ScaleDuration(baseDuration: number): number {
+        return Math.max(0, baseDuration) / this._runtimeStatMultiplier;
     }
 
     protected CanApplyStun(tenacityDamage: number): boolean {
@@ -237,8 +280,34 @@ export class WZSJZ_Enemy extends Component {
             this._skeleton.timeScale = 1;
         }
         this.PlayAnimation(this._config.DeathAnimation, false);
+        WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.敌人死亡, this);
         this.scheduleOnce(() => this._recycleCallback?.(this), this._config.DeathDuration);
         return true;
+    }
+
+    /** 倒计时结束后向初始出生点撤退；撤退途中仍可受伤并被击杀。 */
+    public BeginRetreat(): boolean {
+        if (!this.IsAlive || this._isRetreating) return false;
+        this._isRetreating = true;
+        this._attackTimer = 0;
+        this._hitReactionTimer = 0;
+        this._tremorTimer = 0;
+        this.ClearKnockback();
+        if (this._skeleton) this._skeleton.timeScale = 1;
+        this.OnTremorStarted();
+        this.PlayAnimation(this._config.MoveAnimation, true, true);
+        return true;
+    }
+
+    /** 切换回备战阶段时直接回池，不播放死亡也不触发击杀事件。 */
+    public RecycleImmediately(): void {
+        if (!this.node?.isValid) return;
+        this.unscheduleAllCallbacks();
+        this._isDead = true;
+        this._isRetreating = false;
+        this.ClearAttachedStatusEffects();
+        this.ClearKnockback();
+        this._recycleCallback?.(this);
     }
 
     /** 普通敌人每次受伤都硬直；Boss 可覆盖为韧性清空时才硬直。 */
@@ -327,6 +396,34 @@ export class WZSJZ_Enemy extends Component {
         this._knockbackMovedDistance = 0;
         this._knockbackElapsed = 0;
         this._knockbackDuration = 0;
+    }
+
+    private UpdateRetreat(deltaTime: number): void {
+        const current = this.node.worldPosition;
+        const offsetX = this._spawnWorldPosition.x - current.x;
+        const offsetY = this._spawnWorldPosition.y - current.y;
+        const distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+        const arrivalDistance = WZSJZ_Constant.StageFlow.BossRetreatArrivalDistance;
+        if (distance <= arrivalDistance) {
+            this._hasEscaped = true;
+            this._isRetreating = false;
+            this._isDead = true;
+            this.ClearAttachedStatusEffects();
+            WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.Boss逃跑, this);
+            this._recycleCallback?.(this);
+            return;
+        }
+        const moveDistance = Math.min(
+            distance,
+            this._config.MoveSpeed
+                * WZSJZ_Constant.StageFlow.BossRetreatSpeedMultiplier
+                * Math.max(0, deltaTime),
+        );
+        this.node.setWorldPosition(
+            current.x + offsetX / distance * moveDistance,
+            current.y + offsetY / distance * moveDistance,
+            current.z,
+        );
     }
 
     public GetAimWorldPosition(): { x: number; y: number; z: number } {

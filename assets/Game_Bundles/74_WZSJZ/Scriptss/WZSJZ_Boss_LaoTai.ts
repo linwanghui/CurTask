@@ -182,10 +182,10 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
             targetWorld,
             this.Wall,
             this._projectileLayer,
-            config.TankMoveSpeed,
+            config.TankMoveSpeed * this.RuntimeStatMultiplier,
             config.TankArrivalDistance,
-            config.TankAttackDamage,
-            config.TankAttackInterval,
+            this.GetOutgoingAttackDamage(config.TankAttackDamage),
+            this.ScaleDuration(config.TankAttackInterval),
             config.TankFireDelay,
             config.TankAttackAnimationDuration,
             config.TankAttackCount,
@@ -211,8 +211,10 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
 
     private ResetSkillTimer(): void {
         const config = WZSJZ_Constant.BossLaoTai;
-        this._nextSkillTimer = config.SkillMinInterval
-            + Math.random() * Math.max(0, config.SkillMaxInterval - config.SkillMinInterval);
+        this._nextSkillTimer = this.ScaleDuration(
+            config.SkillMinInterval
+                + Math.random() * Math.max(0, config.SkillMaxInterval - config.SkillMinInterval),
+        );
     }
 
     private SortEnemyRenderOrder(enemyArea: Node): void {

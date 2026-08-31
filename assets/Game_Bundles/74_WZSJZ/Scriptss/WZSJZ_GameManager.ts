@@ -38,6 +38,10 @@ import { WZSJZ_DragIndicatorSystem } from './WZSJZ_DragIndicatorSystem';
 import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 import type { WZSJZ_GameNode } from './WZSJZ_GameNode';
+import { WZSJZ_StageFlowSystem } from './WZSJZ_StageFlowSystem';
+import { WZSJZ_RoundAnnouncementSystem } from './WZSJZ_RoundAnnouncementSystem';
+import { WZSJZ_ReturnMenuSystem } from './WZSJZ_ReturnMenuSystem';
+import { WZSJZ_FunctionalNodeSystem } from './WZSJZ_FunctionalNodeSystem';
 const { ccclass, property } = _decorator;
 
 /** 场景总入口；具体战斗、技能与表现逻辑由各子系统负责。 */
@@ -93,6 +97,8 @@ export class WZSJZ_GameManager extends Component {
     private _wallCell: WZSJZ_Cell = null;
     private _draggingNode: WZSJZ_GameNode = null;
     private _isGameStarted: boolean = false;
+    /** 区分“本局已初始化”和“当前回合正在战斗”，避免第二轮重新回满城墙。 */
+    private _hasGameInitialized: boolean = false;
     private _keySlotNode: Node = null;
     private _keyDragVisual: Node = null;
     private _keyDragStartWorldPosition: Vec3 = new Vec3();
@@ -111,6 +117,10 @@ export class WZSJZ_GameManager extends Component {
     private _skillSystem: WZSJZ_SkillSystem = null;
     private _nodeInspectSystem: WZSJZ_NodeInspectSystem = null;
     private _dragIndicatorSystem: WZSJZ_DragIndicatorSystem = null;
+    private _stageFlowSystem: WZSJZ_StageFlowSystem = null;
+    private _roundAnnouncementSystem: WZSJZ_RoundAnnouncementSystem = null;
+    private _returnMenuSystem: WZSJZ_ReturnMenuSystem = null;
+    private _functionalNodeSystem: WZSJZ_FunctionalNodeSystem = null;
 
     public get IsGameStarted(): boolean {
         return this._isGameStarted;
@@ -122,6 +132,7 @@ export class WZSJZ_GameManager extends Component {
         this.node.on(WZSJZ_EventManager.修改增加钥匙, this.OnCheatAddKeys, this);
         this.node.on(WZSJZ_EventManager.修改添加单位, this.OnCheatAddUnit, this);
         this.node.on(WZSJZ_EventManager.修改城墙无敌, this.OnCheatToggleWallInvincible, this);
+        this.node.on(WZSJZ_EventManager.战斗阶段变动, this.OnCombatPhaseChanged, this);
     }
 
     protected start(): void {
@@ -173,11 +184,28 @@ export class WZSJZ_GameManager extends Component {
             this.PriceIncreaseRate,
             (prefab, cell, level) => this.CreateMaterialAtCell(prefab, cell, level, true),
         );
+        this._functionalNodeSystem = this.node.getComponent(WZSJZ_FunctionalNodeSystem)
+            || this.node.addComponent(WZSJZ_FunctionalNodeSystem);
+        this._functionalNodeSystem.Configure(this._formationCells, this.WallDisplayNode);
         this._nameUnitSystem = this.node.getComponent(WZSJZ_NameUnitSystem)
             || this.node.addComponent(WZSJZ_NameUnitSystem);
         this._nameUnitSystem.Configure(this._formationCells, this._formationObjectLayer);
         // 道具锁内的默认物资依赖经济模块的权重池，必须在其配置完成后生成。
         this.RefreshPreparationItemLocks();
+        this._stageFlowSystem = this.node.getComponent(WZSJZ_StageFlowSystem)
+            || this.node.addComponent(WZSJZ_StageFlowSystem);
+        this._stageFlowSystem.Configure(
+            this.FormationZone?.parent,
+            this.PreparationZone,
+            this._combatSystem,
+            () => this._functionalNodeSystem?.GetAdditionalCombatDuration() || 0,
+        );
+        this._roundAnnouncementSystem = this.node.getComponent(WZSJZ_RoundAnnouncementSystem)
+            || this.node.addComponent(WZSJZ_RoundAnnouncementSystem);
+        this._roundAnnouncementSystem.Configure(this.FormationZone?.parent);
+        this._returnMenuSystem = this.node.getComponent(WZSJZ_ReturnMenuSystem)
+            || this.node.addComponent(WZSJZ_ReturnMenuSystem);
+        this._returnMenuSystem.Configure(this.FormationZone?.parent);
         this.BindStartButton();
         this.SetupToolArea();
     }
@@ -349,16 +377,21 @@ export class WZSJZ_GameManager extends Component {
     }
 
     public StartGame(): void {
-        if (this._isGameStarted) {
-            return;
+        if (!this._stageFlowSystem?.CanStartRound) return;
+        if (!this._hasGameInitialized) {
+            this.InitializeWallHealth(true);
+            if (!this._wallBehavior?.IsAlive) {
+                WZSJZ_UIManager.Instance.ShowText("城墙初始化失败");
+                return;
+            }
+            this._hasGameInitialized = true;
+            this.node.emit(WZSJZ_EventManager.游戏开始, this._wallBehavior);
         }
-        this._isGameStarted = true;
-        const startButton = this.GetStartButtonNode();
-        if (startButton) {
-            startButton.active = false;
-        }
-        this.InitializeWallHealth(true);
-        this.node.emit(WZSJZ_EventManager.游戏开始, this._wallBehavior);
+        this._stageFlowSystem.StartRound(this._wallBehavior);
+    }
+
+    private OnCombatPhaseChanged(active: boolean): void {
+        this._isGameStarted = !!active;
     }
 
     public BeginDrag(gameNode: WZSJZ_GameNode): void {
@@ -915,7 +948,7 @@ export class WZSJZ_GameManager extends Component {
         }
 
         this.WallDisplayNode.active = true;
-        this.InitializeWallHealth(!this._isGameStarted);
+        this.InitializeWallHealth(!this._hasGameInitialized);
         const expectedLevel = wall.Level;
         const spriteFrame = await WZSJZ_Incident.LoadSprite(levelConfig.DisplaySpritePath) as SpriteFrame;
         if (spriteFrame

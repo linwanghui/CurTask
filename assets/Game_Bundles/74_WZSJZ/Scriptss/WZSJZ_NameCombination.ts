@@ -32,6 +32,10 @@ export class WZSJZ_NameCombination extends Component {
         this._partUnits = partUnits;
     }
 
+    public GetPartUnits(): readonly WZSJZ_GameNode[] {
+        return this._partUnits;
+    }
+
     /** 为组合中的每个文字提供独立特效点位，同时保持组合表现处于可交互的最上层。 */
     public GetPartEffectTargets(): Node[] {
         if (this._skillEffectAnchors.length === this._partUnits.length
