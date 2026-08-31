@@ -96,7 +96,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         if (!gameNode.IsAttackReady()) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, levelConfig.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -124,7 +124,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             }
             const currentTarget = this.FindNearestEnemy(
                 gameNode.node.worldPosition,
-                currentConfig.AttackRange,
+                gameNode.GetAttackRange(),
             );
             if (currentTarget) {
                 this.SpawnShield(
@@ -164,7 +164,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         if (!gameNode.IsAttackReady()) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, levelConfig.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -334,7 +334,7 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
         const pool = isWheatMouse
             ? this._wheatMouseBulletPool
             : this._blockBridgeDogBulletPool;
-        const target = this.FindNearestEnemy(owner.node.worldPosition, levelConfig.AttackRange);
+        const target = this.FindNearestEnemy(owner.node.worldPosition, owner.GetAttackRange());
         if (!target || !prefab || !this._projectileLayer) {
             return;
         }

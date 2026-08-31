@@ -258,6 +258,10 @@ export class WZSJZ_Constant {
         A: 100,
     };
 
+    public static readonly ToolKey = {
+        VideoReward: 1,
+    };
+
     /** 购买生成和二合一升级时的物资弹出动画。 */
     public static readonly MaterialPopAnimation = {
         StartScale: 0.25,
@@ -371,6 +375,9 @@ export class WZSJZ_Constant {
         "Prefabs/节点/赤焰超载核心",
         "Prefabs/节点/星驰加速枢纽",
         "Prefabs/节点/聚变发电机",
+        "Prefabs/节点/黑客破译",
+        "Prefabs/节点/经验装置",
+        "Prefabs/节点/天眼延展阵列",
         "Prefabs/节点/堵桥",
         "Prefabs/节点/狗",
         "Prefabs/节点/老",
@@ -443,6 +450,48 @@ export class WZSJZ_Constant {
             "被动：聚变供能",
             "上阵时每轮战斗时间",
             "增加10秒",
+        ],
+    };
+
+    /** 黑客破译：上阵后播放一次动画并随机解锁布阵区锁格，随后消耗自身。 */
+    public static readonly HackerDecoder = {
+        Name: "黑客破译",
+        UnlockCount: 2,
+        AnimationName: "jineng",
+        AnimationFallbackDuration: 2,
+        PurchaseWeight: 2,
+        SkillDescription: [
+            "一次性：黑客破译",
+            "上阵后随机解锁",
+            "两个布阵区锁格",
+        ],
+    };
+
+    /** 经验装置：战斗中全场名字单位获得经验提高，并周期播放技能表现。 */
+    public static readonly ExperienceDevice = {
+        Name: "经验装置",
+        SkillInterval: 10,
+        ExperienceBonusRate: 0.25,
+        PurchaseWeight: 2,
+        SkillAnimation: "jineng",
+        IdleAnimation: "daiji",
+        SkillDescription: [
+            "被动：经验增幅",
+            "全场可获得经验的单位",
+            "获得经验增加25%",
+        ],
+    };
+
+    /** 天眼延展阵列：战斗中强化周围八个邻格内攻击单位的索敌范围。 */
+    public static readonly SkyEyeExtensionArray = {
+        Name: "天眼延展阵列",
+        AttackRangeBonusRate: 0.2,
+        IncludeDiagonalCells: true,
+        PurchaseWeight: 2,
+        SkillDescription: [
+            "被动：天眼延展",
+            "战斗中周围邻格单位",
+            "攻击范围增加20%",
         ],
     };
 
@@ -1443,6 +1492,57 @@ export class WZSJZ_Constant {
             MergeSameLevelCount: 0,
             IsFunctionalNode: true,
             SkillDescription: WZSJZ_Constant.FusionGenerator.SkillDescription,
+            ShowLevel: false,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "黑客破译": {
+            Name: "黑客破译",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: WZSJZ_Constant.HackerDecoder.PurchaseWeight,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 1,
+            UpgradeTimes: 0,
+            MergeSameLevelCount: 0,
+            IsFunctionalNode: true,
+            SkillDescription: WZSJZ_Constant.HackerDecoder.SkillDescription,
+            ShowLevel: false,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "经验装置": {
+            Name: "经验装置",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: WZSJZ_Constant.ExperienceDevice.PurchaseWeight,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 1,
+            UpgradeTimes: 0,
+            MergeSameLevelCount: 0,
+            IsFunctionalNode: true,
+            SkillDescription: WZSJZ_Constant.ExperienceDevice.SkillDescription,
+            ShowLevel: false,
+            Levels: [
+                { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },
+            ],
+        },
+        "天眼延展阵列": {
+            Name: "天眼延展阵列",
+            AttackFireDelay: 0,
+            ResourceType: "none",
+            PurchaseWeight: WZSJZ_Constant.SkyEyeExtensionArray.PurchaseWeight,
+            ItemLockWeight: 0,
+            BattlePlacement: "formation",
+            MaxLevel: 1,
+            UpgradeTimes: 0,
+            MergeSameLevelCount: 0,
+            IsFunctionalNode: true,
+            SkillDescription: WZSJZ_Constant.SkyEyeExtensionArray.SkillDescription,
             ShowLevel: false,
             Levels: [
                 { Level: 1, SpritePath: "", ProductionPerSecond: 0, MaxHealth: 0 },

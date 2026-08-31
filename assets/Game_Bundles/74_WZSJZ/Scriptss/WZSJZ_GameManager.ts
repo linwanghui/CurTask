@@ -42,6 +42,7 @@ import { WZSJZ_StageFlowSystem } from './WZSJZ_StageFlowSystem';
 import { WZSJZ_RoundAnnouncementSystem } from './WZSJZ_RoundAnnouncementSystem';
 import { WZSJZ_ReturnMenuSystem } from './WZSJZ_ReturnMenuSystem';
 import { WZSJZ_FunctionalNodeSystem } from './WZSJZ_FunctionalNodeSystem';
+import Banner from '../../../Scripts/Banner';
 const { ccclass, property } = _decorator;
 
 /** 场景总入口；具体战斗、技能与表现逻辑由各子系统负责。 */
@@ -103,7 +104,10 @@ export class WZSJZ_GameManager extends Component {
     private _keyDragVisual: Node = null;
     private _keyDragStartWorldPosition: Vec3 = new Vec3();
     private _keyDragStartUIPosition: Vec2 = new Vec2();
+    private _isKeyPointerDown: boolean = false;
+    private _hasKeyPointerMoved: boolean = false;
     private _isDraggingKey: boolean = false;
+    private _isRequestingKeyAd: boolean = false;
     private _keyUnlockHintNodes: Node[] = [];
     private _wallBehavior: WZSJZ_Wall = null;
     private _combatSystem: WZSJZ_CombatSystem = null;
@@ -133,6 +137,7 @@ export class WZSJZ_GameManager extends Component {
         this.node.on(WZSJZ_EventManager.修改添加单位, this.OnCheatAddUnit, this);
         this.node.on(WZSJZ_EventManager.修改城墙无敌, this.OnCheatToggleWallInvincible, this);
         this.node.on(WZSJZ_EventManager.战斗阶段变动, this.OnCombatPhaseChanged, this);
+        this.node.on(WZSJZ_EventManager.钥匙变动, this.RefreshKeyCountView, this);
     }
 
     protected start(): void {
@@ -414,7 +419,9 @@ export class WZSJZ_GameManager extends Component {
 
     public CanBeginDrag(gameNode: WZSJZ_GameNode): boolean {
         // 已安装在墙体格中的围墙不能主动卸载，只能被备战围墙升级或替换。
-        return !!gameNode.CurrentCell && gameNode.CurrentCell.Zone !== "wall";
+        return !!gameNode.CurrentCell
+            && !gameNode.IsInteractionLocked
+            && gameNode.CurrentCell.Zone !== "wall";
     }
 
     public UpdateDragIndicator(uiPosition: Vec2): void {
@@ -444,6 +451,9 @@ export class WZSJZ_GameManager extends Component {
             return !targetCell.IsItemLocked;
         }
         const targetNode = targetCell.Occupant.getComponent('WZSJZ_GameNode') as WZSJZ_GameNode;
+        if (targetNode?.IsInteractionLocked) {
+            return false;
+        }
         if (this.CanMergeAtCell(gameNode, targetNode, targetCell)) {
             return true;
         }
@@ -524,6 +534,10 @@ export class WZSJZ_GameManager extends Component {
             }
 
             const targetNode = targetCell.Occupant.getComponent("WZSJZ_GameNode") as WZSJZ_GameNode;
+            if (targetNode?.IsInteractionLocked) {
+                this.SnapToCell(gameNode, sourceCell);
+                return;
+            }
             const canMerge = this.CanMergeAtCell(gameNode, targetNode, targetCell);
 
             if (canMerge) {
@@ -663,79 +677,159 @@ export class WZSJZ_GameManager extends Component {
             this._keySlotNode.on(Node.EventType.TOUCH_START, this.OnKeyTouchStart, this);
             this._keySlotNode.on(Node.EventType.TOUCH_MOVE, this.OnKeyTouchMove, this);
             this._keySlotNode.on(Node.EventType.TOUCH_END, this.OnKeyTouchEnd, this);
-            this._keySlotNode.on(Node.EventType.TOUCH_CANCEL, this.OnKeyTouchEnd, this);
+            this._keySlotNode.on(Node.EventType.TOUCH_CANCEL, this.OnKeyTouchCancel, this);
         }
         this.RefreshKeyCountView();
     }
 
     private OnKeyTouchStart(event: EventTouch): void {
-        if (this.KeyCount <= 0 || !this.DragLayer || this._isDraggingKey) {
+        if (this._isKeyPointerDown || this._isDraggingKey) {
             return;
+        }
+        this._isKeyPointerDown = true;
+        this._hasKeyPointerMoved = false;
+        const start = event.getUILocation();
+        this._keyDragStartUIPosition.set(start.x, start.y);
+    }
+
+    private OnKeyTouchMove(event: EventTouch): void {
+        if (!this._isKeyPointerDown) {
+            return;
+        }
+        const current = event.getUILocation();
+        if (!this._isDraggingKey) {
+            const deltaX = current.x - this._keyDragStartUIPosition.x;
+            const deltaY = current.y - this._keyDragStartUIPosition.y;
+            const threshold = WZSJZ_Constant.NodeInteraction.DragThreshold;
+            if (deltaX * deltaX + deltaY * deltaY < threshold * threshold) {
+                return;
+            }
+            this._hasKeyPointerMoved = true;
+            if (!this.BeginToolKeyDrag()) {
+                return;
+            }
+        }
+        if (!this._keyDragVisual) {
+            return;
+        }
+        this._keyDragVisual.setWorldPosition(
+            this._keyDragStartWorldPosition.x + current.x - this._keyDragStartUIPosition.x,
+            this._keyDragStartWorldPosition.y + current.y - this._keyDragStartUIPosition.y,
+            this._keyDragStartWorldPosition.z,
+        );
+        this._dragIndicatorSystem?.UpdateKey(
+            current,
+            this.FindKeyUnlockTarget(current),
+        );
+    }
+
+    private OnKeyTouchEnd(event: EventTouch): void {
+        if (!this._isKeyPointerDown) {
+            return;
+        }
+        this._isKeyPointerDown = false;
+        if (!this._isDraggingKey) {
+            if (!this._hasKeyPointerMoved && this.KeyCount <= 0) {
+                this.WatchVideoForKey();
+            } else if (!this._hasKeyPointerMoved) {
+                WZSJZ_UIManager.Instance.ShowText("请拖动钥匙解锁未解锁的格子");
+            }
+            return;
+        }
+        this.FinishToolKeyDrag(event);
+    }
+
+    private OnKeyTouchCancel(event: EventTouch): void {
+        if (!this._isKeyPointerDown && !this._isDraggingKey) {
+            return;
+        }
+        this._isKeyPointerDown = false;
+        // 手指拖出左下角钥匙节点后松开时，Cocos会派发TOUCH_CANCEL；
+        // 已形成拖拽的取消事件仍应按当前手指落点正常解锁。
+        if (this._isDraggingKey) {
+            this.FinishToolKeyDrag(event);
+            return;
+        }
+        this.ClearToolKeyDrag();
+    }
+
+    private WatchVideoForKey(): void {
+        if (this._isRequestingKeyAd || this.KeyCount > 0) {
+            return;
+        }
+        this._isRequestingKeyAd = true;
+        Banner.Instance.ShowVideoAd(() => {
+            this._isRequestingKeyAd = false;
+            this.ChangeKeyCount(WZSJZ_Constant.ToolKey.VideoReward);
+            WZSJZ_AudioManager.Play('奖励获得', 0.8);
+            WZSJZ_UIManager.Instance.ShowText("获得一把钥匙！");
+        });
+    }
+
+    private FinishToolKeyDrag(event: EventTouch): void {
+        const dropPosition = event.getUILocation();
+        this.ClearToolKeyDrag();
+        if (this.KeyCount <= 0 || !this.TryUnlockCellWithKey(dropPosition)) {
+            return;
+        }
+        this.ChangeKeyCount(-1);
+    }
+
+    private BeginToolKeyDrag(): boolean {
+        if (this.KeyCount <= 0 || !this.DragLayer) {
+            return false;
         }
         const iconNode = this._keySlotNode?.getChildByName("钥匙");
         if (!iconNode) {
-            return;
+            return false;
         }
         this._isDraggingKey = true;
+        WZSJZ_AudioManager.Play('拖拽开始', 0.55, 0.05);
         this.ShowKeyUnlockHints();
+        this._dragIndicatorSystem?.BeginKey(iconNode.worldPosition);
         this._keyDragVisual = instantiate(iconNode);
         this._keyDragVisual.setParent(this.DragLayer);
         this._keyDragVisual.setWorldPosition(iconNode.worldPosition);
         this.SetLayerRecursively(this._keyDragVisual, this.DragLayer.layer);
         this._keyDragVisual.setSiblingIndex(this.DragLayer.children.length - 1);
         this._keyDragStartWorldPosition.set(iconNode.worldPosition);
-        const start = event.getUILocation();
-        this._keyDragStartUIPosition.set(start.x, start.y);
+        return true;
     }
 
-    private OnKeyTouchMove(event: EventTouch): void {
-        if (!this._isDraggingKey || !this._keyDragVisual) {
-            return;
-        }
-        const current = event.getUILocation();
-        this._keyDragVisual.setWorldPosition(
-            this._keyDragStartWorldPosition.x + current.x - this._keyDragStartUIPosition.x,
-            this._keyDragStartWorldPosition.y + current.y - this._keyDragStartUIPosition.y,
-            this._keyDragStartWorldPosition.z,
-        );
-    }
-
-    private OnKeyTouchEnd(event: EventTouch): void {
-        if (!this._isDraggingKey) {
-            return;
-        }
+    private ClearToolKeyDrag(): void {
         this._isDraggingKey = false;
+        this._dragIndicatorSystem?.Clear();
         this.ClearKeyUnlockHints();
         if (this._keyDragVisual?.isValid) {
             this._keyDragVisual.destroy();
         }
         this._keyDragVisual = null;
-
-        if (this.KeyCount <= 0 || !this.TryUnlockCellWithKey(event.getUILocation())) {
-            return;
-        }
-        this.ChangeKeyCount(-1);
     }
 
     /** 两种钥匙都可解备战区道具锁，或布阵区尚未开放的普通锁格。 */
     private TryUnlockCellWithKey(uiPosition: Vec2): boolean {
+        const targetCell = this.FindKeyUnlockTarget(uiPosition);
+        if (!targetCell) {
+            return false;
+        }
+
+        targetCell.SetUnlocked(true);
+        this._cellEffectSystem?.PlayUpgrade(targetCell);
+        WZSJZ_AudioManager.Play('格子解锁', 0.8);
+        if (targetCell.Zone === "preparation") {
+            this.RefreshPreparationItemLocks();
+        }
+        return true;
+    }
+
+    private FindKeyUnlockTarget(uiPosition: Vec2): WZSJZ_Cell | null {
         const preparationTarget = this._preparationCells.find((cell) =>
             cell.IsItemLocked && cell.ContainsUIPosition(uiPosition)
         );
         const formationTarget = this._formationCells.find((cell) =>
             !cell.IsUnlocked && cell.ContainsUIPosition(uiPosition)
         );
-        const targetCell = preparationTarget || formationTarget;
-        if (!targetCell) {
-            return false;
-        }
-
-        targetCell.SetUnlocked(true);
-        WZSJZ_AudioManager.Play('格子解锁', 0.8);
-        if (targetCell.Zone === "preparation") {
-            this.RefreshPreparationItemLocks();
-        }
-        return true;
+        return preparationTarget || formationTarget || null;
     }
 
     private GetKeyUnlockTargets(): WZSJZ_Cell[] {
@@ -817,6 +911,10 @@ export class WZSJZ_GameManager extends Component {
 
     private RefreshKeyCountView(): void {
         this.SetLabel(this._keySlotNode?.getChildByName("数量"), this.KeyCount);
+        const videoBadge = this._keySlotNode?.getChildByName("视频角标");
+        if (videoBadge) {
+            videoBadge.active = this.KeyCount <= 0;
+        }
     }
 
     private CanMergeAtCell(

@@ -44,7 +44,7 @@ export class WZSJZ_NodeInspectSystem extends Component {
             return;
         }
 
-        this.ShowAttackRange(gameNode, material.IsFunctionalNode ? 0 : level.AttackRange || 0);
+        this.ShowAttackRange(gameNode, material.IsFunctionalNode ? 0 : gameNode.GetAttackRange());
         const imagePath = material.IntroduceSpritePath || (material.ResourceType === 'none'
             && material.BattlePlacement === 'formation'
             ? `Sprites/字/${gameNode.Name}`
@@ -126,9 +126,9 @@ export class WZSJZ_NodeInspectSystem extends Component {
             detailLines = [
                 `攻击力：${level.AttackDamage}`,
                 `攻速：${this.FormatNumber(level.AttackInterval || 0)}s`,
-                level.AttackRange === 99999
+                gameNode.GetAttackRange() >= 99999
                     ? '攻击距离：全场'
-                    : `攻击距离：${this.FormatNumber(level.AttackRange || 0)}`,
+                    : `攻击距离：${this.FormatNumber(gameNode.GetAttackRange())}`,
             ];
         } else if ((level?.ProductionPerSecond || 0) > 0) {
             const resourceName = material?.ResourceType === 'money' ? '钞票' : '食物';

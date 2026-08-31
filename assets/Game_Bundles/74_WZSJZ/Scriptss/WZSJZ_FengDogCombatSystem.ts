@@ -79,7 +79,7 @@ export class WZSJZ_FengDogCombatSystem extends Component {
         }
         gameNode.ReduceAttackCooldown(deltaTime);
         if (!gameNode.IsAttackReady()
-            || !this.FindNearestEnemy(gameNode.node.worldPosition, levelConfig.AttackRange)) {
+            || !this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange())) {
             return;
         }
 
@@ -103,7 +103,7 @@ export class WZSJZ_FengDogCombatSystem extends Component {
         if (!this.CanAttack(gameNode)) return;
         const levelConfig = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
         if (!levelConfig?.AttackRange) return;
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, levelConfig.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target || !this.SpawnAttackEffect(target)) return;
         WZSJZ_AudioManager.Play('近战挥砍', 0.68, 0.05);
         if (target.TakeDamage(gameNode.GetAttackDamage())) {

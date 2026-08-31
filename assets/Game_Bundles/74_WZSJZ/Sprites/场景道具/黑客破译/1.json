@@ -1,6 +1,6 @@
 {
 "skeleton": {
-	"hash": "/eQLYDk7QHRNcxA28UChdy96Pt4",
+	"hash": "nF5yWXqVHFxC5z64ZRfbNYKcWWI",
 	"spine": "3.8.75",
 	"x": -81.5,
 	"y": -88.77,
@@ -20,7 +20,8 @@
 	{ "name": "bone5", "parent": "root", "x": 9.67, "y": -1.58 },
 	{ "name": "bone6", "parent": "root", "x": 24.6, "y": 6.84 },
 	{ "name": "bone7", "parent": "root", "x": 36.89, "y": -20.31 },
-	{ "name": "bone8", "parent": "root", "x": 54.73, "y": -12.23 }
+	{ "name": "bone8", "parent": "root", "x": 54.73, "y": -12.23 },
+	{ "name": "消失特效", "parent": "root", "length": 97.61, "rotation": -90, "color": "001bffff" }
 ],
 "slots": [
 	{ "name": "光底", "bone": "光底", "attachment": "光底" },
@@ -32,7 +33,8 @@
 	{ "name": "4", "bone": "bone5", "attachment": "4" },
 	{ "name": "5", "bone": "bone4", "attachment": "5" },
 	{ "name": "6", "bone": "bone3", "attachment": "6" },
-	{ "name": "8", "bone": "bone", "attachment": "8" }
+	{ "name": "8", "bone": "bone", "attachment": "8" },
+	{ "name": "消失特效", "bone": "消失特效" }
 ],
 "skins": [
 	{
@@ -43,6 +45,9 @@
 			},
 			"黑客破译": {
 				"黑客破译": { "rotation": 180, "width": 113, "height": 98 }
+			},
+			"消失特效": {
+				"消失特效": { "rotation": 90, "width": 186, "height": 186 }
 			},
 			"光底": {
 				"光底": { "width": 163, "height": 163 }
@@ -74,15 +79,17 @@
 "animations": {
 	"daiji": {
 		"slots": {
-			"5": {
+			"光": {
 				"color": [
-					{ "color": "ffffff00", "curve": "stepped" },
-					{ "time": 1.3333, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
-					{ "time": 1.5, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
 					{ "time": 2, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "光" }
 				]
 			},
-			"2": {
+			"6": {
 				"color": [
 					{ "color": "ffffff00", "curve": "stepped" },
 					{ "time": 0.3333, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
@@ -98,7 +105,14 @@
 					{ "time": 1.5, "color": "ffffff00" }
 				]
 			},
-			"6": {
+			"1": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667, "color": "ffffff00" }
+				]
+			},
+			"2": {
 				"color": [
 					{ "color": "ffffff00", "curve": "stepped" },
 					{ "time": 0.3333, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
@@ -113,21 +127,12 @@
 					{ "time": 0.6667, "color": "ffffff00" }
 				]
 			},
-			"1": {
+			"5": {
 				"color": [
-					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.1667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
-					{ "time": 0.6667, "color": "ffffff00" }
-				]
-			},
-			"光": {
-				"color": [
-					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
-					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 1.3333, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
 					{ "time": 2, "color": "ffffff00" }
-				],
-				"attachment": [
-					{ "name": "光" }
 				]
 			},
 			"4": {
@@ -211,6 +216,80 @@
 					{ "curve": 0.25, "c3": 0.75 },
 					{ "time": 1, "x": 0.912, "y": 0.935, "curve": 0.25, "c3": 0.75 },
 					{ "time": 2 }
+				]
+			}
+		}
+	},
+	"jineng": {
+		"slots": {
+			"6": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"光底": {
+				"color": [
+					{ "color": "ffffffff" },
+					{ "time": 0.4345, "color": "ffffff00" }
+				]
+			},
+			"3": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"1": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"2": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"8": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"5": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"4": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"消失特效": {
+				"color": [
+					{ "time": 0.5667, "color": "ffffffff" },
+					{ "time": 0.7333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.4, "name": "消失特效" }
+				]
+			},
+			"黑客破译": {
+				"color": [
+					{ "time": 0.2897, "color": "ffffffff" },
+					{ "time": 0.4345, "color": "ffffff00" }
+				]
+			}
+		},
+		"bones": {
+			"黑客破译": {
+				"scale": [
+					{ "time": 0.1448 },
+					{ "time": 0.4345, "x": 0.181, "y": 0.181 }
+				]
+			},
+			"消失特效": {
+				"scale": [
+					{ "time": 0.4, "x": 0.17, "y": 0.17 },
+					{ "time": 0.6662 }
 				]
 			}
 		}

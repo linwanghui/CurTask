@@ -442,7 +442,7 @@ export class WZSJZ_CombatSystem extends Component {
         if (!config) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -451,7 +451,7 @@ export class WZSJZ_CombatSystem extends Component {
             if (!currentConfig?.AttackDamage || !currentConfig.BulletSpeed || !currentConfig.AttackRange) {
                 return;
             }
-            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, currentConfig.AttackRange);
+            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
             if (currentTarget) {
                 this.SpawnGunBullet(gameNode, currentTarget, gameNode.GetAttackDamage(), currentConfig.BulletSpeed);
             }
@@ -466,7 +466,7 @@ export class WZSJZ_CombatSystem extends Component {
         if (!config) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -475,7 +475,7 @@ export class WZSJZ_CombatSystem extends Component {
             if (!currentConfig?.AttackDamage || !currentConfig.AttackRange) {
                 return;
             }
-            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, currentConfig.AttackRange);
+            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
             if (currentTarget && this.SpawnKnifeEffect(currentTarget)) {
                 currentTarget.TakeDamage(gameNode.GetAttackDamage());
             }
@@ -490,7 +490,7 @@ export class WZSJZ_CombatSystem extends Component {
         if (!config) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -504,7 +504,7 @@ export class WZSJZ_CombatSystem extends Component {
             }
             const currentTarget = this.FindNearestEnemy(
                 gameNode.node.worldPosition,
-                currentConfig.AttackRange,
+                gameNode.GetAttackRange(),
             );
             if (!currentTarget || !this.SpawnRedDogAttackEffect(currentTarget)) {
                 return;
@@ -525,7 +525,7 @@ export class WZSJZ_CombatSystem extends Component {
         if (!config?.AreaRadius) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -538,7 +538,7 @@ export class WZSJZ_CombatSystem extends Component {
             // 前摇期间原目标可能死亡或离开范围，发射帧重新索敌。
             const currentTarget = this.FindNearestEnemy(
                 gameNode.node.worldPosition,
-                currentConfig.AttackRange,
+                gameNode.GetAttackRange(),
             );
             if (currentTarget) {
                 this.SpawnCannonBullet(

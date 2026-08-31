@@ -48,9 +48,16 @@ export class WZSJZ_GameNode extends Component {
     private _attackSpeedMultiplier: number = 1;
     private _functionalAttackMultiplier: number = 1;
     private _functionalProductionMultiplier: number = 1;
+    private _functionalExperienceMultiplier: number = 1;
+    private _functionalAttackRangeMultiplier: number = 1;
+    private _isInteractionLocked: boolean = false;
 
     public get IsDragging(): boolean {
         return this._isDragging;
+    }
+
+    public get IsInteractionLocked(): boolean {
+        return this._isInteractionLocked;
     }
 
     protected onEnable(): void {
@@ -78,6 +85,9 @@ export class WZSJZ_GameNode extends Component {
         this._attackSpeedMultiplier = 1;
         this._functionalAttackMultiplier = 1;
         this._functionalProductionMultiplier = 1;
+        this._functionalExperienceMultiplier = 1;
+        this._functionalAttackRangeMultiplier = 1;
+        this._isInteractionLocked = false;
         this.RefreshView();
     }
 
@@ -113,7 +123,7 @@ export class WZSJZ_GameNode extends Component {
         }
 
         const oldLevel = this.Level;
-        this.Exp += safeAmount;
+        this.Exp += safeAmount * this._functionalExperienceMultiplier;
         while (this.CanUpgrade()) {
             const requirement = WZSJZ_Constant.GetNameUnitExperienceRequirement(this.Level);
             if (requirement <= 0 || this.Exp < requirement) {
@@ -226,6 +236,16 @@ export class WZSJZ_GameNode extends Component {
             : 1);
     }
 
+    /** 实际索敌范围，包含功能性节点提供的范围增益。 */
+    public GetAttackRange(): number {
+        const baseRange = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level)
+            ?.AttackRange || 0;
+        // 全场类范围使用约定值，不再额外放大，避免突破特殊语义。
+        return baseRange >= 99999
+            ? baseRange
+            : baseRange * this._functionalAttackRangeMultiplier;
+    }
+
     /** 功能性节点提供的持续攻击倍率，由功能节点系统在布阵变化时统一刷新。 */
     public SetFunctionalAttackMultiplier(multiplier: number): void {
         this._functionalAttackMultiplier = Math.max(1, multiplier || 1);
@@ -234,6 +254,20 @@ export class WZSJZ_GameNode extends Component {
     /** 功能性节点提供的持续资源产出倍率。 */
     public SetFunctionalProductionMultiplier(multiplier: number): void {
         this._functionalProductionMultiplier = Math.max(1, multiplier || 1);
+    }
+
+    /** 功能性节点提供的全局经验倍率；组合显示会先转发，再由组成文字各自结算一次。 */
+    public SetFunctionalExperienceMultiplier(multiplier: number): void {
+        this._functionalExperienceMultiplier = Math.max(1, multiplier || 1);
+    }
+
+    /** 功能性节点提供的持续攻击范围倍率。 */
+    public SetFunctionalAttackRangeMultiplier(multiplier: number): void {
+        this._functionalAttackRangeMultiplier = Math.max(1, multiplier || 1);
+    }
+
+    public SetInteractionLocked(locked: boolean): void {
+        this._isInteractionLocked = !!locked;
     }
 
     public GetAttackInterval(baseInterval: number): number {
