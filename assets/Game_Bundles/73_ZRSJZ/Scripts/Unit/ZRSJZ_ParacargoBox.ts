@@ -10,6 +10,7 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
 import { ZRSJZ_Box } from './ZRSJZ_Box';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 const ZRSJZ_PARACARGO_QUALITY_ORDER: readonly ZRSJZ_PROP_QUALITY[] = [
@@ -83,13 +84,16 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
 
         const target = v3(targetWorldPosition.x, targetWorldPosition.y, targetWorldPosition.z);
         const start = v3(target.x, target.y + Math.max(0, config.DropHeight), target.z);
-        this.node.setWorldPosition(start);
-        this.node.active = true;
-        ZRSJZ_UIManager.Instance.ShowTip("空投已投放！");
-        tween(this.node)
-            .to(Math.max(0.1, config.DropDuration), { worldPosition: target }, { easing: "quadIn" })
-            .call(() => this.OnLanded())
-            .start();
+        ZRSJZ_AudioManager.Instance.PlaySound("空投");
+        this.scheduleOnce(() => {
+            this.node.setWorldPosition(start);
+            this.node.active = true;
+            ZRSJZ_UIManager.Instance.ShowTip("空投已投放！");
+            tween(this.node)
+                .to(Math.max(0.1, config.DropDuration), { worldPosition: target }, { easing: "quadIn" })
+                .call(() => this.OnLanded())
+                .start();
+        }, 3)
     }
 
     /** 空投使用预制体直接绑定的三张图片，不再由普通箱子名称异步覆盖。 */

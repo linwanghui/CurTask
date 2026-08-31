@@ -446,12 +446,16 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
             if (!muzzleEffect?.isValid) return;
             muzzleEffect.parent = this.node;
-            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect)?.Show(mainBulletSpawnPos, attackX, attackY);
+            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect)?.Show(this.GetReliableMuzzlePos(), attackX, attackY);
         }).catch(error => console.error("[ZRSJZ_Player] 枪口特效创建失败", error));
 
         if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._magazineAmmo.length <= 0) {
             this.StopFiring();
         }
+
+        let audioName: string = ZRSJZ_WEAPONRY_TYPE.get("散弹枪")?.includes(this.PlayerSkeleton.WeaponryName) ||
+            ZRSJZ_WEAPONRY_TYPE.get("狙击枪")?.includes(this.PlayerSkeleton.WeaponryName) ? "狙击枪枪声" : "枪声";
+
 
         if (ZRSJZ_WEAPONRY_TYPE.get("散弹枪")?.includes(this.PlayerSkeleton.WeaponryName)) {
             //散射两个子弹
@@ -462,10 +466,8 @@ export class ZRSJZ_Player extends Component {
 
             void this.SpawnExtraBullet(attackX * cos - attackY * sin, attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
             void this.SpawnExtraBullet(attackX * cos + attackY * sin, -attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
-            ZRSJZ_AudioManager.Instance.PlaySound("狙击枪枪声");
-        } else {
-            ZRSJZ_AudioManager.Instance.PlaySound("枪声");
         }
+        ZRSJZ_AudioManager.Instance.PlaySound(audioName);
 
     }
 
