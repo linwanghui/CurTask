@@ -51,7 +51,11 @@ export class WZSJZ_IntroducePanel extends PanelBase {
     private ApplyData(data: WZSJZ_NodeIntroduceData): void {
         const detailRoot = this.node.getChildByPath('Panel/详情框');
         this.SetLabel(detailRoot?.getChildByName('名字')?.getComponent(Label), data.Name);
-        this.SetLabel(detailRoot?.getChildByName('等级')?.getComponent(Label), data.LevelText);
+        const levelNode = detailRoot?.getChildByName('等级');
+        if (levelNode) {
+            levelNode.active = data.ShowLevel;
+        }
+        this.SetLabel(levelNode?.getComponent(Label), data.LevelText);
         this.SetLabel(detailRoot?.getChildByName('攻击')?.getComponent(Label), data.DetailLines[0] || '');
         this.SetLabel(detailRoot?.getChildByName('攻速')?.getComponent(Label), data.DetailLines[1] || '');
         this.SetLabel(detailRoot?.getChildByName('攻击距离')?.getComponent(Label), data.DetailLines[2] || '');

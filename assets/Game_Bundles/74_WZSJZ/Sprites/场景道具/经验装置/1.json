@@ -1,0 +1,420 @@
+{
+"skeleton": {
+	"hash": "HNhJGFmaU/d1FKoRr1AjJ1i0zso",
+	"spine": "3.8.75",
+	"x": -81.5,
+	"y": -81.5,
+	"width": 163,
+	"height": 163,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/特殊道具/重力装置"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "光底", "parent": "root", "length": 99.9 },
+	{ "name": "光", "parent": "root", "length": 105.3, "rotation": 90 },
+	{ "name": "x", "parent": "root", "x": 35.8, "y": -12.64, "color": "ffeb00ff" },
+	{ "name": "圈", "parent": "root", "length": 83.1, "rotation": 180 },
+	{
+		"name": "x2",
+		"parent": "root",
+		"x": -40.76,
+		"y": -11.75,
+		"scaleX": 0.8688,
+		"scaleY": 0.8688,
+		"color": "ffeb00ff"
+	},
+	{
+		"name": "x3",
+		"parent": "root",
+		"x": -13.52,
+		"y": -28.59,
+		"scaleX": 0.8627,
+		"scaleY": 0.8627,
+		"color": "ffeb00ff"
+	},
+	{
+		"name": "x4",
+		"parent": "root",
+		"x": 8.19,
+		"y": -12.2,
+		"scaleX": 0.7588,
+		"scaleY": 0.7588,
+		"color": "ffeb00ff"
+	},
+	{
+		"name": "x5",
+		"parent": "root",
+		"x": -10.86,
+		"y": 1.54,
+		"scaleX": 0.6175,
+		"scaleY": 0.6175,
+		"color": "ffeb00ff"
+	},
+	{ "name": "重力装置", "parent": "root", "length": 85.98, "rotation": 90.53, "x": -0.52, "y": -41.49 },
+	{ "name": "圈2", "parent": "root", "length": 83.1, "rotation": 180 },
+	{ "name": "圈3", "parent": "root", "length": 83.1, "rotation": 180 },
+	{ "name": "圈4", "parent": "root", "length": 83.1, "rotation": 180 },
+	{ "name": "圈5", "parent": "root", "length": 83.1, "rotation": 180 }
+],
+"slots": [
+	{ "name": "光底", "bone": "光底", "attachment": "光底" },
+	{ "name": "光", "bone": "光", "attachment": "光" },
+	{ "name": "重力装置", "bone": "重力装置", "attachment": "重力装置" },
+	{ "name": "x", "bone": "x" },
+	{ "name": "x2", "bone": "x2" },
+	{ "name": "x3", "bone": "x3" },
+	{ "name": "x4", "bone": "x4" },
+	{ "name": "x5", "bone": "x5" },
+	{ "name": "圈", "bone": "圈" },
+	{ "name": "圈2", "bone": "圈2" },
+	{ "name": "圈3", "bone": "圈3" },
+	{ "name": "圈4", "bone": "圈4" },
+	{ "name": "圈5", "bone": "圈5" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"圈": {
+				"圈": { "width": 109, "height": 43 }
+			},
+			"光": {
+				"光": { "rotation": -90, "width": 145, "height": 151 }
+			},
+			"圈4": {
+				"圈": { "width": 109, "height": 43 }
+			},
+			"圈2": {
+				"圈": { "width": 109, "height": 43 }
+			},
+			"圈3": {
+				"圈": { "width": 109, "height": 43 }
+			},
+			"光底": {
+				"光底": { "width": 163, "height": 163 }
+			},
+			"圈5": {
+				"圈": { "width": 109, "height": 43 }
+			},
+			"重力装置": {
+				"重力装置": { "x": 41.48, "y": -0.91, "rotation": -90.53, "width": 110, "height": 98 }
+			},
+			"x": {
+				"x": { "x": 0.37, "y": 0.08, "width": 31, "height": 31 }
+			},
+			"x2": {
+				"x": { "x": 0.37, "y": 0.08, "width": 31, "height": 31 }
+			},
+			"x3": {
+				"x": { "x": 0.37, "y": 0.08, "width": 31, "height": 31 }
+			},
+			"x4": {
+				"x": { "x": 0.37, "y": 0.08, "width": 31, "height": 31 }
+			},
+			"x5": {
+				"x": { "x": 0.37, "y": 0.08, "width": 31, "height": 31 }
+			}
+		}
+	}
+],
+"animations": {
+	"daiji": {
+		"slots": {
+			"光": {
+				"color": [
+					{ "color": "ffffff00" },
+					{ "time": 1, "color": "ffffffa7" },
+					{ "time": 2, "color": "ffffff00" }
+				]
+			},
+			"x2": {
+				"color": [
+					{ "time": 0.1667, "color": "ffffff00" },
+					{ "time": 0.5, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1, "color": "ffffffff" },
+					{ "time": 1.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.1667, "name": "x" }
+				]
+			},
+			"x5": {
+				"color": [
+					{ "time": 0.5, "color": "ffffff00" },
+					{ "time": 0.8333, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.3333, "color": "ffffffff" },
+					{ "time": 1.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.5, "name": "x" }
+				]
+			},
+			"x3": {
+				"color": [
+					{ "time": 0.6667, "color": "ffffff00" },
+					{ "time": 1, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.5, "color": "ffffffff" },
+					{ "time": 2, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.6667, "name": "x" }
+				]
+			},
+			"x4": {
+				"color": [
+					{ "time": 0.5, "color": "ffffff00" },
+					{ "time": 0.8333, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.3333, "color": "ffffffff" },
+					{ "time": 1.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.5, "name": "x" }
+				]
+			},
+			"x": {
+				"color": [
+					{ "color": "ffffff00" },
+					{ "time": 0.3333, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 0.8333, "color": "ffffffff" },
+					{ "time": 1.3333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "x" }
+				]
+			}
+		},
+		"bones": {
+			"光底": {
+				"scale": [
+					{},
+					{ "time": 1, "x": 0.809, "y": 0.809 },
+					{ "time": 2 }
+				]
+			},
+			"光": {
+				"rotate": [
+					{ "angle": -0.7, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "angle": -45 },
+					{ "time": 2, "angle": -89.05 }
+				]
+			},
+			"x": {
+				"translate": [
+					{},
+					{ "time": 1.3333, "x": 2.66, "y": 50.81 }
+				],
+				"scale": [
+					{ "x": 0.865, "y": 0.865 },
+					{ "time": 0.3333, "curve": "stepped" },
+					{ "time": 0.8333 },
+					{ "time": 1.3333, "x": 0.775, "y": 0.775 }
+				]
+			},
+			"x2": {
+				"translate": [
+					{ "time": 0.1667 },
+					{ "time": 1.5, "x": 2.66, "y": 61.24 }
+				],
+				"scale": [
+					{ "time": 0.1667, "x": 0.865, "y": 0.865 },
+					{ "time": 0.5, "curve": "stepped" },
+					{ "time": 1 },
+					{ "time": 1.5, "x": 0.775, "y": 0.775 }
+				]
+			},
+			"x3": {
+				"translate": [
+					{ "time": 0.6667 },
+					{ "time": 2, "x": 2.66, "y": 48.31 }
+				],
+				"scale": [
+					{ "time": 0.6667, "x": 0.865, "y": 0.865 },
+					{ "time": 1, "curve": "stepped" },
+					{ "time": 1.5 },
+					{ "time": 2, "x": 0.775, "y": 0.775 }
+				]
+			},
+			"x4": {
+				"translate": [
+					{ "time": 0.5 },
+					{ "time": 1.8333, "x": 2.66, "y": 47.48 }
+				],
+				"scale": [
+					{ "time": 0.5, "x": 0.865, "y": 0.865 },
+					{ "time": 0.8333, "curve": "stepped" },
+					{ "time": 1.3333 },
+					{ "time": 1.8333, "x": 0.775, "y": 0.775 }
+				]
+			},
+			"x5": {
+				"translate": [
+					{ "time": 0.5 },
+					{ "time": 1.8333, "x": 2.66, "y": 71.66 }
+				],
+				"scale": [
+					{ "time": 0.5, "x": 0.865, "y": 0.865 },
+					{ "time": 0.8333, "curve": "stepped" },
+					{ "time": 1.3333 },
+					{ "time": 1.8333, "x": 0.775, "y": 0.775 }
+				]
+			},
+			"重力装置": {
+				"translate": [
+					{ "y": 1, "curve": 0.381, "c2": 0.55, "c3": 0.742 },
+					{ "time": 0.4 },
+					{ "time": 1.4, "y": 2.72, "curve": 0.245, "c3": 0.637, "c4": 0.56 },
+					{ "time": 2, "y": 1 }
+				],
+				"scale": [
+					{ "x": 0.965, "curve": 0.381, "c2": 0.55, "c3": 0.742 },
+					{ "time": 0.4, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.4, "x": 0.906, "curve": 0.245, "c3": 0.637, "c4": 0.56 },
+					{ "time": 2, "x": 0.965 }
+				]
+			}
+		}
+	},
+	"jineng": {
+		"slots": {
+			"圈4": {
+				"color": [
+					{ "time": 1.1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 1, "name": "圈" }
+				]
+			},
+			"圈2": {
+				"color": [
+					{ "time": 0.7667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.6667, "name": "圈" }
+				]
+			},
+			"光": {
+				"color": [
+					{ "time": 0.5, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": null },
+					{ "time": 0.5, "name": "光" }
+				]
+			},
+			"圈5": {
+				"color": [
+					{ "time": 1.2667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 1.1667, "name": "圈" }
+				]
+			},
+			"圈3": {
+				"color": [
+					{ "time": 0.9333, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.8333, "name": "圈" }
+				]
+			},
+			"圈": {
+				"color": [
+					{ "time": 0.6, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.5, "name": "圈" }
+				]
+			}
+		},
+		"bones": {
+			"重力装置": {
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "x": 0.839, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "x": 1.019, "curve": "stepped" },
+					{ "time": 1.5, "x": 1.019, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.6667 }
+				]
+			},
+			"光底": {
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.2333, "x": 0.852, "y": 0.852, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667, "x": 0.816, "y": 0.816, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 0.816, "y": 0.816, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "x": 0.816, "y": 0.816, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5 }
+				]
+			},
+			"光": {
+				"rotate": [
+					{ "time": 0.5, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "angle": -88.8, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "angle": 177.82 }
+				]
+			},
+			"圈": {
+				"translate": [
+					{ "time": 0.5, "y": 14.06, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "y": 64.99 }
+				],
+				"scale": [
+					{ "time": 0.5, "x": 0.549, "y": 0.549, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.8333, "x": 1.324, "y": 1.324 }
+				]
+			},
+			"圈2": {
+				"translate": [
+					{ "time": 0.6667, "y": 14.06, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "y": 64.99 }
+				],
+				"scale": [
+					{ "time": 0.6667, "x": 0.549, "y": 0.549, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 1.324, "y": 1.324 }
+				]
+			},
+			"圈3": {
+				"translate": [
+					{ "time": 0.8333, "y": 14.06, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "y": 64.99 }
+				],
+				"scale": [
+					{ "time": 0.8333, "x": 0.549, "y": 0.549, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.1667, "x": 1.324, "y": 1.324 }
+				]
+			},
+			"圈4": {
+				"translate": [
+					{ "time": 1, "y": 14.06, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "y": 64.99 }
+				],
+				"scale": [
+					{ "time": 1, "x": 0.549, "y": 0.549, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "x": 1.324, "y": 1.324 }
+				]
+			},
+			"圈5": {
+				"translate": [
+					{ "time": 1.1667, "y": 14.06, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "y": 64.99 }
+				],
+				"scale": [
+					{ "time": 1.1667, "x": 0.549, "y": 0.549, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "x": 1.324, "y": 1.324 }
+				]
+			}
+		}
+	}
+}
+}

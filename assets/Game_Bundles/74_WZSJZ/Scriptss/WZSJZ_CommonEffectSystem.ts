@@ -53,6 +53,7 @@ export class WZSJZ_CommonEffectSystem extends Component {
         this.SetupEffectLayer();
         void this.PrepareBlueExplosion();
         void this.PrepareStunEffect();
+        void this.PrepareSniperBulletHitEffect();
     }
 
     public PlayBlueExplosion(worldPosition: Vec3): boolean {
@@ -241,6 +242,16 @@ export class WZSJZ_CommonEffectSystem extends Component {
             config.PrefabPath,
             config.FallbackDuration,
             1,
+        );
+    }
+
+    private async PrepareSniperBulletHitEffect(): Promise<void> {
+        const config = WZSJZ_Constant.CommonEffect.SniperBulletHit;
+        await this.RegisterEffect(
+            config.EffectName,
+            config.PrefabPath,
+            config.FallbackDuration,
+            WZSJZ_Constant.ObjectPool.SniperBulletHitEffectPrewarm,
         );
     }
 

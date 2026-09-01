@@ -17,6 +17,7 @@ export class WZSJZ_DragIndicatorSystem extends Component {
     private _dashNodes: Node[] = [];
     private _draggingNode: WZSJZ_GameNode = null;
     private _isSkillTargeting: boolean = false;
+    private _isKeyTargeting: boolean = false;
     private _sourceWorldPosition: Vec3 = new Vec3();
     private _originSprite: SpriteFrame = null;
     private _dashSprite: SpriteFrame = null;
@@ -54,7 +55,34 @@ export class WZSJZ_DragIndicatorSystem extends Component {
     public Clear(): void {
         this._draggingNode = null;
         this._isSkillTargeting = false;
+        this._isKeyTargeting = false;
         if (this._root?.isValid) this._root.active = false;
+    }
+
+    /** 道具区钥匙拖拽：显示起点、虚线路径和有效解锁格，不显示攻击范围。 */
+    public BeginKey(sourceWorldPosition: Vec3): void {
+        if (!this._layer) return;
+        this.Clear();
+        this._isKeyTargeting = true;
+        this._sourceWorldPosition.set(sourceWorldPosition);
+        this.EnsureNodes();
+        this._root.active = true;
+        this._origin.setWorldPosition(this._sourceWorldPosition);
+        this._origin.active = true;
+        this._target.active = false;
+        this._attackRange.active = false;
+        this._root.setSiblingIndex(this._layer.children.length - 1);
+    }
+
+    public UpdateKey(uiPosition: Vec2, targetCell: WZSJZ_Cell): void {
+        if (!this._isKeyTargeting || !this._root) return;
+        const endWorld = targetCell
+            ? targetCell.node.worldPosition
+            : new Vec3(uiPosition.x, uiPosition.y, this._sourceWorldPosition.z);
+        this.RefreshDashes(this._sourceWorldPosition, endWorld);
+        this._target.active = !!targetCell;
+        if (targetCell) this._target.setWorldPosition(endWorld);
+        this._attackRange.active = false;
     }
 
     /** 技能按钮拖拽瞄准：复用路径虚线，在落点显示指定半径的红色范围。 */

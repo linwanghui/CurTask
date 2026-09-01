@@ -10,6 +10,7 @@ export interface WZSJZ_NodeIntroduceData {
     LevelText: string;
     ImagePath: string;
     DetailLines: string[];
+    ShowLevel: boolean;
     /** 面板显示期间用于实时刷新击杀经验、等级和对应战斗数值。 */
     RefreshData?: () => WZSJZ_NodeIntroduceData | null;
 }
@@ -43,11 +44,11 @@ export class WZSJZ_NodeInspectSystem extends Component {
             return;
         }
 
-        this.ShowAttackRange(gameNode, level.AttackRange || 0);
-        const imagePath = material.ResourceType === 'none'
+        this.ShowAttackRange(gameNode, material.IsFunctionalNode ? 0 : gameNode.GetAttackRange());
+        const imagePath = material.IntroduceSpritePath || (material.ResourceType === 'none'
             && material.BattlePlacement === 'formation'
             ? `Sprites/字/${gameNode.Name}`
-            : level.SpritePath;
+            : level.SpritePath);
         const data = this.BuildIntroduceData(gameNode, imagePath);
         data.RefreshData = (): WZSJZ_NodeIntroduceData | null => {
             if (!gameNode.node?.isValid) {
@@ -58,10 +59,10 @@ export class WZSJZ_NodeInspectSystem extends Component {
             if (!currentMaterial || !currentLevel) {
                 return null;
             }
-            const currentImagePath = currentMaterial.ResourceType === 'none'
+            const currentImagePath = currentMaterial.IntroduceSpritePath || (currentMaterial.ResourceType === 'none'
                 && currentMaterial.BattlePlacement === 'formation'
                 ? `Sprites/字/${gameNode.Name}`
-                : currentLevel.SpritePath;
+                : currentLevel.SpritePath);
             return this.BuildIntroduceData(gameNode, currentImagePath);
         };
         WZSJZ_UIManager.Instance.ShowPanel(
@@ -112,18 +113,22 @@ export class WZSJZ_NodeInspectSystem extends Component {
     ): WZSJZ_NodeIntroduceData {
         const material = WZSJZ_Constant.GetMaterialConfig(gameNode.Name);
         const level = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
-        const levelText = material?.IsNameUnit && gameNode.CanUpgrade()
+        const levelText = material?.IsFunctionalNode
+            ? ''
+            : material?.IsNameUnit && gameNode.CanUpgrade()
             ? `LV.${gameNode.Level}(${Math.floor(gameNode.GetExperienceProgress() * 100)}%)`
             : `LV.${gameNode.Level}`;
 
         let detailLines: string[];
-        if ((level?.AttackDamage || 0) > 0) {
+        if (material?.IsFunctionalNode) {
+            detailLines = material.SkillDescription?.slice(0, 3) || ['功能性节点'];
+        } else if ((level?.AttackDamage || 0) > 0) {
             detailLines = [
                 `攻击力：${level.AttackDamage}`,
                 `攻速：${this.FormatNumber(level.AttackInterval || 0)}s`,
-                level.AttackRange === 99999
+                gameNode.GetAttackRange() >= 99999
                     ? '攻击距离：全场'
-                    : `攻击距离：${this.FormatNumber(level.AttackRange || 0)}`,
+                    : `攻击距离：${this.FormatNumber(gameNode.GetAttackRange())}`,
             ];
         } else if ((level?.ProductionPerSecond || 0) > 0) {
             const resourceName = material?.ResourceType === 'money' ? '钞票' : '食物';
@@ -147,7 +152,13 @@ export class WZSJZ_NodeInspectSystem extends Component {
                 '攻击距离：--',
             ];
         }
-        return { Name: gameNode.Name, LevelText: levelText, ImagePath: imagePath, DetailLines: detailLines };
+        return {
+            Name: gameNode.Name,
+            LevelText: levelText,
+            ImagePath: imagePath,
+            DetailLines: detailLines,
+            ShowLevel: !material?.IsFunctionalNode,
+        };
     }
 
     private FormatNumber(value: number): string {

@@ -46,9 +46,18 @@ export class WZSJZ_GameNode extends Component {
     private _overclockProductionMultiplier: number = 1;
     private _attackSpeedBuffRemaining: number = 0;
     private _attackSpeedMultiplier: number = 1;
+    private _functionalAttackMultiplier: number = 1;
+    private _functionalProductionMultiplier: number = 1;
+    private _functionalExperienceMultiplier: number = 1;
+    private _functionalAttackRangeMultiplier: number = 1;
+    private _isInteractionLocked: boolean = false;
 
     public get IsDragging(): boolean {
         return this._isDragging;
+    }
+
+    public get IsInteractionLocked(): boolean {
+        return this._isInteractionLocked;
     }
 
     protected onEnable(): void {
@@ -74,6 +83,11 @@ export class WZSJZ_GameNode extends Component {
         this.Exp = 0;
         this._attackSpeedBuffRemaining = 0;
         this._attackSpeedMultiplier = 1;
+        this._functionalAttackMultiplier = 1;
+        this._functionalProductionMultiplier = 1;
+        this._functionalExperienceMultiplier = 1;
+        this._functionalAttackRangeMultiplier = 1;
+        this._isInteractionLocked = false;
         this.RefreshView();
     }
 
@@ -109,7 +123,7 @@ export class WZSJZ_GameNode extends Component {
         }
 
         const oldLevel = this.Level;
-        this.Exp += safeAmount;
+        this.Exp += safeAmount * this._functionalExperienceMultiplier;
         while (this.CanUpgrade()) {
             const requirement = WZSJZ_Constant.GetNameUnitExperienceRequirement(this.Level);
             if (requirement <= 0 || this.Exp < requirement) {
@@ -209,7 +223,7 @@ export class WZSJZ_GameNode extends Component {
     public GetProductionPerSecond(): number {
         const baseProduction = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level)
             ?.ProductionPerSecond || 0;
-        return baseProduction * (this._overclockRemaining > 0
+        return baseProduction * this._functionalProductionMultiplier * (this._overclockRemaining > 0
             ? this._overclockProductionMultiplier
             : 1);
     }
@@ -217,9 +231,43 @@ export class WZSJZ_GameNode extends Component {
     public GetAttackDamage(): number {
         const baseDamage = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level)
             ?.AttackDamage || 0;
-        return baseDamage * (this._overclockRemaining > 0
+        return baseDamage * this._functionalAttackMultiplier * (this._overclockRemaining > 0
             ? this._overclockAttackMultiplier
             : 1);
+    }
+
+    /** 实际索敌范围，包含功能性节点提供的范围增益。 */
+    public GetAttackRange(): number {
+        const baseRange = WZSJZ_Constant.GetMaterialLevelConfig(this.Name, this.Level)
+            ?.AttackRange || 0;
+        // 全场类范围使用约定值，不再额外放大，避免突破特殊语义。
+        return baseRange >= 99999
+            ? baseRange
+            : baseRange * this._functionalAttackRangeMultiplier;
+    }
+
+    /** 功能性节点提供的持续攻击倍率，由功能节点系统在布阵变化时统一刷新。 */
+    public SetFunctionalAttackMultiplier(multiplier: number): void {
+        this._functionalAttackMultiplier = Math.max(1, multiplier || 1);
+    }
+
+    /** 功能性节点提供的持续资源产出倍率。 */
+    public SetFunctionalProductionMultiplier(multiplier: number): void {
+        this._functionalProductionMultiplier = Math.max(1, multiplier || 1);
+    }
+
+    /** 功能性节点提供的全局经验倍率；组合显示会先转发，再由组成文字各自结算一次。 */
+    public SetFunctionalExperienceMultiplier(multiplier: number): void {
+        this._functionalExperienceMultiplier = Math.max(1, multiplier || 1);
+    }
+
+    /** 功能性节点提供的持续攻击范围倍率。 */
+    public SetFunctionalAttackRangeMultiplier(multiplier: number): void {
+        this._functionalAttackRangeMultiplier = Math.max(1, multiplier || 1);
+    }
+
+    public SetInteractionLocked(locked: boolean): void {
+        this._isInteractionLocked = !!locked;
     }
 
     public GetAttackInterval(baseInterval: number): number {
@@ -328,14 +376,15 @@ export class WZSJZ_GameNode extends Component {
     }
 
     protected update(deltaTime: number): void {
-        if (this._overclockRemaining > 0) {
+        const isCombatActive = WZSJZ_GameManager.Instance?.IsGameStarted || false;
+        if (isCombatActive && this._overclockRemaining > 0) {
             this._overclockRemaining = Math.max(0, this._overclockRemaining - deltaTime);
             if (this._overclockRemaining <= 0) {
                 this._overclockAttackMultiplier = 1;
                 this._overclockProductionMultiplier = 1;
             }
         }
-        if (this._attackSpeedBuffRemaining > 0) {
+        if (isCombatActive && this._attackSpeedBuffRemaining > 0) {
             this._attackSpeedBuffRemaining = Math.max(
                 0,
                 this._attackSpeedBuffRemaining - deltaTime,
@@ -391,6 +440,10 @@ export class WZSJZ_GameNode extends Component {
 
     public RefreshView(): void {
         const levelNode = this.node.getChildByName("等级");
+        const config = WZSJZ_Constant.GetMaterialConfig(this.Name);
+        if (levelNode) {
+            levelNode.active = !config?.IsFunctionalNode && config?.ShowLevel !== false;
+        }
         const label = levelNode ? levelNode.getComponentInChildren(Label) : this.node.getComponentInChildren(Label);
         if (label) {
             label.string = this.Level.toString();

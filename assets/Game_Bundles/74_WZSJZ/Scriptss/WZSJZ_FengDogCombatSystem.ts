@@ -27,7 +27,7 @@ export class WZSJZ_FengDogCombatSystem extends Component {
 
     protected onLoad(): void {
         WZSJZ_FengDogCombatSystem._instance = this;
-        this.node.on(WZSJZ_EventManager.游戏开始, () => this._isGameStarted = true, this);
+        this.node.on(WZSJZ_EventManager.战斗阶段变动, this.OnCombatPhaseChanged, this);
     }
 
     protected onDestroy(): void {
@@ -66,6 +66,9 @@ export class WZSJZ_FengDogCombatSystem extends Component {
             }
             return;
         }
+        if (!this._isGameStarted) {
+            return;
+        }
         if (!this.CanAttack(gameNode)) {
             gameNode.ResetAttackCooldown();
             return;
@@ -76,7 +79,7 @@ export class WZSJZ_FengDogCombatSystem extends Component {
         }
         gameNode.ReduceAttackCooldown(deltaTime);
         if (!gameNode.IsAttackReady()
-            || !this.FindNearestEnemy(gameNode.node.worldPosition, levelConfig.AttackRange)) {
+            || !this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange())) {
             return;
         }
 
@@ -100,7 +103,7 @@ export class WZSJZ_FengDogCombatSystem extends Component {
         if (!this.CanAttack(gameNode)) return;
         const levelConfig = WZSJZ_Constant.GetMaterialLevelConfig(gameNode.Name, gameNode.Level);
         if (!levelConfig?.AttackRange) return;
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, levelConfig.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target || !this.SpawnAttackEffect(target)) return;
         WZSJZ_AudioManager.Play('近战挥砍', 0.68, 0.05);
         if (target.TakeDamage(gameNode.GetAttackDamage())) {
@@ -160,6 +163,13 @@ export class WZSJZ_FengDogCombatSystem extends Component {
     private CanAttack(gameNode: WZSJZ_GameNode): boolean {
         return this._isGameStarted && !!gameNode?.node?.isValid
             && !gameNode.IsDragging && gameNode.CurrentCell?.Zone === "formation";
+    }
+
+    private OnCombatPhaseChanged(active: boolean): void {
+        this._isGameStarted = !!active;
+        if (!this._isGameStarted) {
+            this._pendingAttacks.clear();
+        }
     }
 
     private async PrepareAttackEffect(): Promise<void> {

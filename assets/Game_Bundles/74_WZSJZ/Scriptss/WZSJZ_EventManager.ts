@@ -9,7 +9,12 @@ export class WZSJZ_EventManager {
     public static 招募卡变动 = "文字三角洲_招募卡变动";//参数：当前招募卡数量
     public static 钥匙变动 = "文字三角洲_钥匙变动";//参数：当前钥匙数量
     public static 挂机宝箱变动 = "文字三角洲_挂机宝箱变动";//参数：挂机宝箱快照
+    public static 关卡进度变动 = "文字三角洲_关卡进度变动";//参数：首页关卡进度快照
     public static 游戏开始 = "文字三角洲_游戏开始";//参数为当前围墙组件
+    public static 敌人死亡 = "文字三角洲_敌人死亡";//参数：死亡的敌人组件
+    public static Boss逃跑 = "文字三角洲_Boss逃跑";//参数：逃跑的Boss组件
+    public static 战斗阶段变动 = "文字三角洲_战斗阶段变动";//参数：是否处于本轮战斗阶段
+    public static 回合公告 = "文字三角洲_回合公告";//参数：Boss来袭或Boss暂退
     public static 拖拽物变化 = "文字三角洲_拖拽物变化";//参数为当前拖拽物，拖拽结束时为null
     public static 布阵变化 = "文字三角洲_布阵变化";//拖拽落位、合成、交换或回收后触发
     public static 组合单位变化 = "文字三角洲_组合单位变化";//参数为当前场上的组合单位组件数组

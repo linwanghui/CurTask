@@ -1,0 +1,298 @@
+{
+"skeleton": {
+	"hash": "nF5yWXqVHFxC5z64ZRfbNYKcWWI",
+	"spine": "3.8.75",
+	"x": -81.5,
+	"y": -88.77,
+	"width": 163,
+	"height": 170.27,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/特殊道具/黑客破译"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "光底", "parent": "root", "length": 100 },
+	{ "name": "光", "parent": "root", "length": 100, "rotation": 90 },
+	{ "name": "黑客破译", "parent": "root", "length": 100, "rotation": 180 },
+	{ "name": "bone", "parent": "root", "x": -50.2, "y": -27.26 },
+	{ "name": "bone3", "parent": "root", "x": -24.04, "y": -13.99 },
+	{ "name": "bone4", "parent": "root", "x": -5.49, "y": -30.64 },
+	{ "name": "bone5", "parent": "root", "x": 9.67, "y": -1.58 },
+	{ "name": "bone6", "parent": "root", "x": 24.6, "y": 6.84 },
+	{ "name": "bone7", "parent": "root", "x": 36.89, "y": -20.31 },
+	{ "name": "bone8", "parent": "root", "x": 54.73, "y": -12.23 },
+	{ "name": "消失特效", "parent": "root", "length": 97.61, "rotation": -90, "color": "001bffff" }
+],
+"slots": [
+	{ "name": "光底", "bone": "光底", "attachment": "光底" },
+	{ "name": "光", "bone": "光" },
+	{ "name": "黑客破译", "bone": "黑客破译", "attachment": "黑客破译" },
+	{ "name": "1", "bone": "bone8", "attachment": "1" },
+	{ "name": "2", "bone": "bone7", "attachment": "2" },
+	{ "name": "3", "bone": "bone6", "attachment": "3" },
+	{ "name": "4", "bone": "bone5", "attachment": "4" },
+	{ "name": "5", "bone": "bone4", "attachment": "5" },
+	{ "name": "6", "bone": "bone3", "attachment": "6" },
+	{ "name": "8", "bone": "bone", "attachment": "8" },
+	{ "name": "消失特效", "bone": "消失特效" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"光": {
+				"光": { "rotation": -90, "width": 145, "height": 151 }
+			},
+			"黑客破译": {
+				"黑客破译": { "rotation": 180, "width": 113, "height": 98 }
+			},
+			"消失特效": {
+				"消失特效": { "rotation": 90, "width": 186, "height": 186 }
+			},
+			"光底": {
+				"光底": { "width": 163, "height": 163 }
+			},
+			"1": {
+				"1": { "x": -0.55, "y": -11.23, "width": 8, "height": 99 }
+			},
+			"2": {
+				"2": { "x": -0.4, "y": -18.45, "width": 9, "height": 100 }
+			},
+			"3": {
+				"3": { "x": 0.14, "y": -15.19, "width": 9, "height": 100 }
+			},
+			"4": {
+				"4": { "x": -0.22, "y": -9.14, "width": 10, "height": 97 }
+			},
+			"5": {
+				"5": { "x": -0.18, "y": -3.69, "width": 10, "height": 71 }
+			},
+			"6": {
+				"6": { "x": -0.64, "y": -8.31, "width": 10, "height": 101 }
+			},
+			"8": {
+				"8": { "x": 1.03, "y": -8.49, "width": 9, "height": 101 }
+			}
+		}
+	}
+],
+"animations": {
+	"daiji": {
+		"slots": {
+			"光": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "光" }
+				]
+			},
+			"6": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 0.3333, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffff00" }
+				]
+			},
+			"3": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 0.8333, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "color": "ffffff00" }
+				]
+			},
+			"1": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667, "color": "ffffff00" }
+				]
+			},
+			"2": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 0.3333, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffff00" }
+				]
+			},
+			"8": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667, "color": "ffffff00" }
+				]
+			},
+			"5": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 1.3333, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "color": "ffffff00" }
+				]
+			},
+			"4": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 1.1667, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.3333, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8333, "color": "ffffff00" }
+				]
+			}
+		},
+		"bones": {
+			"光底": {
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 0.769, "y": 0.769, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2 }
+				]
+			},
+			"光": {
+				"rotate": [
+					{},
+					{ "time": 1, "angle": -40.75 },
+					{ "time": 2, "angle": -78.22 }
+				],
+				"scale": [
+					{ "x": 0.694, "y": 0.694, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 0.944, "y": 0.944, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "x": 0.694, "y": 0.694 }
+				]
+			},
+			"bone": {
+				"translate": [
+					{ "y": -12.64, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667, "y": 77.1 }
+				]
+			},
+			"bone3": {
+				"translate": [
+					{ "time": 0.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "y": 77.1 }
+				]
+			},
+			"bone8": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667, "y": 56.91 }
+				]
+			},
+			"bone7": {
+				"translate": [
+					{ "time": 0.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "y": 70.09 }
+				]
+			},
+			"bone6": {
+				"translate": [
+					{ "time": 0.8333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.5, "y": 53.44 }
+				]
+			},
+			"bone5": {
+				"translate": [
+					{ "time": 1.1667, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1.8333, "y": 71.83 }
+				]
+			},
+			"bone4": {
+				"translate": [
+					{ "time": 1.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "y": 63.5 }
+				]
+			},
+			"黑客破译": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "y": 3.16, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2 }
+				],
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 0.912, "y": 0.935, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2 }
+				]
+			}
+		}
+	},
+	"jineng": {
+		"slots": {
+			"6": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"光底": {
+				"color": [
+					{ "color": "ffffffff" },
+					{ "time": 0.4345, "color": "ffffff00" }
+				]
+			},
+			"3": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"1": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"2": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"8": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"5": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"4": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"消失特效": {
+				"color": [
+					{ "time": 0.5667, "color": "ffffffff" },
+					{ "time": 0.7333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.4, "name": "消失特效" }
+				]
+			},
+			"黑客破译": {
+				"color": [
+					{ "time": 0.2897, "color": "ffffffff" },
+					{ "time": 0.4345, "color": "ffffff00" }
+				]
+			}
+		},
+		"bones": {
+			"黑客破译": {
+				"scale": [
+					{ "time": 0.1448 },
+					{ "time": 0.4345, "x": 0.181, "y": 0.181 }
+				]
+			},
+			"消失特效": {
+				"scale": [
+					{ "time": 0.4, "x": 0.17, "y": 0.17 },
+					{ "time": 0.6662 }
+				]
+			}
+		}
+	}
+}
+}

@@ -20,6 +20,7 @@ import { WZSJZ_Mine } from './WZSJZ_Mine';
 import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
+import { WZSJZ_Boss } from './WZSJZ_Boss';
 const { ccclass } = _decorator;
 
 /** 战斗域：统一管理刷怪、索敌、攻击表现和所有战斗对象池。 */
@@ -62,6 +63,7 @@ export class WZSJZ_CombatSystem extends Component {
     protected onLoad(): void {
         WZSJZ_CombatSystem._instance = this;
         this.node.on(WZSJZ_EventManager.游戏开始, this.OnGameStart, this);
+        this.node.on(WZSJZ_EventManager.战斗阶段变动, this.OnCombatPhaseChanged, this);
         this.node.on(WZSJZ_EventManager.修改添加敌人, this.OnCheatAddEnemy, this);
         this.node.on(
             WZSJZ_EventManager.修改批量生成小怪,
@@ -109,11 +111,20 @@ export class WZSJZ_CombatSystem extends Component {
     }
 
     private OnGameStart(wall: WZSJZ_Wall): void {
-        if (this._isGameStarted) {
+        this._wall = wall;
+    }
+
+    private OnCombatPhaseChanged(active: boolean): void {
+        this._isGameStarted = !!active;
+        if (!this._isGameStarted) {
+            this.CancelNextEnemySpawn();
+            // 延迟攻击回调仍会执行，但找不到对应token后不会产生子弹或地雷。
+            this._pendingWeaponAttacks.clear();
             return;
         }
-        this._isGameStarted = true;
-        this._wall = wall;
+        if (this._isBatchEnemySpawning) {
+            void this.PrepareEnemySpawning();
+        }
     }
 
     private OnCheatToggleBatchEnemySpawning(): void {
@@ -132,17 +143,7 @@ export class WZSJZ_CombatSystem extends Component {
     }
 
     private async PrepareEnemySpawning(): Promise<void> {
-        if (this._enemyPrefabs.length === 0) {
-            const loadedPrefabs: Prefab[] = [];
-            for (const path of WZSJZ_Constant.EnemyPrefabPaths) {
-                try {
-                    loadedPrefabs.push(await WZSJZ_Incident.Loadprefab(path));
-                } catch (error) {
-                    console.error(`[WZSJZ] 敌人预制体加载失败：${path}`, error);
-                }
-            }
-            this._enemyPrefabs = loadedPrefabs;
-        }
+        await this.EnsureNormalEnemyPrefabs();
         if (!this._isGameStarted || !this._isBatchEnemySpawning || !this.node?.isValid) {
             return;
         }
@@ -191,9 +192,12 @@ export class WZSJZ_CombatSystem extends Component {
         this._pendingEnemySpawnCallback = null;
     }
 
-    private SpawnEnemyFromPrefab(prefab: Prefab): boolean {
+    private SpawnEnemyFromPrefab(
+        prefab: Prefab,
+        statMultiplier: number = 1,
+    ): WZSJZ_Enemy | null {
         if (!prefab || !this._enemyArea || !this._wall) {
-            return false;
+            return null;
         }
         const enemyName = prefab.data.name;
         const enemyConfig = WZSJZ_Constant.GetEnemyConfig(enemyName);
@@ -228,13 +232,64 @@ export class WZSJZ_CombatSystem extends Component {
             this.RecycleEnemy,
             this._enemyProjectileLayer,
             this._healthBarLayer,
+            statMultiplier,
         )) {
             pool.put(enemyNode);
-            return false;
+            return null;
         } else {
             this.SortEnemyRenderOrder();
         }
-        return true;
+        return enemy;
+    }
+
+    public async PrepareStageEnemyPrefabs(): Promise<boolean> {
+        await this.EnsureNormalEnemyPrefabs();
+        if (this._enemyPrefabs.length > 0) this.PrewarmEnemyPools();
+        return this._enemyPrefabs.length > 0;
+    }
+
+    public SpawnStageNormalEnemy(statMultiplier: number): WZSJZ_Enemy | null {
+        if (!this._isGameStarted || this._enemyPrefabs.length === 0) return null;
+        const prefab = this._enemyPrefabs[Math.floor(Math.random() * this._enemyPrefabs.length)];
+        return this.SpawnEnemyFromPrefab(prefab, statMultiplier);
+    }
+
+    public async SpawnStageBoss(
+        bossName: string,
+        statMultiplier: number,
+    ): Promise<WZSJZ_Boss | null> {
+        const path = WZSJZ_Constant.EnemyPrefabPathByName[bossName];
+        if (!path || !this._isGameStarted) return null;
+        try {
+            const prefab = await WZSJZ_Incident.Loadprefab(path);
+            const enemy = this.SpawnEnemyFromPrefab(prefab, statMultiplier);
+            const boss = enemy?.node.getComponent(WZSJZ_Boss) || null;
+            if (enemy && !boss) enemy.RecycleImmediately();
+            return boss;
+        } catch (error) {
+            console.error(`[WZSJZ] 关卡Boss加载失败：${bossName}`, error);
+            return null;
+        }
+    }
+
+    public ClearStageEnemies(except: WZSJZ_Enemy = null): void {
+        for (const child of [...(this._enemyArea?.children || [])]) {
+            const enemy = child.getComponent(WZSJZ_Enemy);
+            if (enemy && enemy !== except) enemy.RecycleImmediately();
+        }
+    }
+
+    private async EnsureNormalEnemyPrefabs(): Promise<void> {
+        if (this._enemyPrefabs.length > 0) return;
+        const loadedPrefabs: Prefab[] = [];
+        for (const path of WZSJZ_Constant.EnemyPrefabPaths) {
+            try {
+                loadedPrefabs.push(await WZSJZ_Incident.Loadprefab(path));
+            } catch (error) {
+                console.error(`[WZSJZ] 敌人预制体加载失败：${path}`, error);
+            }
+        }
+        this._enemyPrefabs = loadedPrefabs;
     }
 
     private OnCheatAddEnemy = async (enemyName: string): Promise<void> => {
@@ -387,7 +442,7 @@ export class WZSJZ_CombatSystem extends Component {
         if (!config) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -396,7 +451,7 @@ export class WZSJZ_CombatSystem extends Component {
             if (!currentConfig?.AttackDamage || !currentConfig.BulletSpeed || !currentConfig.AttackRange) {
                 return;
             }
-            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, currentConfig.AttackRange);
+            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
             if (currentTarget) {
                 this.SpawnGunBullet(gameNode, currentTarget, gameNode.GetAttackDamage(), currentConfig.BulletSpeed);
             }
@@ -411,7 +466,7 @@ export class WZSJZ_CombatSystem extends Component {
         if (!config) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -420,7 +475,7 @@ export class WZSJZ_CombatSystem extends Component {
             if (!currentConfig?.AttackDamage || !currentConfig.AttackRange) {
                 return;
             }
-            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, currentConfig.AttackRange);
+            const currentTarget = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
             if (currentTarget && this.SpawnKnifeEffect(currentTarget)) {
                 currentTarget.TakeDamage(gameNode.GetAttackDamage());
             }
@@ -435,7 +490,7 @@ export class WZSJZ_CombatSystem extends Component {
         if (!config) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -449,7 +504,7 @@ export class WZSJZ_CombatSystem extends Component {
             }
             const currentTarget = this.FindNearestEnemy(
                 gameNode.node.worldPosition,
-                currentConfig.AttackRange,
+                gameNode.GetAttackRange(),
             );
             if (!currentTarget || !this.SpawnRedDogAttackEffect(currentTarget)) {
                 return;
@@ -470,7 +525,7 @@ export class WZSJZ_CombatSystem extends Component {
         if (!config?.AreaRadius) {
             return;
         }
-        const target = this.FindNearestEnemy(gameNode.node.worldPosition, config.AttackRange);
+        const target = this.FindNearestEnemy(gameNode.node.worldPosition, gameNode.GetAttackRange());
         if (!target) {
             return;
         }
@@ -483,7 +538,7 @@ export class WZSJZ_CombatSystem extends Component {
             // 前摇期间原目标可能死亡或离开范围，发射帧重新索敌。
             const currentTarget = this.FindNearestEnemy(
                 gameNode.node.worldPosition,
-                currentConfig.AttackRange,
+                gameNode.GetAttackRange(),
             );
             if (currentTarget) {
                 this.SpawnCannonBullet(
@@ -498,12 +553,12 @@ export class WZSJZ_CombatSystem extends Component {
     }
 
     public UpdateMineLayer(gameNode: WZSJZ_GameNode, deltaTime: number): void {
-        if (!this._isGameStarted) {
-            return;
-        }
         if (gameNode.CurrentCell?.Zone !== "formation") {
             this.CancelPendingWeaponAttack(gameNode);
             this.RemoveMinesByOwner(gameNode);
+            return;
+        }
+        if (!this._isGameStarted) {
             return;
         }
         // 拖动过程中先保留已有地雷和当前冷却，落到非布阵区后再统一清理。
@@ -546,8 +601,10 @@ export class WZSJZ_CombatSystem extends Component {
         deltaTime: number,
         needsBullet: boolean,
     ) {
-        if (!this._isGameStarted || gameNode.IsDragging
-            || gameNode.CurrentCell?.Zone !== "formation") {
+        if (!this._isGameStarted) {
+            return null;
+        }
+        if (gameNode.IsDragging || gameNode.CurrentCell?.Zone !== "formation") {
             gameNode.ResetAttackCooldown();
             return null;
         }

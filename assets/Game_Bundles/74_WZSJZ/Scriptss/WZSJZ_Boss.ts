@@ -28,7 +28,7 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
     }
 
     public get MaxTenacity(): number {
-        return this._bossConfig?.MaxTenacity || 1;
+        return (this._bossConfig?.MaxTenacity || 1) * this.RuntimeStatMultiplier;
     }
 
     /** 子类只需返回自己的Boss数值配置。 */
@@ -45,8 +45,15 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
         recycleCallback: (enemy: WZSJZ_Enemy) => void,
         enemyProjectileLayer: Node = null,
         healthBarLayer: Node = null,
+        statMultiplier: number = 1,
     ): boolean {
-        if (!super.Initialize(wall, recycleCallback, enemyProjectileLayer, healthBarLayer)) {
+        if (!super.Initialize(
+            wall,
+            recycleCallback,
+            enemyProjectileLayer,
+            healthBarLayer,
+            statMultiplier,
+        )) {
             return false;
         }
         this._bossConfig = this.GetBossConfig();

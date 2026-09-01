@@ -1,0 +1,237 @@
+{
+"skeleton": {
+	"hash": "1h+HoJXz6tYcCDgOkDAQZQVfuX8",
+	"spine": "3.8.75",
+	"x": -80.5,
+	"y": -80.5,
+	"width": 161,
+	"height": 161,
+	"images": "./images/",
+	"audio": "D:/2026/2d/文字三角洲/动画/特殊道具/黑客破译"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "光底", "parent": "root", "length": 100 },
+	{ "name": "光", "parent": "root", "length": 100, "rotation": 90 },
+	{ "name": "纳米维修台", "parent": "root", "length": 100, "rotation": 180 },
+	{ "name": "tx", "parent": "root", "x": 39.53, "y": -33.65 },
+	{ "name": "tx2", "parent": "root", "x": 18.49, "y": -15.02 },
+	{ "name": "tx3", "parent": "root", "x": 5.03, "y": -40.55 },
+	{ "name": "tx4", "parent": "root", "x": -16.01, "y": -1.56 },
+	{ "name": "tx5", "parent": "root", "x": -40.16, "y": -24.68 }
+],
+"slots": [
+	{ "name": "光底", "bone": "光底", "attachment": "光底" },
+	{ "name": "光", "bone": "光" },
+	{ "name": "纳米维修台", "bone": "纳米维修台", "attachment": "纳米维修台" },
+	{ "name": "tx", "bone": "tx" },
+	{ "name": "tx2", "bone": "tx2" },
+	{ "name": "tx3", "bone": "tx3" },
+	{ "name": "tx4", "bone": "tx4" },
+	{ "name": "tx5", "bone": "tx5" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"tx": {
+				"tx": { "x": 0.5, "y": 0.5, "width": 39, "height": 39 }
+			},
+			"光": {
+				"光": { "rotation": -90, "width": 143, "height": 149 }
+			},
+			"纳米维修台": {
+				"纳米维修台": { "x": -0.5, "y": -0.5, "rotation": 180, "width": 113, "height": 103 }
+			},
+			"光底": {
+				"光底": { "width": 161, "height": 161 }
+			},
+			"tx2": {
+				"tx": { "x": 0.5, "y": 0.5, "width": 39, "height": 39 }
+			},
+			"tx3": {
+				"tx": { "x": 0.5, "y": 0.5, "width": 39, "height": 39 }
+			},
+			"tx4": {
+				"tx": { "x": 0.5, "y": 0.5, "width": 39, "height": 39 }
+			},
+			"tx5": {
+				"tx": { "x": 0.5, "y": 0.5, "width": 39, "height": 39 }
+			}
+		}
+	}
+],
+"animations": {
+	"daiji": {
+		"slots": {
+			"光": {
+				"color": [
+					{ "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "光" }
+				]
+			}
+		},
+		"bones": {
+			"光底": {
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 0.769, "y": 0.769, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2 }
+				]
+			},
+			"光": {
+				"rotate": [
+					{},
+					{ "time": 1, "angle": -40.75 },
+					{ "time": 2, "angle": -78.22 }
+				],
+				"scale": [
+					{ "x": 0.694, "y": 0.694, "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 0.944, "y": 0.944, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "x": 0.694, "y": 0.694 }
+				]
+			},
+			"纳米维修台": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "y": 3.16, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2 }
+				],
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "x": 0.938, "y": 0.939, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2 }
+				]
+			}
+		}
+	},
+	"jineng": {
+		"slots": {
+			"tx5": {
+				"color": [
+					{ "time": 0.4667, "color": "ffffff00" },
+					{ "time": 0.6333, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1, "color": "ffffffff" },
+					{ "time": 1.1333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.4667, "name": "tx" }
+				]
+			},
+			"光": {
+				"color": [
+					{ "color": "ffffff00", "curve": "stepped" },
+					{ "time": 0.3333, "color": "ffffff00" },
+					{ "time": 1, "color": "ffffffff" },
+					{ "time": 1.6667, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "name": "光" }
+				]
+			},
+			"tx": {
+				"color": [
+					{ "time": 0.5667, "color": "ffffff00" },
+					{ "time": 0.7333, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.1, "color": "ffffffff" },
+					{ "time": 1.2333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.5667, "name": "tx" }
+				]
+			},
+			"tx2": {
+				"color": [
+					{ "time": 0.8333, "color": "ffffff00" },
+					{ "time": 1, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.3667, "color": "ffffffff" },
+					{ "time": 1.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.8333, "name": "tx" }
+				]
+			},
+			"tx3": {
+				"color": [
+					{ "time": 0.8333, "color": "ffffff00" },
+					{ "time": 1, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.3667, "color": "ffffffff" },
+					{ "time": 1.5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.8333, "name": "tx" }
+				]
+			},
+			"tx4": {
+				"color": [
+					{ "time": 0.6667, "color": "ffffff00" },
+					{ "time": 0.8333, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 1.2, "color": "ffffffff" },
+					{ "time": 1.3333, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.6667, "name": "tx" }
+				]
+			}
+		},
+		"bones": {
+			"tx": {
+				"translate": [
+					{ "time": 0.5667 },
+					{ "time": 1.2333, "y": 64.17 }
+				]
+			},
+			"tx2": {
+				"translate": [
+					{ "time": 0.8333 },
+					{ "time": 1.5, "y": 64.17 }
+				]
+			},
+			"tx3": {
+				"translate": [
+					{ "time": 0.8333 },
+					{ "time": 1.5, "y": 64.17 }
+				]
+			},
+			"tx4": {
+				"translate": [
+					{ "time": 0.6667 },
+					{ "time": 1.3333, "y": 64.17 }
+				]
+			},
+			"tx5": {
+				"translate": [
+					{ "time": 0.4667 },
+					{ "time": 1.1333, "y": 64.17 }
+				]
+			},
+			"纳米维修台": {
+				"scale": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.2, "x": 0.868, "y": 0.868, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "x": 1.049, "y": 1.049, "curve": "stepped" },
+					{ "time": 1.6667, "x": 1.049, "y": 1.049, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2 }
+				]
+			},
+			"光": {
+				"rotate": [
+					{ "time": 0.3333 },
+					{ "time": 1, "angle": -48.98 },
+					{ "time": 1.6667, "angle": -105.71 }
+				],
+				"scale": [
+					{ "x": 0.833, "y": 0.833, "curve": "stepped" },
+					{ "time": 0.3333, "x": 0.833, "y": 0.833 },
+					{ "time": 1, "x": 1.026, "y": 1.026 },
+					{ "time": 1.6667, "x": 0.833, "y": 0.833 }
+				]
+			}
+		}
+	}
+}
+}

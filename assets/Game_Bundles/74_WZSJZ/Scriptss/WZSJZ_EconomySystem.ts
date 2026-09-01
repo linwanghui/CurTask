@@ -26,9 +26,14 @@ export class WZSJZ_EconomySystem extends Component {
     private _priceIncreaseRate: number = 0.5;
     private _enoughColor: Color = null;
     private _insufficientColor: Color = null;
+    /** 记录本局已成功购买生成的限量物资；回收后也不会重新进入购买池。 */
+    private _purchaseSpawnCounts: Map<string, number> = new Map<string, number>();
+    /** 本局随机开放的三个组合角色所需文字；非名字物资不受它限制。 */
+    private _availableNameUnits: Set<string> = new Set<string>();
+    private _isCombatRoundActive: boolean = false;
 
     protected onLoad(): void {
-        this.node.on(WZSJZ_EventManager.游戏开始, this.OnGameStart, this);
+        this.node.on(WZSJZ_EventManager.战斗阶段变动, this.OnCombatPhaseChanged, this);
         this.node.on(WZSJZ_EventManager.修改增加资源, this.OnCheatAddResources, this);
     }
 
@@ -54,13 +59,18 @@ export class WZSJZ_EconomySystem extends Component {
         this._baseFoodCost = baseFoodCost;
         this._priceIncreaseRate = priceIncreaseRate;
         this._createMaterial = createMaterial;
+        this.RollNameCombinationsForGame();
         this.BindPurchaseButton();
         this.CacheRequirementColors();
         this.RefreshViews();
     }
 
-    private OnGameStart(): void {
-        this.schedule(this.ProduceResources, 1);
+    private OnCombatPhaseChanged(active: boolean): void {
+        this._isCombatRoundActive = !!active;
+        this.unschedule(this.ProduceResources);
+        if (this._isCombatRoundActive) {
+            this.schedule(this.ProduceResources, 1);
+        }
     }
 
     public BuyMaterial(): boolean {
@@ -81,7 +91,10 @@ export class WZSJZ_EconomySystem extends Component {
         if (!prefab) {
             return false;
         }
+        const materialConfig = WZSJZ_Constant.GetMaterialConfig(prefab.data.name);
         const level = prefab.data.name === "钥匙"
+            || materialConfig?.IsFunctionalNode
+            || materialConfig?.ShowLevel === false
             ? 1
             : WZSJZ_Constant.GetPurchaseMaterialLevel(Math.floor(this._purchaseCount / 5));
         this._money -= moneyCost;
@@ -93,6 +106,7 @@ export class WZSJZ_EconomySystem extends Component {
             this._purchaseCount--;
             return false;
         }
+        this.RecordPurchaseSpawn(prefab.data.name);
         this.RefreshViews();
         WZSJZ_AudioManager.Play('购买成功', 0.75);
         return true;
@@ -116,7 +130,11 @@ export class WZSJZ_EconomySystem extends Component {
                 config: WZSJZ_Constant.GetMaterialConfig(prefab?.data?.name),
             }))
             .filter((entry): entry is { prefab: Prefab; config: WZSJZ_MaterialConfig } =>
-                !!entry.prefab && !!entry.config && entry.config[weightKey] > 0,
+                !!entry.prefab
+                && !!entry.config
+                && entry.config[weightKey] > 0
+                && this.CanRollMaterial(entry.config, weightKey)
+                && (weightKey !== "PurchaseWeight" || this.CanPurchaseSpawn(entry.config)),
             );
         const totalWeight = candidates.reduce((sum, entry) => sum + entry.config[weightKey], 0);
         if (totalWeight <= 0) {
@@ -130,6 +148,47 @@ export class WZSJZ_EconomySystem extends Component {
             }
         }
         return candidates[candidates.length - 1]?.prefab || null;
+    }
+
+    private CanPurchaseSpawn(config: WZSJZ_MaterialConfig): boolean {
+        const limit = config.MaxPurchaseSpawnsPerGame;
+        return !limit || (this._purchaseSpawnCounts.get(config.Name) || 0) < limit;
+    }
+
+    private CanRollMaterial(config: WZSJZ_MaterialConfig, weightKey: MaterialWeightKey): boolean {
+        // 功能性节点可能单局限量，不能提前占据道具锁导致本局无法正常购买到它。
+        if (weightKey === "ItemLockWeight" && config.IsFunctionalNode) {
+            return false;
+        }
+        return !config.IsNameUnit || this._availableNameUnits.has(config.Name);
+    }
+
+    private RollNameCombinationsForGame(): void {
+        this._availableNameUnits.clear();
+        const recipes = [...WZSJZ_Constant.NameCombinations];
+        for (let index = recipes.length - 1; index > 0; index--) {
+            const swapIndex = Math.floor(Math.random() * (index + 1));
+            [recipes[index], recipes[swapIndex]] = [recipes[swapIndex], recipes[index]];
+        }
+
+        const count = Math.min(
+            Math.max(0, WZSJZ_Constant.NameUnit.CombinationChoicesPerGame),
+            recipes.length,
+        );
+        const selected = recipes.slice(0, count);
+        for (const recipe of selected) {
+            for (const part of recipe.Parts) {
+                this._availableNameUnits.add(part);
+            }
+        }
+        console.info(`[WZSJZ] 本局文字角色：${selected.map((recipe) => recipe.Name).join("、")}`);
+    }
+
+    private RecordPurchaseSpawn(materialName: string): void {
+        this._purchaseSpawnCounts.set(
+            materialName,
+            (this._purchaseSpawnCounts.get(materialName) || 0) + 1,
+        );
     }
 
     private ProduceResources = (): void => {
