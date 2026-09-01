@@ -1,6 +1,7 @@
 import { _decorator, Component, Label, Node } from 'cc';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
+import { ZRSJZ_TaskService } from '../Service/ZRSJZ_TaskService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_MainTask')
@@ -11,6 +12,7 @@ export class ZRSJZ_MainTask extends Component {
     GetState: Node = null;
     CompleteState: Node = null;
     UnderwayState: Node = null;
+    TipNode: Node = null;
 
     TaksName: string = "";
 
@@ -34,6 +36,7 @@ export class ZRSJZ_MainTask extends Component {
             this.GetState = this.node.getChildByName("可领取");
             this.CompleteState = this.node.getChildByName("已完成");
             this.UnderwayState = this.node.getChildByName("进行中");
+            this.TipNode = this.node.getChildByName("红点");
             this.node.on(Node.EventType.TOUCH_END, this.Click, this);
         }
         this.TaksName = taskName;
@@ -45,6 +48,7 @@ export class ZRSJZ_MainTask extends Component {
         this.GetState.active = this.TaksName === ZRSJZ_GameData.Instance.NewMainTask;
         this.CompleteState.active = ZRSJZ_GameData.Instance.MainTaskComplete.includes(this.TaksName);
         this.UnderwayState.active = ZRSJZ_GameData.Instance.CurMainTask?.TaskName === this.TaksName;
+        this.TipNode.active = ZRSJZ_TaskService.ShouldShowTaskReminder(this.TaksName);
     }
 
     Check(name: string) {

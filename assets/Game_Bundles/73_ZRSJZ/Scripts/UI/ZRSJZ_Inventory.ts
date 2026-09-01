@@ -51,6 +51,7 @@ export class ZRSJZ_Inventory extends Component {
 
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_ADD_ROW, this.AddInventoryRow, this);
         this.InventoryType = inventoryType;
         this.InventoryConfig = this.GetInventoryConfig(inventoryType);
         for (let i = 0; i < this.InventoryConfig.Row; i++) {
@@ -104,6 +105,23 @@ export class ZRSJZ_Inventory extends Component {
         if (this.node.active) {
             this.ShowPropItem();
         }
+    }
+
+    AddInventoryRow(inventoryType: ZRSJZ_INVENTORY, addRow: number) {
+        if (inventoryType !== this.InventoryType) return;
+        this.InventoryConfig.Row += addRow;
+        const preRow = this.InventoryConfig.Row - 1;
+        for (let i = 0; i < addRow; i++) {
+            const row = [];
+            for (let j = 0; j < this.InventoryConfig.Col; j++) {
+                row.push("");
+                this.CreateEmptyGrid(j, i + preRow);
+            }
+            this.Grids.push(row);
+        }
+        const height = this.Grids.length * (ZRSJZ_GRID_SIZE + ZRSJZ_GRID_INTERVAL);
+        this.UITransform = this.getComponent(UITransform);
+        this.UITransform.height = height;
     }
 
     /** 同一玩家重复打开只刷新；只有切换玩家时才清空并重建格子节点。 */
@@ -248,7 +266,9 @@ export class ZRSJZ_Inventory extends Component {
     protected GetInventoryConfig(
         inventoryType: ZRSJZ_INVENTORY,
     ): { Row: number, Col: number, IsDilatation: boolean } {
-        return ZRSJZ_INVENTORY_CONFIG.get(inventoryType);
+        const config = ZRSJZ_INVENTORY_CONFIG.get(inventoryType);
+        config.Row = ZRSJZ_InventoryService.GetInventoryRow(inventoryType, config.Row);
+        return config;
     }
 
     private async SyncEmptyGridNodes() {

@@ -36,6 +36,7 @@ export enum ZRSJZ_PANEL {
     主线任务界面 = "73_ZRSJZ/Prefabs/Panel/主线任务界面",
     获取奖励弹窗 = "73_ZRSJZ/Prefabs/Panel/获取奖励弹窗",
     涨经验弹窗 = "73_ZRSJZ/Prefabs/Panel/涨经验弹窗",
+    击败弹窗 = "73_ZRSJZ/Prefabs/Panel/击败弹窗",
     特别行动弹窗 = "73_ZRSJZ/Prefabs/Panel/特别行动弹窗",
     等级弹窗 = "73_ZRSJZ/Prefabs/Panel/等级弹窗",
     助战礼包弹窗 = "73_ZRSJZ/Prefabs/Panel/助战礼包弹窗",
@@ -721,14 +722,14 @@ export enum ZRSJZ_INVENTORY {
 }
 
 export const ZRSJZ_INVENTORY_CONFIG: Map<ZRSJZ_INVENTORY, { Row: number, Col: number, IsDilatation: boolean }> = new Map([
-    [ZRSJZ_INVENTORY.仓库_全部, { Row: 4, Col: 7, IsDilatation: true }],
-    [ZRSJZ_INVENTORY.仓库_装备, { Row: 4, Col: 7, IsDilatation: true }],
-    [ZRSJZ_INVENTORY.仓库_武器, { Row: 4, Col: 7, IsDilatation: true }],
-    [ZRSJZ_INVENTORY.仓库_弹药, { Row: 4, Col: 7, IsDilatation: true }],
-    [ZRSJZ_INVENTORY.仓库_物品, { Row: 4, Col: 7, IsDilatation: true }],
+    [ZRSJZ_INVENTORY.仓库_全部, { Row: 10, Col: 7, IsDilatation: false }],
+    [ZRSJZ_INVENTORY.仓库_装备, { Row: 6, Col: 7, IsDilatation: false }],
+    [ZRSJZ_INVENTORY.仓库_武器, { Row: 6, Col: 7, IsDilatation: false }],
+    [ZRSJZ_INVENTORY.仓库_弹药, { Row: 6, Col: 7, IsDilatation: false }],
+    [ZRSJZ_INVENTORY.仓库_物品, { Row: 6, Col: 7, IsDilatation: false }],
     [ZRSJZ_INVENTORY.卡包, { Row: 1, Col: 3, IsDilatation: false }],
     [ZRSJZ_INVENTORY.弹药, { Row: 2, Col: 3, IsDilatation: false }],
-    [ZRSJZ_INVENTORY.保险箱, { Row: 3, Col: 3, IsDilatation: false }],
+    [ZRSJZ_INVENTORY.保险箱, { Row: 2, Col: 3, IsDilatation: false }],
     [ZRSJZ_INVENTORY.武器_枪, { Row: 1, Col: 2, IsDilatation: false }],
     [ZRSJZ_INVENTORY.武器_头盔, { Row: 1, Col: 1, IsDilatation: false }],
     [ZRSJZ_INVENTORY.武器_防弹衣, { Row: 1, Col: 1, IsDilatation: false }],

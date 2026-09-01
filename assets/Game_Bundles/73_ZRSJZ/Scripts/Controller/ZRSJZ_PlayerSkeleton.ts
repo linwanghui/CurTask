@@ -145,7 +145,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     }
 
     private ApplyAimDirection(): void {
-        this.ApplyWeaponHandSlots();
+        // this.ApplyWeaponHandSlots();
         if (!this._mzBone || !this.HasDirection) return;
         const distance = 1000;
 

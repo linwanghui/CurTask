@@ -1,6 +1,6 @@
 import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
 import { _decorator, CircleCollider2D, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, v2 } from 'cc';
-import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
+import { ZRSJZ_MainSkeleton } from './ZRSJZ_MainSkeleton';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_ANI, ZRSJZ_KNIFE, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
@@ -12,7 +12,7 @@ export class ZRSJZ_PlayerMain extends Component {
 
     RigidBody: RigidBody2D = null;
     Collider: CircleCollider2D = null;
-    PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
+    PlayerSkeleton: ZRSJZ_MainSkeleton = null;
 
     Target: Node = null;
     private _moveSpeed: number = 1000;
@@ -22,11 +22,12 @@ export class ZRSJZ_PlayerMain extends Component {
     private _weaponType: string = "";
     private _isSliding: boolean = false;
     private _slideDirection: number = 1;
+    private readonly _velocity = v2();
 
     protected onLoad(): void {
         this.RigidBody = this.getComponent(RigidBody2D);
         this.Collider = this.getComponent(CircleCollider2D);
-        this.PlayerSkeleton = this.node.getChildByName("Spine").getComponent(ZRSJZ_PlayerSkeleton);
+        this.PlayerSkeleton = this.node.getChildByName("Spine").getComponent(ZRSJZ_MainSkeleton);
         // Player2 在大厅场景中默认为 inactive，激活时父节点脚本可能先执行。
         // 由父节点名立即固定索引，避免读到 Spine 的默认玩家1索引。
         this.PlayerSkeleton.CurPlayerIndex = this.node.name === "Player2" || this.node.name === "玩家2"
@@ -62,11 +63,10 @@ export class ZRSJZ_PlayerMain extends Component {
     protected update(dt: number): void {
         if (!this._isSliding) this.AniSwitch();
 
-        this.PlayerSkeleton.AttackX = Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
-        this.PlayerSkeleton.AttackY = 0;
         const moveX = this._isSliding ? this._slideDirection : this._moveX;
         const speed = this._isSliding ? this._moveSpeed + 1500 : this._moveSpeed;
-        this.RigidBody.linearVelocity = v2(moveX * dt * speed, 0);
+        this._velocity.set(moveX * dt * speed, 0);
+        this.RigidBody.linearVelocity = this._velocity;
     }
 
     Show() {
@@ -77,7 +77,6 @@ export class ZRSJZ_PlayerMain extends Component {
         this._weaponType = hasGun ? "枪" : "刀";
         if (hasGun || hasKnife) this.ApplyWeaponType(this._weaponType);
         else this.ApplyKnifePose();
-        this.PlayerSkeleton.HasDirection = false;
     }
 
     Move(x: number, y: number, radius: number) {

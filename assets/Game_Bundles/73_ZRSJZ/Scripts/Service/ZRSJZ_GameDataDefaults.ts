@@ -6,7 +6,7 @@ import {
     ZRSJZ_PROP_CONFIG,
     ZRSJZ_PropData,
 } from "../ZRSJZ_Constant";
-import type { ZRSJZ_GameData } from "../ZRSJZ_GameData";
+import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 
 /** 新存档初始化和旧存档迁移。此类不触发事件，也不主动写盘。 */
 export class ZRSJZ_GameDataDefaults {
@@ -33,107 +33,37 @@ export class ZRSJZ_GameDataDefaults {
     }
 
     public static Migrate(data: ZRSJZ_GameData, savedData: any): boolean {
-        let changed = false;
-        // 旧版本曾把背包扩容写入存档；扩容现为单局状态，迁移时清除旧字段。
-        const legacyData = data as ZRSJZ_GameData & { BackpackExpanded?: boolean[] };
-        if (Object.prototype.hasOwnProperty.call(legacyData, "BackpackExpanded")) {
-            delete legacyData.BackpackExpanded;
-            changed = true;
+        // Versions 出现之前的测试期存档会在 ReadData 中直接删除并重建，
+        // 因此这里不再保留历史测试数据的迁移和修正逻辑。
+        //
+        // 正式版本后如需修改存档结构，请在这里按 savedData.Versions
+        // 逐级迁移 data，完成后更新 data.Versions，并返回 true 触发保存。
+        // 示例：
+        // if (savedData.Versions < 1) {
+        //     // 将版本 0 的正式存档迁移到版本 1。
+        //     data.Versions = 1;
+        //     return true;
+        // }
+        let flag = false;
+        if (data.Versions == 0) {
+            data.Versions++;
+            data.IsTutorial = false;
+            return true;
         }
-        const normalizedGrade = Math.max(1, Math.min(60, Math.floor(Number(data.Grade) || 1)));
-        if (data.Grade !== normalizedGrade) {
-            data.Grade = normalizedGrade;
-            changed = true;
-        }
-        const normalizedExp = normalizedGrade >= 60
-            ? 0
-            : Math.max(0, Math.floor(Number(data.CurExp) || 0));
-        if (data.CurExp !== normalizedExp) {
-            data.CurExp = normalizedExp;
-            changed = true;
-        }
-        for (const field of [
-            "PendingExperience",
-            "TotalGamePlayed",
-            "TotalTimePlayed",
-            "TotalEvacuation",
-            "OptimumEvacuation",
-        ] as const) {
-            const normalizedValue = Math.max(0, Math.floor(Number(data[field]) || 0));
-            if (data[field] === normalizedValue) continue;
-            data[field] = normalizedValue;
-            changed = true;
-        }
-        if (!data.MainTaskExperienceAwards
-            || typeof data.MainTaskExperienceAwards !== "object"
-            || Array.isArray(data.MainTaskExperienceAwards)) {
-            data.MainTaskExperienceAwards = {};
-            changed = true;
-        } else {
-            for (const taskName of Object.keys(data.MainTaskExperienceAwards)) {
-                const normalizedAward = Math.max(
-                    0,
-                    Math.floor(Number(data.MainTaskExperienceAwards[taskName]) || 0),
-                );
-                if (data.MainTaskExperienceAwards[taskName] === normalizedAward) continue;
-                data.MainTaskExperienceAwards[taskName] = normalizedAward;
-                changed = true;
-            }
-        }
-        if (savedData.WarehouseStorageVersion === undefined || data.WarehouseStorageVersion < 1) {
-            changed = this.MigrateWarehouseStorage(data) || changed;
-        }
-        if (savedData.LoadoutStorageVersion === undefined || data.LoadoutStorageVersion < 1) {
-            changed = this.MigratePlayerLoadouts(data) || changed;
-        }
-        return changed;
-    }
 
-    private static MigrateWarehouseStorage(data: ZRSJZ_GameData): boolean {
-        const categoryWarehouses = new Set<ZRSJZ_INVENTORY>([
-            ZRSJZ_INVENTORY.仓库_装备,
-            ZRSJZ_INVENTORY.仓库_武器,
-            ZRSJZ_INVENTORY.仓库_弹药,
-            ZRSJZ_INVENTORY.仓库_物品,
-        ]);
-        for (const prop of Object.values(data.PropData ?? {})) {
-            if (!categoryWarehouses.has(prop.CurInventory)) continue;
-            prop.CurInventory = ZRSJZ_INVENTORY.仓库_全部;
-            for (const gridData of prop.GridData ?? []) {
-                gridData.GridX = -1;
-                gridData.GridY = -1;
-            }
+        const loadData = () => {
+            this.DataDefaults.get(data.Versions).forEach(item => {
+                data[item.Key] = item.DefaultVaule;
+            });
+            data.Versions++;
         }
-        data.UnlockedWarehouses = [ZRSJZ_INVENTORY.仓库_全部];
-        data.WarehouseStorageVersion = 1;
-        return true;
-    }
 
-    private static MigratePlayerLoadouts(data: ZRSJZ_GameData): boolean {
-        data.Player2WeaponryID = this.NormalizeIDs(data.Player2WeaponryID, 5);
-        data.Player2AmmoID = this.NormalizeIDs(data.Player2AmmoID, 6);
-        data.Player2RoomCard = this.NormalizeIDs(data.Player2RoomCard, 3);
-
-        const playerInventories = new Set<ZRSJZ_INVENTORY>([
-            ZRSJZ_INVENTORY.卡包,
-            ZRSJZ_INVENTORY.弹药,
-            ZRSJZ_INVENTORY.武器_枪,
-            ZRSJZ_INVENTORY.武器_头盔,
-            ZRSJZ_INVENTORY.武器_防弹衣,
-            ZRSJZ_INVENTORY.武器_背包,
-            ZRSJZ_INVENTORY.武器_刀,
-        ]);
-        for (const prop of Object.values(data.PropData ?? {})) {
-            prop.OwnerPlayerIndex = playerInventories.has(prop.CurInventory) ? 0 : -1;
+        while (data.Versions < ZRSJZ_GameData.Versions) {
+            loadData();
+            flag = true;
         }
-        data.LoadoutStorageVersion = 1;
-        return true;
-    }
 
-    private static NormalizeIDs(ids: string[], length: number): string[] {
-        const result = Array.isArray(ids) ? ids.slice(0, length) : [];
-        while (result.length < length) result.push("");
-        return result;
+        return flag;
     }
 
     private static CreateProp(data: ZRSJZ_GameData, propName: string, count: number): string {
@@ -187,4 +117,11 @@ export class ZRSJZ_GameDataDefaults {
         gridData.GridY = -1;
         return gridData;
     }
+
+    //需要更新的数据 
+    private static readonly DataDefaults: Map<number, { Key: string, DefaultVaule: any }[]> = new Map([
+        [1, [
+            { Key: "InventoryRow", DefaultVaule: {} }
+        ]]
+    ])
 }

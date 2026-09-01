@@ -11,6 +11,7 @@ export class ZRSJZ_AudioManager extends Component {
     private idleSources: AudioSource[] = [];
     private _curMusic: string = "";
     private _curMusicAudioSource: AudioSource = null;
+    private _soleSoundName: string[] = [];
 
 
     Init() {
@@ -60,6 +61,22 @@ export class ZRSJZ_AudioManager extends Component {
             error(`音频不存在: ${audioName}`);
             return;
         }
+
+        const sound = this.getIdleSource();
+        sound.clip = this.AudioClipMaps.get(audioName);
+        sound.loop = false;
+        sound.volume = valume;
+        sound.play();
+    }
+
+    public PlaySoleSound(audioName: string, valume: number = 1) {
+        if (ZRSJZ_GameData.Instance.SoundMute) return;
+        if (!this.AudioClipMaps.has(audioName)) {
+            error(`音频不存在: ${audioName}`);
+            return;
+        }
+        if (this._soleSoundName.includes(audioName)) return;
+        this._soleSoundName.push(audioName);
 
         const sound = this.getIdleSource();
         sound.clip = this.AudioClipMaps.get(audioName);
@@ -120,9 +137,13 @@ export class ZRSJZ_AudioManager extends Component {
     }
 
     private freeSource(source: AudioSource) {
+        if (this._soleSoundName.includes(source.clip.name)) {
+            this._soleSoundName.splice(this._soleSoundName.indexOf(source.clip.name), 1);
+        }
         source.stop();
         source.clip = null;
         this.idleSources.push(source);
+
     }
 
     private onPlayEnded(event: AudioSource) {

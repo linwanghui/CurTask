@@ -55,6 +55,9 @@ export class ZRSJZ_Player extends Component {
     private _moveX: number = 0;
     private _moveY: number = 0;
     private _moveRadius: number = 0;
+    /** 无锁敌时用于开火的最近一次有效移动方向。 */
+    private _lastMoveDirectionX: number = 1;
+    private _lastMoveDirectionY: number = 0;
     private _aniName: string = "";
     private _isFireing: boolean = false;
     private _waitingFirstGunShot: boolean = false;
@@ -65,6 +68,9 @@ export class ZRSJZ_Player extends Component {
     private _reservedGunAmmoName: string = "";
     private _gunAttackRequestId: number = 0;
     private _lastValidMuzzlePos: Vec3 = null;
+    /** 无锁定目标时，停火后继续保持枪械朝向的剩余时间。 */
+    private _gunDirectionReleaseRemaining: number = 0;
+    private static readonly GUN_DIRECTION_RELEASE_DELAY: number = 1;
     private _isSlide: boolean = false;
     private _targetBox: ZRSJZ_Box = null;
     private _isStop: boolean = false;
@@ -110,7 +116,10 @@ export class ZRSJZ_Player extends Component {
     }
     //是否能滑动
     public get IsSlide(): boolean {
-        return !this._isStop && !this._isLaserCasting;
+        return !this._isStop
+            && !this._isLaserCasting
+            && !this._gunAttackAnimationActive
+            && !this._knifeAnimationPlaying;
     }
 
     //是否能释放技能
@@ -206,6 +215,7 @@ export class ZRSJZ_Player extends Component {
             return;
         }
         this.FindTarget();
+        this.UpdateGunDirectionLock(dt);
         this.UpdateAutomaticFire(dt);
         this.AniSwitch();
         if (this._isSlide) {
@@ -216,8 +226,17 @@ export class ZRSJZ_Player extends Component {
             }
             this.RigidBody.linearVelocity = v2(moveVec.x * dt * this.CurSpeed * this._moveRadius, moveVec.y * dt * this.CurSpeed * this._moveRadius);
         } else {
-            this.PlayerSkeleton.AttackX = this.TargetEnemy ? this.TargetEnemy.worldPositionX - this.node.worldPositionX : Math.sign(this._moveX) != 0 ? Math.sign(this._moveX) < 0 ? -200 : 200 : this.PlayerSkeleton.AttackX;
-            this.PlayerSkeleton.AttackY = this.TargetEnemy ? this.TargetEnemy.worldPositionY - this.node.worldPositionY : 0;
+            // 枪械方向由 UpdateGunDirectionLock 统一管理；刀仍保持原来的自动朝敌逻辑。
+            if (this.WeaponType !== "枪") {
+                this.PlayerSkeleton.AttackX = this.TargetEnemy
+                    ? this.TargetEnemy.worldPositionX - this.node.worldPositionX
+                    : Math.sign(this._moveX) != 0
+                        ? (Math.sign(this._moveX) < 0 ? -200 : 200)
+                        : this.PlayerSkeleton.AttackX;
+                this.PlayerSkeleton.AttackY = this.TargetEnemy
+                    ? this.TargetEnemy.worldPositionY - this.node.worldPositionY
+                    : 0;
+            }
             this.RigidBody.linearVelocity = v2(this._moveX * dt * this.CurSpeed * this._moveRadius, this._moveY * dt * this.CurSpeed * this._moveRadius);
         }
     }
@@ -247,6 +266,11 @@ export class ZRSJZ_Player extends Component {
         this.HP.Init(this.MaxHP);
         this.HP.Show(this.CurHP);
         this.PlayerSkeleton.AttackX = 200;
+        this.PlayerSkeleton.AttackY = 0;
+        this._lastMoveDirectionX = 1;
+        this._lastMoveDirectionY = 0;
+        this.PlayerSkeleton.HasDirection = this.WeaponType !== "枪";
+        this._gunDirectionReleaseRemaining = 0;
         if (this._bulletProgressNode) this._bulletProgressNode.active = true;
         this.RefreshBulletProgress();
         this.FillInitialMagazineWhenReady();
@@ -347,6 +371,11 @@ export class ZRSJZ_Player extends Component {
         this._moveX = x;
         this._moveY = y;
         this._moveRadius = 1;
+        const moveLength = Math.sqrt(x * x + y * y);
+        if (moveLength > 0.0001) {
+            this._lastMoveDirectionX = x / moveLength;
+            this._lastMoveDirectionY = y / moveLength;
+        }
         if (x != 0) {
             this.PlayerSkeleton.SetPlayerDir(x / Math.abs(x))
         }
@@ -597,11 +626,15 @@ export class ZRSJZ_Player extends Component {
         this.CancelGunAttackState();
         this.WeaponType = weaponType;
         if (this.WeaponType === "枪") {
+            this.PlayerSkeleton.HasDirection = this.TargetEnemy != null;
+            this._gunDirectionReleaseRemaining = 0;
             this.EnsureMagazineMatchesGun();
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
             const gunID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[0];
             this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[gunID].Name);
         } else if (this.WeaponType === "刀") {
+            this.PlayerSkeleton.HasDirection = true;
+            this._gunDirectionReleaseRemaining = 0;
             this.PlayAni(ZRSJZ_ANI.Idle_D1);
             this.PlayerSkeleton.PlayKnifeBaseAni(ZRSJZ_ANI.Idle_D1);
             const knifeID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[4];
@@ -672,6 +705,47 @@ export class ZRSJZ_Player extends Component {
         } else {
             this.TargetEnemy = null;
         }
+    }
+
+    /**
+     * 持枪时只在锁敌或开火阶段覆盖 Spine 朝向。
+     * 无锁敌开火会朝向玩家最近一次有效移动方向；停火动画结束 1 秒后解除覆盖，
+     * 让 Spine 回到待机/移动动画自身的自然姿态。
+     */
+    private UpdateGunDirectionLock(dt: number): void {
+        if (this.WeaponType !== "枪") {
+            this.PlayerSkeleton.HasDirection = true;
+            this._gunDirectionReleaseRemaining = 0;
+            return;
+        }
+
+        if (this.TargetEnemy) {
+            this.PlayerSkeleton.HasDirection = true;
+            this._gunDirectionReleaseRemaining = 0;
+            this.PlayerSkeleton.AttackX = this.TargetEnemy.worldPositionX - this.node.worldPositionX;
+            this.PlayerSkeleton.AttackY = this.TargetEnemy.worldPositionY - this.node.worldPositionY;
+            return;
+        }
+
+        const isGunFiring = this._isFireing
+            || this._preparingGunAttack
+            || this._gunAttackAnimationActive;
+        if (isGunFiring) {
+            this._gunDirectionReleaseRemaining = ZRSJZ_Player.GUN_DIRECTION_RELEASE_DELAY;
+        } else {
+            this._gunDirectionReleaseRemaining = Math.max(
+                0,
+                this._gunDirectionReleaseRemaining - Math.max(0, dt),
+            );
+        }
+
+        const shouldControlDirection = isGunFiring || this._gunDirectionReleaseRemaining > 0;
+        this.PlayerSkeleton.HasDirection = shouldControlDirection;
+        if (!shouldControlDirection) return;
+
+        // 没有锁定敌人时，沿用最近一次有效移动方向（包含上下与斜向）。
+        this.PlayerSkeleton.AttackX = this._lastMoveDirectionX * 200;
+        this.PlayerSkeleton.AttackY = this._lastMoveDirectionY * 200;
     }
 
     //#region 受到打击
@@ -1032,7 +1106,13 @@ export class ZRSJZ_Player extends Component {
     //#region 滑动
     Slide(playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        if (this._isStop || this._gunAttackAnimationActive || this._isLaserCasting) return;
+        // 挥刀使用 Track 1；中途清除会让刀光等附件停在当前帧，因此必须等待动画自然结束。
+        if (
+            this._isStop
+            || this._gunAttackAnimationActive
+            || this._knifeAnimationPlaying
+            || this._isLaserCasting
+        ) return;
         this.CancelGunAttackState();
         this.CancelKnifeAttackState();
         ZRSJZ_AudioManager.Instance.PlaySound("滑铲音效");

@@ -270,7 +270,7 @@ export class ZRSJZ_Game extends Component {
         const player = this.GetPlayer(playerIndex);
         const gameCamera = this.Cameras[playerIndex];
         if (!direction || !player?.node?.isValid || !this.UI?.isValid) return;
-        if (player.IsDead || !gameCamera?.node.activeInHierarchy) {
+        if (player.IsDead || !player.IsLockEnemy || !gameCamera?.node.activeInHierarchy) {
             direction.active = false;
             return;
         }
@@ -301,8 +301,8 @@ export class ZRSJZ_Game extends Component {
         const rangeOrigin = player.node.getChildByName("Point") ?? player.node;
         const playerWorld = rangeOrigin.worldPosition;
         this._directionEndWorld.set(
-            playerWorld.x + dirX * attackRange,
-            playerWorld.y + dirY * attackRange,
+            playerWorld.x + dirX * (attackRange + 200),
+            playerWorld.y + dirY * (attackRange + 200),
             playerWorld.z,
         );
         const startUI = worldCamera.convertToUINode(playerWorld, this.UI);

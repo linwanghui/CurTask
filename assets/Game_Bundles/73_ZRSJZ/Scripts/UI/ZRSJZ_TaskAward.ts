@@ -1,7 +1,9 @@
-import { _decorator, Component, Label, Node, Sprite, SpriteFrame } from 'cc';
+import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_TaskAward')
@@ -20,12 +22,26 @@ export class ZRSJZ_TaskAward extends Component {
     Icon: Sprite = null;
     Name: Label = null;
     Count: Label = null;
+    Check: Node = null;
+    Checked: Node = null;
 
     PropName: string = "";
 
     private _isInit: boolean = false;
     /** 防止节点回池并快速复用后，上一轮异步资源覆盖当前奖励。 */
     private _refreshVersion: number = 0;
+    private _isGeting: boolean = false;
+    private _isGetCheck: boolean = false;
+
+    protected onEnable(): void {
+        this.node.on(Node.EventType.TOUCH_END, this.OnTouchEnd, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_GET_PROP, this.GetShow, this);
+    }
+
+    protected onDisable(): void {
+        this.node.off(Node.EventType.TOUCH_END, this.OnTouchEnd, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_GET_PROP, this.GetShow, this);
+    }
 
     Init(propName: string, count: number) {
         const refreshVersion = ++this._refreshVersion;
@@ -35,6 +51,8 @@ export class ZRSJZ_TaskAward extends Component {
             this.Icon = this.node.getChildByName("Icon").getComponent(Sprite);
             this.Name = this.node.getChildByName("Name").getComponent(Label);
             this.Count = this.node.getChildByName("Count").getComponent(Label);
+            this.Check = this.node.getChildByName("未选");
+            this.Checked = this.node.getChildByName("勾选");
         }
 
         this.PropName = propName;
@@ -67,7 +85,26 @@ export class ZRSJZ_TaskAward extends Component {
         }
     }
 
+    GetShow(show: boolean) {
+        this._isGeting = show;
+        this._isGetCheck = false;
+        this.ShowGetButton();
+    }
 
+    //显示售卖按钮
+    ShowGetButton() {
+        this.Check.active = !this._isGetCheck;
+        this.Checked.active = this._isGetCheck;
+    }
+
+    OnTouchEnd(event: EventTouch) {
+        if (this._isGeting) {
+            ZRSJZ_AudioManager.Instance.PlaySound("点击");
+            this._isGetCheck = !this._isGetCheck;
+            this.ShowGetButton();
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_GET_PROP_ADD, this.PropName);
+        }
+    }
 
 }
 

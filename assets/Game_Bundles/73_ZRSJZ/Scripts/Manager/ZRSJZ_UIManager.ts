@@ -18,7 +18,9 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_UIManager')
 export class ZRSJZ_UIManager extends Component {
+    public static readonly LoadAssetsCount: number = 6;
     public static ZRSJZ_DLC: boolean = false;
+    public static ZRSJZ_UI: boolean = false;
     public static Dragging: boolean = false;//是否正在拖动道具
     /** 当前拖动所属玩家；通过上下文隔离库存，避免改变旧事件的参数结构。 */
     public static DraggingPlayerIndex: number = -1;
@@ -130,18 +132,47 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     public static InitUI() {
+
+        let loadCount = 0;
+        const loadCompleted: Function = () => {
+            loadCount++;
+            if (loadCount >= ZRSJZ_UIManager.LoadAssetsCount) {
+                ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_UI);
+                ZRSJZ_UIManager.ZRSJZ_UI = true;
+            }
+        }
         //初始话格子UI
-        ZRSJZ_Tools.LoadSprites("Sprites/格子").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.PropGridSFMap.set(sf.name, sf)));
+        ZRSJZ_Tools.LoadSprites("Sprites/格子").then((sfs: SpriteFrame[]) => {
+            sfs.forEach(sf => ZRSJZ_UIManager._instance.PropGridSFMap.set(sf.name, sf));
+            loadCompleted();
+        });
         //初始化道具UI
-        ZRSJZ_Tools.LoadSprites("Sprites/Prop").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.PropSFMap.set(sf.name, sf)));
+        ZRSJZ_Tools.LoadSprites("Sprites/Prop").then((sfs: SpriteFrame[]) => {
+            sfs.forEach(sf => ZRSJZ_UIManager._instance.PropSFMap.set(sf.name, sf));
+            loadCompleted();
+
+        });
         //初始化皮肤Icon
-        ZRSJZ_Tools.LoadSprites("Sprites/小地图/Icon").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.HeroIconSFMap.set(sf.name, sf)));
+        ZRSJZ_Tools.LoadSprites("Sprites/小地图/Icon").then((sfs: SpriteFrame[]) => {
+            sfs.forEach(sf => ZRSJZ_UIManager._instance.HeroIconSFMap.set(sf.name, sf));
+            loadCompleted();
+
+        });
         //初始化武器UI
-        ZRSJZ_Tools.LoadSprites("Sprites/Weaponry").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D)));
+        ZRSJZ_Tools.LoadSprites("Sprites/Weaponry").then((sfs: SpriteFrame[]) => {
+            sfs.forEach(sf => ZRSJZ_UIManager._instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D));
+            loadCompleted()
+        });
         //初始化箱子
-        ZRSJZ_Tools.LoadSprites("Sprites/箱子").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.BoxSFMap.set(sf.name, sf)));
+        ZRSJZ_Tools.LoadSprites("Sprites/箱子").then((sfs: SpriteFrame[]) => {
+            sfs.forEach(sf => ZRSJZ_UIManager._instance.BoxSFMap.set(sf.name, sf));
+            loadCompleted();
+        });
         //初始化角色皮肤
-        ZRSJZ_Tools.LoadSprites("Sprites/角色界面/皮肤").then((sfs: SpriteFrame[]) => sfs.forEach(sf => ZRSJZ_UIManager._instance.RoleSkinIconSFMap.set(sf.name, sf)));
+        ZRSJZ_Tools.LoadSprites("Sprites/角色界面/皮肤").then((sfs: SpriteFrame[]) => {
+            sfs.forEach(sf => ZRSJZ_UIManager._instance.RoleSkinIconSFMap.set(sf.name, sf));
+            loadCompleted();
+        });
     }
 
     public static InitDLC() {
