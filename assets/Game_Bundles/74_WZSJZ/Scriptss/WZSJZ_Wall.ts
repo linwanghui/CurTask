@@ -1,5 +1,7 @@
-import { _decorator, Component, director, Label, Node, Sprite, UITransform } from 'cc';
+import { _decorator, Component, Label, Node, Sprite, UITransform } from 'cc';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
+import { WZSJZ_Constant } from './WZSJZ_Constant';
+import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_Wall')
@@ -69,12 +71,16 @@ export class WZSJZ_Wall extends Component {
         if (!this.IsAlive || this.IsInvincible || damage <= 0) {
             return;
         }
-        this._currentHealth = Math.max(0, this._currentHealth - damage);
+        const finalDamage = Math.max(
+            0,
+            damage * WZSJZ_Constant.CombatBalance.EnemyWallDamageMultiplier,
+        );
+        this._currentHealth = Math.max(0, this._currentHealth - finalDamage);
         WZSJZ_AudioManager.Play('城墙受击', 0.68, 0.08);
         this.RefreshView();
         if (this._currentHealth <= 0) {
             this._isDestroyed = true;
-            director.loadScene("WZSJZ_Start");
+            WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.城墙摧毁, this);
         }
     }
 

@@ -234,6 +234,32 @@ export class WZSJZ_GameData extends Component {
         return true;
     }
 
+    /** 增加招募卡并立即保存，广告奖励等入口统一走这里。 */
+    public AddRecruitCards(amount: number): number {
+        const add = Math.max(0, Math.floor(amount));
+        if (add <= 0) return 0;
+        this.RecruitCardCount = Math.max(0, Math.floor(this.RecruitCardCount || 0)) + add;
+        WZSJZ_GameData.DateSave();
+        WZSJZ_EventManager.EmitScene(
+            WZSJZ_EventManager.招募卡变动,
+            this.RecruitCardCount,
+        );
+        return add;
+    }
+
+    /** 成功招募出文字后消耗一张，失败时调用方不应执行此方法。 */
+    public TryConsumeRecruitCard(): boolean {
+        const current = Math.max(0, Math.floor(this.RecruitCardCount || 0));
+        if (current <= 0) return false;
+        this.RecruitCardCount = current - 1;
+        WZSJZ_GameData.DateSave();
+        WZSJZ_EventManager.EmitScene(
+            WZSJZ_EventManager.招募卡变动,
+            this.RecruitCardCount,
+        );
+        return true;
+    }
+
     /** 钥匙沿用GameData[0]存储，购买时与钻石一起原子保存。 */
     public TryBuyKeys(price: number, amount: number): boolean {
         const cost = Math.max(0, Math.floor(price));

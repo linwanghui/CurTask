@@ -1,6 +1,5 @@
 import { _decorator, Component, Node, sp } from 'cc';
 import { WZSJZ_Enemy } from '../WZSJZ_Enemy';
-import { WZSJZ_AudioManager } from '../WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -28,7 +27,6 @@ export class WZSJZ_Skill_DianCiZhiMang extends Component {
         onRecycle: (effect: WZSJZ_Skill_DianCiZhiMang) => void,
         onKill: () => void,
     ): boolean {
-        WZSJZ_AudioManager.Play('电磁脉冲', 0.6, 0.1);
         this.unscheduleAllCallbacks();
         this._enemyArea = enemyArea;
         this._radius = Math.max(0, radius);

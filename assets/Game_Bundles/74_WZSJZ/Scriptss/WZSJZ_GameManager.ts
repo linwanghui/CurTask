@@ -42,6 +42,7 @@ import { WZSJZ_StageFlowSystem } from './WZSJZ_StageFlowSystem';
 import { WZSJZ_RoundAnnouncementSystem } from './WZSJZ_RoundAnnouncementSystem';
 import { WZSJZ_ReturnMenuSystem } from './WZSJZ_ReturnMenuSystem';
 import { WZSJZ_FunctionalNodeSystem } from './WZSJZ_FunctionalNodeSystem';
+import { WZSJZ_RecruitCardSystem } from './WZSJZ_RecruitCardSystem';
 import Banner from '../../../Scripts/Banner';
 const { ccclass, property } = _decorator;
 
@@ -70,16 +71,16 @@ export class WZSJZ_GameManager extends Component {
     public MaterialPrefabs: Prefab[] = [];
 
     @property({ displayName: "初始钞票", min: 0 })
-    public StartMoney: number = 999;
+    public StartMoney: number = 200;
 
     @property({ displayName: "初始食物", min: 0 })
-    public StartFood: number = 999;
+    public StartFood: number = 200;
 
     @property({ displayName: "基础钞票价格", min: 0 })
-    public BaseMoneyCost: number = 10;
+    public BaseMoneyCost: number = 20;
 
     @property({ displayName: "基础食物价格", min: 0 })
-    public BaseFoodCost: number = 10;
+    public BaseFoodCost: number = 20;
 
     @property({ displayName: "每5次涨价比例", min: 0, step: 0.1 })
     public PriceIncreaseRate: number = 0.5;
@@ -125,6 +126,7 @@ export class WZSJZ_GameManager extends Component {
     private _roundAnnouncementSystem: WZSJZ_RoundAnnouncementSystem = null;
     private _returnMenuSystem: WZSJZ_ReturnMenuSystem = null;
     private _functionalNodeSystem: WZSJZ_FunctionalNodeSystem = null;
+    private _recruitCardSystem: WZSJZ_RecruitCardSystem = null;
 
     public get IsGameStarted(): boolean {
         return this._isGameStarted;
@@ -191,7 +193,11 @@ export class WZSJZ_GameManager extends Component {
         );
         this._functionalNodeSystem = this.node.getComponent(WZSJZ_FunctionalNodeSystem)
             || this.node.addComponent(WZSJZ_FunctionalNodeSystem);
-        this._functionalNodeSystem.Configure(this._formationCells, this.WallDisplayNode);
+        this._functionalNodeSystem.Configure(
+            this._formationCells,
+            this.WallDisplayNode,
+            this._cellEffectSystem,
+        );
         this._nameUnitSystem = this.node.getComponent(WZSJZ_NameUnitSystem)
             || this.node.addComponent(WZSJZ_NameUnitSystem);
         this._nameUnitSystem.Configure(this._formationCells, this._formationObjectLayer);
@@ -213,6 +219,19 @@ export class WZSJZ_GameManager extends Component {
         this._returnMenuSystem.Configure(this.FormationZone?.parent);
         this.BindStartButton();
         this.SetupToolArea();
+        this._recruitCardSystem = this.node.getComponent(WZSJZ_RecruitCardSystem)
+            || this.node.addComponent(WZSJZ_RecruitCardSystem);
+        this._recruitCardSystem.Configure(
+            this.PreparationZone,
+            this._preparationCells,
+            this._economySystem,
+            (prefab, cell, level) => this.CreateMaterialAtCell(
+                prefab,
+                cell,
+                level,
+                true,
+            ),
+        );
     }
 
     private async PrepareRuntimeMaterialPrefabs(): Promise<void> {
@@ -546,12 +565,14 @@ export class WZSJZ_GameManager extends Component {
                 targetNode.Upgrade();
                 WZSJZ_AudioManager.Play('合成升级', 0.8);
                 this.PlayMaterialPopAnimation(targetNode.node);
-                this._cellEffectSystem?.PlayUpgrade(targetCell);
                 gameNode.CurrentCell = null;
                 gameNode.node.destroy();
                 if (unlockItemCell) {
                     targetCell.SetUnlocked(true);
+                    this._cellEffectSystem?.PlayUnlock(targetCell);
                     this.RefreshPreparationItemLocks();
+                } else {
+                    this._cellEffectSystem?.PlayUpgrade(targetCell);
                 }
                 if (targetCell.Zone === "wall") {
                     this.RefreshWallDisplay();
@@ -575,7 +596,7 @@ export class WZSJZ_GameManager extends Component {
                 this.SnapToCell(gameNode, targetCell);
                 this.PlayMaterialPopAnimation(targetNode.node);
                 this.PlayMaterialPopAnimation(gameNode.node);
-                WZSJZ_AudioManager.Play('交换位置', 0.65);
+                WZSJZ_AudioManager.Play('按钮点击', 0.7, 0.04);
                 this._cellEffectSystem?.PlayMove(sourceCell);
                 this._cellEffectSystem?.PlayMove(targetCell);
                 if (sourceCell.Zone === "wall" || targetCell.Zone === "wall") {
@@ -814,7 +835,7 @@ export class WZSJZ_GameManager extends Component {
         }
 
         targetCell.SetUnlocked(true);
-        this._cellEffectSystem?.PlayUpgrade(targetCell);
+        this._cellEffectSystem?.PlayUnlock(targetCell);
         WZSJZ_AudioManager.Play('格子解锁', 0.8);
         if (targetCell.Zone === "preparation") {
             this.RefreshPreparationItemLocks();

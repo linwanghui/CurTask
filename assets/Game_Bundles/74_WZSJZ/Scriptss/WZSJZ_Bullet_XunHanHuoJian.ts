@@ -17,6 +17,8 @@ export class WZSJZ_Bullet_XunHanHuoJian extends Component {
     private _enemyArea: Node = null;
     private _damage: number = 0;
     private _damageRadius: number = 0;
+    private _impactAudioName: string = "";
+    private _impactAudioVolume: number = 1;
     private _onRecycle: ((projectile: WZSJZ_Bullet_XunHanHuoJian) => void) = null;
     private _onKill: (() => void) = null;
 
@@ -28,6 +30,8 @@ export class WZSJZ_Bullet_XunHanHuoJian extends Component {
         damageTriggerDelay: number,
         recycleDelay: number,
         animationName: string,
+        impactAudioName: string,
+        impactAudioVolume: number,
         onRecycle: (projectile: WZSJZ_Bullet_XunHanHuoJian) => void,
         onKill?: () => void,
     ): boolean {
@@ -35,6 +39,8 @@ export class WZSJZ_Bullet_XunHanHuoJian extends Component {
         this._enemyArea = enemyArea;
         this._damage = Math.max(0, damage);
         this._damageRadius = Math.max(0, damageRadius);
+        this._impactAudioName = impactAudioName || "";
+        this._impactAudioVolume = Math.max(0, Math.min(1, impactAudioVolume));
         this._onRecycle = onRecycle;
         this._onKill = onKill || null;
         if (!this._enemyArea?.isValid || this._damage <= 0) {
@@ -68,7 +74,7 @@ export class WZSJZ_Bullet_XunHanHuoJian extends Component {
             return;
         }
         const center = this.node.worldPosition;
-        WZSJZ_AudioManager.Play('爆炸', 0.78, 0.08);
+        WZSJZ_AudioManager.Play(this._impactAudioName, this._impactAudioVolume, 0.08);
         const radiusSquared = this._damageRadius * this._damageRadius;
         // 复制数组，避免敌人死亡回池改变children时影响本轮范围伤害遍历。
         for (const child of [...this._enemyArea.children]) {

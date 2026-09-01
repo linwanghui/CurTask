@@ -21,8 +21,8 @@ export class WZSJZ_EconomySystem extends Component {
     private _money: number = 0;
     private _food: number = 0;
     private _purchaseCount: number = 0;
-    private _baseMoneyCost: number = 10;
-    private _baseFoodCost: number = 10;
+    private _baseMoneyCost: number = 20;
+    private _baseFoodCost: number = 20;
     private _priceIncreaseRate: number = 0.5;
     private _enoughColor: Color = null;
     private _insufficientColor: Color = null;
@@ -87,7 +87,9 @@ export class WZSJZ_EconomySystem extends Component {
             WZSJZ_UIManager.Instance.ShowText(this.GetInsufficientResourceText(moneyCost, foodCost));
             return false;
         }
-        const prefab = this.RollMaterialPrefab("PurchaseWeight");
+        const prefab = this._purchaseCount === 0
+            ? this.RollFirstPurchaseGuaranteedPrefab()
+            : this.RollMaterialPrefab("PurchaseWeight");
         if (!prefab) {
             return false;
         }
@@ -124,6 +126,22 @@ export class WZSJZ_EconomySystem extends Component {
     }
 
     public RollMaterialPrefab(weightKey: MaterialWeightKey): Prefab {
+        return this.RollMaterialPrefabFromPool(weightKey);
+    }
+
+    /** 首次成功购买只会从基础伤害单位中抽取；配置或预制体缺失时退回普通购买池。 */
+    private RollFirstPurchaseGuaranteedPrefab(): Prefab {
+        const prefab = this.RollMaterialPrefabFromPool(
+            "PurchaseWeight",
+            WZSJZ_Constant.FirstPurchaseGuaranteedMaterials,
+        );
+        return prefab || this.RollMaterialPrefab("PurchaseWeight");
+    }
+
+    private RollMaterialPrefabFromPool(
+        weightKey: MaterialWeightKey,
+        allowedNames?: readonly string[],
+    ): Prefab {
         const candidates = this._materialPrefabs
             .map((prefab) => ({
                 prefab,
@@ -133,6 +151,7 @@ export class WZSJZ_EconomySystem extends Component {
                 !!entry.prefab
                 && !!entry.config
                 && entry.config[weightKey] > 0
+                && (!allowedNames || allowedNames.includes(entry.config.Name))
                 && this.CanRollMaterial(entry.config, weightKey)
                 && (weightKey !== "PurchaseWeight" || this.CanPurchaseSpawn(entry.config)),
             );
@@ -148,6 +167,18 @@ export class WZSJZ_EconomySystem extends Component {
             }
         }
         return candidates[candidates.length - 1]?.prefab || null;
+    }
+
+    /** 招募卡只会从本局抽中的组合角色所需文字里等概率提供一个。 */
+    public RollAvailableNameUnitPrefab(): Prefab {
+        const candidates = this._materialPrefabs.filter((prefab) => {
+            const config = WZSJZ_Constant.GetMaterialConfig(prefab?.data?.name);
+            return !!prefab
+                && !!config?.IsNameUnit
+                && this._availableNameUnits.has(config.Name);
+        });
+        if (candidates.length <= 0) return null;
+        return candidates[Math.floor(Math.random() * candidates.length)] || null;
     }
 
     private CanPurchaseSpawn(config: WZSJZ_MaterialConfig): boolean {

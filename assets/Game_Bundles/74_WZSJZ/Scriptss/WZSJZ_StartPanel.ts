@@ -15,6 +15,7 @@ export class WZSJZ_StartPanel extends Component {
     private _nextClockRefreshTimestamp: number = 0;
     private _isStartingGame: boolean = false;
     private _levelSelector: WZSJZ_HomeLevelSelector = null;
+    private _hasCheckedAutoSignIn: boolean = false;
 
     protected onLoad(): void {
         WZSJZ_EventManager.BindSceneEventNode(this.node);
@@ -59,6 +60,8 @@ export class WZSJZ_StartPanel extends Component {
             this,
         );
         this.RefreshResourceView();
+        // 等主页节点和常驻UIManager完成本帧初始化后，再判断是否自动打开签到界面。
+        this.scheduleOnce(this.TryShowDailySignIn, 0);
     }
 
     protected update(): void {
@@ -99,6 +102,13 @@ export class WZSJZ_StartPanel extends Component {
 
     private ShowSignInPanel = (): void => {
         WZSJZ_UIManager.Instance.ShowPanel(WZSJZ_Constant.Panel.SignInPanel);
+    };
+
+    private TryShowDailySignIn = (): void => {
+        if (this._hasCheckedAutoSignIn) return;
+        this._hasCheckedAutoSignIn = true;
+        if (!WZSJZ_GameData.Instance.GetSignInSnapshot().CanClaimToday) return;
+        this.ShowSignInPanel();
     };
 
     private ShowShopPanel = (): void => {

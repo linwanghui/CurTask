@@ -4,7 +4,7 @@ import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
 const { ccclass } = _decorator;
 
-/** 格子表现域：移动、升级特效的加载、播放和对象池。 */
+/** 格子表现域：移动、升级、解锁特效的加载、播放和对象池。 */
 @ccclass('WZSJZ_CellEffectSystem')
 export class WZSJZ_CellEffectSystem extends Component {
     private _canvas: Node = null;
@@ -12,12 +12,15 @@ export class WZSJZ_CellEffectSystem extends Component {
     private _effectLayer: Node = null;
     private _movePrefab: Prefab = null;
     private _upgradePrefab: Prefab = null;
+    private _unlockPrefab: Prefab = null;
     private _movePool: NodePool = new NodePool();
     private _upgradePool: NodePool = new NodePool();
+    private _unlockPool: NodePool = new NodePool();
 
     protected onDestroy(): void {
         this._movePool.clear();
         this._upgradePool.clear();
+        this._unlockPool.clear();
     }
 
     public Configure(canvas: Node, dragLayer: Node): void {
@@ -45,14 +48,24 @@ export class WZSJZ_CellEffectSystem extends Component {
         );
     }
 
+    public PlayUnlock(cell: WZSJZ_Cell): void {
+        this.PlayEffect(
+            cell,
+            this._unlockPrefab,
+            this._unlockPool,
+            WZSJZ_Constant.CellEffect.UnlockFallbackDuration,
+        );
+    }
+
     private async PrepareEffects(): Promise<void> {
         try {
-            [this._movePrefab, this._upgradePrefab] = await Promise.all([
+            [this._movePrefab, this._upgradePrefab, this._unlockPrefab] = await Promise.all([
                 WZSJZ_Incident.Loadprefab(WZSJZ_Constant.CellEffect.MovePrefabPath),
                 WZSJZ_Incident.Loadprefab(WZSJZ_Constant.CellEffect.UpgradePrefabPath),
+                WZSJZ_Incident.Loadprefab(WZSJZ_Constant.CellEffect.UnlockPrefabPath),
             ]);
         } catch (error) {
-            console.error("[WZSJZ] 格子移动/升级特效加载失败。", error);
+            console.error("[WZSJZ] 格子移动/升级/解锁特效加载失败。", error);
             return;
         }
         if (!this.node?.isValid) {
@@ -63,6 +76,9 @@ export class WZSJZ_CellEffectSystem extends Component {
         }
         while (this._upgradePool.size() < WZSJZ_Constant.ObjectPool.CellUpgradeEffectPrewarm) {
             this._upgradePool.put(instantiate(this._upgradePrefab));
+        }
+        while (this._unlockPool.size() < WZSJZ_Constant.ObjectPool.CellUnlockEffectPrewarm) {
+            this._unlockPool.put(instantiate(this._unlockPrefab));
         }
     }
 
