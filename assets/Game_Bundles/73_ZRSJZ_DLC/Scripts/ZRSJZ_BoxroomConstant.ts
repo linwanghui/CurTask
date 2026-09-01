@@ -44,7 +44,8 @@ const PROP_ATTRIBUTE = new Map<string, ZRSJZ_BoxroomAttribute>([
 
 const FOOD_PROPS = new Set<string>([
     "八宝粥", "柠檬茶", "苹果", "鱼子酱", "香槟", "各种红蛋", "咖啡豆",
-    "七彩鸟蛋", "特供香槟", "彩金色鲤鱼", "极品平安果", "特供咖啡豆", "白金鸟蛋", "红珊瑚鲤鱼", "钻石级鱼子酱", "黄金方苹果", "极品大红袍茶",
+    "七彩鸟蛋", "特供香槟", "彩金色鲤鱼", "极品平安果", "特供咖啡豆", "白金鸟蛋",
+    "红珊瑚鲤鱼", "钻石级鱼子酱", "黄金方苹果", "极品大红袍茶", "野生狗奶",
 ]);
 
 const COLLECTION_PROPS = new Set<string>([

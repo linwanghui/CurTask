@@ -3,6 +3,7 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Mailbox')
@@ -118,7 +119,10 @@ export class ZRSJZ_Mailbox extends Component {
         }
 
         const icon = this._icons[this._openedCount];
-        if (icon && this.OpenSF) icon.spriteFrame = this.OpenSF;
+        if (icon && this.OpenSF) {
+            icon.spriteFrame = this.OpenSF;
+            ZRSJZ_AudioManager.Instance.PlaySound("开邮箱");
+        }
         this._openedCount++;
         this.RefreshCount();
         this.EndSearch(playerIndex);

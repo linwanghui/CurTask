@@ -107,7 +107,7 @@ export class ZRSJZ_SearchPropEffect extends Component {
         this._cover.active = false;
         // 搜索完成、真实道具刚出现时再播放音效；若退出界面导致搜索取消，
         // 上方的版本检查会直接返回，不会在返回主页时误播。
-        ZRSJZ_AudioManager.Instance?.PlaySound("开宝箱");
+        this.PlayRevealSound(quality);
         targetOpacity.opacity = 255;
         await Promise.all([
             this.PlayTargetPop(),
@@ -276,6 +276,23 @@ export class ZRSJZ_SearchPropEffect extends Component {
             case ZRSJZ_PROP_QUALITY.金色: return base * 2.6;
             case ZRSJZ_PROP_QUALITY.红色: return base * 3.2;
             default: return base;
+        }
+    }
+
+    /** 道具正式显现时，根据品质播放对应的开箱音效。 */
+    private PlayRevealSound(quality: ZRSJZ_PROP_QUALITY): void {
+        switch (quality) {
+            case ZRSJZ_PROP_QUALITY.红色:
+                ZRSJZ_AudioManager.Instance?.PlaySound("哇金色传说");
+                break;
+            case ZRSJZ_PROP_QUALITY.紫色:
+            case ZRSJZ_PROP_QUALITY.金色:
+                ZRSJZ_AudioManager.Instance?.PlaySound("开宝箱");
+                break;
+            default:
+                // 白、绿、蓝品质统一使用普通开出音效。
+                ZRSJZ_AudioManager.Instance?.PlaySound("白");
+                break;
         }
     }
 

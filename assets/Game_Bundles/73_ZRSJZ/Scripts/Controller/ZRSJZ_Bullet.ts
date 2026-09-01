@@ -1,4 +1,4 @@
-import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, RigidBody2D, v2, Vec3 } from 'cc';
+import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, v2, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_TIER } from '../ZRSJZ_Constant';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
@@ -140,16 +140,77 @@ export class ZRSJZ_Bullet extends Component {
         ZRSJZ_PoolManager.Instance.PutNode(this.node);
     }
 
-    async CreateEffect() {
-        const hitEffect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HitEffect");
-        hitEffect.parent = this.node.parent;
-        hitEffect.getComponent(ZRSJZ_Effect).Show(this.node.worldPosition, this._dirX, this._dirY);
+    async CreateEffect(): Promise<void> {
+        await this.CreateHitEffect("Prefabs/Effect/HitEffect", "墙体命中特效");
     }
 
-    async CreateEffect2() {
-        const hitEffect = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/绿色血雾");
-        hitEffect.parent = this.node.parent;
-        hitEffect.getComponent(ZRSJZ_Effect).Show(this.node.worldPosition, this._dirX, this._dirY);
+    async CreateEffect2(): Promise<void> {
+        await this.CreateHitEffect("Prefabs/Effect/绿色血雾", "单位命中特效");
+    }
+
+    /**
+     * 子弹会在命中后的下一帧回收到对象池，因此必须在第一个 await 之前
+     * 保存父节点、命中位置和方向，不能在异步加载完成后再读取 this.node。
+     */
+    private async CreateHitEffect(path: string, effectName: string): Promise<void> {
+        const effectParent = this.node.parent;
+        const effectWorldPosition = this.node.worldPosition.clone();
+        const effectDirX = this._dirX;
+        const effectDirY = this._dirY;
+
+        if (!effectParent?.isValid || !effectParent.activeInHierarchy) {
+            console.warn(`[ZRSJZ_Bullet] ${effectName}创建取消：命中时父节点无效或未激活`, {
+                path,
+                bulletNodeUuid: this.node.uuid,
+            });
+            return;
+        }
+
+        let hitEffect: Node = null;
+        try {
+            hitEffect = await ZRSJZ_PoolManager.Instance.GetNode(path);
+        } catch (error) {
+            console.error(`[ZRSJZ_Bullet] ${effectName}加载失败`, { path, error });
+            return;
+        }
+
+        if (!hitEffect?.isValid) {
+            console.error(`[ZRSJZ_Bullet] ${effectName}创建失败：对象池未返回有效节点`, { path });
+            return;
+        }
+
+        // await 期间可能已经切换或销毁场景；这时不能把特效挂到失效层级。
+        if (!effectParent.isValid || !effectParent.activeInHierarchy) {
+            console.warn(`[ZRSJZ_Bullet] ${effectName}创建取消：异步加载完成后父节点已失效`, {
+                path,
+                effectNodeUuid: hitEffect.uuid,
+            });
+            ZRSJZ_PoolManager.Instance.PutNode(hitEffect);
+            return;
+        }
+
+        const effect = hitEffect.getComponent(ZRSJZ_Effect);
+        if (!effect) {
+            console.error(`[ZRSJZ_Bullet] ${effectName}创建失败：缺少 ZRSJZ_Effect 组件`, {
+                path,
+                effectNodeName: hitEffect.name,
+                effectNodeUuid: hitEffect.uuid,
+            });
+            ZRSJZ_PoolManager.Instance.PutNode(hitEffect);
+            return;
+        }
+
+        try {
+            hitEffect.parent = effectParent;
+            effect.Show(effectWorldPosition, effectDirX, effectDirY);
+        } catch (error) {
+            console.error(`[ZRSJZ_Bullet] ${effectName}播放失败`, {
+                path,
+                effectNodeUuid: hitEffect.uuid,
+                error,
+            });
+            if (hitEffect.isValid) ZRSJZ_PoolManager.Instance.PutNode(hitEffect);
+        }
     }
 }
 

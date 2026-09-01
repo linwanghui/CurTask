@@ -8,6 +8,7 @@ const { ccclass } = _decorator;
 export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
 
     SetSkin(skinName: string): void {
+        this.node.active = true;
         super.SetSkin(skinName);
         void this.ShowEquipment("DX9-冲锋枪");
         this.ShowEntranceAnis([...ZRSJZ_SKIN_CONFIG.get(skinName)?.EntranceAnis]);

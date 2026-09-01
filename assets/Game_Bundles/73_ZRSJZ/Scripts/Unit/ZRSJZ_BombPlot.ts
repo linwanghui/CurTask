@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bombing } from '../Skill/ZRSJZ_Bombing';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
 export interface ZRSJZ_BombPlotDropOptions {
@@ -82,6 +83,7 @@ export class ZRSJZ_BombPlot extends Component {
             gameMap.worldPosition.z,
         );
         this.node.active = true;
+        ZRSJZ_AudioManager.Instance.PlayMusic("轰炸机");
 
         this.scheduleOnce(() => {
             if (version !== this._deployVersion || !this.IsRunning) return;
@@ -172,7 +174,7 @@ export class ZRSJZ_BombPlot extends Component {
         if (version !== this._deployVersion || !this.IsRunning) return;
         this.scheduleOnce(() => void this.DropBomb(version),
             this._currentMinBombInterval
-                + Math.random() * (this._currentMaxBombInterval - this._currentMinBombInterval));
+            + Math.random() * (this._currentMaxBombInterval - this._currentMinBombInterval));
     }
 
     private SetDropOptions(options: Readonly<ZRSJZ_BombPlotDropOptions> = null): void {

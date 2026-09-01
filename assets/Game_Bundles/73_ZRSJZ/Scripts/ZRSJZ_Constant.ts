@@ -147,6 +147,7 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["钻石级鱼子酱", { Name: "钻石级鱼子酱", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 223800, MaxCount: 1 }],
     ["黄金方苹果", { Name: "黄金方苹果", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 189000, MaxCount: 1 }],
     ["极品大红袍茶", { Name: "极品大红袍茶", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 232210, MaxCount: 1 }],
+    ["野生狗奶", { Name: "野生狗奶", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 282100, MaxCount: 1 }],
 
     //1x2 --  白
     ["哑铃", { Name: "哑铃", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "物品", UnitPrice: 3600, MaxCount: 1 }],
@@ -214,6 +215,10 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["步战车", { Name: "步战车", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 1340000, MaxCount: 1 }],
     ["红珊瑚鲤鱼", { Name: "红珊瑚鲤鱼", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 3340000, MaxCount: 1 }],
     ["特供咖啡豆", { Name: "特供咖啡豆", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 2540000, MaxCount: 1 }],
+    ["幸运修勾", { Name: "幸运修勾", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 620000, MaxCount: 1 }],
+    ["快乐小熊", { Name: "快乐小熊", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 730000, MaxCount: 1 }],
+    ["魔术兔子", { Name: "魔术兔子", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 880000, MaxCount: 1 }],
+    ["嘟嘟骑士", { Name: "嘟嘟骑士", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 1110000, MaxCount: 1 }],
 
     //2x3 --  白
     ["水泥", { Name: "水泥", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 13000, MaxCount: 1 }],
@@ -407,6 +412,13 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["钻石级鱼子酱", "采用顶级鱼卵精制而成的钻石级鱼子酱，颗粒饱满、风味醇厚，是奢华宴席中的珍品。"],
     ["黄金方苹果", "外形方正、果皮泛着黄金光泽的珍稀苹果，果肉清甜爽脆，兼具观赏与收藏价值。"],
     ["极品大红袍茶", "精选核心产区优质茶叶精制而成，茶香馥郁持久、滋味醇厚回甘，是难得的茶中珍品。"],
+
+
+    ["野生狗奶", "狗儿也有狗儿奶，内含时间宝石，保质期永久。"],
+    ["幸运修勾", "佩戴红色蝴蝶结与幸运徽章的修勾玩偶，圆润的爪垫和明亮的眼睛仿佛能为收藏者带来一整天的好运。"],
+    ["快乐小熊", "系着红色蝴蝶结的棕色小熊玩偶，柔软憨厚的模样令人安心，是能驱散疲惫、珍藏快乐的温暖陪伴。"],
+    ["魔术兔子", "头戴魔术礼帽、手持星光魔杖的兔子玩偶，精致披风下似乎藏着无数惊喜，随时准备献上一场奇妙演出。"],
+    ["嘟嘟骑士", "我的订单都敢抢，你的胆子真是肥嘟嘟的。"],
 
     //房卡
     ["低级房卡", "用于开启普通封锁房间的电子门禁卡，卡片上的紫色权限标识仍然有效。"],
@@ -1302,8 +1314,8 @@ const ZRSJZ_MAP_BOX_EQUIPMENT_QUALITIES: readonly ZRSJZ_PROP_QUALITY[] = [
  */
 export const ZRSJZ_MAP_EXCLUSIVE_RED_CONFIG: ReadonlyMap<string, readonly string[]> = new Map([
     ["新手村", []],
-    ["五号小镇_机密行动", ["化石", "白金鸟蛋", "黄金方苹果"]],
-    ["五号小镇_绝密行动", ["实验数据", "曼德尔", "七彩鸟蛋", "极品平安果"]],
+    ["五号小镇_机密行动", ["野生狗奶", "化石", "白金鸟蛋", "黄金方苹果"]],
+    ["五号小镇_绝密行动", ["实验数据", "嘟嘟骑士", "曼德尔", "七彩鸟蛋", "极品平安果"]],
     ["沙漠古迹_机密行动", ["金条", "劳力士", "终端", "扫地机器"]],
     ["沙漠古迹_绝密行动", ["军用地图匣", "外星人笔记本", "万金", "刀片服务器"]],
     ["极北之地_机密行动", ["显卡", "留声机", "动力电池组", "卫星锅", "半身像"]],

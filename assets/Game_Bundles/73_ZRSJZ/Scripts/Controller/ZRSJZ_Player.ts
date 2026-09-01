@@ -22,6 +22,7 @@ import { ZRSJZ_SpecialOperationsTaskIcon } from '../Unit/ZRSJZ_SpecialOperations
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Mailbox } from '../Unit/ZRSJZ_Mailbox';
 import { ZRSJZ_BoosterShotService } from "../Service/ZRSJZ_BoosterShotService";
+import { ZRSJZ_Laser } from "../Skill/ZRSJZ_Laser";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -67,6 +68,8 @@ export class ZRSJZ_Player extends Component {
     private _isSlide: boolean = false;
     private _targetBox: ZRSJZ_Box = null;
     private _isStop: boolean = false;
+    /** 激光施法期间允许移动，但禁止射击、滑铲、换弹、切换武器和再次施法。 */
+    private _isLaserCasting: boolean = false;
     private _shielding: boolean = false;
     private _knifeCount: number = 0;
     private _knifeAttackIndex: number = 2;
@@ -107,17 +110,17 @@ export class ZRSJZ_Player extends Component {
     }
     //是否能滑动
     public get IsSlide(): boolean {
-        return !this._isStop;
+        return !this._isStop && !this._isLaserCasting;
     }
 
     //是否能释放技能
     public get IsSkill(): boolean {
-        return !this._isSlide;
+        return !this._isSlide && !this._isLaserCasting;
     }
 
     //是否能切换武器
     public get IsSwitch(): boolean {
-        return !this._isSlide;
+        return !this._isSlide && !this._isLaserCasting;
     }
 
     protected onLoad(): void {
@@ -258,12 +261,13 @@ export class ZRSJZ_Player extends Component {
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        if (this._isSlide || this._gunAttackAnimationActive) return;
+        if (this._isSlide || this._gunAttackAnimationActive || this._isLaserCasting) return;
         this.CancelGunAttackState();
         this.CancelKnifeAttackState();
         switch (skillName) {
             case "激光":
-                this._isStop = true;
+                this._isLaserCasting = true;
+                this.Reload(0, true, this.PlayerIndex);
                 const isKnife = this.PlayerSkeleton.IsKnife;
                 if (isKnife) {
                     this.PlayerSkeleton.IsKnife = false;
@@ -273,20 +277,22 @@ export class ZRSJZ_Player extends Component {
                 }
                 this.PlayAni(ZRSJZ_ANI.Idle_Q);
                 ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/LaserEffect").then((laser: Node) => {
+                    // 激光留在地图特效层，由组件按玩家的世界位置和实时朝向独立跟随。
                     laser.parent = this.node.parent.parent;
                     laser.active = true;
                     const harm = 15 * (1 + ZRSJZ_BoosterShotService.GetBooster("攻击针"))
-                    laser.getComponent(ZRSJZ_Skill).Show(this.getMuzzlePos(), this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, harm, () => {
-                        if (isKnife) {
-                            const knifeID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[4];
-                            this.PlayerSkeleton.ShowEquipment(ZRSJZ_GameData.Instance.PropData[knifeID].Name);
-                            this.PlayAni(ZRSJZ_ANI.Idle_D1);
-                            this.PlayerSkeleton.IsKnife = true;
-                        }
-                        this._isStop = false;
-                    })
+                    const laserSkill = laser.getComponent(ZRSJZ_Laser);
+                    const muzzlePosition = this.getMuzzlePos() ?? this.node.worldPosition.clone();
+                    laserSkill.Show(muzzlePosition, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, harm, () => {
+                        this.FinishLaserCasting(isKnife);
+                    });
+                    laserSkill.Follow(
+                        this.node,
+                        () => this.getMuzzlePos() ?? this.node.worldPosition.clone(),
+                        () => v2(this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY),
+                    );
                 }).catch((error) => {
-                    this._isStop = false;
+                    this.FinishLaserCasting(isKnife);
                     console.error('[ZRSJZ_Player] 技能特效加载失败:', error);
                 })
                 break;
@@ -322,6 +328,18 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
+    private FinishLaserCasting(restoreKnife: boolean): void {
+        this._isLaserCasting = false;
+        if (!restoreKnife) return;
+
+        const knifeID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[4];
+        const knifeData = ZRSJZ_GameData.Instance.PropData[knifeID];
+        if (!knifeData) return;
+        this.PlayerSkeleton.ShowEquipment(knifeData.Name);
+        this.PlayAni(ZRSJZ_ANI.Idle_D1);
+        this.PlayerSkeleton.IsKnife = true;
+    }
+
     //#region 移动
     Move(x: number, y: number, radius: number, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
@@ -336,7 +354,7 @@ export class ZRSJZ_Player extends Component {
     //#region 攻击
     Attack(fireing: boolean, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        if (this._isSlide || this._isStop) return;
+        if (this._isSlide || this._isStop || this._isLaserCasting) return;
         if (!fireing) {
             if (this.WeaponType === "刀") {
                 // 松开只停止下一次连击；当前挥刀必须完整播放，避免快速点击同帧清掉 Track 1。
@@ -428,12 +446,16 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
             if (!muzzleEffect?.isValid) return;
             muzzleEffect.parent = this.node;
-            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect)?.Show(mainBulletSpawnPos, attackX, attackY);
+            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect)?.Show(this.GetReliableMuzzlePos(), attackX, attackY);
         }).catch(error => console.error("[ZRSJZ_Player] 枪口特效创建失败", error));
 
         if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._magazineAmmo.length <= 0) {
             this.StopFiring();
         }
+
+        let audioName: string = ZRSJZ_WEAPONRY_TYPE.get("散弹枪")?.includes(this.PlayerSkeleton.WeaponryName) ||
+            ZRSJZ_WEAPONRY_TYPE.get("狙击枪")?.includes(this.PlayerSkeleton.WeaponryName) ? "狙击枪枪声" : "枪声";
+
 
         if (ZRSJZ_WEAPONRY_TYPE.get("散弹枪")?.includes(this.PlayerSkeleton.WeaponryName)) {
             //散射两个子弹
@@ -444,10 +466,8 @@ export class ZRSJZ_Player extends Component {
 
             void this.SpawnExtraBullet(attackX * cos - attackY * sin, attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
             void this.SpawnExtraBullet(attackX * cos + attackY * sin, -attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
-            ZRSJZ_AudioManager.Instance.PlaySound("狙击枪枪声");
-        } else {
-            ZRSJZ_AudioManager.Instance.PlaySound("枪声");
         }
+        ZRSJZ_AudioManager.Instance.PlaySound(audioName);
 
     }
 
@@ -540,6 +560,10 @@ export class ZRSJZ_Player extends Component {
     AniSwitch() {
         if (this._isSlide) return;
         const isMoving = this._moveX !== 0 || this._moveY !== 0;
+        if (this._isLaserCasting) {
+            this.PlayAni(isMoving ? ZRSJZ_ANI.Walk_Q : ZRSJZ_ANI.Idle_Q);
+            return;
+        }
         const animation = this.WeaponType === "枪"
             ? (isMoving ? ZRSJZ_ANI.Walk_Q : ZRSJZ_ANI.Idle_Q)
             : (isMoving ? ZRSJZ_ANI.Walk_D : ZRSJZ_ANI.Idle_D1);
@@ -559,6 +583,7 @@ export class ZRSJZ_Player extends Component {
     private _curKnifeName: string = "";
     SwitchWeapon(weaponType: string, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        if (this._isLaserCasting) return;
         const weaponryIndex = weaponType === "枪" ? 0 : (weaponType === "刀" ? 4 : -1);
         const weaponID = weaponryIndex >= 0
             ? ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[weaponryIndex]
@@ -736,6 +761,7 @@ export class ZRSJZ_Player extends Component {
             this.RefreshBulletProgress();
             return;
         }
+        if (this._isLaserCasting) return;
 
         if (fill <= 0) {
             if (!this.CanReload()) {
@@ -769,6 +795,9 @@ export class ZRSJZ_Player extends Component {
     }
 
     public CanReload(): boolean {
+        if (this._isLaserCasting) {
+            return false;
+        }
         if (this.WeaponType !== "枪") {
             return false;
         }
@@ -1003,7 +1032,7 @@ export class ZRSJZ_Player extends Component {
     //#region 滑动
     Slide(playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        if (this._isStop || this._gunAttackAnimationActive) return;
+        if (this._isStop || this._gunAttackAnimationActive || this._isLaserCasting) return;
         this.CancelGunAttackState();
         this.CancelKnifeAttackState();
         ZRSJZ_AudioManager.Instance.PlaySound("滑铲音效");
