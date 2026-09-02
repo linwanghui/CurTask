@@ -1195,10 +1195,10 @@ export interface ZRSJZ_ParacargoConfig {
 
 /** 轰炸区刷新配置；所有随机时间均为闭区间内的均匀随机。 */
 export const ZRSJZ_BOMB_PLOT_SPAWN_CONFIG = Object.freeze({
-    FirstSpawnMinSeconds: 6,
-    FirstSpawnMaxSeconds: 12,
-    RepeatSpawnMinSeconds: 15,
-    RepeatSpawnMaxSeconds: 24,
+    FirstSpawnMinSeconds: 30,
+    FirstSpawnMaxSeconds: 40,
+    RepeatSpawnMinSeconds: 30,
+    RepeatSpawnMaxSeconds: 40,
 });
 
 export interface ZRSJZ_MapConfig {
@@ -1296,7 +1296,7 @@ const ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.3, 1.55,
 const ZRSJZ_MAP_SPEED_MULTIPLIERS: readonly number[] = [0.95, 1, 1.05, 1.1, 1.15, 1.2];
 const ZRSJZ_MAP_ATTACK_INTERVAL_MULTIPLIERS: readonly number[] = [1.05, 1, 0.95, 0.9, 0.85, 0.8];
 /** 六个模式进入战斗后触发空投的时间（秒），高难度更早提供争夺目标。 */
-export const ZRSJZ_PARACARGO_SPAWN_TIMES: readonly number[] = [18, 150, 135, 120, 105, 90];
+export const ZRSJZ_PARACARGO_SPAWN_TIMES: readonly number[] = [180, 150, 135, 120, 105, 90];
 const ZRSJZ_MAP_PROP_TYPES: readonly string[] = ["物品", "房卡", "弹药", "头盔", "防弹衣"];//地图中允许掉落的类型
 /** 宝箱不掉落背包，其他装备最高只允许紫色（四级）；普通物资与弹药不受此限制。 */
 const ZRSJZ_MAP_BOX_EQUIPMENT_TYPES: readonly string[] = ["枪", "刀", "头盔", "防弹衣", "背包"];

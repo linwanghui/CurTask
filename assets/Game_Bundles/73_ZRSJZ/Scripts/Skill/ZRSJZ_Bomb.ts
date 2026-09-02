@@ -3,6 +3,7 @@ import { ZRSJZ_Skill } from './ZRSJZ_Skill';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_EnemyBase } from '../Controller/ZRSJZ_EnemyBase';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_Player } from '../Controller/ZRSJZ_Player';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Bomb')
@@ -41,7 +42,10 @@ export class ZRSJZ_Bomb extends ZRSJZ_Skill {
         this.node.setWorldPosition(worldPos.clone());
         this.Skeleton.setAnimation(0, this.AniName, false);
         this.Skeleton.setCompleteListener(() => {
-            ZRSJZ_AudioManager.Instance.PlaySound("轰炸");
+            const players = director.getScene().getComponentsInChildren(ZRSJZ_Player);
+            players.sort((a, b) => Vec3.distance(this.node.worldPosition, a.node.worldPosition) - Vec3.distance(this.node.worldPosition, b.node.worldPosition));
+            const distance = Vec3.distance(this.node.worldPosition, players[0].node.worldPosition);
+            ZRSJZ_AudioManager.Instance.PlaySound("轰炸", (10000 - distance) / 10000);
             this.Skeleton.node.active = false;
             this.BombSkeleton.node.active = true;
             this.BombSkeleton.setAnimation(0, this.NextAniName, false);

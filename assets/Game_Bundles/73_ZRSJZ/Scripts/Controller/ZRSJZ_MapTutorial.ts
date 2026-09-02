@@ -11,10 +11,19 @@ export class ZRSJZ_MapTutorial extends ZRSJZ_Map {
     @property(ZRSJZ_Box)
     Box1: ZRSJZ_Box = null;
 
+    @property(Node)
+    ColliderNode: Node = null;
+
     TutorialFlag: boolean[] = [false, false];
 
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.Checked, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL_CLOSE_COLLIDER, this.CloseCollider, this);
+    }
+
+    protected onDisable(): void {
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.Checked, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL_CLOSE_COLLIDER, this.CloseCollider, this);
     }
 
     Checked(box: ZRSJZ_Box) {
@@ -22,6 +31,12 @@ export class ZRSJZ_MapTutorial extends ZRSJZ_Map {
             this.TutorialFlag[0] = true;
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 1);
             ZRSJZ_TutorialPanel.IsTipShowing = true;
+        }
+    }
+
+    CloseCollider() {
+        if (this.ColliderNode.active) {
+            this.ColliderNode.active = false;
         }
     }
 }

@@ -1,7 +1,7 @@
 import { _decorator, Component, Node, tween, Tween, UITransform } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_PANEL } from './ZRSJZ_Constant';
+import { ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_Game } from './ZRSJZ_Game';
 import { ZRSJZ_TutorialPanel } from './Panel/ZRSJZ_TutorialPanel';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';

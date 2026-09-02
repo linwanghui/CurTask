@@ -31,6 +31,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     private _warehouseNode: Node = null;
     private _curInventory: Node = null;
     private _isSelling: boolean = false;
+    private _isOrganizing: boolean = false;
     private _sellPropID: string[] = [];
     private _warehouseButtons: Node[] = [];
     private _playerLoadoutRefreshTask: Promise<void> = Promise.resolve();
@@ -128,7 +129,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
 
     //#region 按钮点击事件
     OnButtonClick(event: EventTouch) {
-        if (ZRSJZ_UIManager.Dragging) return;
+        if (ZRSJZ_UIManager.Dragging || this._isOrganizing) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Close":
@@ -152,7 +153,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
                 }
                 break;
             case "一键整理":
-
+                void this.OrganizeCurrentWarehouse();
                 break;
             case "Mask":
                 this._isSelling = false;
@@ -164,6 +165,53 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
             default:
                 this.SwitchButton(event.getCurrentTarget());
                 break;
+        }
+    }
+
+    /** 只整理当前页签对应的仓库，不跨仓库移动道具。 */
+    private async OrganizeCurrentWarehouse(): Promise<void> {
+        if (this._isSelling) {
+            await ZRSJZ_UIManager.Instance.ShowTip("请先结束批量出售");
+            return;
+        }
+
+        const inventoryNode = this._curInventory;
+        const inventory = inventoryNode?.getComponent(ZRSJZ_Inventory);
+        const expectedInventory = this.GetWarehouseInventory(this._warehouseName);
+        if (
+            !inventoryNode?.isValid
+            || !inventory?.IsInitialized
+            || inventory.InventoryType !== expectedInventory
+        ) {
+            await ZRSJZ_UIManager.Instance.ShowTip("当前仓库尚未加载完成");
+            return;
+        }
+
+        const hasProp = inventory.Grids.some(row => row.some(propID => propID !== ""));
+        if (!hasProp) {
+            await ZRSJZ_UIManager.Instance.ShowTip("当前仓库没有需要整理的道具");
+            return;
+        }
+
+        this._isOrganizing = true;
+        this.ScrollView.enabled = false;
+        try {
+            const organized = await inventory.AutoOrganize();
+            if (!organized) {
+                await ZRSJZ_UIManager.Instance.ShowTip("当前仓库整理失败");
+                return;
+            }
+
+            // 整理后清除中间空行并同步可滚动高度。
+            await inventory.ShowPropItem();
+            if (this.ScrollView?.isValid) this.ScrollView.scrollToTop(0.2);
+            await ZRSJZ_UIManager.Instance.ShowTip("当前仓库整理完成");
+        } catch (error) {
+            console.error("[ZRSJZ_WarehousePanel] 当前仓库整理失败", error);
+            await ZRSJZ_UIManager.Instance.ShowTip("当前仓库整理失败");
+        } finally {
+            if (this.ScrollView?.isValid) this.ScrollView.enabled = true;
+            this._isOrganizing = false;
         }
     }
 
