@@ -53,6 +53,7 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_INVENTORY_ADD_ROW: string = 'ZRSJZ_INVENTORY_ADD_ROW';//添加库存行---仓库扩容
     public static ZRSJZ_MAIL_GET_PROP: string = 'ZRSJZ_MAIL_GET_PROP';//领取邮件中的道具
     public static ZRSJZ_MAIL_GET_PROP_ADD: string = 'ZRSJZ_MAIL_GET_PROP_ADD';//领取邮件中的道具--添加一个
+    public static ZRSJZ_MAIL_CHANGE: string = 'ZRSJZ_MAIL_CHANGE';//邮件新增、领取、删除或过期
 
 }
 

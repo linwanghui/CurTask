@@ -273,13 +273,30 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
 
             const targetInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
             if (!targetInventory) return;
-            await weaponryInventory.RemoveProp(
+            const categoryInventory = (await ZRSJZ_UIManager.Instance.GetInventory(targetInventory))
+                ?.getComponent(ZRSJZ_Inventory);
+            let storedInventory = targetInventory;
+            let isStored = await categoryInventory?.TryReceiveProp(
+                propData.CurInventory,
                 this._propID,
-                true,
-                this.PlayerIndex,
-            );
-            ZRSJZ_InventoryService.MovePropToInventory(this._propID, targetInventory, 1, -1, -1);
-            await this.RefreshWarehouseInventories(targetInventory);
+                false,
+            ) ?? false;
+            if (!isStored && targetInventory !== ZRSJZ_INVENTORY.仓库_全部) {
+                const mainInventory = (await ZRSJZ_UIManager.Instance.GetInventory(
+                    ZRSJZ_INVENTORY.仓库_全部,
+                ))?.getComponent(ZRSJZ_Inventory);
+                isStored = await mainInventory?.TryReceiveProp(
+                    propData.CurInventory,
+                    this._propID,
+                    false,
+                ) ?? false;
+                storedInventory = ZRSJZ_INVENTORY.仓库_全部;
+            }
+            if (!isStored) {
+                await ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，无法卸下装备");
+                return;
+            }
+            await this.RefreshWarehouseInventories(storedInventory);
             this.ClosePanel();
         } finally {
             this._isOperating = false;

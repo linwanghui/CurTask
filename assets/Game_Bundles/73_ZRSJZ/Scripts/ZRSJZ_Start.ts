@@ -9,6 +9,7 @@ import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
 import { ZRSJZ_GradeService } from "./Service/ZRSJZ_GradeService";
 import { ZRSJZ_TaskService } from "./Service/ZRSJZ_TaskService";
+import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -26,6 +27,11 @@ export class ZRSJZ_Start extends Component {
     @property(Node)
     LoadPanel: Node = null;
 
+    @property(Node)
+    MailRed: Node = null;
+
+    @property(Label)
+    MailCount: Label = null;
 
     protected start(): void {
 
@@ -47,6 +53,7 @@ export class ZRSJZ_Start extends Component {
             ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
             this.ModelSwitch();
             this.RefreshMainTaskTip();
+            this.RefreshMailTip();
             // 对局经验只在回到大厅、等级 UI 已注册事件后统一发放。
             ZRSJZ_GradeService.ClaimPendingExperience();
         }
@@ -65,12 +72,15 @@ export class ZRSJZ_Start extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MODEL_SWITCH, this.ModelSwitch, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW, this.RefreshMainTaskTip, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, this.RefreshMainTaskTip, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_CHANGE, this.RefreshMailTip, this);
+        this.RefreshMailTip();
     }
 
     protected onDisable(): void {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MODEL_SWITCH, this.ModelSwitch, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW, this.RefreshMainTaskTip, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, this.RefreshMainTaskTip, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_CHANGE, this.RefreshMailTip, this);
     }
 
     OnButtonClick(event: EventTouch) {
@@ -120,6 +130,9 @@ export class ZRSJZ_Start extends Component {
             case "等级":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.等级弹窗);
                 break;
+            case "邮件":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.邮件界面);
+                break;
             case "主页":
                 ProjectEventManager.emit(ProjectEvent.返回主页按钮事件, () => {
                     ProjectEventManager.emit(ProjectEvent.返回主页);
@@ -165,6 +178,14 @@ export class ZRSJZ_Start extends Component {
     private RefreshMainTaskTip(): void {
         if (this.TaskTip?.isValid) {
             this.TaskTip.active = ZRSJZ_TaskService.HasMainTaskReminder();
+        }
+    }
+
+    private RefreshMailTip(): void {
+        const unclaimedMailCount = ZRSJZ_MailService.GetUnclaimedMailCount();
+        if (this.MailRed?.isValid) this.MailRed.active = unclaimedMailCount > 0;
+        if (this.MailCount?.isValid) {
+            this.MailCount.string = `${Math.min(99, unclaimedMailCount)}`;
         }
     }
 

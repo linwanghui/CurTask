@@ -26,6 +26,7 @@ export class ZRSJZ_TaskAward extends Component {
     Checked: Node = null;
 
     PropName: string = "";
+    SelectionKey: string = "";
 
     private _isInit: boolean = false;
     /** 防止节点回池并快速复用后，上一轮异步资源覆盖当前奖励。 */
@@ -43,7 +44,7 @@ export class ZRSJZ_TaskAward extends Component {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_GET_PROP, this.GetShow, this);
     }
 
-    Init(propName: string, count: number) {
+    Init(propName: string, count: number, selectionKey: string = propName) {
         const refreshVersion = ++this._refreshVersion;
         if (!this._isInit) {
             this._isInit = true;
@@ -56,6 +57,10 @@ export class ZRSJZ_TaskAward extends Component {
         }
 
         this.PropName = propName;
+        this.SelectionKey = selectionKey;
+        this._isGeting = false;
+        this._isGetCheck = false;
+        this.ShowGetButton();
         this.Name.string = propName;
         this.Count.string = count.toString();
         if (propName == "钞票") {
@@ -93,8 +98,8 @@ export class ZRSJZ_TaskAward extends Component {
 
     //显示售卖按钮
     ShowGetButton() {
-        this.Check.active = !this._isGetCheck;
-        this.Checked.active = this._isGetCheck;
+        this.Check.active = this._isGeting && !this._isGetCheck;
+        this.Checked.active = this._isGeting && this._isGetCheck;
     }
 
     OnTouchEnd(event: EventTouch) {
@@ -102,7 +107,11 @@ export class ZRSJZ_TaskAward extends Component {
             ZRSJZ_AudioManager.Instance.PlaySound("点击");
             this._isGetCheck = !this._isGetCheck;
             this.ShowGetButton();
-            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_GET_PROP_ADD, this.PropName);
+            ZRSJZ_EventManager.EmitPersist(
+                ZRSJZ_MyEvent.ZRSJZ_MAIL_GET_PROP_ADD,
+                this.SelectionKey,
+                this._isGetCheck,
+            );
         }
     }
 

@@ -1,10 +1,8 @@
-import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Button, director, find, Label, Node, Sprite, SpriteFrame, Tween, tween, UITransform, v3, Widget } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
@@ -84,7 +82,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
             button.target = item;
             button.transition = Button.Transition.SCALE;
             button.zoomScale = 0.96;
-            item.on(Node.EventType.TOUCH_END, () => this.OnSignItemClick(dayIndex), this);
+            item.on(Node.EventType.TOUCH_END, () => void this.OnSignItemClick(dayIndex), this);
         }
     }
 
@@ -141,7 +139,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
         }
     }
 
-    private OnSignItemClick(dayIndex: number): void {
+    private async OnSignItemClick(dayIndex: number): Promise<void> {
         const claimedCount = ZRSJZ_AccountService.GetSignInClaimedCount();
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         if (dayIndex < claimedCount) {
@@ -164,16 +162,26 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
         }
 
         const reward = SIGN_IN_REWARDS[dayIndex];
+        let sentToMail = false;
         if (reward.gold) {
             ZRSJZ_AccountService.ChangeGold(reward.gold);
             ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
         } else if (reward.propName) {
-            ZRSJZ_InventoryService.AddPropByName(reward.propName, reward.propCount ?? 1);
-            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+            const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards([{
+                PropName: reward.propName,
+                Count: reward.propCount ?? 1,
+            }]);
+            if (result.MailAwards.length > 0) {
+                sentToMail = true;
+            }
         }
 
         this.RefreshSignItems();
-        ZRSJZ_UIManager.Instance.ShowTip(`签到成功，获得${reward.name}${reward.countText}`);
+        ZRSJZ_UIManager.Instance.ShowTip(
+            sentToMail
+                ? `签到成功，${reward.name}${reward.countText}已发送至邮件`
+                : `签到成功，获得${reward.name}${reward.countText}`,
+        );
         if (ZRSJZ_AccountService.IsSignInCompleted()) {
             this.ClosePanel();
         }

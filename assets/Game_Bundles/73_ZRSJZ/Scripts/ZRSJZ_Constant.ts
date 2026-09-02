@@ -44,6 +44,7 @@ export enum ZRSJZ_PANEL {
     增强针弹窗 = "73_ZRSJZ/Prefabs/Panel/增强针弹窗",
     增强针替换弹窗 = "73_ZRSJZ/Prefabs/Panel/增强针替换弹窗",
     背包扩容弹窗 = "73_ZRSJZ/Prefabs/Panel/背包扩容弹窗",
+    邮件界面 = "73_ZRSJZ/Prefabs/Panel/邮件界面",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -2117,8 +2118,14 @@ export const ZRSJZ_MAIL_DESC: ReadonlyMap<string, string> = new Map([
     [ZRSJZ_MAIL_TYPE.其他模式中获取道具, "    干员您好！这是您于文字大乱斗中获取的专属道具，奖励现已为您下发，请及时查收领取。期待见证您在对局中的精彩发挥，祝您游戏顺遂，日日愉快！"],
 ])
 
+/** 邮件中的一项道具附件。旧存档中的字符串附件会在 MailService 中自动转换。 */
+export interface ZRSJZ_MailPropAward {
+    PropName: string;
+    Count: number;
+}
+
 export interface ZRSJZ_MailConfig {
     Type: string;//邮件类型
     Time: string;//时间
-    PropAwards: string[];//道具奖励
+    PropAwards: Array<string | ZRSJZ_MailPropAward>;//道具奖励（string 用于兼容旧存档）
 }

@@ -1,4 +1,3 @@
-import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Prefab, sp, Sprite, SpriteFrame, Tween, tween } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
@@ -416,8 +415,15 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         }
         ZRSJZ_AccountService.ChangeGold(-this._shopPrice);
         const count = ZRSJZ_PROP_CONFIG.get(this._curShop)?.MaxCount ?? 1;
-        ZRSJZ_InventoryService.AddPropByName(this._curShop, count);
-        await ZRSJZ_UIManager.Instance.ShowTip("购买成功");
+        const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards([{
+            PropName: this._curShop,
+            Count: count,
+        }]);
+        await ZRSJZ_UIManager.Instance.ShowTip(
+            result.MailAwards.length > 0
+                ? "购买成功，仓库空间不足，道具已发送至邮件"
+                : "购买成功",
+        );
     }
 
     private async OnWatchWeaponSkinVideo(): Promise<void> {
