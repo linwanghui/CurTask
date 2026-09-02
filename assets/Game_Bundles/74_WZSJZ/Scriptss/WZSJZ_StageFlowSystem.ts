@@ -195,9 +195,9 @@ export class WZSJZ_StageFlowSystem extends Component {
         if (victory) {
             const gameData = WZSJZ_GameData.Instance;
             gameData.CompleteLevel(gameData.SelectedLevel);
-            diamondReward = WZSJZ_Constant.StageFlow.VictoryBaseDiamondReward
-                + Math.max(0, this._round - 1)
-                    * WZSJZ_Constant.StageFlow.VictoryDiamondRewardPerRound;
+            diamondReward = WZSJZ_Constant.GetVictoryDiamondReward(
+                gameData.SelectedLevel,
+            );
             gameData.AddDiamond(diamondReward);
             combinationAward = WZSJZ_CombinationRewardSystem.GrantRandomClearReward();
         }
