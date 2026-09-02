@@ -19,6 +19,9 @@ export class WZSJZ_EventManager {
     public static 拖拽物变化 = "文字三角洲_拖拽物变化";//参数为当前拖拽物，拖拽结束时为null
     public static 布阵变化 = "文字三角洲_布阵变化";//拖拽落位、合成、交换或回收后触发
     public static 组合单位变化 = "文字三角洲_组合单位变化";//参数为当前场上的组合单位组件数组
+    public static 购买物资成功 = "文字三角洲_购买物资成功";//参数：{ Name, Level, Cell, GameNode }
+    public static 物资落位完成 = "文字三角洲_物资落位完成";//参数：{ GameNode, SourceCell, TargetCell }
+    public static 同级合成完成 = "文字三角洲_同级合成完成";//参数：{ Name, Level, Cell, GameNode }
     public static 修改增加资源 = "文字三角洲_修改增加资源";//参数：钞票数量、食物数量
     public static 修改增加钥匙 = "文字三角洲_修改增加钥匙";//参数：钥匙数量
     public static 修改添加单位 = "文字三角洲_修改添加单位";//参数：单位名（可附带等级）

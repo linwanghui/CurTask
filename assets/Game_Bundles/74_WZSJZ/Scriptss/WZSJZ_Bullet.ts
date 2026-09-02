@@ -24,7 +24,6 @@ export class WZSJZ_Bullet extends Component {
     private _hitEffectDuration: number = WZSJZ_Constant.GunBullet.HitEffectDuration;
     private _continueOnTargetLost: boolean = false;
     private _lastAimPosition: Vec3 = new Vec3();
-    private _lastDamageCenter: Vec3 = new Vec3();
     private _arcHeight: number = 0;
     private _arcElapsed: number = 0;
     private _arcDuration: number = 0;
@@ -66,7 +65,6 @@ export class WZSJZ_Bullet extends Component {
         this._arcStartPosition.set(this.node.worldPosition);
         const aimPosition = target.GetAimWorldPosition();
         this._lastAimPosition.set(aimPosition.x, aimPosition.y, aimPosition.z);
-        this._lastDamageCenter.set(target.node.worldPosition);
         this._arcDuration = Math.max(
             0.01,
             Vec3.distance(this._arcStartPosition, this._lastAimPosition) / speed,
@@ -95,7 +93,6 @@ export class WZSJZ_Bullet extends Component {
         if (this._target?.node?.isValid && this._target.IsAlive) {
             const aimPosition = this._target.GetAimWorldPosition();
             this._lastAimPosition.set(aimPosition.x, aimPosition.y, aimPosition.z);
-            this._lastDamageCenter.set(this._target.node.worldPosition);
         } else if (!this._continueOnTargetLost) {
             this.Recycle();
             return;
@@ -145,19 +142,22 @@ export class WZSJZ_Bullet extends Component {
 
     private HitTarget(): void {
         this._hasHit = true;
+        const bullet = this.node.getChildByName("子弹");
+        // 必须在隐藏图像前记录落点；独立命中特效不能再使用敌人节点中心。
+        const hitWorldPosition = (bullet?.worldPosition || this.node.worldPosition).clone();
         WZSJZ_AudioManager.Play(this._hitAudioName, this._hitAudioVolume, 0.05);
         if (this._hitCallback) {
-            this._hitCallback(this._lastDamageCenter.clone(), this._damage);
+            this._hitCallback(hitWorldPosition, this._damage);
         } else {
             this._target.TakeDamage(this._damage);
         }
-        const bullet = this.node.getChildByName("子弹");
         const trail = this.node.getChildByName("拖尾");
         const effect = this.node.getChildByName("命中特效");
         if (bullet) bullet.active = false;
         if (trail) trail.active = false;
         if (effect) {
             effect.active = true;
+            effect.setWorldPosition(hitWorldPosition);
             // 子弹飞行时根节点会旋转，命中特效始终保持世界旋转为0。
             effect.setWorldRotation(Quat.IDENTITY);
             effect.getComponent(Animation)?.play();

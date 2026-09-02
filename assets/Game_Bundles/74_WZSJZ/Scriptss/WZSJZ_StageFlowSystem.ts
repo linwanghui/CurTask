@@ -11,6 +11,7 @@ import {
 } from 'cc';
 import { WZSJZ_Boss } from './WZSJZ_Boss';
 import { WZSJZ_CombatSystem } from './WZSJZ_CombatSystem';
+import { WZSJZ_CombinationRewardSystem } from './WZSJZ_CombinationRewardSystem';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_Enemy } from './WZSJZ_Enemy';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
@@ -109,12 +110,12 @@ export class WZSJZ_StageFlowSystem extends Component {
     }
 
     private async SpawnRound(token: number): Promise<void> {
-        const ready = await this._combatSystem.PrepareStageEnemyPrefabs();
+        const progress = WZSJZ_GameData.Instance.GetLevelProgressSnapshot();
+        const ready = await this._combatSystem.PrepareStageEnemyPrefabs(progress.BossName);
         if (!ready || token !== this._flowToken || this._state !== "spawning") {
             if (!ready) this.AbortToPreparation("敌人资源加载失败");
             return;
         }
-        const progress = WZSJZ_GameData.Instance.GetLevelProgressSnapshot();
         const campaignMultiplier = WZSJZ_Constant.GetCampaignAttributeMultiplier(
             progress.SelectedLevel,
         );
@@ -140,6 +141,7 @@ export class WZSJZ_StageFlowSystem extends Component {
         const boss = await this._combatSystem.SpawnStageBoss(
             progress.BossName,
             bossMultiplier,
+            this._round,
         );
         if (!boss || token !== this._flowToken || this._state !== "spawning") {
             if (!boss) this.AbortToPreparation("Boss资源加载失败");
@@ -157,6 +159,7 @@ export class WZSJZ_StageFlowSystem extends Component {
         this._state = "retreat";
         this._remainingTime = 0;
         this.RefreshCountdown();
+        this._combatSystem?.ClearEnemyProjectiles();
         if (!this._boss.BeginRetreat()) this.AbortToPreparation();
     }
 
@@ -179,12 +182,16 @@ export class WZSJZ_StageFlowSystem extends Component {
         this._flowToken++;
         this._remainingTime = 0;
         this.node.emit(WZSJZ_EventManager.战斗阶段变动, false);
+        this._combatSystem?.ClearEnemyProjectiles();
         this._combatSystem?.ClearStageEnemies(victory ? defeatedBoss : null);
         this._boss = null;
         if (this._countdownRoot) this._countdownRoot.active = false;
         if (this._startButton) this._startButton.active = false;
 
         let diamondReward = 0;
+        let combinationAward: ReturnType<
+            typeof WZSJZ_CombinationRewardSystem.GrantRandomClearReward
+        > = null;
         if (victory) {
             const gameData = WZSJZ_GameData.Instance;
             gameData.CompleteLevel(gameData.SelectedLevel);
@@ -192,10 +199,19 @@ export class WZSJZ_StageFlowSystem extends Component {
                 + Math.max(0, this._round - 1)
                     * WZSJZ_Constant.StageFlow.VictoryDiamondRewardPerRound;
             gameData.AddDiamond(diamondReward);
+            combinationAward = WZSJZ_CombinationRewardSystem.GrantRandomClearReward();
         }
         WZSJZ_UIManager.Instance.ShowPanel(
             WZSJZ_Constant.Panel.FinishPanel,
             [victory, diamondReward],
+            () => {
+                if (combinationAward) {
+                    WZSJZ_UIManager.Instance.ShowPanel(
+                        WZSJZ_Constant.Panel.CombinationAwardPanel,
+                        [combinationAward],
+                    );
+                }
+            },
         );
     }
 
@@ -205,6 +221,7 @@ export class WZSJZ_StageFlowSystem extends Component {
         this._boss = null;
         this._combatSystem.ClearStageEnemies(boss);
         this._round++;
+        this._wall?.RestoreFullHealth();
         this.node.emit(WZSJZ_EventManager.回合公告, "Boss暂退");
         this.ReturnToPreparation();
     };

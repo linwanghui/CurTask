@@ -61,6 +61,13 @@ export class WZSJZ_Wall extends Component {
         this._invincibleRemaining = Math.max(this._invincibleRemaining, Math.max(0, duration));
     }
 
+    /** Boss暂退进入备战阶段时，恢复至当前等级对应的最大生命值。 */
+    public RestoreFullHealth(): void {
+        if (!this.IsAlive) return;
+        this._currentHealth = this._maxHealth;
+        this.RefreshView();
+    }
+
     /** 测试面板使用的永久无敌，不影响技能提供的限时无敌。 */
     public TogglePermanentInvincible(): boolean {
         this._permanentInvincible = !this._permanentInvincible;

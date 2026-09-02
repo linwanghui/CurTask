@@ -138,6 +138,21 @@ export interface WZSJZ_BossConfig {
 }
 
 export class WZSJZ_Constant {
+    public static ZRSJZcombination: boolean = true;//是否开启和真人三角洲的联动
+
+    /** 真人三角洲联动通关奖励；名称必须与“Sprites/特殊掉落物”中的图片同名。 */
+    public static readonly ZRSJZCombinationReward = {
+        SpriteFolder: "Sprites/特殊掉落物",
+        AmountPerClear: 1,
+        PropNames: [
+            "高科技护目镜",
+            "裂空之弩",
+            "混乱勋章",
+            "战神勋章",
+            "光头弹药箱",
+        ] as readonly string[],
+    };
+
     public static readonly Panel = {
         LoadingPanel: "Panel/LoadingPanel",
         IntroducePanel: "Panel/IntroducePanel",
@@ -154,6 +169,7 @@ export class WZSJZ_Constant {
         Handbook: "Panel/HandBookPanel",
         ReturnPanel: "Panel/ReturnPanel",
         FinishPanel: "Panel/FinishPanel",
+        CombinationAwardPanel: "Panel/CombinationAwardPanel",
     };
 
     /** 首页体力与钻石配置。时间全部使用真实时间戳，不受游戏倍速影响。 */
@@ -172,6 +188,16 @@ export class WZSJZ_Constant {
         BossCycle: ["牢赛", "牢太", "光头", "典狱长", "公子", "混乱"],
     };
 
+    /** 每个Boss关卡固定使用的小兵阵营；无限关卡循环时继续复用该映射。 */
+    public static readonly NormalEnemyByBoss: Readonly<Record<string, string>> = {
+        "牢赛": "阿萨拉士兵",
+        "牢太": "哈夫克士兵",
+        "光头": "阿萨拉士兵",
+        "典狱长": "哈夫克士兵",
+        "公子": "哈夫克士兵",
+        "混乱": "阿萨拉士兵",
+    };
+
     /** 单局关卡回合流程；数值均集中配置，方便后续调整节奏。 */
     public static readonly StageFlow = {
         InitialNormalEnemyCount: 3,
@@ -182,7 +208,7 @@ export class WZSJZ_Constant {
         CombatDuration: 60,
         PreparationTweenDuration: 0.35,
         PreparationOffscreenMargin: 40,
-        SkillBarCombatBottom: 10,
+        SkillBarCombatBottom: 80,
         CampaignCycleAttributeIncrease: 0.25,
         BossRoundAttributeIncrease: 0.15,
         BossRetreatSpeedMultiplier: 1.5,
@@ -191,9 +217,36 @@ export class WZSJZ_Constant {
         VictoryDiamondRewardPerRound: 50,
     };
 
-    /** 全局战斗平衡参数；所有进入城墙承伤入口的敌方伤害都会应用该倍率。 */
+    /** 全局战斗平衡参数。 */
     public static readonly CombatBalance = {
         EnemyWallDamageMultiplier: 0.6,
+        /** 玩家可攻击单位的基础攻击范围倍率。 */
+        PlayerAttackRangeMultiplier: 1.3,
+    };
+
+    /** 局内新手引导的遮罩尺寸、文字间距与说明。 */
+    public static readonly Tutorial = {
+        /** 普通高亮目标周围的留白。 */
+        MaskPadding: 28,
+        /** 点击购买时严格限制在购买按钮附近，避免同时点到招募卡。 */
+        PurchaseMaskPadding: 0,
+        /** 拖拽教学需要容纳源物体、目标格以及二者之间的移动区域。 */
+        DragMaskPadding: 42,
+        HandSpritePath: "Sprites/游戏内/新手引导手势",
+        HandSize: 112,
+        HandPressScale: 0.88,
+        HandPressDuration: 0.16,
+        HandDragDuration: 0.9,
+        HandReturnDuration: 0.55,
+        HandTargetHoldDuration: 0.22,
+        HandLoopDelay: 0.18,
+        DescriptionGap: 42,
+        DescriptionEdgePadding: 36,
+        PurchaseText: "点击这里购买物资，获得你的第一个攻击单位",
+        DeployText: "按住备战框里的单位，把它拖到高亮的布阵格",
+        BuyMergeCopyText: "继续购买并收集两个同名同级单位",
+        MergeText: "把两个同名同等级单位拖到一起，即可合成升级",
+        HandbookText: "点击图鉴，可以查看所有角色和文字组合方式",
     };
 
     public static readonly FinishResult = {
@@ -926,6 +979,7 @@ export class WZSJZ_Constant {
         DiveStrikePrewarm: 1,
         HomingSpiderPrewarm: 1,
         SniperBulletHitEffectPrewarm: 1,
+        DamageNumberPrewarm: 1,
     };
 
     /** 防止单位停在攻击范围临界点时因浮点误差反复进入移动状态。 */
@@ -933,6 +987,11 @@ export class WZSJZ_Constant {
         AttackPositionTolerance: 2,
         /** 所有普通击退共用的平滑移动时间，使用减速曲线并受全局时间倍率影响。 */
         KnockbackDuration: 0.22,
+        /** 受击时图像短暂放大并染红；整段反馈期间不会重复叠加。 */
+        HitFeedbackScale: 1.03,
+        HitFeedbackExpandDuration: 0.06,
+        HitFeedbackRecoverDuration: 0.09,
+        HitFeedbackTint: { R: 255, G: 105, B: 105 },
     };
 
     /** Inspector 未绑定时使用这些Bundle内路径自动加载。 */
@@ -1092,6 +1151,10 @@ export class WZSJZ_Constant {
         SkillMaxInterval: 15,
         SkillArrowDamage: 28,
         SkillAnimation: "jineng",
+        /** 牢赛资源没有独立 daiji，站立间隔使用行走循环避免停在攻击末帧。 */
+        IdleAnimation: "zoulu",
+        NormalAnimationFallbackDuration: 0.5,
+        SkillAnimationFallbackDuration: 1.4,
         MaxTenacity: 300,
         /** 伤害转换为韧性伤害的倍率。 */
         TenacityDamageScale: 1,
@@ -1166,8 +1229,8 @@ export class WZSJZ_Constant {
         TenacityRecoveryDelay: 6,
         IdleAnimation: "daiji",
         SkillAnimation: "jineng",
-        NormalFireDelay: 0.34,
-        NormalAnimationDuration: 0.95,
+        NormalFireDelay: 0.54,
+        NormalAnimationDuration: 1,
         SkillMinInterval: 10,
         SkillMaxInterval: 16,
         TankSummonDelay: 0.55,
@@ -1289,6 +1352,21 @@ export class WZSJZ_Constant {
             PrefabPath: "Prefabs/特效/狙击子弹击中特效",
             FallbackDuration: 0.3333,
         },
+    };
+
+    /** 敌人受伤数字的随机偏移与上漂动画参数。 */
+    public static readonly DamageNumber = {
+        PrefabPath: "Prefabs/UI/伤害字",
+        RandomOffsetX: 50,
+        RandomOffsetY: 30,
+        FirstRiseDistance: 15,
+        SecondRiseDistance: 30,
+        FinalRiseDistance: 40,
+        PopScale: 2,
+        EndScale: 0.9,
+        PopDuration: 0.3,
+        SettleDuration: 0.4,
+        FadeDuration: 0.8,
     };
 
     /** 普通攻击骨骼动画同步参数。动画会在本次攻击间隔的该比例内播完，留少量待机过渡。 */

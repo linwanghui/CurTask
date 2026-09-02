@@ -58,7 +58,10 @@ export class WZSJZ_Boss_GongZi extends WZSJZ_Boss {
                     this._actionTriggered = true;
                     void this.SpawnBullet();
                 }
-                if (this._attackElapsed >= config.NormalAnimationDuration) {
+                if (this._attackElapsed >= this.GetAnimationDuration(
+                    this.EnemyConfig.AttackAnimation,
+                    config.NormalAnimationDuration,
+                )) {
                     this.FinishAttack(false);
                 }
             } else {
@@ -66,7 +69,10 @@ export class WZSJZ_Boss_GongZi extends WZSJZ_Boss {
                     this._actionTriggered = true;
                     void this.SpawnBomb();
                 }
-                if (this._attackElapsed >= config.SkillAnimationDuration) {
+                if (this._attackElapsed >= this.GetAnimationDuration(
+                    config.SkillAnimation,
+                    config.SkillAnimationDuration,
+                )) {
                     this.FinishAttack(true);
                 }
             }

@@ -1,6 +1,7 @@
 import { _decorator, Animation, Component, instantiate, Node, NodePool, Prefab, sp, UITransform, Vec3 } from 'cc';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
+import { WZSJZ_DamageNumber } from './WZSJZ_DamageNumber';
 
 const { ccclass } = _decorator;
 
@@ -30,6 +31,9 @@ export class WZSJZ_CommonEffectSystem extends Component {
     private _effects: Map<string, WZSJZ_CommonEffectRuntime> = new Map();
     private _effectLoads: Map<string, Promise<boolean>> = new Map();
     private _attachedEffects: Map<Node, Map<string, WZSJZ_AttachedEffectRuntime>> = new Map();
+    private _damageNumberPrefab: Prefab = null;
+    private _damageNumberPool: NodePool = new NodePool();
+    private _damageNumberLoading: Promise<boolean> = null;
 
     protected onLoad(): void {
         WZSJZ_CommonEffectSystem._instance = this;
@@ -42,6 +46,9 @@ export class WZSJZ_CommonEffectSystem extends Component {
         this._effects.clear();
         this._effectLoads.clear();
         this._attachedEffects.clear();
+        this._damageNumberPool.clear();
+        this._damageNumberPrefab = null;
+        this._damageNumberLoading = null;
         if (WZSJZ_CommonEffectSystem._instance === this) {
             WZSJZ_CommonEffectSystem._instance = null;
         }
@@ -54,10 +61,34 @@ export class WZSJZ_CommonEffectSystem extends Component {
         void this.PrepareBlueExplosion();
         void this.PrepareStunEffect();
         void this.PrepareSniperBulletHitEffect();
+        void this.PrepareDamageNumber();
     }
 
     public PlayBlueExplosion(worldPosition: Vec3): boolean {
         return this.Play("蓝色爆炸", worldPosition);
+    }
+
+    /** 显示一次实际扣血数字；资源尚在加载时会保留本次显示请求。 */
+    public PlayDamageNumber(damage: number, worldPosition: Vec3): boolean {
+        if (damage <= 0 || !worldPosition || !this._effectLayer) return false;
+        if (!this._damageNumberPrefab) {
+            const deferredPosition = worldPosition.clone();
+            void this.PrepareDamageNumber().then((loaded) => {
+                if (loaded && this.node?.isValid) {
+                    this.PlayDamageNumber(damage, deferredPosition);
+                }
+            });
+            return false;
+        }
+        const node = this._damageNumberPool.get() || instantiate(this._damageNumberPrefab);
+        node.active = true;
+        node.setParent(this._effectLayer);
+        this.SetLayerRecursively(node, this._effectLayer.layer);
+        const display = node.getComponent(WZSJZ_DamageNumber)
+            || node.addComponent(WZSJZ_DamageNumber);
+        display.Show(damage, worldPosition, this.RecycleDamageNumber);
+        this.KeepEffectLayerOnTop();
+        return true;
     }
 
     public Play(effectName: string, worldPosition: Vec3, durationOverride?: number): boolean {
@@ -266,6 +297,34 @@ export class WZSJZ_CommonEffectSystem extends Component {
             WZSJZ_Constant.ObjectPool.SniperBulletHitEffectPrewarm,
         );
     }
+
+    private PrepareDamageNumber(): Promise<boolean> {
+        if (this._damageNumberPrefab) return Promise.resolve(true);
+        if (this._damageNumberLoading) return this._damageNumberLoading;
+        this._damageNumberLoading = WZSJZ_Incident.Loadprefab(
+            WZSJZ_Constant.DamageNumber.PrefabPath,
+        ).then((prefab) => {
+            if (!this.node?.isValid) return false;
+            this._damageNumberPrefab = prefab;
+            while (this._damageNumberPool.size()
+                < WZSJZ_Constant.ObjectPool.DamageNumberPrewarm) {
+                this._damageNumberPool.put(instantiate(prefab));
+            }
+            return true;
+        }).catch((error) => {
+            console.error("[WZSJZ] 伤害字预制体加载失败。", error);
+            return false;
+        }).finally(() => {
+            this._damageNumberLoading = null;
+        });
+        return this._damageNumberLoading;
+    }
+
+    private RecycleDamageNumber = (display: WZSJZ_DamageNumber): void => {
+        if (!display?.node?.isValid) return;
+        display.node.active = false;
+        this._damageNumberPool.put(display.node);
+    };
 
     private async LoadEffect(
         effectName: string,

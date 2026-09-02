@@ -22,6 +22,12 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
     private _currentTenacity: number = 0;
     private _tenacityRecoveryTimer: number = 0;
     private _initializeToken: number = 0;
+    private _bossLevel: number = 1;
+    /** 普通命中发生时，保护尚未播完的攻击/技能轨道不被待机动画覆盖。 */
+    private _protectedAnimationName: string = "";
+    private _protectedAnimationRemaining: number = 0;
+    /** 仅允许破韧发生的那一次内部调用穿过“零韧性不可重复眩晕”保护。 */
+    private _isApplyingTenacityBreakStun: boolean = false;
 
     public get CurrentTenacity(): number {
         return this._currentTenacity;
@@ -29,6 +35,15 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
 
     public get MaxTenacity(): number {
         return (this._bossConfig?.MaxTenacity || 1) * this.RuntimeStatMultiplier;
+    }
+
+    public get BossLevel(): number {
+        return this._bossLevel;
+    }
+
+    /** 关卡系统在Boss生成后写入当前回合等级；测试面板生成时保持1级。 */
+    public SetBossLevel(level: number): void {
+        this._bossLevel = Math.max(1, Math.floor(level || 1));
     }
 
     /** 子类只需返回自己的Boss数值配置。 */
@@ -62,8 +77,11 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
             return false;
         }
         this._healthBarLayer = healthBarLayer;
+        this._bossLevel = 1;
         this._currentTenacity = this.MaxTenacity;
         this._tenacityRecoveryTimer = 0;
+        this.ClearHitAnimationProtection();
+        this._isApplyingTenacityBreakStun = false;
         void this.CreateStatusBars(++this._initializeToken);
         return true;
     }
@@ -82,6 +100,42 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
         return super.ApplyStun(finalDuration, tenacityDamage);
     }
 
+    public TakeDamage(damage: number, allowHitReaction: boolean = true): boolean {
+        const playback = this.GetCurrentAnimationPlayback();
+        const killed = super.TakeDamage(damage, allowHitReaction);
+        if (killed || !this.IsAlive || this._currentTenacity <= 0) {
+            this.ClearHitAnimationProtection();
+            return killed;
+        }
+
+        // 循环待机/行走无需保护；只保护确实还没有播放完成的非循环动作。
+        if (playback && !playback.Loop) {
+            const remaining = Math.max(0, playback.Duration - playback.TrackTime);
+            if (remaining > 0.001) {
+                const currentPlayback = this.GetCurrentAnimationPlayback();
+                // TakeDamage 是同步调用；如果调用前后轨道发生变化，就一定是受击链路覆盖了动作。
+                if (currentPlayback?.Name !== playback.Name) {
+                    this.RestoreAnimationPlayback(
+                        playback.Name,
+                        playback.Loop,
+                        playback.TrackTime,
+                    );
+                }
+                const isSameProtectedAnimation = this._protectedAnimationName === playback.Name;
+                this._protectedAnimationName = playback.Name;
+                this._protectedAnimationRemaining = isSameProtectedAnimation
+                    ? Math.max(this._protectedAnimationRemaining, remaining)
+                    : remaining;
+            }
+        }
+        return killed;
+    }
+
+    /** 破韧只暂停当前动作；韧性回满后继续原来的攻击或技能，不回待机重置。 */
+    protected ShouldPreserveAnimationOnTremor(): boolean {
+        return true;
+    }
+
     protected ShouldEnterHitReaction(damage: number): boolean {
         if (this._currentTenacity <= 0) {
             return false;
@@ -93,23 +147,55 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
         );
         if (previous > 0 && this._currentTenacity <= 0) {
             this.StartTenacityBreak();
+        } else {
+            // 普通受击绝不能暂停或切换 Boss 当前攻击/技能动画。
+            this.EnsureAnimationPlayback();
         }
         return false;
     }
 
     protected UpdateEnemyState(deltaTime: number): void {
+        if (this._protectedAnimationRemaining > 0) {
+            this._protectedAnimationRemaining = Math.max(
+                0,
+                this._protectedAnimationRemaining - Math.max(0, deltaTime),
+            );
+            if (this._protectedAnimationRemaining <= 0) {
+                this.ClearHitAnimationProtection();
+            }
+        }
         if (this._currentTenacity > 0 || this._tenacityRecoveryTimer <= 0) {
             return;
         }
         this._tenacityRecoveryTimer = Math.max(0, this._tenacityRecoveryTimer - deltaTime);
         if (this._tenacityRecoveryTimer <= 0) {
             this._currentTenacity = this.MaxTenacity;
+            // 防止零韧性期间的多段控制把眩晕延长到韧性已经回满之后。
+            this.ClearTremorState();
         }
+    }
+
+    protected PlayAnimation(
+        animationName: string,
+        loop: boolean = true,
+        restart: boolean = false,
+    ): void {
+        const isForcedControlAnimation = animationName === this.EnemyConfig?.DeathAnimation
+            || animationName === this.EnemyConfig?.HitAnimation
+            || (this.IsRetreating && animationName === this.EnemyConfig?.MoveAnimation);
+        if (!isForcedControlAnimation
+            && this._protectedAnimationRemaining > 0
+            && this._protectedAnimationName
+            && animationName !== this._protectedAnimationName) {
+            return;
+        }
+        super.PlayAnimation(animationName, loop, restart);
     }
 
     protected CanApplyStun(tenacityDamage: number): boolean {
         if (this._currentTenacity <= 0) {
-            return true;
+            // 同一次破韧只眩晕一次；等待恢复期间不能被多段技能无限续控。
+            return this._isApplyingTenacityBreakStun;
         }
         this._currentTenacity = Math.max(
             0,
@@ -124,7 +210,12 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
 
     private StartTenacityBreak(): void {
         this.ResetTenacityRecoveryTimer();
-        this.ApplyStun(WZSJZ_Constant.BossCommon.TenacityBreakStunDuration);
+        this._isApplyingTenacityBreakStun = true;
+        try {
+            this.ApplyStun(WZSJZ_Constant.BossCommon.TenacityBreakStunDuration);
+        } finally {
+            this._isApplyingTenacityBreakStun = false;
+        }
     }
 
     private ResetTenacityRecoveryTimer(): void {
@@ -132,6 +223,11 @@ export class WZSJZ_Boss extends WZSJZ_Enemy {
             this._bossConfig.TenacityRecoveryDelay,
             WZSJZ_Constant.BossCommon.TenacityBreakStunDuration,
         );
+    }
+
+    private ClearHitAnimationProtection(): void {
+        this._protectedAnimationName = "";
+        this._protectedAnimationRemaining = 0;
     }
 
     private async CreateStatusBars(token: number): Promise<void> {

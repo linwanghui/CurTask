@@ -183,6 +183,11 @@ export class WZSJZ_Boss_LaoTaiTank extends Component {
         recycle?.(this);
     };
 
+    /** Boss撤离、结算或切场景时直接回池，不再发射尚未触发的子弹。 */
+    public RecycleImmediately(): void {
+        this.Recycle();
+    }
+
     protected onDisable(): void {
         this.unscheduleAllCallbacks();
         this._skeleton?.setCompleteListener(null);

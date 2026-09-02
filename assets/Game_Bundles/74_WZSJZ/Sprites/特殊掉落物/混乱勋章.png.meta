@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "983f385d-32a9-4ea0-a85b-42df3cdd1d40",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "983f385d-32a9-4ea0-a85b-42df3cdd1d40@6c48a",
+      "displayName": "混乱勋章",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "983f385d-32a9-4ea0-a85b-42df3cdd1d40",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "983f385d-32a9-4ea0-a85b-42df3cdd1d40@f9941",
+      "displayName": "混乱勋章",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0.5,
+        "offsetY": -4,
+        "trimX": 56,
+        "trimY": 33,
+        "width": 168,
+        "height": 221,
+        "rawWidth": 279,
+        "rawHeight": 279,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -84,
+            -110.5,
+            0,
+            84,
+            -110.5,
+            0,
+            -84,
+            110.5,
+            0,
+            84,
+            110.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            56,
+            246,
+            224,
+            246,
+            56,
+            25,
+            224,
+            25
+          ],
+          "nuv": [
+            0.2007168458781362,
+            0.08960573476702509,
+            0.8028673835125448,
+            0.08960573476702509,
+            0.2007168458781362,
+            0.8817204301075269,
+            0.8028673835125448,
+            0.8817204301075269
+          ],
+          "minPos": [
+            -84,
+            -110.5,
+            0
+          ],
+          "maxPos": [
+            84,
+            110.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "983f385d-32a9-4ea0-a85b-42df3cdd1d40@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "983f385d-32a9-4ea0-a85b-42df3cdd1d40@6c48a"
+  }
+}

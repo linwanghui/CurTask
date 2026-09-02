@@ -72,7 +72,9 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Boss {
         this._normalAttackTimer -= deltaTime;
         if (this._normalAttackTimer <= 0) {
             this.BeginNormalAttack();
+            return;
         }
+        this.PlayAnimation(WZSJZ_Constant.BossLaoSai.IdleAnimation);
     }
 
     private BeginNormalAttack(): void {
@@ -96,8 +98,13 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Boss {
                 && this._attackElapsed >= WZSJZ_Boss_LaoSai.NORMAL_ARROW_TIME) {
                 this._firedArrowCount = 1;
                 this.SpawnArrow(this.EnemyConfig.AttackDamage);
-                this._attackState = "none";
-                this._normalAttackTimer = this.EnemyConfig.AttackInterval;
+            }
+            if (this._firedArrowCount > 0
+                && this._attackElapsed >= this.GetAnimationDuration(
+                    this.EnemyConfig.AttackAnimation,
+                    WZSJZ_Constant.BossLaoSai.NormalAnimationFallbackDuration,
+                )) {
+                this.FinishAttack(false);
             }
             return;
         }
@@ -108,17 +115,33 @@ export class WZSJZ_Boss_LaoSai extends WZSJZ_Boss {
             this._firedArrowCount++;
             this.SpawnArrow(WZSJZ_Constant.BossLaoSai.SkillArrowDamage);
         }
-        if (this._firedArrowCount >= times.length) {
-            this._attackState = "none";
-            this._normalAttackTimer = this.EnemyConfig.AttackInterval;
-            this.ResetSkillTimer();
+        if (this._firedArrowCount >= times.length
+            && this._attackElapsed >= this.GetAnimationDuration(
+                WZSJZ_Constant.BossLaoSai.SkillAnimation,
+                WZSJZ_Constant.BossLaoSai.SkillAnimationFallbackDuration,
+            )) {
+            this.FinishAttack(true);
         }
+    }
+
+    private FinishAttack(wasSkill: boolean): void {
+        this._attackState = "none";
+        this._attackElapsed = 0;
+        this._firedArrowCount = 0;
+        this._normalAttackTimer = this.EnemyConfig.AttackInterval;
+        if (wasSkill) this.ResetSkillTimer();
+        this.PlayAnimation(WZSJZ_Constant.BossLaoSai.IdleAnimation, true, true);
     }
 
     private async SpawnArrow(damage: number): Promise<void> {
         const firePoint = this.node.getChildByName("子弹发射点");
         const fireWorldPosition = (firePoint || this.node).worldPosition.clone();
-        const prefab = await WZSJZ_Boss_LaoSai.PrepareArrowPrefab();
+        // 初始化阶段已经预加载；攻击触发时不等待，防止受控后补射弓箭。
+        const prefab = WZSJZ_Boss_LaoSai._arrowPrefab;
+        if (!prefab) {
+            void WZSJZ_Boss_LaoSai.PrepareArrowPrefab();
+            return;
+        }
         const layer = this._projectileLayer;
         if (!prefab || !layer || !this.IsAlive || !this.Wall?.IsAlive) {
             return;
