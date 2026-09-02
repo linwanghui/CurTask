@@ -8,7 +8,6 @@ import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { GetSpecialOperationConfig, ZRSJZ_BOMB_PLOT_SPAWN_CONFIG, ZRSJZ_INVENTORY, ZRSJZ_MainTaskAwardConfig, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_SPECIAL_OPERATION_CONFIG, ZRSJZ_SpecialOperationConfig, ZRSJZ_SpecialOperationTaskType } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
-import { ZRSJZ_LoadingPanel } from './Panel/ZRSJZ_LoadingPanel';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_InventoryService } from './Service/ZRSJZ_InventoryService';
@@ -20,6 +19,7 @@ import { ZRSJZ_Door } from './Unit/ZRSJZ_Door';
 import { ZRSJZ_Mailbox } from './Unit/ZRSJZ_Mailbox';
 import { ZRSJZ_GradeService } from './Service/ZRSJZ_GradeService';
 import { ZRSJZ_BoosterShotService } from './Service/ZRSJZ_BoosterShotService';
+import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 const { ccclass, property } = _decorator;
 
 interface ZRSJZ_MiniMapTaskMarker {
@@ -664,15 +664,21 @@ export class ZRSJZ_Game extends Component {
             return;
         }
 
-        ZRSJZ_Tools.LoadPrefab("Prefabs/Map/" + mapConfig.MapName).then((prefab: Prefab) => {
-            const map = instantiate(prefab);
-            map.parent = this.MapParent;
-            this.CurMap = map.getComponent(ZRSJZ_Map);
-            this.CurMap.Init();
-            this.InitializeSpecialOperationPoints();
-            this.ConfigureTileMapForPlayerCount();
-            this.LoadPlayer();
-        })
+        const bundle = mapConfig.MapName === "新手村" || mapConfig.MapName === "城镇" ? "73_ZRSJZ" : "73_ZRSJZ_DLC";
+
+        BundleManager.GetBundle(bundle).load("Prefabs/Map/" + mapConfig.MapName, Prefab, (err: any, prefab: Prefab) => {
+            if (err) {
+                console.error(`加载 Bundle: ${bundle} Prefab 加载失败 Path: Prefabs/Map/${mapConfig.MapName}`);
+            } else {
+                const map = instantiate(prefab);
+                map.parent = this.MapParent;
+                this.CurMap = map.getComponent(ZRSJZ_Map);
+                this.CurMap.Init();
+                this.InitializeSpecialOperationPoints();
+                this.ConfigureTileMapForPlayerCount();
+                this.LoadPlayer();
+            }
+        });
     }
 
     /**

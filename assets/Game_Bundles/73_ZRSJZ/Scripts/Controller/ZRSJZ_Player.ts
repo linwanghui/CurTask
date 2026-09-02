@@ -472,6 +472,7 @@ export class ZRSJZ_Player extends Component {
         }
 
         // 主子弹确认生成后再显示枪口和播放声音，避免出现只有开火表现却没有子弹。
+        ZRSJZ_Game.Instance?.Cameras[this.PlayerIndex]?.Shake();
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
             if (!muzzleEffect?.isValid) return;
             muzzleEffect.parent = this.node;

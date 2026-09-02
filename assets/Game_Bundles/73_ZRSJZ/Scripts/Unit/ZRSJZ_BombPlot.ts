@@ -83,7 +83,6 @@ export class ZRSJZ_BombPlot extends Component {
             gameMap.worldPosition.z,
         );
         this.node.active = true;
-        ZRSJZ_AudioManager.Instance.PlayMusic("轰炸机");
 
         this.scheduleOnce(() => {
             if (version !== this._deployVersion || !this.IsRunning) return;

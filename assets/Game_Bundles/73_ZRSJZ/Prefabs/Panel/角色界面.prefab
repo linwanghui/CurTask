@@ -28,17 +28,17 @@
     "_active": true,
     "_components": [
       {
+        "__id__": 399
+      },
+      {
         "__id__": 401
       },
       {
         "__id__": 403
-      },
-      {
-        "__id__": 405
       }
     ],
     "_prefab": {
-      "__id__": 407
+      "__id__": 405
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -306,13 +306,10 @@
       },
       {
         "__id__": 396
-      },
-      {
-        "__id__": 398
       }
     ],
     "_prefab": {
-      "__id__": 400
+      "__id__": 398
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -9235,28 +9232,6 @@
     "fileId": "26aOzhZGNAO6umeSLrPEsS"
   },
   {
-    "__type__": "41cbewN/OFFUYk4khrwfDM+",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 12
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 399
-    },
-    "AllowUpscale": true,
-    "HorizontalPadding": 0,
-    "VerticalPadding": 0,
-    "IsView": true,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "f0FOyDXUVNLJRRurK7u6+5"
-  },
-  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -9279,7 +9254,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 402
+      "__id__": 400
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -9307,7 +9282,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 404
+      "__id__": 402
     },
     "_alignFlags": 45,
     "_target": null,
@@ -9343,7 +9318,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 406
+      "__id__": 404
     },
     "SkillIconSFs": [
       {

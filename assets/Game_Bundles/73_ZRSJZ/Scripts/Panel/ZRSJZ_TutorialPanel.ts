@@ -114,7 +114,7 @@ export class ZRSJZ_TutorialPanel extends ZRSJZ_Panel {
         }
         this.TipMaskLabel.string = tip;
         this.TrackGuide(this.TipMaskNode, target, 10, true, true);
-        find("Mask/Mask", this.TipMaskNode).once(Node.EventType.TOUCH_END, () => {
+        find("NextMask", this.TipMaskNode).once(Node.EventType.TOUCH_END, () => {
             this.ClearTracking();
             cb?.();
         });

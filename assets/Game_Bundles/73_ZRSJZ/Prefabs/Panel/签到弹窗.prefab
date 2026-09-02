@@ -28,17 +28,17 @@
     "_active": true,
     "_components": [
       {
+        "__id__": 479
+      },
+      {
         "__id__": 481
       },
       {
         "__id__": 483
-      },
-      {
-        "__id__": 485
       }
     ],
     "_prefab": {
-      "__id__": 487
+      "__id__": 485
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -370,13 +370,10 @@
       },
       {
         "__id__": 476
-      },
-      {
-        "__id__": 478
       }
     ],
     "_prefab": {
-      "__id__": 480
+      "__id__": 478
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -10090,7 +10087,7 @@
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -11635,27 +11632,6 @@
     "fileId": "ddemfFOkNA+ZSBMydwP0Ca"
   },
   {
-    "__type__": "41cbewN/OFFUYk4khrwfDM+",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 15
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 479
-    },
-    "AllowUpscale": true,
-    "HorizontalPadding": 0,
-    "VerticalPadding": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "b1gwoWJKhAfp10ySXtJUdf"
-  },
-  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -11678,7 +11654,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 482
+      "__id__": 480
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -11706,7 +11682,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 484
+      "__id__": 482
     },
     "_alignFlags": 45,
     "_target": null,
@@ -11742,7 +11718,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 486
+      "__id__": 484
     },
     "SignItemSFs": [
       {
