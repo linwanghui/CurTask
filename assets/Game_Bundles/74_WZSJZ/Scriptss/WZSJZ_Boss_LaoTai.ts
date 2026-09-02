@@ -24,6 +24,7 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
     private _normalAttackTimer: number = 0;
     private _nextSkillTimer: number = 0;
     private _actionTriggered: boolean = false;
+    private _activeTanks: Set<WZSJZ_Boss_LaoTaiTank> = new Set();
 
     protected GetBossConfig() {
         return WZSJZ_Constant.BossLaoTai;
@@ -35,6 +36,7 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
         enemyProjectileLayer: Node = null,
         healthBarLayer: Node = null,
     ): boolean {
+        this.RecycleAllTanks();
         if (!super.Initialize(wall, recycleCallback, enemyProjectileLayer, healthBarLayer)) {
             return false;
         }
@@ -49,6 +51,23 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
         return true;
     }
 
+    public BeginRetreat(): boolean {
+        this.RecycleAllTanks();
+        WZSJZ_EnemyBulletPool.RecycleAll();
+        return super.BeginRetreat();
+    }
+
+    public TakeDamage(damage: number, allowHitReaction: boolean = true): boolean {
+        const killed = super.TakeDamage(damage, allowHitReaction);
+        if (killed) this.RecycleAllTanks();
+        return killed;
+    }
+
+    public RecycleImmediately(): void {
+        this.RecycleAllTanks();
+        super.RecycleImmediately();
+    }
+
     protected UpdateAttack(deltaTime: number): void {
         const config = WZSJZ_Constant.BossLaoTai;
         this._nextSkillTimer = Math.max(0, this._nextSkillTimer - deltaTime);
@@ -59,7 +78,10 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
                     this._actionTriggered = true;
                     void this.FireBullet();
                 }
-                if (this._attackElapsed >= config.NormalAnimationDuration) {
+                if (this._attackElapsed >= this.GetAnimationDuration(
+                    this.EnemyConfig.AttackAnimation,
+                    config.NormalAnimationDuration,
+                )) {
                     this.FinishAttack(false);
                 }
             } else {
@@ -67,7 +89,10 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
                     this._actionTriggered = true;
                     void this.SummonTanks();
                 }
-                if (this._attackElapsed >= config.SkillAnimationDuration) {
+                if (this._attackElapsed >= this.GetAnimationDuration(
+                    config.SkillAnimation,
+                    config.SkillAnimationDuration,
+                )) {
                     this.FinishAttack(true);
                 }
             }
@@ -128,7 +153,12 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
     }
 
     private async SummonTanks(): Promise<void> {
-        const prefab = await WZSJZ_Boss_LaoTai.PrepareTankPrefab();
+        // 技能动作被破韧中断后不允许等待加载完成再补召唤。
+        const prefab = WZSJZ_Boss_LaoTai._tankPrefab;
+        if (!prefab) {
+            void WZSJZ_Boss_LaoTai.PrepareTankPrefab();
+            return;
+        }
         const enemyArea = this.node.parent;
         if (!prefab || !this.IsAlive || !this.Wall?.IsAlive
             || !enemyArea?.isValid || !this._projectileLayer?.isValid) return;
@@ -194,10 +224,12 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
             config.TankAttackAnimation,
             config.TankDeathAnimation,
             config.TankDeathFallbackDuration,
-            WZSJZ_Boss_LaoTai.RecycleTank,
+            (recycledTank) => this.RecycleOwnedTank(recycledTank),
         )) {
             node.active = false;
             WZSJZ_Boss_LaoTai._tankPool.put(node);
+        } else {
+            this._activeTanks.add(tank);
         }
     }
 
@@ -249,10 +281,23 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
         return this._tankLoading;
     }
 
-    private static RecycleTank = (tank: WZSJZ_Boss_LaoTaiTank): void => {
+    private RecycleOwnedTank(tank: WZSJZ_Boss_LaoTaiTank): void {
+        this._activeTanks.delete(tank);
         if (!tank?.node?.isValid) return;
         tank.node.active = false;
         WZSJZ_Boss_LaoTai._tankPool.put(tank.node);
-    };
+    }
+
+    private RecycleAllTanks(): void {
+        for (const tank of [...this._activeTanks]) {
+            tank?.RecycleImmediately();
+        }
+        this._activeTanks.clear();
+    }
+
+    protected onDisable(): void {
+        this.RecycleAllTanks();
+        super.onDisable();
+    }
 
 }

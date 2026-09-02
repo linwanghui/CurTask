@@ -21,6 +21,8 @@ import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 import { WZSJZ_Boss } from './WZSJZ_Boss';
+import { WZSJZ_EnemyBulletPool } from './WZSJZ_EnemyBulletPool';
+import { WZSJZ_GameData } from './WZSJZ_GameData';
 const { ccclass } = _decorator;
 
 /** 战斗域：统一管理刷怪、索敌、攻击表现和所有战斗对象池。 */
@@ -40,6 +42,8 @@ export class WZSJZ_CombatSystem extends Component {
     private _trapLayer: Node = null;
     private _wall: WZSJZ_Wall = null;
     private _enemyPrefabs: Prefab[] = [];
+    /** 当前所选Boss对应的唯一普通小兵预制体。 */
+    private _stageNormalEnemyPrefab: Prefab = null;
     private _gunBulletPrefab: Prefab = null;
     private _cannonBulletPrefab: Prefab = null;
     private _minePrefab: Prefab = null;
@@ -108,6 +112,8 @@ export class WZSJZ_CombatSystem extends Component {
         void this.PrepareMinePrefab();
         void this.PrepareKnifeEffectPrefab();
         void this.PrepareRedDogAttackEffectPrefab();
+        // 提前于Boss入场加载，攻击触发时无需异步等待后再补发子弹。
+        void WZSJZ_EnemyBulletPool.Prepare();
     }
 
     private OnGameStart(wall: WZSJZ_Wall): void {
@@ -118,6 +124,7 @@ export class WZSJZ_CombatSystem extends Component {
         this._isGameStarted = !!active;
         if (!this._isGameStarted) {
             this.CancelNextEnemySpawn();
+            WZSJZ_EnemyBulletPool.RecycleAll();
             // 延迟攻击回调仍会执行，但找不到对应token后不会产生子弹或地雷。
             this._pendingWeaponAttacks.clear();
             return;
@@ -144,15 +151,18 @@ export class WZSJZ_CombatSystem extends Component {
 
     private async PrepareEnemySpawning(): Promise<void> {
         await this.EnsureNormalEnemyPrefabs();
+        this.SelectStageNormalEnemyPrefab(
+            WZSJZ_GameData.Instance?.GetLevelProgressSnapshot().BossName || "",
+        );
         if (!this._isGameStarted || !this._isBatchEnemySpawning || !this.node?.isValid) {
             return;
         }
-        if (!this._enemyArea || !this._wall || this._enemyPrefabs.length === 0) {
+        if (!this._enemyArea || !this._wall || !this._stageNormalEnemyPrefab) {
             console.error("[WZSJZ] 无法开始刷怪：请检查敌方单位区域、围墙和敌人预制体。");
             WZSJZ_UIManager.Instance.ShowText("敌人资源加载失败");
             return;
         }
-        this.PrewarmEnemyPools();
+        this.PrewarmEnemyPools([this._stageNormalEnemyPrefab]);
         this.ScheduleNextEnemySpawn();
     }
 
@@ -176,11 +186,10 @@ export class WZSJZ_CombatSystem extends Component {
 
     private SpawnEnemy(): void {
         if (!this._isGameStarted || !this._isBatchEnemySpawning
-            || !this._enemyArea || this._enemyPrefabs.length === 0) {
+            || !this._enemyArea || !this._stageNormalEnemyPrefab) {
             return;
         }
-        const prefab = this._enemyPrefabs[Math.floor(Math.random() * this._enemyPrefabs.length)];
-        this.SpawnEnemyFromPrefab(prefab);
+        this.SpawnEnemyFromPrefab(this._stageNormalEnemyPrefab);
         this.ScheduleNextEnemySpawn();
     }
 
@@ -242,21 +251,22 @@ export class WZSJZ_CombatSystem extends Component {
         return enemy;
     }
 
-    public async PrepareStageEnemyPrefabs(): Promise<boolean> {
+    public async PrepareStageEnemyPrefabs(bossName: string): Promise<boolean> {
         await this.EnsureNormalEnemyPrefabs();
-        if (this._enemyPrefabs.length > 0) this.PrewarmEnemyPools();
-        return this._enemyPrefabs.length > 0;
+        const selected = this.SelectStageNormalEnemyPrefab(bossName);
+        if (selected) this.PrewarmEnemyPools([selected]);
+        return !!selected;
     }
 
     public SpawnStageNormalEnemy(statMultiplier: number): WZSJZ_Enemy | null {
-        if (!this._isGameStarted || this._enemyPrefabs.length === 0) return null;
-        const prefab = this._enemyPrefabs[Math.floor(Math.random() * this._enemyPrefabs.length)];
-        return this.SpawnEnemyFromPrefab(prefab, statMultiplier);
+        if (!this._isGameStarted || !this._stageNormalEnemyPrefab) return null;
+        return this.SpawnEnemyFromPrefab(this._stageNormalEnemyPrefab, statMultiplier);
     }
 
     public async SpawnStageBoss(
         bossName: string,
         statMultiplier: number,
+        bossLevel: number = 1,
     ): Promise<WZSJZ_Boss | null> {
         const path = WZSJZ_Constant.EnemyPrefabPathByName[bossName];
         if (!path || !this._isGameStarted) return null;
@@ -265,6 +275,7 @@ export class WZSJZ_CombatSystem extends Component {
             const enemy = this.SpawnEnemyFromPrefab(prefab, statMultiplier);
             const boss = enemy?.node.getComponent(WZSJZ_Boss) || null;
             if (enemy && !boss) enemy.RecycleImmediately();
+            boss?.SetBossLevel(bossLevel);
             return boss;
         } catch (error) {
             console.error(`[WZSJZ] 关卡Boss加载失败：${bossName}`, error);
@@ -279,6 +290,10 @@ export class WZSJZ_CombatSystem extends Component {
         }
     }
 
+    public ClearEnemyProjectiles(): void {
+        WZSJZ_EnemyBulletPool.RecycleAll();
+    }
+
     private async EnsureNormalEnemyPrefabs(): Promise<void> {
         if (this._enemyPrefabs.length > 0) return;
         const loadedPrefabs: Prefab[] = [];
@@ -290,6 +305,18 @@ export class WZSJZ_CombatSystem extends Component {
             }
         }
         this._enemyPrefabs = loadedPrefabs;
+    }
+
+    /** 根据本关Boss锁定唯一小兵类型，避免同一局混刷两个阵营。 */
+    private SelectStageNormalEnemyPrefab(bossName: string): Prefab | null {
+        const enemyName = WZSJZ_Constant.NormalEnemyByBoss[bossName];
+        this._stageNormalEnemyPrefab = enemyName
+            ? this._enemyPrefabs.find((prefab) => prefab?.data?.name === enemyName) || null
+            : null;
+        if (!this._stageNormalEnemyPrefab) {
+            console.error(`[WZSJZ] Boss ${bossName || "<空>"} 没有可用的小兵阵营配置。`);
+        }
+        return this._stageNormalEnemyPrefab;
     }
 
     private OnCheatAddEnemy = async (enemyName: string): Promise<void> => {
@@ -338,8 +365,8 @@ export class WZSJZ_CombatSystem extends Component {
         return pool;
     }
 
-    private PrewarmEnemyPools(): void {
-        for (const prefab of this._enemyPrefabs) {
+    private PrewarmEnemyPools(prefabs: readonly Prefab[] = this._enemyPrefabs): void {
+        for (const prefab of prefabs) {
             const pool = this.GetEnemyPool(prefab.data.name);
             while (pool.size() < WZSJZ_Constant.ObjectPool.EnemyPrewarmPerType) {
                 pool.put(instantiate(prefab));

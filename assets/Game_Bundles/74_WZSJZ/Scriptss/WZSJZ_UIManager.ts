@@ -95,7 +95,7 @@ export class WZSJZ_UIManager extends Component {
             }
         }
         this._loadingPanelDict[panelPath] = false;
-        WZSJZ_UIManager.Instance.SJZXD_Emit("关闭页面_" + panelPath)
+        this.SJZXD_Emit("关闭页面_" + panelPath)
         if (Banner.IS_BYTEDANCE_MINI_GAME) {//抖音埋点
             //@ts-ignore
             tt.reportAnalytics('ExitWindow', {
@@ -142,7 +142,7 @@ export class WZSJZ_UIManager extends Component {
         if (this._panelDict.hasOwnProperty(panelPath)) {
             let panel = this._panelDict[panelPath];
             if (isValid(panel)) {
-                panel.parent = WZSJZ_UIManager.Instance.node.getChildByPath("Canvas");
+                panel.parent = this.node.getChildByPath("Canvas");
                 panel.active = true;
                 // panel.setSiblingIndex(panel.parent.children.length);
                 let script = panel.getComponent(scriptName);
@@ -157,7 +157,7 @@ export class WZSJZ_UIManager extends Component {
                 } else {
                     throw `查找不到脚本文件${scriptName}`;
                 }
-                WZSJZ_UIManager.Instance.SJZXD_Emit("打开页面_" + panelPath)
+                this.SJZXD_Emit("打开页面_" + panelPath)
                 if (Banner.IS_BYTEDANCE_MINI_GAME) {//抖音埋点
                     //@ts-ignore
                     tt.reportAnalytics('OpenWindow', {
@@ -194,7 +194,7 @@ export class WZSJZ_UIManager extends Component {
             } else {
                 throw `查找不到脚本文件${scriptName} 或者脚本中没有 Show() 方法...`;
             }
-            WZSJZ_UIManager.Instance.SJZXD_Emit("打开页面_" + panelPath)
+            this.SJZXD_Emit("打开页面_" + panelPath)
             if (Banner.IS_BYTEDANCE_MINI_GAME) {//抖音埋点
                 //@ts-ignore
                 tt.reportAnalytics('OpenWindow', {
@@ -205,14 +205,14 @@ export class WZSJZ_UIManager extends Component {
                 //如果在显示前又被关闭，则直接触发关闭掉
                 this.HidePanel(panelPath);
             }
-        }, WZSJZ_UIManager.Instance.node.getChildByPath("Canvas"));
+        }, this.node.getChildByPath("Canvas"));
 
     }
 
     //弹出信息框
     public ShowText(txt: string) {
         let nd = instantiate(this.message_box);
-        nd.parent = WZSJZ_UIManager.Instance.node.getChildByPath("Canvas");
+        nd.parent = this.node.getChildByPath("Canvas");
         nd.position = v3(0, 0, 0);
         nd.getChildByName("内容").getComponent(Label).string = txt;
         tween(nd).to(1.5, { position: v3(0, 200, 0) }, { easing: "backOut" }).call(() => { nd.destroy() }).start();

@@ -10,6 +10,7 @@ export class WZSJZ_EnemyBulletPool {
     private static _prefab: Prefab = null;
     private static _loading: Promise<Prefab> = null;
     private static readonly _pool: NodePool = new NodePool();
+    private static readonly _active: Set<WZSJZ_EnemyBullet> = new Set();
 
     public static async Prepare(): Promise<Prefab> {
         if (this._prefab) return this._prefab;
@@ -38,7 +39,12 @@ export class WZSJZ_EnemyBulletPool {
         wall: WZSJZ_Wall,
         damage: number,
     ): Promise<boolean> {
-        const prefab = await this.Prepare();
+        // 攻击时不再等待资源加载，避免动画结束或被破韧打断后补发“迟到子弹”。
+        const prefab = this._prefab;
+        if (!prefab) {
+            void this.Prepare();
+            return false;
+        }
         if (!prefab || !parent?.isValid || !wall?.IsAlive) return false;
         const node = this._pool.get() || instantiate(prefab);
         node.setParent(parent);
@@ -57,8 +63,17 @@ export class WZSJZ_EnemyBulletPool {
             this._pool.put(node);
             return false;
         }
+        this._active.add(bullet);
         WZSJZ_AudioManager.Play('枪发射', 0.4, 0.05);
         return true;
+    }
+
+    /** 战斗结束或撤离时清掉已发射但尚未命中的敌方子弹。 */
+    public static RecycleAll(): void {
+        for (const bullet of [...this._active]) {
+            bullet?.RecycleImmediately();
+        }
+        this._active.clear();
     }
 
     private static SetLayerRecursively(node: Node, layer: number): void {
@@ -67,6 +82,7 @@ export class WZSJZ_EnemyBulletPool {
     }
 
     private static Recycle = (bullet: WZSJZ_EnemyBullet): void => {
+        WZSJZ_EnemyBulletPool._active.delete(bullet);
         if (!bullet?.node?.isValid) return;
         bullet.node.active = false;
         WZSJZ_EnemyBulletPool._pool.put(bullet.node);

@@ -196,10 +196,7 @@ export class WZSJZ_DragIndicatorSystem extends Component {
     }
 
     private RefreshAttackRange(targetCell: WZSJZ_Cell, endWorld: Vec3): void {
-        const levelConfig = this._draggingNode
-            ? WZSJZ_Constant.GetMaterialLevelConfig(this._draggingNode.Name, this._draggingNode.Level)
-            : null;
-        const attackRange = levelConfig?.AttackRange || 0;
+        const attackRange = this._draggingNode?.GetAttackRange() || 0;
         if (!targetCell || targetCell.Zone !== 'formation' || attackRange <= 0) {
             this._attackRange.active = false;
             return;

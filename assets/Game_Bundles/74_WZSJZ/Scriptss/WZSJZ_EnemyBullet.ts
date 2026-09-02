@@ -108,6 +108,11 @@ export class WZSJZ_EnemyBullet extends Component {
         recycle?.(this);
     };
 
+    /** 结束战斗、Boss撤离或切场景时直接取消仍在飞行/播命中的子弹。 */
+    public RecycleImmediately(): void {
+        this.Recycle();
+    }
+
     private DisablePhysics(): void {
         const rigidBody = this.getComponent(RigidBody2D);
         if (rigidBody) {

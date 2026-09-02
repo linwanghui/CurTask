@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, Node } from 'cc';
+import { _decorator, Button, Component, Label, Node } from 'cc';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import { WZSJZ_GameData } from './WZSJZ_GameData';
 
@@ -13,6 +13,7 @@ export class WZSJZ_HomeLevelSelector extends Component {
     private _startButton: Node = null;
     private _lockedTip: Node = null;
     private _homeAnimations: Node = null;
+    private _chapterLabel: Label = null;
     private _configured: boolean = false;
 
     public Configure(canvas: Node): void {
@@ -23,6 +24,9 @@ export class WZSJZ_HomeLevelSelector extends Component {
         this._startButton = canvas.getChildByName("开始游戏");
         this._lockedTip = canvas.getChildByName("请先通关上一关");
         this._homeAnimations = canvas.getChildByName("主页动画");
+        this._chapterLabel = canvas
+            .getChildByPath("章节显示/文本")
+            ?.getComponent(Label) || null;
         if (!this._configured) {
             this._configured = true;
             this._previousButton?.on(Button.EventType.CLICK, this.ShowPreviousLevel, this);
@@ -49,6 +53,10 @@ export class WZSJZ_HomeLevelSelector extends Component {
     private RefreshView = (): void => {
         if (!this._canvas?.isValid) return;
         const snapshot = WZSJZ_GameData.Instance.GetLevelProgressSnapshot();
+        if (this._chapterLabel) {
+            // 首页动画使用0起始下标，而存档关卡使用1起始编号：第0个关卡显示为第1章。
+            this._chapterLabel.string = `第 ${snapshot.SelectedLevel} 章`;
+        }
         for (const animation of this._homeAnimations?.children || []) {
             animation.active = animation.name === `${snapshot.AnimationIndex}`;
         }

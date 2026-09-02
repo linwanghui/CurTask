@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, sp, UITransform, Vec3 } from 'cc';
+import { _decorator, Color, Component, Node, sp, UITransform, Vec3 } from 'cc';
 import { WZSJZ_Constant, WZSJZ_EnemyConfig } from './WZSJZ_Constant';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_CommonEffectSystem } from './WZSJZ_CommonEffectSystem';
@@ -28,6 +28,11 @@ export class WZSJZ_Enemy extends Component {
     private _spawnWorldPosition: Vec3 = new Vec3();
     private _isRetreating: boolean = false;
     private _hasEscaped: boolean = false;
+    private _hitFeedbackNode: Node = null;
+    private _hitFeedbackPlaying: boolean = false;
+    private _hitFeedbackElapsed: number = 0;
+    private _hitFeedbackBaseScale: Vec3 = new Vec3(1, 1, 1);
+    private _hitFeedbackBaseColor: Color = new Color(Color.WHITE);
 
     public get IsAlive(): boolean {
         return !this._isDead && this._currentHealth > 0;
@@ -69,6 +74,7 @@ export class WZSJZ_Enemy extends Component {
         statMultiplier: number = 1,
     ): boolean {
         this.unscheduleAllCallbacks();
+        this.ResetHitFeedback();
         this._wall = wall;
         this._recycleCallback = recycleCallback;
         const baseConfig = WZSJZ_Constant.GetEnemyConfig(this.node.name);
@@ -81,6 +87,13 @@ export class WZSJZ_Enemy extends Component {
             AttackInterval: baseConfig.AttackInterval / this._runtimeStatMultiplier,
         } : null;
         this._skeleton = this.getComponentInChildren(sp.Skeleton);
+        this._hitFeedbackNode = this._skeleton?.node
+            || this.node.getChildByName("动画")
+            || this.node;
+        this._hitFeedbackBaseScale.set(this._hitFeedbackNode.scale);
+        if (this._skeleton) {
+            this._hitFeedbackBaseColor.set(this._skeleton.color);
+        }
         if (!this._config || !this._wall) {
             console.error(`[WZSJZ] ${this.node.name} 缺少敌人数值配置或城墙目标。`);
             return false;
@@ -106,6 +119,9 @@ export class WZSJZ_Enemy extends Component {
     }
 
     protected update(deltaTime: number): void {
+        // 不再把 Tween 挂到 Spine 图像节点上，避免受击缩放与角色动画节点的
+        // 其他 Tween/状态切换互相覆盖。死亡动画期间也继续完成本次红闪。
+        this.UpdateHitFeedback(deltaTime);
         if (!this._config || !this.IsAlive) {
             return;
         }
@@ -188,8 +204,12 @@ export class WZSJZ_Enemy extends Component {
         this._tremorTimer = Math.max(this._tremorTimer, duration);
         if (!wasTremoring) {
             this._hitReactionTimer = 0;
-            this.PlayAnimation(this._config.MoveAnimation, true, true);
-            this.OnTremorStarted();
+            // 普通敌人眩晕时切回移动姿势；Boss 则保留当前攻击/技能轨道，
+            // 只暂停播放和状态计时，韧性恢复后才能从原进度继续。
+            if (!this.ShouldPreserveAnimationOnTremor()) {
+                this.PlayAnimation(this._config.MoveAnimation, true, true);
+                this.OnTremorStarted();
+            }
         }
         if (this._skeleton) {
             this._skeleton.timeScale = 0;
@@ -240,8 +260,72 @@ export class WZSJZ_Enemy extends Component {
         return Math.max(0, baseDuration) / this._runtimeStatMultiplier;
     }
 
+    /** 优先读取当前 Spine 资源的真实动画时长，常量仅作为资源尚未就绪时的兜底。 */
+    protected GetAnimationDuration(animationName: string, fallbackDuration: number): number {
+        const duration = this._skeleton?.findAnimation(animationName)?.duration;
+        return duration && duration > 0
+            ? duration
+            : Math.max(0, fallbackDuration);
+    }
+
+    /** 供 Boss 在普通受击时保护当前非循环动作，避免同帧被待机轨道覆盖。 */
+    protected GetCurrentAnimationPlayback(): {
+        Name: string;
+        TrackTime: number;
+        Duration: number;
+        Loop: boolean;
+    } | null {
+        const entry = this._skeleton?.getCurrent(0);
+        const animation = entry?.animation;
+        if (!entry || !animation?.name) return null;
+        return {
+            Name: animation.name,
+            TrackTime: Math.max(0, entry.trackTime || 0),
+            Duration: Math.max(0, animation.duration || entry.animationEnd || 0),
+            Loop: !!entry.loop,
+        };
+    }
+
+    /** 仅用于校正一次伤害结算期间被意外替换的 Spine 轨道。 */
+    protected RestoreAnimationPlayback(
+        animationName: string,
+        loop: boolean,
+        trackTime: number,
+    ): void {
+        if (!this._skeleton || !animationName) return;
+        this._currentAnimation = animationName;
+        const entry = this._skeleton.setAnimation(0, animationName, loop);
+        if (entry) {
+            entry.trackTime = Math.max(0, trackTime);
+        }
+    }
+
     protected CanApplyStun(tenacityDamage: number): boolean {
         return true;
+    }
+
+    /** Boss 可覆盖为 true，让破韧暂停而不是取消当前攻击/技能动画。 */
+    protected ShouldPreserveAnimationOnTremor(): boolean {
+        return false;
+    }
+
+    /** 韧性恢复等强制解控场景使用，同时恢复Spine和清除眩晕标志。 */
+    protected ClearTremorState(): void {
+        this._tremorTimer = 0;
+        if (this._skeleton) {
+            this._skeleton.timeScale = 1;
+        }
+        WZSJZ_CommonEffectSystem.Instance?.StopAttached(
+            WZSJZ_Constant.CommonEffect.Stun.EffectName,
+            this.GetStatusEffectAnchor("眩晕点位"),
+        );
+    }
+
+    /** Boss 韧性未破时调用，清除异常残留的暂停倍率，但不切换当前动画。 */
+    protected EnsureAnimationPlayback(): void {
+        if (this._tremorTimer <= 0 && this._skeleton) {
+            this._skeleton.timeScale = 1;
+        }
     }
 
     /** Boss等拥有独立攻击状态机的敌人可在这里取消正在蓄力的攻击。 */
@@ -253,7 +337,14 @@ export class WZSJZ_Enemy extends Component {
         if (!this.IsAlive || damage <= 0) {
             return false;
         }
+        this.PlayHitFeedback();
+        const previousHealth = this._currentHealth;
         this._currentHealth = Math.max(0, this._currentHealth - damage);
+        const aimPosition = this.GetAimWorldPosition();
+        WZSJZ_CommonEffectSystem.Instance?.PlayDamageNumber(
+            previousHealth - this._currentHealth,
+            new Vec3(aimPosition.x, aimPosition.y, aimPosition.z),
+        );
         if (this._currentHealth > 0) {
             this.PlayDamageAudio(false);
             // Boss会在这里同步扣除韧性；即使正在震颤也不能跳过该数值结算。
@@ -303,6 +394,7 @@ export class WZSJZ_Enemy extends Component {
     public RecycleImmediately(): void {
         if (!this.node?.isValid) return;
         this.unscheduleAllCallbacks();
+        this.ResetHitFeedback();
         this._isDead = true;
         this._isRetreating = false;
         this.ClearAttachedStatusEffects();
@@ -318,6 +410,91 @@ export class WZSJZ_Enemy extends Component {
     /** Boss覆盖此方法即可替换受击与死亡声音。 */
     protected PlayDamageAudio(isDead: boolean): void {
         WZSJZ_AudioManager.Play(isDead ? '敌人死亡' : '敌人受击', isDead ? 0.7 : 0.42, 0.06);
+    }
+
+    /** 统一受击打击感：图像轻微膨胀并红闪，播放中拒绝再次叠加。 */
+    private PlayHitFeedback(): void {
+        if (this._hitFeedbackPlaying || !this._hitFeedbackNode?.isValid) {
+            return;
+        }
+        this._hitFeedbackPlaying = true;
+        this._hitFeedbackElapsed = 0;
+        this._hitFeedbackBaseScale.set(this._hitFeedbackNode.scale);
+        if (this._skeleton) {
+            this._hitFeedbackBaseColor.set(this._skeleton.color);
+        }
+    }
+
+    private UpdateHitFeedback(deltaTime: number): void {
+        if (!this._hitFeedbackPlaying) return;
+        if (!this._hitFeedbackNode?.isValid) {
+            this._hitFeedbackPlaying = false;
+            this._hitFeedbackElapsed = 0;
+            return;
+        }
+
+        const config = WZSJZ_Constant.EnemyCombat;
+        const expandDuration = Math.max(0, config.HitFeedbackExpandDuration);
+        const recoverDuration = Math.max(0, config.HitFeedbackRecoverDuration);
+        const totalDuration = expandDuration + recoverDuration;
+        this._hitFeedbackElapsed += Math.max(0, deltaTime);
+
+        let strength = 0;
+        if (totalDuration <= 0 || this._hitFeedbackElapsed >= totalDuration) {
+            this.RestoreHitFeedbackAppearance();
+            this._hitFeedbackPlaying = false;
+            this._hitFeedbackElapsed = 0;
+            return;
+        }
+        if (expandDuration > 0 && this._hitFeedbackElapsed < expandDuration) {
+            const ratio = this._hitFeedbackElapsed / expandDuration;
+            strength = 1 - (1 - ratio) * (1 - ratio); // quadOut
+        } else {
+            const ratio = recoverDuration > 0
+                ? (this._hitFeedbackElapsed - expandDuration) / recoverDuration
+                : 1;
+            strength = 1 - ratio * ratio; // quadIn
+        }
+
+        const scaleFactor = 1 + (config.HitFeedbackScale - 1) * strength;
+        this._hitFeedbackNode.setScale(
+            this._hitFeedbackBaseScale.x * scaleFactor,
+            this._hitFeedbackBaseScale.y * scaleFactor,
+            this._hitFeedbackBaseScale.z,
+        );
+        this.ApplyHitFeedbackColor(strength);
+    }
+
+    private ApplyHitFeedbackColor(strength: number): void {
+        if (!this._skeleton?.node?.isValid) return;
+        const tint = WZSJZ_Constant.EnemyCombat.HitFeedbackTint;
+        const ratio = Math.max(0, Math.min(1, strength));
+        const base = this._hitFeedbackBaseColor;
+        this._skeleton.color = new Color(
+            Math.round(base.r + (tint.R - base.r) * ratio),
+            Math.round(base.g + (tint.G - base.g) * ratio),
+            Math.round(base.b + (tint.B - base.b) * ratio),
+            base.a,
+        );
+    }
+
+    private RestoreHitFeedbackAppearance(): void {
+        if (this._hitFeedbackNode?.isValid) {
+            this._hitFeedbackNode.setScale(this._hitFeedbackBaseScale);
+        }
+        if (this._skeleton?.node?.isValid) {
+            this._skeleton.color = this._hitFeedbackBaseColor.clone();
+        }
+    }
+
+    private ResetHitFeedback(): void {
+        this.RestoreHitFeedbackAppearance();
+        this._hitFeedbackPlaying = false;
+        this._hitFeedbackElapsed = 0;
+    }
+
+    protected onDisable(): void {
+        this.ResetHitFeedback();
     }
 
     private GetStatusEffectAnchor(name: string): Node {

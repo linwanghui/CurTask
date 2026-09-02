@@ -43,6 +43,7 @@ import { WZSJZ_RoundAnnouncementSystem } from './WZSJZ_RoundAnnouncementSystem';
 import { WZSJZ_ReturnMenuSystem } from './WZSJZ_ReturnMenuSystem';
 import { WZSJZ_FunctionalNodeSystem } from './WZSJZ_FunctionalNodeSystem';
 import { WZSJZ_RecruitCardSystem } from './WZSJZ_RecruitCardSystem';
+import { WZSJZ_TutorialSystem } from './WZSJZ_TutorialSystem';
 import Banner from '../../../Scripts/Banner';
 const { ccclass, property } = _decorator;
 
@@ -127,6 +128,7 @@ export class WZSJZ_GameManager extends Component {
     private _returnMenuSystem: WZSJZ_ReturnMenuSystem = null;
     private _functionalNodeSystem: WZSJZ_FunctionalNodeSystem = null;
     private _recruitCardSystem: WZSJZ_RecruitCardSystem = null;
+    private _tutorialSystem: WZSJZ_TutorialSystem = null;
 
     public get IsGameStarted(): boolean {
         return this._isGameStarted;
@@ -231,6 +233,14 @@ export class WZSJZ_GameManager extends Component {
                 level,
                 true,
             ),
+        );
+        this._tutorialSystem = this.node.getComponent(WZSJZ_TutorialSystem)
+            || this.node.addComponent(WZSJZ_TutorialSystem);
+        this._tutorialSystem.Configure(
+            this.FormationZone?.parent,
+            this._formationCells,
+            this._preparationCells,
+            this._economySystem,
         );
     }
 
@@ -549,6 +559,11 @@ export class WZSJZ_GameManager extends Component {
                 if (sourceCell.Zone === "wall" || targetCell.Zone === "wall") {
                     this.RefreshWallDisplay();
                 }
+                this.node.emit(WZSJZ_EventManager.物资落位完成, {
+                    GameNode: gameNode,
+                    SourceCell: sourceCell,
+                    TargetCell: targetCell,
+                });
                 return;
             }
 
@@ -577,6 +592,12 @@ export class WZSJZ_GameManager extends Component {
                 if (targetCell.Zone === "wall") {
                     this.RefreshWallDisplay();
                 }
+                this.node.emit(WZSJZ_EventManager.同级合成完成, {
+                    Name: targetNode.Name,
+                    Level: targetNode.Level,
+                    Cell: targetCell,
+                    GameNode: targetNode,
+                });
                 return;
             }
 

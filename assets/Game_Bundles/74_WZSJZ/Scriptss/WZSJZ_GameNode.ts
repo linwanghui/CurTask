@@ -243,7 +243,9 @@ export class WZSJZ_GameNode extends Component {
         // 全场类范围使用约定值，不再额外放大，避免突破特殊语义。
         return baseRange >= 99999
             ? baseRange
-            : baseRange * this._functionalAttackRangeMultiplier;
+            : baseRange
+                * WZSJZ_Constant.CombatBalance.PlayerAttackRangeMultiplier
+                * this._functionalAttackRangeMultiplier;
     }
 
     /** 功能性节点提供的持续攻击倍率，由功能节点系统在布阵变化时统一刷新。 */
@@ -442,7 +444,10 @@ export class WZSJZ_GameNode extends Component {
         const levelNode = this.node.getChildByName("等级");
         const config = WZSJZ_Constant.GetMaterialConfig(this.Name);
         if (levelNode) {
-            levelNode.active = !config?.IsFunctionalNode && config?.ShowLevel !== false;
+            // 组合角色的两个原始文字仍会升级并刷新数值，但其所有子显示必须保持隐藏。
+            levelNode.active = !this._combinationChildStates
+                && !config?.IsFunctionalNode
+                && config?.ShowLevel !== false;
         }
         const label = levelNode ? levelNode.getComponentInChildren(Label) : this.node.getComponentInChildren(Label);
         if (label) {

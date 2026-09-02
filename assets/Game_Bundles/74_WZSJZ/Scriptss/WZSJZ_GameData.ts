@@ -47,6 +47,8 @@ export class WZSJZ_GameData extends Component {
     public HighestClearedLevel: number = 0;
     /** 首页当前正在查看的关卡，开始游戏时也以此字段为准。 */
     public SelectedLevel: number = 1;
+    /** 完整走完一次局内新手引导后永久记录。 */
+    public TutorialCompleted: boolean = false;
 
 
 
@@ -151,6 +153,13 @@ export class WZSJZ_GameData extends Component {
         WZSJZ_GameData.DateSave();
         WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.钻石变动, this.Diamond);
         return add;
+    }
+
+    public CompleteTutorial(): boolean {
+        if (this.TutorialCompleted) return false;
+        this.TutorialCompleted = true;
+        WZSJZ_GameData.DateSave();
+        return true;
     }
 
     public GetLevelProgressSnapshot(): {
@@ -409,6 +418,7 @@ export class WZSJZ_GameData extends Component {
             HookChestStartTimestamp: data.HookChestStartTimestamp,
             HighestClearedLevel: data.HighestClearedLevel,
             SelectedLevel: data.SelectedLevel,
+            TutorialCompleted: data.TutorialCompleted,
             GameData: data.GameData,
             TimeDate: data.TimeDate,
         });
@@ -437,7 +447,8 @@ export class WZSJZ_GameData extends Component {
                 || !Object.prototype.hasOwnProperty.call(savedData, "HookChestStartTimestamp");
             needsHomeResourceSave = needsHomeResourceSave
                 || !Object.prototype.hasOwnProperty.call(savedData, "HighestClearedLevel")
-                || !Object.prototype.hasOwnProperty.call(savedData, "SelectedLevel");
+                || !Object.prototype.hasOwnProperty.call(savedData, "SelectedLevel")
+                || !Object.prototype.hasOwnProperty.call(savedData, "TutorialCompleted");
             Object.assign(WZSJZ_GameData._instance, savedData);
             WZSJZ_GameData.Instance.DataUp();//判断存档版本升级
         } else {
@@ -446,6 +457,8 @@ export class WZSJZ_GameData extends Component {
         }
         WZSJZ_GameData._instance.NormalizeHomeResourceData(Date.now());
         WZSJZ_GameData._instance.NormalizeLevelProgressData();
+        WZSJZ_GameData._instance.TutorialCompleted
+            = WZSJZ_GameData._instance.TutorialCompleted === true;
         WZSJZ_GameData._instance.RefreshSignInDate(new Date());
         WZSJZ_GameData._instance.RefreshHookDate(Date.now());
         // 老存档缺少首页资源字段时，立即补齐并写回，而不是等下次自动保存。
