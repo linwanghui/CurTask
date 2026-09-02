@@ -10,18 +10,40 @@ export class ZRSJZ_GameCamera extends Component {
     @property({ tooltip: "跟随速度；小于等于 0 时立即跟随" })
     FollowSpeed: number = 10;
 
+    @property({ displayName: "开枪抖动强度", min: 0 })
+    GunShakeStrength: number = 18;
+
+    @property({ displayName: "开枪抖动时间（秒）", min: 0 })
+    GunShakeDuration: number = 0.12;
+
     private _isInit: boolean = false;
     private _camera: Camera = null;
     private _scopeTransform: UITransform = null;
     private _targetPos: Vec3 = new Vec3();
+    private _followPos: Vec3 = new Vec3();
     private _hasWarnedScope: boolean = false;
+    private _shakeRemaining: number = 0;
+    private _shakeDuration: number = 0;
+    private _shakeStrength: number = 0;
 
     Init(target: Node, scope: Node) {
         this.Target = target;
         this.Scope = scope;
         this._camera = this.getComponent(Camera);
         this.RefreshScopeTransform();
+        this._followPos.set(this.node.worldPosition);
         this._isInit = true;
+    }
+
+    /** 叠加一次开枪抖动；最终位置仍会经过地图边界限制。 */
+    public Shake(strength: number = this.GunShakeStrength, duration: number = this.GunShakeDuration): void {
+        const safeStrength = Math.max(0, strength || 0);
+        const safeDuration = Math.max(0, duration || 0);
+        if (safeStrength <= 0 || safeDuration <= 0) return;
+
+        this._shakeStrength = Math.max(this._shakeStrength, safeStrength);
+        this._shakeDuration = safeDuration;
+        this._shakeRemaining = safeDuration;
     }
 
     protected lateUpdate(dt: number): void {
@@ -36,17 +58,35 @@ export class ZRSJZ_GameCamera extends Component {
         this.ClampToScope(this._targetPos);
 
         if (this.FollowSpeed <= 0) {
-            this.node.setWorldPosition(this._targetPos);
-            return;
+            this._followPos.set(this._targetPos);
+        } else {
+            // 指数插值在不同帧率下具有接近一致的跟随手感。使用独立的跟随坐标，
+            // 避免上一帧抖动偏移参与插值后造成相机漂移。
+            const t = 1 - Math.exp(-this.FollowSpeed * Math.max(0, dt));
+            this._followPos.x += (this._targetPos.x - this._followPos.x) * t;
+            this._followPos.y += (this._targetPos.y - this._followPos.y) * t;
+            this._followPos.z = this._targetPos.z;
+            this.ClampToScope(this._followPos);
         }
 
-        // 指数插值在不同帧率下具有接近一致的跟随手感。
-        const t = 1 - Math.exp(-this.FollowSpeed * Math.max(0, dt));
-        const currentPos = this.node.worldPosition;
-        this._targetPos.x = currentPos.x + (this._targetPos.x - currentPos.x) * t;
-        this._targetPos.y = currentPos.y + (this._targetPos.y - currentPos.y) * t;
+        this._targetPos.set(this._followPos);
+        this.ApplyShake(this._targetPos, dt);
+        // 抖动后再次限制，保证相机视野始终不会越出地图范围。
         this.ClampToScope(this._targetPos);
         this.node.setWorldPosition(this._targetPos);
+    }
+
+    private ApplyShake(position: Vec3, dt: number): void {
+        if (this._shakeRemaining <= 0 || this._shakeDuration <= 0) return;
+
+        const decay = Math.max(0, Math.min(1, this._shakeRemaining / this._shakeDuration));
+        const angle = Math.random() * Math.PI * 2;
+        const radius = this._shakeStrength * decay * (0.65 + Math.random() * 0.35);
+        position.x += Math.cos(angle) * radius;
+        position.y += Math.sin(angle) * radius;
+
+        this._shakeRemaining = Math.max(0, this._shakeRemaining - Math.max(0, dt));
+        if (this._shakeRemaining <= 0) this._shakeStrength = 0;
     }
 
     private ClampToScope(position: Vec3): void {
@@ -94,4 +134,3 @@ export class ZRSJZ_GameCamera extends Component {
     }
 
 }
-

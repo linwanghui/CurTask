@@ -120,7 +120,6 @@ export class ZRSJZ_AudioManager extends Component {
             error(`音频不存在:`);
             return;
         }
-        console.error(audioClip.name);
 
         const sound = this.getIdleSource();
         sound.clip = audioClip;
@@ -137,8 +136,8 @@ export class ZRSJZ_AudioManager extends Component {
     }
 
     private freeSource(source: AudioSource) {
-        if (this._soleSoundName.includes(source.clip.name)) {
-            this._soleSoundName.splice(this._soleSoundName.indexOf(source.clip.name), 1);
+        if (this._soleSoundName.includes(source.clip?.name)) {
+            this._soleSoundName.splice(this._soleSoundName.indexOf(source.clip?.name), 1);
         }
         source.stop();
         source.clip = null;

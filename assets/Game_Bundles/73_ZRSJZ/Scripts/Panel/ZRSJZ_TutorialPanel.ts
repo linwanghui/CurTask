@@ -3,6 +3,7 @@ import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_TutorialPanel')
@@ -91,6 +92,7 @@ export class ZRSJZ_TutorialPanel extends ZRSJZ_Panel {
                     this.ClearTracking();
                     this.NextTipNode.active = false;
                     this.TipMaskNode.active = false;
+                    ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL_CLOSE_COLLIDER);
                     ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.新手引导弹窗);
                 } else {
                     this.ShowMaskTip([...targets], [...tips]);
@@ -100,6 +102,7 @@ export class ZRSJZ_TutorialPanel extends ZRSJZ_Panel {
             this.ClearTracking();
             this.NextTipNode.active = false;
             this.TipMaskNode.active = false;
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL_CLOSE_COLLIDER);
             ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.新手引导弹窗);
         }
     }
@@ -111,7 +114,7 @@ export class ZRSJZ_TutorialPanel extends ZRSJZ_Panel {
         }
         this.TipMaskLabel.string = tip;
         this.TrackGuide(this.TipMaskNode, target, 10, true, true);
-        find("Mask/Mask", this.TipMaskNode).once(Node.EventType.TOUCH_END, () => {
+        find("NextMask", this.TipMaskNode).once(Node.EventType.TOUCH_END, () => {
             this.ClearTracking();
             cb?.();
         });

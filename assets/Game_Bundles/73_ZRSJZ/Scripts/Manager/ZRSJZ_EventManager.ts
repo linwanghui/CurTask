@@ -44,6 +44,7 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_EXPERIENCE_ADDED: string = 'ZRSJZ_EXPERIENCE_ADDED';//玩家获得经验，用于播放等级增长表现
 
     public static ZRSJZ_TUTORIAL: string = 'ZRSJZ_TUTORIAL';//新手教程引导
+    public static ZRSJZ_TUTORIAL_CLOSE_COLLIDER: string = 'ZRSJZ_TUTORIAL_CLOSE_COLLIDER';//新手教程引导中关闭碰撞体
     public static ZRSJZ_MAIN_TASK_SHOW: string = 'ZRSJZ_MAIN_TASK_SHOW';//主线任务Item显示UI
     public static ZRSJZ_MAIN_TASK_CHECK: string = 'ZRSJZ_MAIN_TASK_CHECK';//主线任务Item选中
     public static ZRSJZ_MAIN_TASK_ADD: string = 'ZRSJZ_MAIN_TASK_ADD';//主线任务Item添加

@@ -208,7 +208,7 @@
     "_priority": 1,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 823.2409381663113,
+    "_orthoHeight": 982.6810673443456,
     "_near": 1,
     "_far": 2000,
     "_color": {
@@ -4791,6 +4791,8 @@
     "_enabled": true,
     "__prefab": null,
     "FollowSpeed": 10,
+    "GunShakeStrength": 18,
+    "GunShakeDuration": 0.12,
     "_id": "dbY4cWjZ1KMo/lArYPZ/To"
   },
   {
@@ -4898,6 +4900,8 @@
     "_enabled": true,
     "__prefab": null,
     "FollowSpeed": 10,
+    "GunShakeStrength": 18,
+    "GunShakeDuration": 0.12,
     "_id": "65XscxngBAao0SjC2/mMrN"
   },
   {
@@ -5921,7 +5925,7 @@
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -20050,7 +20054,7 @@
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,

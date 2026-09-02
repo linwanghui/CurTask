@@ -83,7 +83,6 @@ export class ZRSJZ_BombPlot extends Component {
             gameMap.worldPosition.z,
         );
         this.node.active = true;
-        ZRSJZ_AudioManager.Instance.PlayMusic("轰炸机");
 
         this.scheduleOnce(() => {
             if (version !== this._deployVersion || !this.IsRunning) return;
@@ -113,6 +112,7 @@ export class ZRSJZ_BombPlot extends Component {
         this.SetDropOptions(dropOptions);
         this.node.setWorldPosition(worldPosition.x, worldPosition.y, gameMap.worldPosition.z);
         this.node.active = true;
+        ZRSJZ_AudioManager.Instance.PlaySound("轰炸机");
         this.scheduleOnce(() => {
             if (version !== this._deployVersion || !this.IsRunning) return;
             this.BeginBombing(version);
@@ -208,5 +208,4 @@ export class ZRSJZ_BombPlot extends Component {
     }
 
 }
-
 

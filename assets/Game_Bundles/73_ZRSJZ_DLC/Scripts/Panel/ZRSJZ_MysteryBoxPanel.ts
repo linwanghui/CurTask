@@ -245,8 +245,10 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
         const originalName = audioClip.name;
         try {
             audioClip.name = `${originalName}_${++this._qualityAudioPlayId}`;
-            ZRSJZ_AudioManager.Instance.StopMusic();
-            ZRSJZ_AudioManager.Instance.PlayMusicByClip(audioClip, false, 1);
+            // ZRSJZ_AudioManager.Instance.StopMusic();
+            // ZRSJZ_AudioManager.Instance.PlayMusicByClip(audioClip, false, 1);
+
+            ZRSJZ_AudioManager.Instance.PlaySoundByClip(audioClip);
         } finally {
             audioClip.name = originalName;
         }

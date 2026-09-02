@@ -23,6 +23,7 @@ export class ZRSJZ_Inventory extends Component {
     private _newAddPropID: string[] = [];
     /** 子类销毁临时库存前需要等待本轮异步格子刷新结束。 */
     protected _isShowingPropItem: boolean = false;
+    private _isAutoOrganizing: boolean = false;
     IsVisible: boolean = true;
 
     protected onEnable(): void {
@@ -147,7 +148,12 @@ export class ZRSJZ_Inventory extends Component {
     }
 
     async ShowPropItem() {
-        if (!this.IsInitialized || !this.InventoryConfig || this._isShowingPropItem) {
+        if (
+            !this.IsInitialized
+            || !this.InventoryConfig
+            || this._isShowingPropItem
+            || this._isAutoOrganizing
+        ) {
             return;
         }
 
@@ -504,7 +510,21 @@ export class ZRSJZ_Inventory extends Component {
 
     /** 自动整理当前库存，并按面积从大到小重新紧凑排列。 */
     public async AutoOrganize(): Promise<boolean> {
-        if (!this.IsInitialized || !this.InventoryConfig) return false;
+        if (!this.IsInitialized || !this.InventoryConfig || this._isAutoOrganizing) return false;
+        while (this._isShowingPropItem) {
+            await new Promise<void>(resolve => setTimeout(resolve, 0));
+        }
+        if (!this.node?.isValid || !this.IsInitialized) return false;
+
+        this._isAutoOrganizing = true;
+        try {
+            return await this.PerformAutoOrganize();
+        } finally {
+            this._isAutoOrganizing = false;
+        }
+    }
+
+    private async PerformAutoOrganize(): Promise<boolean> {
 
         const propIDs = Array.from(new Set(this.Grids.flat().filter(id => id !== "")))
             .filter(id => ZRSJZ_GameData.Instance.PropData[id] != null)
