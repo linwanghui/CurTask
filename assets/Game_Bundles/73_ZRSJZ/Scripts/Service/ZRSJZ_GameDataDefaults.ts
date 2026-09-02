@@ -122,6 +122,10 @@ export class ZRSJZ_GameDataDefaults {
     private static readonly DataDefaults: Map<number, { Key: string, DefaultVaule: any }[]> = new Map([
         [1, [
             { Key: "InventoryRow", DefaultVaule: {} }
+        ]],
+        [2, [
+            { Key: "MailData", DefaultVaule: {} },
+            { Key: "MailID", DefaultVaule: 0 }
         ]]
     ])
 }

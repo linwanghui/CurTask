@@ -11,7 +11,7 @@ export class ZRSJZ_GameCamera extends Component {
     FollowSpeed: number = 10;
 
     @property({ displayName: "开枪抖动强度", min: 0 })
-    GunShakeStrength: number = 18;
+    GunShakeStrength: number = 5;
 
     @property({ displayName: "开枪抖动时间（秒）", min: 0 })
     GunShakeDuration: number = 0.12;

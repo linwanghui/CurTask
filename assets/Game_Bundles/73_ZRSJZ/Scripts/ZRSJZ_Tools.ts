@@ -122,4 +122,36 @@ export class ZRSJZ_Tools {
         targetNode.setScale(scale / 100, scale / 100, 1);
     }
 
+    public static GetDate(): string {
+        const date = new Date();
+        const month = `${date.getMonth() + 1}`.padStart(2, "0");
+        const day = `${date.getDate()}`.padStart(2, "0");
+        return `${date.getFullYear()}.${month}.${day}`;
+    }
+
+    /** 返回指定日期到今天已经过去的自然日数；今天或未来日期返回 0。 */
+    public static GetDaysSince(date: string): number {
+        const match = /^(\d{4})\.(\d{1,2})\.(\d{1,2})$/.exec(date?.trim() ?? "");
+        if (!match) return 0;
+
+        const year = Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        const inputDate = new Date(Date.UTC(year, month - 1, day));
+        if (
+            inputDate.getUTCFullYear() !== year
+            || inputDate.getUTCMonth() !== month - 1
+            || inputDate.getUTCDate() !== day
+        ) {
+            return 0;
+        }
+
+        const now = new Date();
+        const todayTimestamp = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        const elapsedDays = Math.floor((todayTimestamp - inputDate.getTime()) / 86_400_000);
+        return Math.max(0, elapsedDays);
+    }
+
+
+
 }

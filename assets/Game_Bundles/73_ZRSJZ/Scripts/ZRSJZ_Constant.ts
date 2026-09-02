@@ -221,6 +221,12 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["魔术兔子", { Name: "魔术兔子", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 880000, MaxCount: 1 }],
     ["嘟嘟骑士", { Name: "嘟嘟骑士", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 1110000, MaxCount: 1 }],
 
+    ["光头弹药箱", { Name: "光头弹药箱", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 500000, MaxCount: 1 }],
+    ["战神勋章", { Name: "战神勋章", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 500000, MaxCount: 1 }],
+    ["混乱勋章", { Name: "混乱勋章", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 500000, MaxCount: 1 }],
+    ["裂空之弩", { Name: "裂空之弩", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 500000, MaxCount: 1 }],
+    ["高科技护目镜", { Name: "高科技护目镜", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 500000, MaxCount: 1 }],
+
     //2x3 --  白
     ["水泥", { Name: "水泥", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x3, PropType: "物品", UnitPrice: 13000, MaxCount: 1 }],
     //2x3 --  绿
@@ -420,6 +426,12 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["快乐小熊", "系着红色蝴蝶结的棕色小熊玩偶，柔软憨厚的模样令人安心，是能驱散疲惫、珍藏快乐的温暖陪伴。"],
     ["魔术兔子", "头戴魔术礼帽、手持星光魔杖的兔子玩偶，精致披风下似乎藏着无数惊喜，随时准备献上一场奇妙演出。"],
     ["嘟嘟骑士", "我的订单都敢抢，你的胆子真是肥嘟嘟的。"],
+
+    ["光头弹药箱", "采用军用复合材料打造的重型弹药箱，内部整齐封存着大口径弹药；坚固外壳布满实战痕迹，是火力与胆识的象征。"],
+    ["战神勋章", "以猩红战斧与狰狞铁面铸成的荣誉勋章，只有从无数恶战中凯旋的勇士才有资格佩戴，冰冷锋芒间仍残留着战场的肃杀气息。"],
+    ["混乱勋章", "金色左轮与黑鸦羽翼交织而成的神秘勋章，中央红宝石闪烁着危险微光，据说它曾见证秩序崩塌前最疯狂的一场决斗。"],
+    ["裂空之弩", "搭载高倍率瞄具与赤红能量核心的战术强弩，精密弩臂可将力量汇聚于一点，离弦弩箭仿佛连空气都能撕裂。"],
+    ["高科技护目镜", "集成目标识别、环境扫描与战术标记模块的智能护目镜，湛蓝显示屏能实时捕捉战场信息，是尖端科技凝结而成的珍贵装备。"],
 
     //房卡
     ["低级房卡", "用于开启普通封锁房间的电子门禁卡，卡片上的紫色权限标识仍然有效。"],
@@ -1195,10 +1207,10 @@ export interface ZRSJZ_ParacargoConfig {
 
 /** 轰炸区刷新配置；所有随机时间均为闭区间内的均匀随机。 */
 export const ZRSJZ_BOMB_PLOT_SPAWN_CONFIG = Object.freeze({
-    FirstSpawnMinSeconds: 30,
-    FirstSpawnMaxSeconds: 40,
-    RepeatSpawnMinSeconds: 30,
-    RepeatSpawnMaxSeconds: 40,
+    FirstSpawnMinSeconds: 60,
+    FirstSpawnMaxSeconds: 90,
+    RepeatSpawnMinSeconds: 60,
+    RepeatSpawnMaxSeconds: 90,
 });
 
 export interface ZRSJZ_MapConfig {
@@ -2093,3 +2105,20 @@ export const ZRSJZ_BOOSTER_SHOT_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_Boost
     }],
 ])
 
+//#region 邮件
+
+export enum ZRSJZ_MAIL_TYPE {
+    仓库已满 = "仓库已满",
+    其他模式中获取道具 = "文字大乱斗",
+}
+
+export const ZRSJZ_MAIL_DESC: ReadonlyMap<string, string> = new Map([
+    [ZRSJZ_MAIL_TYPE.仓库已满, "    干员请注意，仓库容量已达上限，请立即清查整理仓库，售出无用物品。该任务存在一定难度，请审慎取舍。请认真完成，此举既能解决当前库容问题，也能保障团队后续稳定运转与工作效率。"],
+    [ZRSJZ_MAIL_TYPE.其他模式中获取道具, "    干员您好！这是您于文字大乱斗中获取的专属道具，奖励现已为您下发，请及时查收领取。期待见证您在对局中的精彩发挥，祝您游戏顺遂，日日愉快！"],
+])
+
+export interface ZRSJZ_MailConfig {
+    Type: string;//邮件类型
+    Time: string;//时间
+    PropAwards: string[];//道具奖励
+}
