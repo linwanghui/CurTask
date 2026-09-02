@@ -1,6 +1,6 @@
 import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
-import { _decorator, Component, director, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
+import { _decorator, Component, director, easing, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
@@ -8,6 +8,7 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager'
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
 import { ZRSJZ_GradeService } from "./Service/ZRSJZ_GradeService";
+import { ZRSJZ_TaskService } from "./Service/ZRSJZ_TaskService";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -19,22 +20,42 @@ export class ZRSJZ_Start extends Component {
     @property(Node)
     Player2: Node = null;
 
-    protected start(): void {
-        if (!ZRSJZ_GameData.Instance.IsTutorial) {
-            this.InitTutorial();
-            return;
-        }
-        //关闭所有面板
-        ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
+    @property(Node)
+    TaskTip: Node = null;
 
-        if (ZRSJZ_AccountService.CanClaimSignInReward()) {
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
+    @property(Node)
+    LoadPanel: Node = null;
+
+
+    protected start(): void {
+
+        this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
+        const cb: Function = () => {
+            if (!ZRSJZ_GameData.Instance.IsTutorial) {
+                this.InitTutorial();
+                return;
+            }
+            //关闭所有面板
+            ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
+            this.showRedTaskTip();
+            this.LoadPanel.active = false;
+
+            if (ZRSJZ_AccountService.CanClaimSignInReward()) {
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
+            }
+            // this.SignBtn.active = !ZRSJZ_AccountService.IsSignInCompleted();
+            ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
+            this.ModelSwitch();
+            this.RefreshMainTaskTip();
+            // 对局经验只在回到大厅、等级 UI 已注册事件后统一发放。
+            ZRSJZ_GradeService.ClaimPendingExperience();
         }
-        // this.SignBtn.active = !ZRSJZ_AccountService.IsSignInCompleted();
-        ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
-        this.ModelSwitch();
-        // 对局经验只在回到大厅、等级 UI 已注册事件后统一发放。
-        ZRSJZ_GradeService.ClaimPendingExperience();
+
+        if (ZRSJZ_UIManager.ZRSJZ_UI) cb();
+
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_UI, () => {
+            cb();
+        });
     }
 
     protected onEnable(): void {
@@ -42,10 +63,14 @@ export class ZRSJZ_Start extends Component {
             ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
         })
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MODEL_SWITCH, this.ModelSwitch, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW, this.RefreshMainTaskTip, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, this.RefreshMainTaskTip, this);
     }
 
     protected onDisable(): void {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MODEL_SWITCH, this.ModelSwitch, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW, this.RefreshMainTaskTip, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, this.RefreshMainTaskTip, this);
     }
 
     OnButtonClick(event: EventTouch) {
@@ -135,6 +160,22 @@ export class ZRSJZ_Start extends Component {
 
     ModelSwitch() {
         this.Player2.active = ZRSJZ_GameData.Instance.CurModel == "2p";
+    }
+
+    private RefreshMainTaskTip(): void {
+        if (this.TaskTip?.isValid) {
+            this.TaskTip.active = ZRSJZ_TaskService.HasMainTaskReminder();
+        }
+    }
+
+    private showRedTaskTip() {
+        Tween.stopAllByTarget(this.TaskTip);
+        tween(this.TaskTip)
+            .to(0.3, { scale: v3(1.5, 1.5, 1) })
+            .to(0.3, { scale: v3(1, 1, 1) })
+            .union()
+            .repeatForever()
+            .start();
     }
 
 }

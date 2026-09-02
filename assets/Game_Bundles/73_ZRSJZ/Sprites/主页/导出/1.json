@@ -1,0 +1,137 @@
+{
+"skeleton": {
+	"hash": "ERrjO+00dC8g3j2xCJKanP9Gys4",
+	"spine": "3.8.75",
+	"x": -380.57,
+	"y": -302.6,
+	"width": 1026,
+	"height": 726,
+	"images": "./images/",
+	"audio": "D:/2026/2d/三角洲（卡通真人版）/动画/主页地图"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "bone", "parent": "root", "x": -12.35, "y": 273.23 },
+	{ "name": "光", "parent": "root", "length": 260.29, "rotation": 1.55, "x": -6.76, "y": 118.2 },
+	{ "name": "扫光", "parent": "root", "length": 159.1, "x": -0.4, "y": 138.93, "color": "dfff00ff" },
+	{ "name": "ditutty", "parent": "root", "x": -2.63, "y": 326.39, "color": "f300ffff" }
+],
+"slots": [
+	{ "name": "桌子", "bone": "root", "attachment": "桌子" },
+	{ "name": "光", "bone": "光", "attachment": "光" },
+	{ "name": "扫光", "bone": "扫光" },
+	{ "name": "zz", "bone": "扫光", "attachment": "zz2" },
+	{ "name": "ty", "bone": "ditutty", "attachment": "冰天绝地" },
+	{ "name": "zz2", "bone": "扫光" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"zz": {
+				"zz2": {
+					"type": "clipping",
+					"end": "zz2",
+					"vertexCount": 4,
+					"vertices": [ -247.27, -3.76, 286.71, 0.65, 299.92, 492.79, -314.43, 490.59 ],
+					"color": "ce3a3aff"
+				}
+			},
+			"桌子": {
+				"桌子": { "x": 132.43, "y": -23.1, "width": 1026, "height": 559 }
+			},
+			"ty": {
+				"五号小镇": { "x": 6.56, "y": -13.49, "width": 385, "height": 329 },
+				"冰天绝地": { "x": 0.56, "y": -38.99, "width": 397, "height": 272 },
+				"沙漠古迹": { "x": -1.44, "y": -29.99, "width": 393, "height": 286 }
+			},
+			"光": {
+				"光": { "x": -2.61, "y": 44.28, "rotation": -1.55, "width": 590, "height": 240 }
+			},
+			"扫光": {
+				"扫光": { "x": -3.68, "y": -0.4, "width": 623, "height": 22 }
+			}
+		}
+	}
+],
+"animations": {
+	"animation": {
+		"slots": {
+			"ty": {
+				"attachment": [
+					{ "name": "五号小镇" },
+					{ "time": 3, "name": "沙漠古迹" },
+					{ "time": 7, "name": "冰天绝地" },
+					{ "time": 11, "name": "五号小镇" }
+				]
+			},
+			"扫光": {
+				"color": [
+					{ "time": 2, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 2.1667, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 3.8667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 4, "color": "ffffff00", "curve": "stepped" },
+					{ "time": 6, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 6.1667, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 7.8667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 8, "color": "ffffff00", "curve": "stepped" },
+					{ "time": 10, "color": "ffffff00", "curve": 0.25, "c3": 0.75 },
+					{ "time": 10.1667, "color": "ffffffff", "curve": "stepped" },
+					{ "time": 11.8667, "color": "ffffffff", "curve": 0.25, "c3": 0.75 },
+					{ "time": 12, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 2, "name": "扫光" }
+				]
+			},
+			"光": {
+				"color": [
+					{ "color": "ffffffff" },
+					{ "time": 1, "color": "ffffff5b" },
+					{ "time": 2, "color": "ffffffff" },
+					{ "time": 3, "color": "ffffff5b" },
+					{ "time": 4, "color": "ffffffff" },
+					{ "time": 5, "color": "ffffff5b" },
+					{ "time": 6, "color": "ffffffff" },
+					{ "time": 7, "color": "ffffff5b" },
+					{ "time": 8, "color": "ffffffff" },
+					{ "time": 9, "color": "ffffff5b" },
+					{ "time": 10, "color": "ffffffff" }
+				]
+			}
+		},
+		"bones": {
+			"ditutty": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 1, "y": 18.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 2, "curve": 0.25, "c3": 0.75 },
+					{ "time": 3, "y": 18.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 4, "curve": 0.25, "c3": 0.75 },
+					{ "time": 5, "y": 18.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 6, "curve": 0.25, "c3": 0.75 },
+					{ "time": 7, "y": 18.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 8, "curve": 0.25, "c3": 0.75 },
+					{ "time": 9, "y": 18.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 10, "curve": 0.25, "c3": 0.75 },
+					{ "time": 11, "y": 18.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 12 }
+				]
+			},
+			"扫光": {
+				"translate": [
+					{ "time": 2, "curve": 0.25, "c3": 0.75 },
+					{ "time": 3, "y": 362.62, "curve": 0.25, "c3": 0.75 },
+					{ "time": 4, "curve": "stepped" },
+					{ "time": 6, "curve": 0.25, "c3": 0.75 },
+					{ "time": 7, "y": 362.62, "curve": 0.25, "c3": 0.75 },
+					{ "time": 8, "curve": "stepped" },
+					{ "time": 10, "curve": 0.25, "c3": 0.75 },
+					{ "time": 11, "y": 362.62, "curve": 0.25, "c3": 0.75 },
+					{ "time": 12 }
+				]
+			}
+		}
+	}
+}
+}

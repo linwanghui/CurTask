@@ -279,19 +279,23 @@ export class ZRSJZ_SearchPropEffect extends Component {
         }
     }
 
+
     /** 道具正式显现时，根据品质播放对应的开箱音效。 */
     private PlayRevealSound(quality: ZRSJZ_PROP_QUALITY): void {
+        ZRSJZ_AudioManager.Instance?.PlaySound("开宝箱");
         switch (quality) {
             case ZRSJZ_PROP_QUALITY.红色:
-                ZRSJZ_AudioManager.Instance?.PlaySound("哇金色传说");
+                if (Math.random() < 0.8) ZRSJZ_AudioManager.Instance?.PlaySoleSound("哇金色传说");
+                break;
+            case ZRSJZ_PROP_QUALITY.金色:
+                if (Math.random() < 0.5) ZRSJZ_AudioManager.Instance?.PlaySoleSound("一般");
                 break;
             case ZRSJZ_PROP_QUALITY.紫色:
-            case ZRSJZ_PROP_QUALITY.金色:
-                ZRSJZ_AudioManager.Instance?.PlaySound("开宝箱");
+                if (Math.random() < 0.2) ZRSJZ_AudioManager.Instance?.PlaySoleSound("一般");
                 break;
             default:
                 // 白、绿、蓝品质统一使用普通开出音效。
-                ZRSJZ_AudioManager.Instance?.PlaySound("白");
+                if (Math.random() < 0.3) ZRSJZ_AudioManager.Instance?.PlaySoleSound("难过");
                 break;
         }
     }

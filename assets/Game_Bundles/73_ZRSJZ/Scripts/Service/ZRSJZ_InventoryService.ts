@@ -3,6 +3,7 @@ import {
     ZRSJZ_AssistFightingGiftConfig,
     ZRSJZ_GridData,
     ZRSJZ_INVENTORY,
+    ZRSJZ_INVENTORY_CONFIG,
     ZRSJZ_PROP_CONFIG,
     ZRSJZ_PropData,
 } from "../ZRSJZ_Constant";
@@ -11,6 +12,35 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager
 
 /** 道具、装备、仓库、弹药及房卡相关业务。 */
 export class ZRSJZ_InventoryService {
+
+    //#region 版本1之后新增
+    //获取对应仓库的行数
+    public static GetInventoryRow(inventory: ZRSJZ_INVENTORY, defaultValue: number = 0): number {
+        const data = ZRSJZ_GameData.Instance;
+        if (!data.InventoryRow.hasOwnProperty(inventory)) {
+            data.InventoryRow[inventory] = defaultValue;
+            ZRSJZ_GameData.SaveData();
+        }
+        return data.InventoryRow[inventory];
+    }
+
+    public static AddInventoryRow(inventory: ZRSJZ_INVENTORY, addRow: number) {
+        const data = ZRSJZ_GameData.Instance;
+        if (!data.InventoryRow.hasOwnProperty(inventory)) {
+            if (!ZRSJZ_INVENTORY_CONFIG.has(inventory)) {
+                console.error(`没找到仓库${inventory}`);
+                return;
+            }
+            const defaultValue = ZRSJZ_INVENTORY_CONFIG.get(inventory)?.Row ?? 0;
+            data.InventoryRow[inventory] = defaultValue;
+        }
+        data.InventoryRow[inventory] += addRow;
+        ZRSJZ_GameData.SaveData();
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_ADD_ROW, inventory, addRow);
+    }
+
+    //#regionend
+
     private static _activePlayerIndex: number = 0;
     /** 单局扩容状态；只存在内存中，玩家1和玩家2互不影响。 */
     private static _backpackExpanded: boolean[] = [false, false];
@@ -303,8 +333,7 @@ export class ZRSJZ_InventoryService {
     }
 
     public static IsWarehouseUnlocked(inventory: ZRSJZ_INVENTORY): boolean {
-        return inventory === ZRSJZ_INVENTORY.仓库_全部
-            || (ZRSJZ_GameData.Instance.UnlockedWarehouses ?? []).includes(inventory);
+        return true;
     }
 
     public static UnlockWarehouse(inventory: ZRSJZ_INVENTORY): boolean {
@@ -359,7 +388,7 @@ export class ZRSJZ_InventoryService {
                     || (prop.OwnerPlayerIndex ?? 0) === playerIndex)
                 ? total + prop.UnitPrice * prop.CurCount
                 : total,
-        0);
+            0);
     }
 
     public static RemoveInventoryRows(inventory: ZRSJZ_INVENTORY, removedRows: number[]): void {
@@ -388,7 +417,7 @@ export class ZRSJZ_InventoryService {
     public static GetPropCountByName(propName: string): number {
         return Object.values(ZRSJZ_GameData.Instance.PropData).reduce((count, prop) =>
             prop.Name === propName ? count + prop.CurCount : count,
-        0);
+            0);
     }
 
     public static ConsumeProp(propName: string, count: number = 1): boolean {
@@ -495,4 +524,5 @@ export class ZRSJZ_InventoryService {
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
         ZRSJZ_GameData.SaveData();
     }
+
 }

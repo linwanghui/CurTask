@@ -3,7 +3,7 @@ import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Component, EventTouch, Node } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 const { ccclass, property } = _decorator;
@@ -20,8 +20,14 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             case "所有道具加1":
                 ZRSJZ_InventoryService.AddAllProp();
                 break;
-            case "所有子弹加20":
-                ZRSJZ_InventoryService.AddAllAmmo(20);
+            case "主库加一行":
+                ZRSJZ_InventoryService.AddInventoryRow(ZRSJZ_INVENTORY.仓库_全部, 1);
+                break;
+            case "装备加一行":
+                ZRSJZ_InventoryService.AddInventoryRow(ZRSJZ_INVENTORY.仓库_装备, 1);
+                break;
+            case "保险箱加一行":
+                ZRSJZ_InventoryService.AddInventoryRow(ZRSJZ_INVENTORY.保险箱, 1);
                 break;
             case "无限火力":
                 ZRSJZ_Game.Instance.UnlimitedFirepower = true;

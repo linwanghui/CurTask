@@ -9,7 +9,11 @@ export class ZRSJZ_TaskService {
     public static CompleteTask(taskName: string, count: number = 1) {
         const data = ZRSJZ_GameData.Instance;
         if (data.CurMainTask == null || data.CurMainTask.TaskTargetName != taskName) return;
+        const wasReadyToClaim = this.IsTaskReadyToClaim(data.CurMainTask.TaskName);
         data.CurMainTask.CurCount += count;
+        if (!wasReadyToClaim && this.IsTaskReadyToClaim(data.CurMainTask.TaskName)) {
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW);
+        }
         ZRSJZ_GameData.SaveData();
     }
 
@@ -91,6 +95,28 @@ export class ZRSJZ_TaskService {
         } else {
             return 0;
         }
+    }
+
+    /** 当前是否存在需要玩家处理的主线任务。 */
+    public static HasMainTaskReminder(): boolean {
+        const data = ZRSJZ_GameData.Instance;
+        const hasTaskToAccept = !!data.NewMainTask && ZRSJZ_MAIN_TASK_CONFIG.has(data.NewMainTask);
+        return hasTaskToAccept || this.IsTaskReadyToClaim(data.CurMainTask?.TaskName);
+    }
+
+    /** 指定任务条目是否需要显示红点。 */
+    public static ShouldShowTaskReminder(taskName: string): boolean {
+        const data = ZRSJZ_GameData.Instance;
+        return data.NewMainTask === taskName || this.IsTaskReadyToClaim(taskName);
+    }
+
+    private static IsTaskReadyToClaim(taskName: string): boolean {
+        if (!taskName) return false;
+        const data = ZRSJZ_GameData.Instance;
+        const taskConfig = ZRSJZ_MAIN_TASK_CONFIG.get(taskName);
+        return !!taskConfig
+            && data.CurMainTask?.TaskName === taskName
+            && data.CurMainTask.CurCount >= taskConfig.TaskTargets[0].TaskTargetCount;
     }
 
 }

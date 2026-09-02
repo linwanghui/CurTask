@@ -41,7 +41,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         this.ContentUITansform = this.Content.getComponent(UITransform);
         this.ScrollView = find("Panel/仓库", this.node).getComponent(ScrollView);
         this.CheckedNode = find("Panel/仓库/物品按键/Checked", this.node);
-        this.SellMask = find("Panel/Mask", this.node);
+        this.SellMask = find("Panel/仓库/SellMask", this.node);
         this.SellValue = find("总价值/Count", this.SellMask).getComponent(Label);
         this._warehouseNode = find("Panel/仓库/物品按键/全部", this.node);
         const buttonParent = this._warehouseNode?.parent;
@@ -151,8 +151,8 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
                     // console.error(this._sellPropID);
                 }
                 break;
-            case "收藏室":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.收藏室界面);
+            case "一键整理":
+
                 break;
             case "Mask":
                 this._isSelling = false;

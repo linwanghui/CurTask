@@ -13,7 +13,9 @@ import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
+    public static readonly Versions = 2;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
+
     private static _instance: ZRSJZ_GameData = null;
 
     public static get Instance(): ZRSJZ_GameData {
@@ -24,13 +26,29 @@ export class ZRSJZ_GameData {
     public static ReadData(): ZRSJZ_GameData {
         const json = sys.localStorage.getItem(this.STORAGE_KEY);
         if (!json) {
-            this._instance = new ZRSJZ_GameData();
-            ZRSJZ_GameDataDefaults.Initialize(this._instance);
-            this.SaveData();
-            return this._instance;
+            return this.CreateNewData();
         }
 
-        const savedData = JSON.parse(json);
+        let savedData: any;
+        try {
+            savedData = JSON.parse(json);
+        } catch (error) {
+            console.warn("[ZRSJZ_GameData] 存档解析失败，已删除旧存档并创建新存档", error);
+            sys.localStorage.removeItem(this.STORAGE_KEY);
+            return this.CreateNewData();
+        }
+
+        const isValidSavedData = savedData
+            && typeof savedData === "object"
+            && !Array.isArray(savedData);
+        const hasVersions = isValidSavedData
+            && Object.prototype.hasOwnProperty.call(savedData, "Versions");
+        if (!hasVersions) {
+            console.warn("[ZRSJZ_GameData] 检测到缺少 Versions 的旧存档，已删除并创建新存档");
+            sys.localStorage.removeItem(this.STORAGE_KEY);
+            return this.CreateNewData();
+        }
+
         this._instance = Object.assign(new ZRSJZ_GameData(), savedData);
         if (ZRSJZ_GameDataDefaults.Migrate(this._instance, savedData)) this.SaveData();
         return this._instance;
@@ -40,6 +58,15 @@ export class ZRSJZ_GameData {
         if (!this._instance) return;
         sys.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._instance));
     }
+
+    private static CreateNewData(): ZRSJZ_GameData {
+        this._instance = new ZRSJZ_GameData();
+        ZRSJZ_GameDataDefaults.Initialize(this._instance);
+        this.SaveData();
+        return this._instance;
+    }
+
+    public Versions: number = 0;
 
     public MusicMute: boolean = false;
     public SoundMute: boolean = false;
@@ -57,8 +84,6 @@ export class ZRSJZ_GameData {
     public PropID: number = 0;
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};
     public UnlockedWarehouses: ZRSJZ_INVENTORY[] = [ZRSJZ_INVENTORY.仓库_全部];
-    public WarehouseStorageVersion: number = 1;
-    public LoadoutStorageVersion: number = 1;
 
     /** 0=枪、1=头盔、2=防弹衣、3=背包、4=刀。 */
     public WeaponryID: string[] = ["", "", "", "", ""];
@@ -134,4 +159,9 @@ export class ZRSJZ_GameData {
         { name: "防御塔", Level: 0 },
         { name: "果园", Level: 0 },
     ];
+
+    //#region 更新---需要在ZRSJZ_GameDataDefaults脚本中新增修改
+    //#region 版本1之后新增
+    public InventoryRow: { [Inventory: string]: number } = {};
+
 }

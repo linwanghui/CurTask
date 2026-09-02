@@ -19,6 +19,7 @@ import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_TaskService } from '../Service/ZRSJZ_TaskService';
+import { ZRSJZ_KillTipPanel } from '../Panel/ZRSJZ_KillTipPanel';
 
 const { ccclass, property } = _decorator;
 
@@ -324,6 +325,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         }
         this.OnDeath();
         ZRSJZ_AudioManager.Instance.PlaySound("击杀");
+        ZRSJZ_KillTipPanel.NotifyKill();
         ZRSJZ_TaskService.CompleteTask(`击杀[${ZRSJZ_GameData.Instance.CurMap}]中的敌人`, 1);
         this.Colliders.forEach(collider => collider.enabled = false);
     }

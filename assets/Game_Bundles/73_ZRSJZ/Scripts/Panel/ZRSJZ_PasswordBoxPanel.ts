@@ -60,15 +60,10 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
         find("Panel/关闭", this.node)?.on(Node.EventType.TOUCH_END, this.Close, this);
     }
 
-    protected onEnable(): void {
-        // ZRSJZ_AudioManager.Instance.PlayCyclicSound("SafeBoxBG");
-    }
-
     protected onDisable(): void {
         if (!this._isTransitioningToGoods) {
             this._targetBox?.EndSearch(this._playerIndex);
         }
-        // ZRSJZ_AudioManager.Instance.StopCyclicSound("SafeBoxBG");
     }
 
     protected update(deltaTime: number): void {
