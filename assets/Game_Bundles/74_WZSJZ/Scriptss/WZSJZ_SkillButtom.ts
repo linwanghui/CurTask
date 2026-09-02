@@ -21,6 +21,8 @@ export class WZSJZ_SkillButtom extends Component {
     private _onTargetEnd: ((uiPosition: Vec2, cancelled: boolean) => boolean) = null;
     private _onTargetTap: (() => void) = null;
     private _isCombatActive: boolean = false;
+    private _audioName: string = '技能释放';
+    private _audioVolume: number = 0.75;
 
     protected onLoad(): void {
         this.node.on(Node.EventType.TOUCH_START, this.OnTouchStart, this);
@@ -36,12 +38,16 @@ export class WZSJZ_SkillButtom extends Component {
         cooldown: number,
         onUse: () => boolean,
         infiniteCooldown: boolean = false,
+        audioName: string = '技能释放',
+        audioVolume: number = 0.75,
     ): void {
         this._cooldown = Math.max(0, cooldown);
         this._isInfiniteCooldown = infiniteCooldown;
         // 技能刚生成（包括组合角色拆开后重新组合）时从完整CD开始。
         this._remaining = this._isInfiniteCooldown ? 0 : this._cooldown;
         this._onUse = onUse;
+        this._audioName = audioName || '技能释放';
+        this._audioVolume = Math.max(0, Math.min(1, audioVolume));
         const mask = this._maskNode?.getComponent(Sprite);
         if (mask) {
             mask.type = Sprite.Type.FILLED;
@@ -79,7 +85,7 @@ export class WZSJZ_SkillButtom extends Component {
             return;
         }
         this._remaining = this._isInfiniteCooldown ? 0 : this._cooldown;
-        WZSJZ_AudioManager.Play('技能释放', 0.75, 0.08);
+        WZSJZ_AudioManager.Play(this._audioName, this._audioVolume, 0.08);
         this.RefreshCooldownView();
     }
 
@@ -136,7 +142,7 @@ export class WZSJZ_SkillButtom extends Component {
         const used = !!this._onTargetEnd?.(event.getUILocation(), cancelled);
         if (used) {
             this._remaining = this._isInfiniteCooldown ? 0 : this._cooldown;
-            WZSJZ_AudioManager.Play('技能释放', 0.75, 0.08);
+            WZSJZ_AudioManager.Play(this._audioName, this._audioVolume, 0.08);
             this.RefreshCooldownView();
         }
         event.propagationStopped = true;

@@ -43,11 +43,7 @@ export class WZSJZ_RoundAnnouncementSystem extends Component {
         const y = target.position.y;
         const z = target.position.z;
         target.setPosition(config.EnterX, y, z);
-        WZSJZ_AudioManager.Play(
-            name === "Boss来袭" ? config.IncomingAudio : config.RetreatAudio,
-            config.AudioVolume,
-            0.05,
-        );
+        WZSJZ_AudioManager.Play(config.EnterAudio, config.EnterAudioVolume, 0.05);
         tween(target)
             .to(
                 config.EnterDuration,
@@ -55,6 +51,10 @@ export class WZSJZ_RoundAnnouncementSystem extends Component {
                 { easing: "backOut" },
             )
             .delay(config.HoldDuration)
+            .call(() => {
+                if (token !== this._playToken) return;
+                WZSJZ_AudioManager.Play(config.ExitAudio, config.ExitAudioVolume, 0.05);
+            })
             .to(
                 config.ExitDuration,
                 { position: new Vec3(config.ExitX, y, z) },

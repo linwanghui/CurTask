@@ -93,6 +93,9 @@ export interface WZSJZ_NameCombinationConfig {
 export interface WZSJZ_SkillConfig {
     Id: string;
     OwnerName: string;
+    /** 释放成功时播放；未配置则使用通用“技能释放”。 */
+    AudioName?: string;
+    AudioVolume?: number;
     /** 图鉴中展示的玩法说明；冷却时间由面板直接读取Cooldown拼接。 */
     Description: string;
     ButtonPrefabPath: string;
@@ -149,7 +152,8 @@ export class WZSJZ_Constant {
         HandBookPanel: "Panel/HandBookPanel",
         /** 兼容已经使用的旧属性名。 */
         Handbook: "Panel/HandBookPanel",
-        ReturnPanel: "Panel/ReturnPanel"
+        ReturnPanel: "Panel/ReturnPanel",
+        FinishPanel: "Panel/FinishPanel",
     };
 
     /** 首页体力与钻石配置。时间全部使用真实时间戳，不受游戏倍速影响。 */
@@ -170,7 +174,9 @@ export class WZSJZ_Constant {
 
     /** 单局关卡回合流程；数值均集中配置，方便后续调整节奏。 */
     public static readonly StageFlow = {
-        NormalEnemyCount: 10,
+        InitialNormalEnemyCount: 3,
+        NormalEnemyCountPerRound: 1,
+        MaxNormalEnemyCount: 15,
         NormalEnemySpawnInterval: 0.08,
         BossSpawnDelay: 0.25,
         CombatDuration: 60,
@@ -181,7 +187,20 @@ export class WZSJZ_Constant {
         BossRoundAttributeIncrease: 0.15,
         BossRetreatSpeedMultiplier: 1.5,
         BossRetreatArrivalDistance: 8,
-        VictoryReturnDelay: 1.8,
+        VictoryBaseDiamondReward: 100,
+        VictoryDiamondRewardPerRound: 50,
+    };
+
+    /** 全局战斗平衡参数；所有进入城墙承伤入口的敌方伤害都会应用该倍率。 */
+    public static readonly CombatBalance = {
+        EnemyWallDamageMultiplier: 0.6,
+    };
+
+    public static readonly FinishResult = {
+        VictoryAudioName: "胜利音效",
+        VictoryAudioVolume: 0.9,
+        FailureAudioName: "失败音效",
+        FailureAudioVolume: 0.9,
     };
 
     public static readonly RoundAnnouncement = {
@@ -191,9 +210,10 @@ export class WZSJZ_Constant {
         EnterDuration: 0.3,
         HoldDuration: 1,
         ExitDuration: 0.3,
-        IncomingAudio: "界面打开",
-        RetreatAudio: "界面关闭",
-        AudioVolume: 0.9,
+        EnterAudio: "出场离开音效",
+        EnterAudioVolume: 0.9,
+        ExitAudio: "划走音效",
+        ExitAudioVolume: 0.9,
     };
 
     public static GetCampaignAttributeMultiplier(level: number): number {
@@ -260,6 +280,12 @@ export class WZSJZ_Constant {
 
     public static readonly ToolKey = {
         VideoReward: 1,
+    };
+
+    /** 局内招募卡：数量为0时通过激励视频补充。 */
+    public static readonly RecruitCard = {
+        VideoReward: 1,
+        RecruitLevel: 1,
     };
 
     /** 购买生成和二合一升级时的物资弹出动画。 */
@@ -403,7 +429,7 @@ export class WZSJZ_Constant {
     public static readonly NanoRepairStation = {
         Name: "纳米维修台",
         SkillInterval: 10,
-        WallHealAmount: 100,
+        WallHealAmount: 300,
         PurchaseWeight: 2,
         MaxSpawnsPerGame: 1,
         SkillAnimation: "jineng",
@@ -411,7 +437,7 @@ export class WZSJZ_Constant {
         SkillDescription: [
             "技能：纳米修复",
             "每隔10秒发动一次",
-            "恢复城墙100点生命值",
+            "恢复城墙300点生命值",
         ],
     };
 
@@ -499,6 +525,8 @@ export class WZSJZ_Constant {
     public static readonly BlockBridgeDogUltimate = {
         PrefabPath: "Prefabs/投掷物/堵桥狗大招炮弹",
         ButtonPrefabPath: "Prefabs/UI/技能按钮/巡航火箭",
+        ImpactAudioName: "爆炸mp3",
+        ImpactAudioVolume: 0.82,
         StrikeCount: 3,
         Cooldown: 20,
         Damage: 120,
@@ -536,7 +564,7 @@ export class WZSJZ_Constant {
         EffectPrefabPath: "Prefabs/特效/技能纳米修复特效",
         EffectDuration: 1.33,
         /** 数组下标0～5分别对应哈基蜂1～6级。 */
-        HealByLevel: [40, 80, 160, 320, 640, 1280],
+        HealByLevel: [40, 250, 400, 600, 800, 1200],
     };
 
     /** 老板技能：让自身占格外围一圈的攻击/收益单位获得临时超频。 */
@@ -625,6 +653,7 @@ export class WZSJZ_Constant {
         LaunchNodeName: "子弹发射点位",
         AttackAnimation: "gongji",
         IdleAnimation: "daiji",
+        HitEffectName: "狙击子弹击中特效",
         HitDistance: 20,
         HitEffectDuration: 0.2,
         KillExperience: 1,
@@ -688,6 +717,8 @@ export class WZSJZ_Constant {
     public static readonly HomingSpider = {
         PrefabPath: "Prefabs/投掷物/夺命小蜘蛛",
         ButtonPrefabPath: "Prefabs/UI/技能按钮/追命爆蛛",
+        ExplosionAudioName: "技能_蛛蛛侠_小蜘蛛爆炸",
+        ExplosionAudioVolume: 0.78,
         Cooldown: 50,
         /** 从城墙朝敌方一侧的外边缘继续向前生成，避免小蜘蛛从后排起跑。 */
         SpawnForwardOffset: 100,
@@ -718,6 +749,7 @@ export class WZSJZ_Constant {
         {
             Id: "绝对防线",
             OwnerName: "盾哥",
+            AudioName: "技能_盾哥_绝对防线",
             Description: "展开绝对防线，使城墙进入5秒无敌状态。",
             ButtonPrefabPath: "Prefabs/UI/技能按钮/绝对防线",
             Cooldown: 30,
@@ -730,6 +762,7 @@ export class WZSJZ_Constant {
         {
             Id: "绝对防线",
             OwnerName: "堵桥狗",
+            AudioName: "技能_堵桥狗_绝对防线",
             Description: "锁定最多3名敌人发射火炮；敌人不足时会轰击随机位置，落地造成范围伤害。",
             ButtonPrefabPath: WZSJZ_Constant.BlockBridgeDogUltimate.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.BlockBridgeDogUltimate.Cooldown,
@@ -739,6 +772,7 @@ export class WZSJZ_Constant {
         {
             Id: "声波陷阱",
             OwnerName: "老黑",
+            AudioName: "技能_老黑_声波陷阱",
             Description: "拖动选择落点并布置声波陷阱，连续释放3轮声波，使范围内敌人暂停移动和攻击。",
             ButtonPrefabPath: WZSJZ_Constant.SonicTrap.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.SonicTrap.Cooldown,
@@ -749,6 +783,7 @@ export class WZSJZ_Constant {
         {
             Id: "纳米修复",
             OwnerName: "哈基蜂",
+            AudioName: "技能_哈基蜂_纳米修复",
             Description: "在城墙上启动纳米修复，根据哈基蜂等级回复城墙生命值。",
             ButtonPrefabPath: WZSJZ_Constant.NanoRepair.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.NanoRepair.Cooldown,
@@ -761,6 +796,7 @@ export class WZSJZ_Constant {
         {
             Id: "超频指令",
             OwnerName: "老板",
+            AudioName: "技能_老板_超频指令",
             Description: "使周围一圈单位超频5秒：攻击单位提高伤害，收益单位提高每秒产出。",
             ButtonPrefabPath: WZSJZ_Constant.OverclockCommand.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.OverclockCommand.Cooldown,
@@ -773,6 +809,7 @@ export class WZSJZ_Constant {
         {
             Id: "震荡脉冲",
             OwnerName: "威虫",
+            AudioName: "技能_威虫_震荡脉冲",
             Description: "向前方三个方向释放震荡脉冲，将命中的普通敌人击退300距离并眩晕3秒；Boss未破韧时只扣除韧性。",
             ButtonPrefabPath: WZSJZ_Constant.ShockPulse.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.ShockPulse.Cooldown,
@@ -782,6 +819,7 @@ export class WZSJZ_Constant {
         {
             Id: "猎杀协议",
             OwnerName: "红狗",
+            AudioName: "技能_红狗_猎杀协议",
             Description: "启动猎杀协议10秒，大幅提高自身攻击速度，攻击动画也会同步加速。",
             ButtonPrefabPath: WZSJZ_Constant.HuntProtocol.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.HuntProtocol.Cooldown,
@@ -794,6 +832,7 @@ export class WZSJZ_Constant {
         {
             Id: "电磁力场",
             OwnerName: "疯狗",
+            AudioName: "技能_疯狗_电磁力场",
             Description: "技能动作结束后，对场上最多5名敌人投放电磁飞刀，在落点连续造成多段范围伤害。",
             ButtonPrefabPath: WZSJZ_Constant.ElectromagneticField.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.ElectromagneticField.Cooldown,
@@ -804,6 +843,7 @@ export class WZSJZ_Constant {
         {
             Id: "电磁致盲",
             OwnerName: "麦小鼠",
+            AudioName: "技能_麦小鼠_电磁致盲",
             Description: "拖动选择区域，持续造成每0.5秒一次的伤害，并使命中敌人致盲5秒；重复命中会刷新致盲时间。",
             ButtonPrefabPath: WZSJZ_Constant.ElectromagneticBlind.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.ElectromagneticBlind.Cooldown,
@@ -816,6 +856,7 @@ export class WZSJZ_Constant {
         {
             Id: "回旋飞刃",
             OwnerName: "幽默男",
+            AudioName: "技能_幽默男_回旋飞刃",
             Description: "向前方20°、0°、-20°发射3枚回旋飞刃，到达最远距离后返回；同一敌人去程和返程各可受击一次。",
             ButtonPrefabPath: WZSJZ_Constant.BoomerangBlades.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.BoomerangBlades.Cooldown,
@@ -826,6 +867,7 @@ export class WZSJZ_Constant {
         {
             Id: "震荡俯冲",
             OwnerName: "鸟人",
+            AudioName: "技能_鸟人_震荡俯冲",
             Description: "随机锁定场上最多3名敌人的位置发动俯冲，短暂延迟后对每个落点造成范围伤害。",
             ButtonPrefabPath: WZSJZ_Constant.DiveStrike.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.DiveStrike.Cooldown,
@@ -835,6 +877,7 @@ export class WZSJZ_Constant {
         {
             Id: "追命爆蛛",
             OwnerName: "蛛蛛侠",
+            AudioName: "技能_蛛蛛侠_追命爆蛛",
             Description: "召唤夺命小蜘蛛，出场后追踪最近敌人，抵达目标位置时造成高额范围爆炸伤害。",
             ButtonPrefabPath: WZSJZ_Constant.HomingSpider.ButtonPrefabPath,
             Cooldown: WZSJZ_Constant.HomingSpider.Cooldown,
@@ -862,6 +905,7 @@ export class WZSJZ_Constant {
         BlueExplosionPrewarm: 1,
         CellMoveEffectPrewarm: 1,
         CellUpgradeEffectPrewarm: 1,
+        CellUnlockEffectPrewarm: 1,
         BossLaoSaiArrowPrewarm: 1,
         BossDianYuZhangSlashPrewarm: 1,
         EnemyCommonBulletPrewarm: 1,
@@ -1211,6 +1255,8 @@ export class WZSJZ_Constant {
 
     public static readonly CannonBullet = {
         PrefabPath: "Prefabs/投掷物/炮子弹",
+        HitAudioName: "爆炸mp3",
+        HitAudioVolume: 0.78,
         HitDistance: 22,
         /** 炮弹飞行轨迹相对直线抬高的最大高度。 */
         ArcHeight: 260,
@@ -1268,6 +1314,7 @@ export class WZSJZ_Constant {
         LaunchNodeName: "子弹发射点位",
         AttackAnimation: "gongji",
         IdleAnimation: "daiji",
+        HitEffectName: "",
         HitDistance: 20,
         HitEffectDuration: 0.2,
         KillExperience: 1,
@@ -1276,10 +1323,17 @@ export class WZSJZ_Constant {
     public static readonly CellEffect = {
         MovePrefabPath: "Prefabs/特效/移动特效",
         UpgradePrefabPath: "Prefabs/特效/升级特效",
+        UnlockPrefabPath: "Prefabs/特效/解锁特效",
         AnimationName: "animation",
         MoveFallbackDuration: 0.8,
         UpgradeFallbackDuration: 0.97,
+        UnlockFallbackDuration: 0.97,
     };
+
+    /** 本局第一次成功购买时的保底物资池，仍按各自 PurchaseWeight 抽取。 */
+    public static readonly FirstPurchaseGuaranteedMaterials: readonly string[] = [
+        "刀", "枪", "雷", "炮",
+    ];
 
     /** 购买价格每上涨一档后，对应的物资初始等级权重。 */
     public static readonly PurchaseLevelStages: WZSJZ_LevelWeightStage[] = [
@@ -1406,12 +1460,12 @@ export class WZSJZ_Constant {
             UpgradeTimes: 5,
             MergeSameLevelCount: 2,
             Levels: [
-                { Level: 1, SpritePath: "Sprites/游戏内/围墙/0", DisplaySpritePath: "Sprites/游戏内/显示围墙/0", ProductionPerSecond: 0, MaxHealth: 100 },
-                { Level: 2, SpritePath: "Sprites/游戏内/围墙/1", DisplaySpritePath: "Sprites/游戏内/显示围墙/1", ProductionPerSecond: 0, MaxHealth: 200 },
-                { Level: 3, SpritePath: "Sprites/游戏内/围墙/2", DisplaySpritePath: "Sprites/游戏内/显示围墙/2", ProductionPerSecond: 0, MaxHealth: 400 },
-                { Level: 4, SpritePath: "Sprites/游戏内/围墙/3", DisplaySpritePath: "Sprites/游戏内/显示围墙/3", ProductionPerSecond: 0, MaxHealth: 800 },
-                { Level: 5, SpritePath: "Sprites/游戏内/围墙/4", DisplaySpritePath: "Sprites/游戏内/显示围墙/4", ProductionPerSecond: 0, MaxHealth: 1600 },
-                { Level: 6, SpritePath: "Sprites/游戏内/围墙/5", DisplaySpritePath: "Sprites/游戏内/显示围墙/5", ProductionPerSecond: 0, MaxHealth: 3200 },
+                { Level: 1, SpritePath: "Sprites/游戏内/围墙/0", DisplaySpritePath: "Sprites/游戏内/显示围墙/0", ProductionPerSecond: 0, MaxHealth: 500 },
+                { Level: 2, SpritePath: "Sprites/游戏内/围墙/1", DisplaySpritePath: "Sprites/游戏内/显示围墙/1", ProductionPerSecond: 0, MaxHealth: 800 },
+                { Level: 3, SpritePath: "Sprites/游戏内/围墙/2", DisplaySpritePath: "Sprites/游戏内/显示围墙/2", ProductionPerSecond: 0, MaxHealth: 1200 },
+                { Level: 4, SpritePath: "Sprites/游戏内/围墙/3", DisplaySpritePath: "Sprites/游戏内/显示围墙/3", ProductionPerSecond: 0, MaxHealth: 1800 },
+                { Level: 5, SpritePath: "Sprites/游戏内/围墙/4", DisplaySpritePath: "Sprites/游戏内/显示围墙/4", ProductionPerSecond: 0, MaxHealth: 3000 },
+                { Level: 6, SpritePath: "Sprites/游戏内/围墙/5", DisplaySpritePath: "Sprites/游戏内/显示围墙/5", ProductionPerSecond: 0, MaxHealth: 5000 },
             ],
         },
         "钥匙": {

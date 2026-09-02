@@ -62,7 +62,19 @@ export class WZSJZ_CommonEffectSystem extends Component {
 
     public Play(effectName: string, worldPosition: Vec3, durationOverride?: number): boolean {
         const runtime = this._effects.get(effectName);
-        if (!runtime || !this._effectLayer) {
+        if (!runtime) {
+            const pendingLoad = this._effectLoads.get(effectName);
+            if (pendingLoad) {
+                const deferredPosition = worldPosition.clone();
+                void pendingLoad.then((loaded) => {
+                    if (loaded && this.node?.isValid) {
+                        this.Play(effectName, deferredPosition, durationOverride);
+                    }
+                });
+            }
+            return false;
+        }
+        if (!this._effectLayer) {
             return false;
         }
         const effectNode = runtime.Pool.get() || instantiate(runtime.Prefab);

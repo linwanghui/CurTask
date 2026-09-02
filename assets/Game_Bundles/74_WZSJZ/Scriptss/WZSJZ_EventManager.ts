@@ -13,6 +13,7 @@ export class WZSJZ_EventManager {
     public static 游戏开始 = "文字三角洲_游戏开始";//参数为当前围墙组件
     public static 敌人死亡 = "文字三角洲_敌人死亡";//参数：死亡的敌人组件
     public static Boss逃跑 = "文字三角洲_Boss逃跑";//参数：逃跑的Boss组件
+    public static 城墙摧毁 = "文字三角洲_城墙摧毁";//参数：被摧毁的城墙组件
     public static 战斗阶段变动 = "文字三角洲_战斗阶段变动";//参数：是否处于本轮战斗阶段
     public static 回合公告 = "文字三角洲_回合公告";//参数：Boss来袭或Boss暂退
     public static 拖拽物变化 = "文字三角洲_拖拽物变化";//参数为当前拖拽物，拖拽结束时为null

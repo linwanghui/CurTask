@@ -355,10 +355,9 @@ export class WZSJZ_ShieldBrotherCombatSystem extends Component {
             levelConfig.BulletSpeed,
             (projectile) => this.RecycleSharedBullet(projectile, pool),
             (position, hitDamage) => {
-                if (isWheatMouse) {
-                    const hitEffect = WZSJZ_Constant.CommonEffect.SniperBulletHit;
+                if (projectileConfig.HitEffectName) {
                     WZSJZ_CommonEffectSystem.Instance?.Play(
-                        hitEffect.EffectName,
+                        projectileConfig.HitEffectName,
                         position,
                     );
                 }

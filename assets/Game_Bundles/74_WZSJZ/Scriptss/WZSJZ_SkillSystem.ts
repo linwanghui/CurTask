@@ -194,6 +194,8 @@ export class WZSJZ_SkillSystem extends Component {
                 config.Cooldown,
                 () => this.ExecuteSkill(config),
                 this._infiniteSkills,
+                config.AudioName || '技能释放',
+                config.AudioVolume ?? 0.75,
             );
             button.SetCombatActive(this._isCombatRoundActive);
             if (config.EffectType === "sonic_trap") {
@@ -657,6 +659,8 @@ export class WZSJZ_SkillSystem extends Component {
             config.DamageTriggerDelay,
             config.RecycleDelay,
             config.AnimationName,
+            config.ImpactAudioName,
+            config.ImpactAudioVolume,
             this.RecycleBlockBridgeDogUltimate,
             onKill,
         )) {
@@ -1288,6 +1292,8 @@ export class WZSJZ_SkillSystem extends Component {
             spiderConfig.EntranceFallbackDuration,
             spiderConfig.ExplosionFallbackDuration,
             spiderConfig.ExplosionDamageDelay,
+            spiderConfig.ExplosionAudioName,
+            spiderConfig.ExplosionAudioVolume,
             this.RecycleHomingSpider,
             onKill,
         )) {

@@ -751,6 +751,8 @@ export class WZSJZ_CombatSystem extends Component {
             WZSJZ_Constant.CannonBullet.HitEffectDuration,
             true,
             WZSJZ_Constant.CannonBullet.ArcHeight,
+            WZSJZ_Constant.CannonBullet.HitAudioName,
+            WZSJZ_Constant.CannonBullet.HitAudioVolume,
         )) {
             this._cannonBulletPool.put(bulletNode);
             return false;

@@ -6,6 +6,7 @@ import { WZSJZ_GameNode } from './WZSJZ_GameNode';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_NameCombination } from './WZSJZ_NameCombination';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
+import { WZSJZ_CellEffectSystem } from './WZSJZ_CellEffectSystem';
 const { ccclass } = _decorator;
 
 /** 功能节点域：管理没有等级、按战斗阶段周期生效的布阵道具。 */
@@ -24,6 +25,7 @@ export class WZSJZ_FunctionalNodeSystem extends Component {
     private _experienceDeviceCooldowns: Map<WZSJZ_GameNode, number> = new Map<WZSJZ_GameNode, number>();
     private _rangeBuffedUnits: Set<WZSJZ_GameNode> = new Set<WZSJZ_GameNode>();
     private _activeHackerDecoders: Set<WZSJZ_GameNode> = new Set<WZSJZ_GameNode>();
+    private _cellEffectSystem: WZSJZ_CellEffectSystem = null;
 
     protected onLoad(): void {
         this.node.on(WZSJZ_EventManager.布阵变化, this.RefreshFunctionalNodes, this);
@@ -32,9 +34,14 @@ export class WZSJZ_FunctionalNodeSystem extends Component {
         this.node.on(WZSJZ_EventManager.组合单位变化, this.OnCombinationUnitsChanged, this);
     }
 
-    public Configure(formationCells: WZSJZ_Cell[], wallDisplayNode: Node): void {
+    public Configure(
+        formationCells: WZSJZ_Cell[],
+        wallDisplayNode: Node,
+        cellEffectSystem: WZSJZ_CellEffectSystem,
+    ): void {
         this._formationCells = formationCells || [];
         this._wall = wallDisplayNode?.getComponent(WZSJZ_Wall) || null;
+        this._cellEffectSystem = cellEffectSystem;
         this.RefreshFunctionalNodes();
     }
 
@@ -213,6 +220,7 @@ export class WZSJZ_FunctionalNodeSystem extends Component {
         );
         for (let index = 0; index < unlockCount; index++) {
             lockedCells[index].SetUnlocked(true);
+            this._cellEffectSystem?.PlayUnlock(lockedCells[index]);
         }
         if (unlockCount > 0) {
             WZSJZ_AudioManager.Play('格子解锁', 0.8);

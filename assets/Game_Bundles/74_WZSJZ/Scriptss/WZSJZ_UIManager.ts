@@ -73,7 +73,6 @@ export class WZSJZ_UIManager extends Component {
     //*** 路径 或者 Bundle名称/路径 */
     public HidePanel(panelPath: string, callback?: Function) {
         this.EnsurePanelDictionaries();
-        WZSJZ_AudioManager.Play('界面关闭', 0.55, 0.08);
         if (this._panelDict.hasOwnProperty(panelPath)) {
             let panel = this._panelDict[panelPath];
             if (panel && isValid(panel)) {
@@ -132,7 +131,6 @@ export class WZSJZ_UIManager extends Component {
         if (this._loadingPanelDict[panelPath]) {
             return;
         }
-        WZSJZ_AudioManager.Play('界面打开', 0.55, 0.08);
 
         let idxSplit = panelPath.lastIndexOf('/');
         let scriptName = `WZSJZ_` + panelPath.slice(idxSplit + 1);

@@ -1,7 +1,6 @@
 import {
     _decorator,
     Component,
-    director,
     Label,
     Node,
     tween,
@@ -20,7 +19,7 @@ import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 
 const { ccclass } = _decorator;
-type StageState = "preparation" | "spawning" | "combat" | "retreat" | "victory";
+type StageState = "preparation" | "spawning" | "combat" | "retreat" | "finished";
 
 /** 单局回合状态机：备战、出怪、Boss倒计时、逃跑以及胜利结算。 */
 @ccclass('WZSJZ_StageFlowSystem')
@@ -43,6 +42,7 @@ export class WZSJZ_StageFlowSystem extends Component {
     private _getAdditionalCombatDuration: (() => number) = null;
     private _preparationHomePosition: Vec3 = new Vec3();
     private _preparationOffscreenPosition: Vec3 = new Vec3();
+    private _hasFinished: boolean = false;
 
     public get CanStartRound(): boolean {
         return this._state === "preparation";
@@ -75,6 +75,7 @@ export class WZSJZ_StageFlowSystem extends Component {
         this.node.emit(WZSJZ_EventManager.战斗阶段变动, false);
         this.node.on(WZSJZ_EventManager.敌人死亡, this.OnEnemyDied, this);
         this.node.on(WZSJZ_EventManager.Boss逃跑, this.OnBossEscaped, this);
+        this.node.on(WZSJZ_EventManager.城墙摧毁, this.OnWallDestroyed, this);
     }
 
     public StartRound(wall: WZSJZ_Wall): boolean {
@@ -117,10 +118,16 @@ export class WZSJZ_StageFlowSystem extends Component {
         const campaignMultiplier = WZSJZ_Constant.GetCampaignAttributeMultiplier(
             progress.SelectedLevel,
         );
-        for (let index = 0; index < WZSJZ_Constant.StageFlow.NormalEnemyCount; index++) {
+        const normalEnemyCount = Math.min(
+            WZSJZ_Constant.StageFlow.MaxNormalEnemyCount,
+            WZSJZ_Constant.StageFlow.InitialNormalEnemyCount
+                + Math.max(0, this._round - 1)
+                    * WZSJZ_Constant.StageFlow.NormalEnemyCountPerRound,
+        );
+        for (let index = 0; index < normalEnemyCount; index++) {
             if (token !== this._flowToken || this._state !== "spawning") return;
             this._combatSystem.SpawnStageNormalEnemy(campaignMultiplier);
-            if (index + 1 < WZSJZ_Constant.StageFlow.NormalEnemyCount) {
+            if (index + 1 < normalEnemyCount) {
                 await this.Delay(WZSJZ_Constant.StageFlow.NormalEnemySpawnInterval);
             }
         }
@@ -156,16 +163,41 @@ export class WZSJZ_StageFlowSystem extends Component {
     private OnEnemyDied = (enemy: WZSJZ_Enemy): void => {
         if (enemy !== this._boss
             || (this._state !== "combat" && this._state !== "retreat")) return;
-        this._state = "victory";
-        this._flowToken++;
-        this.node.emit(WZSJZ_EventManager.战斗阶段变动, false);
-        this._combatSystem.ClearStageEnemies(enemy);
-        if (this._countdownRoot) this._countdownRoot.active = false;
-        WZSJZ_GameData.Instance.CompleteLevel(WZSJZ_GameData.Instance.SelectedLevel);
-        WZSJZ_UIManager.Instance.ShowText("关卡通过");
-        this.scheduleOnce(() => director.loadScene("WZSJZ_Start"),
-            WZSJZ_Constant.StageFlow.VictoryReturnDelay);
+        this.FinishGame(true, enemy);
     };
+
+    private OnWallDestroyed = (wall: WZSJZ_Wall): void => {
+        if (wall !== this._wall) return;
+        this.FinishGame(false);
+    };
+
+    /** 胜负只允许结算一次；先关闭战斗域，再发奖励并显示结果界面。 */
+    private FinishGame(victory: boolean, defeatedBoss: WZSJZ_Enemy = null): void {
+        if (this._hasFinished) return;
+        this._hasFinished = true;
+        this._state = "finished";
+        this._flowToken++;
+        this._remainingTime = 0;
+        this.node.emit(WZSJZ_EventManager.战斗阶段变动, false);
+        this._combatSystem?.ClearStageEnemies(victory ? defeatedBoss : null);
+        this._boss = null;
+        if (this._countdownRoot) this._countdownRoot.active = false;
+        if (this._startButton) this._startButton.active = false;
+
+        let diamondReward = 0;
+        if (victory) {
+            const gameData = WZSJZ_GameData.Instance;
+            gameData.CompleteLevel(gameData.SelectedLevel);
+            diamondReward = WZSJZ_Constant.StageFlow.VictoryBaseDiamondReward
+                + Math.max(0, this._round - 1)
+                    * WZSJZ_Constant.StageFlow.VictoryDiamondRewardPerRound;
+            gameData.AddDiamond(diamondReward);
+        }
+        WZSJZ_UIManager.Instance.ShowPanel(
+            WZSJZ_Constant.Panel.FinishPanel,
+            [victory, diamondReward],
+        );
+    }
 
     private OnBossEscaped = (boss: WZSJZ_Enemy): void => {
         if (boss !== this._boss || this._state !== "retreat") return;

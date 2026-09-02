@@ -29,6 +29,8 @@ export class WZSJZ_Bullet extends Component {
     private _arcElapsed: number = 0;
     private _arcDuration: number = 0;
     private _arcStartPosition: Vec3 = new Vec3();
+    private _hitAudioName: string = "子弹命中";
+    private _hitAudioVolume: number = 0.45;
 
     public Initialize(
         target: WZSJZ_Enemy,
@@ -40,6 +42,8 @@ export class WZSJZ_Bullet extends Component {
         hitEffectDuration: number = WZSJZ_Constant.GunBullet.HitEffectDuration,
         continueOnTargetLost: boolean = false,
         arcHeight: number = 0,
+        hitAudioName: string = "子弹命中",
+        hitAudioVolume: number = 0.45,
     ): boolean {
         if (!target?.IsAlive || damage <= 0 || speed <= 0) {
             return false;
@@ -56,6 +60,8 @@ export class WZSJZ_Bullet extends Component {
         this._hitEffectDuration = Math.max(0, hitEffectDuration);
         this._continueOnTargetLost = continueOnTargetLost;
         this._arcHeight = Math.max(0, arcHeight);
+        this._hitAudioName = hitAudioName || "";
+        this._hitAudioVolume = Math.max(0, Math.min(1, hitAudioVolume));
         this._arcElapsed = 0;
         this._arcStartPosition.set(this.node.worldPosition);
         const aimPosition = target.GetAimWorldPosition();
@@ -139,7 +145,7 @@ export class WZSJZ_Bullet extends Component {
 
     private HitTarget(): void {
         this._hasHit = true;
-        WZSJZ_AudioManager.Play(this._arcHeight > 0 ? '爆炸' : '子弹命中', this._arcHeight > 0 ? 0.78 : 0.45, 0.05);
+        WZSJZ_AudioManager.Play(this._hitAudioName, this._hitAudioVolume, 0.05);
         if (this._hitCallback) {
             this._hitCallback(this._lastDamageCenter.clone(), this._damage);
         } else {

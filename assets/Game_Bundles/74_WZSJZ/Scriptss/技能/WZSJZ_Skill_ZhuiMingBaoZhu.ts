@@ -21,6 +21,8 @@ export class WZSJZ_Skill_ZhuiMingBaoZhu extends Component {
     private _explosionAnimation: string = "baozha";
     private _explosionDamageDelay: number = 0;
     private _explosionFallbackDuration: number = 0;
+    private _explosionAudioName: string = "";
+    private _explosionAudioVolume: number = 1;
     private _onRecycle: ((spider: WZSJZ_Skill_ZhuiMingBaoZhu) => void) = null;
     private _onKill: (() => void) = null;
 
@@ -38,6 +40,8 @@ export class WZSJZ_Skill_ZhuiMingBaoZhu extends Component {
         entranceFallbackDuration: number,
         explosionFallbackDuration: number,
         explosionDamageDelay: number,
+        explosionAudioName: string,
+        explosionAudioVolume: number,
         onRecycle: (spider: WZSJZ_Skill_ZhuiMingBaoZhu) => void,
         onKill: () => void,
     ): boolean {
@@ -53,6 +57,8 @@ export class WZSJZ_Skill_ZhuiMingBaoZhu extends Component {
         this._explosionAnimation = explosionAnimation || "baozha";
         this._explosionFallbackDuration = Math.max(0.01, explosionFallbackDuration);
         this._explosionDamageDelay = Math.max(0, explosionDamageDelay);
+        this._explosionAudioName = explosionAudioName || "";
+        this._explosionAudioVolume = Math.max(0, Math.min(1, explosionAudioVolume));
         this._onRecycle = onRecycle;
         this._onKill = onKill;
         if (!enemyArea?.isValid || this._moveSpeed <= 0
@@ -156,7 +162,11 @@ export class WZSJZ_Skill_ZhuiMingBaoZhu extends Component {
         if (this._phase !== "exploding" || !this._enemyArea?.isValid) {
             return;
         }
-        WZSJZ_AudioManager.Play('爆炸', 0.72, 0.08);
+        WZSJZ_AudioManager.Play(
+            this._explosionAudioName,
+            this._explosionAudioVolume,
+            0.08,
+        );
         const center = this.node.worldPosition;
         const radiusSquared = this._explosionRadius * this._explosionRadius;
         for (const child of [...this._enemyArea.children]) {
