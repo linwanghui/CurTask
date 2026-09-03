@@ -1,6 +1,7 @@
 import { sys } from "cc";
-import { ZRSJZ_INVENTORY, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName } from "./ZRSJZ_Constant";
+import { ZRSJZ_INVENTORY, ZRSJZ_MailConfig, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName } from "./ZRSJZ_Constant";
 import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
+import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
 
 /**
  * 游戏存档数据容器。
@@ -13,7 +14,7 @@ import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 2;//当前版本
+    public static readonly Versions = 3;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -51,6 +52,7 @@ export class ZRSJZ_GameData {
 
         this._instance = Object.assign(new ZRSJZ_GameData(), savedData);
         if (ZRSJZ_GameDataDefaults.Migrate(this._instance, savedData)) this.SaveData();
+        ZRSJZ_MailService.CheckExpired();//检查邮件是否过期
         return this._instance;
     }
 
@@ -163,5 +165,8 @@ export class ZRSJZ_GameData {
     //#region 更新---需要在ZRSJZ_GameDataDefaults脚本中新增修改
     //#region 版本1之后新增
     public InventoryRow: { [Inventory: string]: number } = {};
+    //#region 版本2之后新增
+    public MailData: { [Mail: string]: ZRSJZ_MailConfig } = {};
+    public MailID: number = 0;
 
 }

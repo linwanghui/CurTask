@@ -198,6 +198,32 @@ export class ZRSJZ_Inventory extends Component {
                 }
             }
 
+            // 兼容旧逻辑产生的情况：格子坐标和 Grids 已经写入，但没有创建 PropGrid。
+            // 打开仓库时按数据补齐显示节点，避免道具永久“隐形”。
+            const displayedPropIDs = new Set(
+                this.node.children
+                    .map(child => child.getComponent(ZRSJZ_PropGrid)?.PropID)
+                    .filter(propID => !!propID),
+            );
+            for (const propID in ZRSJZ_GameData.Instance.PropData) {
+                if (displayedPropIDs.has(propID)) continue;
+                const propData = ZRSJZ_GameData.Instance.PropData[propID];
+                if (!this.BelongsToInventory(propData, this.InventoryType)) continue;
+                const gridData = propData.GridData[gridIndex];
+                if (!gridData || gridData.GridX < 0 || gridData.GridY < 0) continue;
+                if (!this.Grids.some(row => row.includes(propID))) continue;
+
+                const size = this.GetPlacedSize(propData, gridIndex);
+                await this.OccupyGrid(
+                    propID,
+                    gridData.GridX,
+                    gridData.GridY,
+                    size.width,
+                    size.height,
+                );
+                displayedPropIDs.add(propID);
+            }
+
             // 扩容产生的新行还没有空格子节点，在新增道具完成后统一补齐。
             for (let row = oldRowCount; row < this.Grids.length; row++) {
                 for (let col = 0; col < this.Grids[row].length; col++) {
@@ -907,6 +933,9 @@ export class ZRSJZ_Inventory extends Component {
 
         if (inventory == this.InventoryType) {
             //在本仓库内移动
+            const hasPropNode = this.node.children.some(child =>
+                child.getComponent(ZRSJZ_PropGrid)?.PropID === id
+            );
             // 清除旧占用数据。
             for (let i = 0; i < this.Grids.length; i++) {
                 for (let j = 0; j < this.Grids[i].length; j++) {
@@ -925,6 +954,12 @@ export class ZRSJZ_Inventory extends Component {
 
             const gridIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
             ZRSJZ_InventoryService.ChangePropGridPos(id, gridIndex, gridX, gridY, isRotate);
+
+            // 新奖励默认先创建为“主库”道具。分类仓库放不下再回退主库时，
+            // source 和 target 相同但尚不存在显示节点，需要在这里补建 PropGrid。
+            if (!hasPropNode) {
+                await this.OccupyGrid(id, gridX, gridY, width, height);
+            }
 
             // 统一按 Grids 重建空格映射，避免删行后继续使用旧坐标增量修改。
             await this.SyncEmptyGridNodes();

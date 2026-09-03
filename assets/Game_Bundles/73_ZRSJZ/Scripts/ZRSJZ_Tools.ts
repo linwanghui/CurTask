@@ -55,8 +55,24 @@ export class ZRSJZ_Tools {
     }
 
     public static GetInventoryByPropType(propType: string): ZRSJZ_INVENTORY {
-        // 所有进入仓库的道具默认只放在“全部”。分类由玩家在仓库界面手动整理。
-        return ZRSJZ_INVENTORY.仓库_全部;
+        switch (propType) {
+            case "头盔":
+            case "防弹衣":
+            case "背包":
+                return ZRSJZ_INVENTORY.仓库_装备;
+            case "枪":
+            case "刀":
+                return ZRSJZ_INVENTORY.仓库_武器;
+            case "弹药":
+                return ZRSJZ_INVENTORY.仓库_弹药;
+            case "门禁卡":
+            case "房卡":
+            case "物品":
+                return ZRSJZ_INVENTORY.仓库_物品;
+            default:
+                // 未知类型仍可尝试进入主库，避免配置新增类型时直接丢失奖励。
+                return ZRSJZ_INVENTORY.仓库_全部;
+        }
     }
 
     public static GetWeaponryIndexByInventory(inventory: ZRSJZ_INVENTORY): number {
@@ -121,5 +137,37 @@ export class ZRSJZ_Tools {
 
         targetNode.setScale(scale / 100, scale / 100, 1);
     }
+
+    public static GetDate(): string {
+        const date = new Date();
+        const month = `${date.getMonth() + 1}`.padStart(2, "0");
+        const day = `${date.getDate()}`.padStart(2, "0");
+        return `${date.getFullYear()}.${month}.${day}`;
+    }
+
+    /** 返回指定日期到今天已经过去的自然日数；今天或未来日期返回 0。 */
+    public static GetDaysSince(date: string): number {
+        const match = /^(\d{4})\.(\d{1,2})\.(\d{1,2})$/.exec(date?.trim() ?? "");
+        if (!match) return 0;
+
+        const year = Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        const inputDate = new Date(Date.UTC(year, month - 1, day));
+        if (
+            inputDate.getUTCFullYear() !== year
+            || inputDate.getUTCMonth() !== month - 1
+            || inputDate.getUTCDate() !== day
+        ) {
+            return 0;
+        }
+
+        const now = new Date();
+        const todayTimestamp = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        const elapsedDays = Math.floor((todayTimestamp - inputDate.getTime()) / 86_400_000);
+        return Math.max(0, elapsedDays);
+    }
+
+
 
 }

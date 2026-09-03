@@ -3,7 +3,7 @@ import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboa
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
-import { ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_INVENTORY, ZRSJZ_MAIL_TYPE, ZRSJZ_MailPropAward, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_InventoryAmmo } from '../UI/ZRSJZ_InventoryAmmo';
 import { ZRSJZ_PoolManager } from './ZRSJZ_PoolManager';
 import { ZRSJZ_CurrencyEffect } from '../Effect/ZRSJZ_CurrencyEffect';
@@ -13,8 +13,21 @@ import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleMana
 import { ZRSJZ_AudioManager } from './ZRSJZ_AudioManager';
 import { ZRSJZ_Tip } from '../UI/ZRSJZ_Tip';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './ZRSJZ_EventManager';
+import { ZRSJZ_MailService } from '../Service/ZRSJZ_MailService';
 import Banner from 'db://assets/Scripts/Banner';
 const { ccclass, property } = _decorator;
+
+export interface ZRSJZ_PropAwardInput {
+    PropName: string;
+    Count: number;
+}
+
+export interface ZRSJZ_ReceivePropAwardsResult {
+    PlacedPropIDs: string[];
+    MailAwards: ZRSJZ_MailPropAward[];
+    MailID: string;
+    InvalidAwards: ZRSJZ_PropAwardInput[];
+}
 
 @ccclass('ZRSJZ_UIManager')
 export class ZRSJZ_UIManager extends Component {
@@ -67,6 +80,8 @@ export class ZRSJZ_UIManager extends Component {
     /** 关闭全部弹窗时递增，使之前尚未完成的异步加载不再自动显示。 */
     private _panelRequestVersion: number = 0;
     private _finishGameInventoryPromise: Promise<void> = null;
+    /** 发奖涉及异步格子操作，串行执行可避免多次发奖抢占同一格。 */
+    private _receiveAwardsQueue: Promise<void> = Promise.resolve();
 
     protected onLoad(): void {
         if (ZRSJZ_UIManager._instance == null) {
@@ -685,6 +700,161 @@ export class ZRSJZ_UIManager extends Component {
         return this.InventoryMap.get(inventoryName);
     }
 
+    /**
+     * 发放一批仓库道具：对应分类仓库 -> 主库 -> 一封邮件。
+     * 同一批中能放下的道具正常入库，所有放不下的数量合并到同一封邮件。
+     */
+    public async ReceivePropAwards(
+        awards: ReadonlyArray<Readonly<ZRSJZ_PropAwardInput>>,
+        mailType: ZRSJZ_MAIL_TYPE = ZRSJZ_MAIL_TYPE.仓库已满,
+    ): Promise<ZRSJZ_ReceivePropAwardsResult> {
+        const previousTask = this._receiveAwardsQueue;
+        let releaseQueue: () => void = () => { };
+        this._receiveAwardsQueue = new Promise<void>(resolve => {
+            releaseQueue = resolve;
+        });
+        await previousTask;
+
+        try {
+            return await this.DoReceivePropAwards(awards, mailType);
+        } finally {
+            releaseQueue();
+        }
+    }
+
+    /** 领取邮件附件时复用入库规则，但失败项由原邮件保留，不再创建新邮件。 */
+    public async ReceiveMailPropAwards(
+        awards: ReadonlyArray<Readonly<ZRSJZ_PropAwardInput>>,
+    ): Promise<ZRSJZ_ReceivePropAwardsResult> {
+        const previousTask = this._receiveAwardsQueue;
+        let releaseQueue: () => void = () => { };
+        this._receiveAwardsQueue = new Promise<void>(resolve => {
+            releaseQueue = resolve;
+        });
+        await previousTask;
+
+        try {
+            return await this.DoReceivePropAwards(
+                awards,
+                ZRSJZ_MAIL_TYPE.仓库已满,
+                false,
+            );
+        } finally {
+            releaseQueue();
+        }
+    }
+
+    private async DoReceivePropAwards(
+        awards: ReadonlyArray<Readonly<ZRSJZ_PropAwardInput>>,
+        mailType: ZRSJZ_MAIL_TYPE,
+        createOverflowMail: boolean = true,
+    ): Promise<ZRSJZ_ReceivePropAwardsResult> {
+        const placedPropIDs: string[] = [];
+        const invalidAwards: ZRSJZ_PropAwardInput[] = [];
+        const overflowCounts = new Map<string, number>();
+
+        for (const award of awards) {
+            const propName = award?.PropName;
+            const totalCount = Math.max(0, Math.floor(Number(award?.Count) || 0));
+            const propConfig = ZRSJZ_PROP_CONFIG.get(propName);
+            if (!propConfig || totalCount <= 0) {
+                invalidAwards.push({ PropName: propName ?? "", Count: totalCount });
+                continue;
+            }
+
+            const maxCount = Math.max(1, Math.floor(Number(propConfig.MaxCount) || 1));
+            let remaining = totalCount;
+            while (remaining > 0) {
+                const stackCount = Math.min(maxCount, remaining);
+                const propID = ZRSJZ_InventoryService.AddPropByName(propName, stackCount);
+                const propData = ZRSJZ_GameData.Instance.PropData[propID];
+                if (!propData) {
+                    invalidAwards.push({ PropName: propName, Count: stackCount });
+                    remaining -= stackCount;
+                    continue;
+                }
+
+                const preferredInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
+                let isPlaced = await this.TryPlaceAwardProp(propID, preferredInventory);
+                if (!isPlaced && preferredInventory !== ZRSJZ_INVENTORY.仓库_全部) {
+                    isPlaced = await this.TryPlaceAwardProp(propID, ZRSJZ_INVENTORY.仓库_全部);
+                }
+
+                if (isPlaced) {
+                    placedPropIDs.push(propID);
+                } else {
+                    // 邮件只保存附件配置；删除临时实例，领取时再生成，避免它占用仓库容量。
+                    delete ZRSJZ_GameData.Instance.PropData[propID];
+                    overflowCounts.set(
+                        propName,
+                        (overflowCounts.get(propName) ?? 0) + stackCount,
+                    );
+                }
+                remaining -= stackCount;
+            }
+        }
+
+        const mailAwards: ZRSJZ_MailPropAward[] = Array.from(overflowCounts.entries())
+            .map(([PropName, Count]) => ({ PropName, Count }));
+        const mailID = createOverflowMail && mailAwards.length > 0
+            ? ZRSJZ_MailService.AddMail(mailType, mailAwards)
+            : "";
+
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+        ZRSJZ_GameData.SaveData();
+        return {
+            PlacedPropIDs: placedPropIDs,
+            MailAwards: mailAwards,
+            MailID: mailID,
+            InvalidAwards: invalidAwards,
+        };
+    }
+
+    private async TryPlaceAwardProp(
+        propID: string,
+        inventoryType: ZRSJZ_INVENTORY,
+    ): Promise<boolean> {
+        if (!inventoryType) return false;
+        const propData = ZRSJZ_GameData.Instance.PropData[propID];
+        if (!propData) return false;
+        const inventoryNode = await this.WaitForInventory(inventoryType);
+        const inventory = inventoryNode?.getComponent(ZRSJZ_Inventory);
+        if (!inventory?.IsInitialized) return false;
+        return inventory.TryReceiveProp(
+            propData.CurInventory,
+            propID,
+            false,
+        );
+    }
+
+    /** 把已经存在于局内库存的道具逐件转入仓库，失败项合并为一封邮件。 */
+    private async ReceiveExistingProps(propIDs: ReadonlyArray<string>): Promise<void> {
+        const overflowCounts = new Map<string, number>();
+        for (const propID of propIDs) {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            if (!propData) continue;
+
+            const preferredInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
+            let isPlaced = await this.TryPlaceAwardProp(propID, preferredInventory);
+            if (!isPlaced && preferredInventory !== ZRSJZ_INVENTORY.仓库_全部) {
+                isPlaced = await this.TryPlaceAwardProp(propID, ZRSJZ_INVENTORY.仓库_全部);
+            }
+            if (isPlaced) continue;
+
+            overflowCounts.set(
+                propData.Name,
+                (overflowCounts.get(propData.Name) ?? 0) + Math.max(1, propData.CurCount || 1),
+            );
+            delete ZRSJZ_GameData.Instance.PropData[propID];
+        }
+
+        const mailAwards: ZRSJZ_MailPropAward[] = Array.from(overflowCounts.entries())
+            .map(([PropName, Count]) => ({ PropName, Count }));
+        if (mailAwards.length > 0) {
+            ZRSJZ_MailService.AddMail(ZRSJZ_MAIL_TYPE.仓库已满, mailAwards);
+        }
+    }
+
     /** 面板激活前先停用玩家库存，防止旧视图的 onEnable 与新玩家 Init 并发。 */
     public DeactivatePlayerInventoryNodes(playerIndex?: number): void {
         for (const [inventoryName, inventoryNode] of this.InventoryMap) {
@@ -954,6 +1124,7 @@ export class ZRSJZ_UIManager extends Component {
 
     private async DoFinishGameInventory(isEvacuationSuccess: boolean): Promise<void> {
         const affectedPropIDs = new Set<string>();
+        const receivedPropIDs: string[] = [];
 
         for (const propID in ZRSJZ_GameData.Instance.PropData) {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
@@ -980,20 +1151,20 @@ export class ZRSJZ_UIManager extends Component {
                 continue;
             }
 
-            const warehouse = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
-            if (!warehouse) {
-                console.warn(`[ZRSJZ_UIManager] 道具无法转入仓库: ${propData.Name}`);
-                delete ZRSJZ_GameData.Instance.PropData[propID];
-                continue;
-            }
-
-            propData.CurInventory = warehouse;
+            // 保留来源库存，稍后由统一格子逻辑逐件尝试“分类仓库 -> 主库”。
+            // Owner 先重置为共享，避免双人模式下玩家2道具被大厅仓库拒收。
+            propData.OwnerPlayerIndex = -1;
             propData.SourceBoxID = "";
             propData.IsSearchLocked = false;
             propData.GridData?.forEach(gridData => {
                 gridData.GridX = -1;
                 gridData.GridY = -1;
             });
+            receivedPropIDs.push(propID);
+        }
+
+        if (receivedPropIDs.length > 0) {
+            await this.ReceiveExistingProps(receivedPropIDs);
         }
 
         if (!isEvacuationSuccess) {
@@ -1067,6 +1238,9 @@ export class ZRSJZ_UIManager extends Component {
             }
 
             for (const propID of affectedPropIDs) {
+                const currentProp = ZRSJZ_GameData.Instance.PropData[propID];
+                // 成功归仓后的目标格子需要保留；这里只清理局内来源格或已删除道具。
+                if (currentProp?.CurInventory === inventory.InventoryType) continue;
                 if (inventory.Grids.some(row => row.includes(propID))) {
                     await inventory.RemoveProp(propID);
                 }

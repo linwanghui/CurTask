@@ -6,9 +6,13 @@ import { ZRSJZ_MainTaskAwardConfig, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_TaskAward } from '../UI/ZRSJZ_TaskAward';
 import { ZRSJZ_AccountService } from '../Service/ZRSJZ_AccountService';
-import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 import { ZRSJZ_GradeService } from '../Service/ZRSJZ_GradeService';
 const { ccclass, property } = _decorator;
+
+export interface ZRSJZ_GetAwardPanelOptions {
+    Awards: ZRSJZ_MainTaskAwardConfig[];
+    DisplayOnly: true;
+}
 
 @ccclass('ZRSJZ_GetAwardPanel')
 export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
@@ -16,6 +20,7 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
     Award: Node = null;
 
     private _awards: ZRSJZ_MainTaskAwardConfig[] = [];
+    private _displayOnly: boolean = false;
 
     protected onLoad(): void {
         this.Award = find("Panel/Award/View/Content", this.node);
@@ -24,7 +29,13 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
     Show(...args: any[]): void {
         super.Show(() => {
         });
-        this.ShowAward(...args);
+        const options = args.length === 1
+            && args[0]?.DisplayOnly === true
+            && Array.isArray(args[0]?.Awards)
+            ? args[0] as ZRSJZ_GetAwardPanelOptions
+            : null;
+        this._displayOnly = options !== null;
+        this.ShowAward(...(options?.Awards ?? args));
     }
 
     ShowAward(...args: ZRSJZ_MainTaskAwardConfig[]) {
@@ -46,26 +57,43 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
         switch (event.getCurrentTarget().name) {
             case "Mask":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.获取奖励弹窗);
-                this.GetAwards();
+                if (this._displayOnly) {
+                    this._awards = [];
+                    this._displayOnly = false;
+                } else {
+                    void this.GetAwards();
+                }
                 break;
         }
     }
 
-    GetAwards() {
+    async GetAwards(): Promise<void> {
+        const awards = this._awards;
+        this._awards = [];
         let exp = 0;
-        this._awards.forEach(award => {
+        const propAwards: { PropName: string, Count: number }[] = [];
+        awards.forEach(award => {
             if (award.TaskAwardName == "钞票") {
                 ZRSJZ_AccountService.ChangeGold(award.TaskAwardCount);
                 ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
             } else if (award.TaskAwardName == "经验") {
                 exp = award.TaskAwardCount;
             } else {
-                ZRSJZ_InventoryService.AddPropByName(award.TaskAwardName, award.TaskAwardCount);
-                ZRSJZ_UIManager.Instance.ShowTip("道具已添加到背包");
+                propAwards.push({
+                    PropName: award.TaskAwardName,
+                    Count: award.TaskAwardCount,
+                });
             }
         })
         if (exp != 0) ZRSJZ_GradeService.AddExperience(exp);
-        this._awards = [];
+        if (propAwards.length <= 0) return;
+
+        const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards(propAwards);
+        if (result.MailAwards.length > 0) {
+            await ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，剩余道具已发送至邮件");
+        } else {
+            await ZRSJZ_UIManager.Instance.ShowTip("道具已添加到仓库");
+        }
     }
 
 }

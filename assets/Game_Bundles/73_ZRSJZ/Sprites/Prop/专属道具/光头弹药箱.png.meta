@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "a26f9a43-44d3-4ea4-bb4e-1af1d6c63c00",
+  "uuid": "fa2e204b-cbb2-45d4-8851-f8b939791cc7",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "a26f9a43-44d3-4ea4-bb4e-1af1d6c63c00@6c48a",
-      "displayName": "仓库标",
+      "uuid": "fa2e204b-cbb2-45d4-8851-f8b939791cc7@6c48a",
+      "displayName": "光头弹药箱",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "a26f9a43-44d3-4ea4-bb4e-1af1d6c63c00",
+        "imageUuidOrDatabaseUri": "fa2e204b-cbb2-45d4-8851-f8b939791cc7",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,21 +34,21 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "a26f9a43-44d3-4ea4-bb4e-1af1d6c63c00@f9941",
-      "displayName": "仓库标",
+      "uuid": "fa2e204b-cbb2-45d4-8851-f8b939791cc7@f9941",
+      "displayName": "光头弹药箱",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
         "offsetX": 0,
-        "offsetY": 0,
-        "trimX": 0,
-        "trimY": 0,
-        "width": 134,
-        "height": 134,
-        "rawWidth": 134,
-        "rawHeight": 134,
+        "offsetY": 1.5,
+        "trimX": 44,
+        "trimY": 50,
+        "width": 191,
+        "height": 176,
+        "rawWidth": 279,
+        "rawHeight": 279,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -67,
-            -67,
+            -95.5,
+            -88,
             0,
-            67,
-            -67,
+            95.5,
+            -88,
             0,
-            -67,
-            67,
+            -95.5,
+            88,
             0,
-            67,
-            67,
+            95.5,
+            88,
             0
           ],
           "indexes": [
@@ -82,38 +82,38 @@
             3
           ],
           "uv": [
-            0,
-            134,
-            134,
-            134,
-            0,
-            0,
-            134,
-            0
+            44,
+            229,
+            235,
+            229,
+            44,
+            53,
+            235,
+            53
           ],
           "nuv": [
-            0,
-            0,
-            1,
-            0,
-            0,
-            1,
-            1,
-            1
+            0.15770609318996415,
+            0.18996415770609318,
+            0.8422939068100358,
+            0.18996415770609318,
+            0.15770609318996415,
+            0.8207885304659498,
+            0.8422939068100358,
+            0.8207885304659498
           ],
           "minPos": [
-            -67,
-            -67,
+            -95.5,
+            -88,
             0
           ],
           "maxPos": [
-            67,
-            67,
+            95.5,
+            88,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "a26f9a43-44d3-4ea4-bb4e-1af1d6c63c00@6c48a",
+        "imageUuidOrDatabaseUri": "fa2e204b-cbb2-45d4-8851-f8b939791cc7@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "a26f9a43-44d3-4ea4-bb4e-1af1d6c63c00@6c48a"
+    "redirect": "fa2e204b-cbb2-45d4-8851-f8b939791cc7@6c48a"
   }
 }
