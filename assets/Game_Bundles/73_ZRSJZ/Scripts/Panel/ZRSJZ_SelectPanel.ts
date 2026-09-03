@@ -269,11 +269,15 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             ZRSJZ_UIManager.Instance.ShowTip("该关卡暂未开放");
             return;
         }
-        ZRSJZ_UIManager.Instance.ShowPanel(
-            ZRSJZ_PANEL.助战礼包弹窗,
-            mapKey,
-            () => void this.EnterSelectedLevel(mapKey),
-        );
+        if (ZRSJZ_UIManager.ZRSJZ_DLC) {
+            ZRSJZ_UIManager.Instance.ShowPanel(
+                ZRSJZ_PANEL.助战礼包弹窗,
+                mapKey,
+                () => void this.EnterSelectedLevel(mapKey),
+            );
+        } else {
+            this.EnterSelectedLevel(mapKey)
+        }
     }
 
     /** 礼包领取完成后再次校验战备价值，再正式进入关卡。 */

@@ -14,6 +14,7 @@ import { CombinationGameData, ZRSJZ_PropDataItem } from "db://assets/Scripts/Com
 import { BundleManager } from "db://assets/Scripts/Framework/Managers/BundleManager";
 import { Panel, UIManager } from "db://assets/Scripts/Framework/Managers/UIManager";
 import { DataManager } from "db://assets/Scripts/Framework/Managers/DataManager";
+import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -148,13 +149,13 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.邮件界面);
                 break;
             case "更多游戏":
-                BundleManager.LoadBundle("74_WZSJZ", () => {
-                    UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("文字三角洲"), "WZSJZ_Start"]);
-                })
+                UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("文字三角洲"), "WZSJZ_Start"]);
+                ZRSJZ_UIManager.Recycle();
                 break;
             case "主页":
                 ProjectEventManager.emit(ProjectEvent.返回主页按钮事件, () => {
                     ProjectEventManager.emit(ProjectEvent.返回主页);
+                    ZRSJZ_UIManager.Recycle();
                     director.loadScene("Start");
                 });
                 break;
@@ -170,6 +171,10 @@ export class ZRSJZ_Start extends Component {
         if (ZRSJZ_GameData.Instance.WeaponryID[0] != "") {
             ZRSJZ_InventoryService.RemovePropID(ZRSJZ_GameData.Instance.WeaponryID[0]);
             ZRSJZ_GameData.Instance.WeaponryID[0] = "";
+        }
+
+        if (ZRSJZ_GameData.Instance.WeaponryID[4] === "") {
+            ZRSJZ_GameDataDefaults.InitializePlayerKnife(ZRSJZ_GameData.Instance, 0);
         }
 
         //初始化弹药

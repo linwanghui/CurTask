@@ -28,7 +28,7 @@ export class ZRSJZ_Currency extends Component {
     }
 
     protected onDisable(): void {
-        ZRSJZ_UIManager.Instance.RemoveCurrency(this.node);
+        ZRSJZ_UIManager.Instance?.RemoveCurrency(this.node);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.Show, this);
     }
 
