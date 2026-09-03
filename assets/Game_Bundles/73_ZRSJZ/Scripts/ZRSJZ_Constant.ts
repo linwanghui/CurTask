@@ -19,7 +19,7 @@ export enum ZRSJZ_PANEL {
     暂停界面 = "73_ZRSJZ/Prefabs/Panel/暂停界面",
     失败弹窗 = "73_ZRSJZ/Prefabs/Panel/失败弹窗",
     胜利弹窗 = "73_ZRSJZ/Prefabs/Panel/胜利弹窗",
-    强化界面 = "73_ZRSJZ/Prefabs/Panel/强化界面",
+    强化界面 = "73_ZRSJZ_DLC/Prefabs/Panel/强化界面",
     密码箱弹窗 = "73_ZRSJZ/Prefabs/Panel/密码箱弹窗",
     破壁行动密码弹窗 = "73_ZRSJZ/Prefabs/Panel/破壁行动密码弹窗",
     医疗箱弹窗 = "73_ZRSJZ/Prefabs/Panel/医疗箱弹窗",
@@ -39,10 +39,10 @@ export enum ZRSJZ_PANEL {
     击败弹窗 = "73_ZRSJZ/Prefabs/Panel/击败弹窗",
     特别行动弹窗 = "73_ZRSJZ/Prefabs/Panel/特别行动弹窗",
     等级弹窗 = "73_ZRSJZ/Prefabs/Panel/等级弹窗",
-    助战礼包弹窗 = "73_ZRSJZ/Prefabs/Panel/助战礼包弹窗",
-    弹药大礼包弹窗 = "73_ZRSJZ/Prefabs/Panel/弹药大礼包弹窗",
-    增强针弹窗 = "73_ZRSJZ/Prefabs/Panel/增强针弹窗",
-    增强针替换弹窗 = "73_ZRSJZ/Prefabs/Panel/增强针替换弹窗",
+    助战礼包弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/助战礼包弹窗",
+    弹药大礼包弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/弹药大礼包弹窗",
+    增强针弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/增强针弹窗",
+    增强针替换弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/增强针替换弹窗",
     背包扩容弹窗 = "73_ZRSJZ/Prefabs/Panel/背包扩容弹窗",
     邮件界面 = "73_ZRSJZ/Prefabs/Panel/邮件界面",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
@@ -1648,17 +1648,17 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
         ],
         TaskAwards: CreateMainTaskAwards(70000, 100, "1级子弹", "一级甲", "切割刀", "工业图纸"),
     }],
-    ["强化", {
-        TaskName: "强化",
-        TaskDesc: "完成一次强化，提升自身战斗能力，以应对禁区中更危险的敌人。",
-        TaskTargets: [
-            {
-                TaskTargetName: "强化1次",
-                TaskTargetCount: 1,
-            },
-        ],
-        TaskAwards: CreateMainTaskAwards(80000, 200, "2级子弹", "一级包", "高精数显卡尺", "电动马达"),
-    }],
+    // ["强化", {
+    //     TaskName: "强化",
+    //     TaskDesc: "完成一次强化，提升自身战斗能力，以应对禁区中更危险的敌人。",
+    //     TaskTargets: [
+    //         {
+    //             TaskTargetName: "强化1次",
+    //             TaskTargetCount: 1,
+    //         },
+    //     ],
+    //     TaskAwards: CreateMainTaskAwards(80000, 200, "2级子弹", "一级包", "高精数显卡尺", "电动马达"),
+    // }],
     ["小镇初探", {
         TaskName: "小镇初探",
         TaskDesc: "进入五号小镇的机密行动区域，在搜集物资后抵达撤离点并成功撤离。",

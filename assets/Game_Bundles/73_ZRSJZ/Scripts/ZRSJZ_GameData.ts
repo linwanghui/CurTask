@@ -44,13 +44,10 @@ export class ZRSJZ_GameData {
             && !Array.isArray(savedData);
         const hasVersions = isValidSavedData
             && Object.prototype.hasOwnProperty.call(savedData, "Versions");
-        if (!hasVersions) {
+        if (!hasVersions || savedData.Versions < 3) {
             console.warn("[ZRSJZ_GameData] 检测到缺少 Versions 的旧存档，已删除并创建新存档");
             sys.localStorage.removeItem(this.STORAGE_KEY);
             return this.CreateNewData();
-        } else if (savedData.Versions < 3 && savedData.PropData) {
-            //版本3之前的道具全部删掉
-            savedData.PropData = {};
         }
 
         this._instance = Object.assign(new ZRSJZ_GameData(), savedData);
@@ -71,7 +68,7 @@ export class ZRSJZ_GameData {
         return this._instance;
     }
 
-    public Versions: number = 0;
+    public Versions: number = 3;
 
     public MusicMute: boolean = false;
     public SoundMute: boolean = false;

@@ -11,6 +11,15 @@ export class ZRSJZ_MapTutorial extends ZRSJZ_Map {
     @property(ZRSJZ_Box)
     Box1: ZRSJZ_Box = null;
 
+    @property(ZRSJZ_Box)
+    Box2: ZRSJZ_Box = null;
+
+    @property(Node)
+    Tip1: Node = null;
+
+    @property(Node)
+    Tip2: Node = null;
+
     @property(Node)
     ColliderNode: Node = null;
 
@@ -31,6 +40,10 @@ export class ZRSJZ_MapTutorial extends ZRSJZ_Map {
             this.TutorialFlag[0] = true;
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 1);
             ZRSJZ_TutorialPanel.IsTipShowing = true;
+            this.Tip1.active = false;
+        } else if (box == this.Box2 && this.TutorialFlag[1] == false) {
+            this.TutorialFlag[1] = true;
+            this.Tip2.active = false;
         }
     }
 
