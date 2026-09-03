@@ -4,6 +4,8 @@ import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 import { WZSJZ_GameData } from './WZSJZ_GameData';
 import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import { WZSJZ_HomeLevelSelector } from './WZSJZ_HomeLevelSelector';
+import { Panel, UIManager } from '../../../Scripts/Framework/Managers/UIManager';
+import { DataManager } from '../../../Scripts/Framework/Managers/DataManager';
 
 const { ccclass } = _decorator;
 
@@ -65,7 +67,7 @@ export class WZSJZ_StartPanel extends Component {
     }
 
     protected update(): void {
-        // 使用Date.now而非dt，倒计时不受O键五倍速和离线时间影响。
+        // 使用Date.now而非dt，倒计时不受局内加速和离线时间影响。
         const now = Date.now();
         if (now < this._nextClockRefreshTimestamp) return;
         this._nextClockRefreshTimestamp = now + 1000;
@@ -96,6 +98,9 @@ export class WZSJZ_StartPanel extends Component {
                 break;
             case "图鉴":
                 this.ShowHandBookPanel();
+                break;
+            case "返回主页面":
+                UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("真人三角洲"), "ZRSJZ_Start"]);
                 break;
         }
     }

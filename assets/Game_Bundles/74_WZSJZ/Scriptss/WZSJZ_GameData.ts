@@ -49,6 +49,8 @@ export class WZSJZ_GameData extends Component {
     public SelectedLevel: number = 1;
     /** 完整走完一次局内新手引导后永久记录。 */
     public TutorialCompleted: boolean = false;
+    /** 累计完整观看游戏加速激励视频的次数。 */
+    public SpeedUpVideoWatchCount: number = 0;
 
 
 
@@ -160,6 +162,20 @@ export class WZSJZ_GameData extends Component {
         this.TutorialCompleted = true;
         WZSJZ_GameData.DateSave();
         return true;
+    }
+
+    public HasPermanentSpeedUp(): boolean {
+        this.NormalizeSpeedUpData();
+        return this.SpeedUpVideoWatchCount
+            >= WZSJZ_Constant.SpeedUp.PermanentUnlockVideoCount;
+    }
+
+    /** 完整观看一次加速视频后累计进度并立即存档。 */
+    public RecordSpeedUpVideoWatch(): number {
+        this.NormalizeSpeedUpData();
+        this.SpeedUpVideoWatchCount++;
+        WZSJZ_GameData.DateSave();
+        return this.SpeedUpVideoWatchCount;
     }
 
     public GetLevelProgressSnapshot(): {
@@ -419,6 +435,7 @@ export class WZSJZ_GameData extends Component {
             HighestClearedLevel: data.HighestClearedLevel,
             SelectedLevel: data.SelectedLevel,
             TutorialCompleted: data.TutorialCompleted,
+            SpeedUpVideoWatchCount: data.SpeedUpVideoWatchCount,
             GameData: data.GameData,
             TimeDate: data.TimeDate,
         });
@@ -448,7 +465,8 @@ export class WZSJZ_GameData extends Component {
             needsHomeResourceSave = needsHomeResourceSave
                 || !Object.prototype.hasOwnProperty.call(savedData, "HighestClearedLevel")
                 || !Object.prototype.hasOwnProperty.call(savedData, "SelectedLevel")
-                || !Object.prototype.hasOwnProperty.call(savedData, "TutorialCompleted");
+                || !Object.prototype.hasOwnProperty.call(savedData, "TutorialCompleted")
+                || !Object.prototype.hasOwnProperty.call(savedData, "SpeedUpVideoWatchCount");
             Object.assign(WZSJZ_GameData._instance, savedData);
             WZSJZ_GameData.Instance.DataUp();//判断存档版本升级
         } else {
@@ -459,6 +477,7 @@ export class WZSJZ_GameData extends Component {
         WZSJZ_GameData._instance.NormalizeLevelProgressData();
         WZSJZ_GameData._instance.TutorialCompleted
             = WZSJZ_GameData._instance.TutorialCompleted === true;
+        WZSJZ_GameData._instance.NormalizeSpeedUpData();
         WZSJZ_GameData._instance.RefreshSignInDate(new Date());
         WZSJZ_GameData._instance.RefreshHookDate(Date.now());
         // 老存档缺少首页资源字段时，立即补齐并写回，而不是等下次自动保存。
@@ -513,6 +532,12 @@ export class WZSJZ_GameData extends Component {
             this.SelectedLevel,
             this.HighestClearedLevel + 2,
         );
+    }
+
+    private NormalizeSpeedUpData(): void {
+        this.SpeedUpVideoWatchCount = Number.isFinite(this.SpeedUpVideoWatchCount)
+            ? Math.max(0, Math.floor(this.SpeedUpVideoWatchCount))
+            : 0;
     }
 
     private RefreshSignInDate(now: Date): void {

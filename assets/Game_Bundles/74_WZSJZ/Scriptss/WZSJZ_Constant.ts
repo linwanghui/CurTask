@@ -170,6 +170,16 @@ export class WZSJZ_Constant {
         ReturnPanel: "Panel/ReturnPanel",
         FinishPanel: "Panel/FinishPanel",
         CombinationAwardPanel: "Panel/CombinationAwardPanel",
+        SpeedUpPanel: "Panel/SpeedUpPanel",
+    };
+
+    /** 游戏速度与广告永久解锁配置。 */
+    public static readonly SpeedUp = {
+        NormalMultiplier: 1,
+        FastMultiplier: 2,
+        /** 仅供PC测试热键O使用，不属于玩家加速功能。 */
+        DebugMultiplier: 5,
+        PermanentUnlockVideoCount: 10,
     };
 
     /** 首页体力与钻石配置。时间全部使用真实时间戳，不受游戏倍速影响。 */

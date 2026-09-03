@@ -44,6 +44,7 @@ import { WZSJZ_ReturnMenuSystem } from './WZSJZ_ReturnMenuSystem';
 import { WZSJZ_FunctionalNodeSystem } from './WZSJZ_FunctionalNodeSystem';
 import { WZSJZ_RecruitCardSystem } from './WZSJZ_RecruitCardSystem';
 import { WZSJZ_TutorialSystem } from './WZSJZ_TutorialSystem';
+import { WZSJZ_SpeedUpSystem } from './WZSJZ_SpeedUpSystem';
 import Banner from '../../../Scripts/Banner';
 const { ccclass, property } = _decorator;
 
@@ -129,6 +130,7 @@ export class WZSJZ_GameManager extends Component {
     private _functionalNodeSystem: WZSJZ_FunctionalNodeSystem = null;
     private _recruitCardSystem: WZSJZ_RecruitCardSystem = null;
     private _tutorialSystem: WZSJZ_TutorialSystem = null;
+    private _speedUpSystem: WZSJZ_SpeedUpSystem = null;
 
     public get IsGameStarted(): boolean {
         return this._isGameStarted;
@@ -219,6 +221,9 @@ export class WZSJZ_GameManager extends Component {
         this._returnMenuSystem = this.node.getComponent(WZSJZ_ReturnMenuSystem)
             || this.node.addComponent(WZSJZ_ReturnMenuSystem);
         this._returnMenuSystem.Configure(this.FormationZone?.parent);
+        this._speedUpSystem = this.node.getComponent(WZSJZ_SpeedUpSystem)
+            || this.node.addComponent(WZSJZ_SpeedUpSystem);
+        this._speedUpSystem.Configure(this.FormationZone?.parent);
         this.BindStartButton();
         this.SetupToolArea();
         this._recruitCardSystem = this.node.getComponent(WZSJZ_RecruitCardSystem)
@@ -259,6 +264,7 @@ export class WZSJZ_GameManager extends Component {
     }
 
     protected onDestroy(): void {
+        WZSJZ_UIManager.Instance?.ResetGameTimeScale();
         this.ClearKeyUnlockHints();
         if (WZSJZ_GameManager._instance === this) {
             WZSJZ_GameManager._instance = null;

@@ -18,6 +18,7 @@ import Banner from '../../../Scripts/Banner';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { BundleManager } from '../../../Scripts/Framework/Managers/BundleManager';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
+import { WZSJZ_EventManager } from './WZSJZ_EventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_UIManager')
@@ -27,9 +28,12 @@ export class WZSJZ_UIManager extends Component {
     private _panelDict: any = {}
     private _loadingPanelDict: any = {}
     private static _instance: WZSJZ_UIManager;
+    /** director.tick实际使用的最终倍率。 */
     private static _gameTimeScale: number = 1;
+    /** 玩家速度按钮控制的倍率，与O键测试倍率分开保存。 */
+    private static _playerGameTimeScale: number = 1;
+    private static _debugFiveTimesEnabled: boolean = false;
     private static _originalDirectorTick: ((deltaTime: number) => void) | null = null;
-    private _isFiveTimesSpeed: boolean = false;
     private _isPKeyPressed: boolean = false;
     private _isOKeyPressed: boolean = false;
     public static get Instance(): WZSJZ_UIManager {
@@ -66,6 +70,10 @@ export class WZSJZ_UIManager extends Component {
 
     protected onDestroy(): void {
         if (WZSJZ_UIManager._instance === this) {
+            const normal = WZSJZ_Constant.SpeedUp.NormalMultiplier;
+            WZSJZ_UIManager._gameTimeScale = normal;
+            WZSJZ_UIManager._playerGameTimeScale = normal;
+            WZSJZ_UIManager._debugFiveTimesEnabled = false;
             WZSJZ_UIManager._instance = null;
         }
     }
@@ -227,7 +235,7 @@ export class WZSJZ_UIManager extends Component {
         }
     }
 
-    /** 全局调试热键：P打开修改界面，O在1倍与5倍游戏速度之间切换。 */
+    /** P打开修改界面；O独立切换测试用5倍速度，不走玩家广告加速逻辑。 */
     private RegisterHotkeys(): void {
         input.on(Input.EventType.KEY_DOWN, this.OnKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.OnKeyUp, this);
@@ -247,10 +255,7 @@ export class WZSJZ_UIManager extends Component {
             return;
         }
         this._isOKeyPressed = true;
-        this._isFiveTimesSpeed = !this._isFiveTimesSpeed;
-        const timeScale = this._isFiveTimesSpeed ? 5 : 1;
-        WZSJZ_UIManager._gameTimeScale = timeScale;
-        this.ShowText(`游戏速度：${timeScale}倍`);
+        this.ToggleDebugFiveTimesSpeed();
     }
 
     private OnKeyUp(event: EventKeyboard): void {
@@ -265,6 +270,51 @@ export class WZSJZ_UIManager extends Component {
     private IsPanelVisible(panelPath: string): boolean {
         const panel = this._panelDict[panelPath] as Node;
         return !!panel && isValid(panel) && !!panel.parent && panel.active;
+    }
+
+    public static get GameTimeScale(): number {
+        return this._gameTimeScale;
+    }
+
+    public static get PlayerGameTimeScale(): number {
+        return this._playerGameTimeScale;
+    }
+
+    /** 只修改玩家速度按钮的1/2倍状态；O键测试倍率不会影响这个状态。 */
+    public SetGameTimeScale(multiplier: number): number {
+        const config = WZSJZ_Constant.SpeedUp;
+        const next = multiplier >= config.FastMultiplier
+            ? config.FastMultiplier
+            : config.NormalMultiplier;
+        if (WZSJZ_UIManager._playerGameTimeScale === next) return next;
+        WZSJZ_UIManager._playerGameTimeScale = next;
+        WZSJZ_UIManager._gameTimeScale = WZSJZ_UIManager._debugFiveTimesEnabled
+            ? config.DebugMultiplier
+            : next;
+        WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.游戏速度变动, next);
+        return next;
+    }
+
+    /** 场景跳转前同时关闭玩家加速和O键测试加速，最终必定恢复1倍。 */
+    public ResetGameTimeScale(): void {
+        const normal = WZSJZ_Constant.SpeedUp.NormalMultiplier;
+        WZSJZ_UIManager._debugFiveTimesEnabled = false;
+        WZSJZ_UIManager._playerGameTimeScale = normal;
+        WZSJZ_UIManager._gameTimeScale = normal;
+        WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.游戏速度变动, normal);
+    }
+
+    private ToggleDebugFiveTimesSpeed(): void {
+        WZSJZ_UIManager._debugFiveTimesEnabled
+            = !WZSJZ_UIManager._debugFiveTimesEnabled;
+        WZSJZ_UIManager._gameTimeScale = WZSJZ_UIManager._debugFiveTimesEnabled
+            ? WZSJZ_Constant.SpeedUp.DebugMultiplier
+            : WZSJZ_UIManager._playerGameTimeScale;
+        this.ShowText(
+            WZSJZ_UIManager._debugFiveTimesEnabled
+                ? `测试速度：${WZSJZ_Constant.SpeedUp.DebugMultiplier}倍`
+                : `测试速度已关闭：${WZSJZ_UIManager._playerGameTimeScale}倍`,
+        );
     }
 
     /**
