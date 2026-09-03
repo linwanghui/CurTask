@@ -1,5 +1,5 @@
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
-import { _decorator, AudioClip, Camera, Canvas, Component, director, EventKeyboard, find, input, Input, instantiate, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
+import { _decorator, AudioClip, AudioSource, Camera, Canvas, Component, director, EventKeyboard, find, input, Input, instantiate, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
@@ -42,6 +42,12 @@ export class ZRSJZ_UIManager extends Component {
     public static SinglePlayerBattleIndex: number = -1;
 
     private static _instance: ZRSJZ_UIManager = null;
+    private static _lifecycleVersion: number = 0;
+    private static readonly _onDebugKeyDown = (event: EventKeyboard): void => {
+        if (event.keyCode === KeyCode.KEY_P) {
+            ZRSJZ_UIManager.Instance?.ShowPanel(ZRSJZ_PANEL.作弊界面);
+        }
+    };
     public static get Instance(): ZRSJZ_UIManager {
         return ZRSJZ_UIManager._instance;
     }
@@ -82,10 +88,13 @@ export class ZRSJZ_UIManager extends Component {
     private _finishGameInventoryPromise: Promise<void> = null;
     /** 发奖涉及异步格子操作，串行执行可避免多次发奖抢占同一格。 */
     private _receiveAwardsQueue: Promise<void> = Promise.resolve();
+    private _isRecycling: boolean = false;
+    private _hasCleanedUp: boolean = false;
 
     protected onLoad(): void {
         if (ZRSJZ_UIManager._instance == null) {
             ZRSJZ_UIManager._instance = this;
+            ZRSJZ_UIManager._lifecycleVersion++;
             ZRSJZ_UIManager.InitDLC();
             ZRSJZ_UIManager.InitAudio();
             ZRSJZ_UIManager.InitUI();
@@ -98,6 +107,111 @@ export class ZRSJZ_UIManager extends Component {
         }
         this._panelNode = this.node.getChildByName("Panel");
         this.PropParent = this.node.getChildByName("PropParent");
+    }
+
+    /**
+     * 完整回收常驻 UI 管理器。退出 ZRSJZ 模式、卸载玩法资源前统一调用此方法，
+     * 不要在外部直接 destroy UIManager 节点。
+     */
+    public static Recycle(): void {
+        const instance = ZRSJZ_UIManager._instance;
+        input.off(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
+        ZRSJZ_UIManager._lifecycleVersion++;
+        if (!instance) {
+            ZRSJZ_UIManager.ResetStaticState();
+            return;
+        }
+
+        instance._isRecycling = true;
+        instance.CleanupBeforeRecycle();
+        ZRSJZ_UIManager._instance = null;
+        ZRSJZ_UIManager.ResetStaticState();
+
+        if (instance.node?.isValid) {
+            director.removePersistRootNode(instance.node);
+            instance.node.destroy();
+        }
+    }
+
+    /** 与 Recycle 同义，便于按资源管理习惯调用。 */
+    public static Release(): void {
+        ZRSJZ_UIManager.Recycle();
+    }
+
+    protected onDestroy(): void {
+        if (ZRSJZ_UIManager._instance !== this) return;
+        input.off(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
+        ZRSJZ_UIManager._lifecycleVersion++;
+        this._isRecycling = true;
+        this.CleanupBeforeRecycle();
+        ZRSJZ_UIManager._instance = null;
+        ZRSJZ_UIManager.ResetStaticState();
+    }
+
+    private static ResetStaticState(): void {
+        ZRSJZ_UIManager.ZRSJZ_DLC = false;
+        ZRSJZ_UIManager.ZRSJZ_UI = false;
+        ZRSJZ_UIManager.Dragging = false;
+        ZRSJZ_UIManager.DraggingPlayerIndex = -1;
+        ZRSJZ_UIManager.IsBattle = false;
+        ZRSJZ_UIManager.SinglePlayerBattleIndex = -1;
+    }
+
+    private IsAvailable(): boolean {
+        return !this._isRecycling && this.isValid && this.node?.isValid;
+    }
+
+    private CleanupBeforeRecycle(): void {
+        if (this._hasCleanedUp) return;
+        this._hasCleanedUp = true;
+        this.unscheduleAllCallbacks();
+        this._panelRequestVersion++;
+        this._playerPanelRequestVersions[0]++;
+        this._playerPanelRequestVersions[1]++;
+
+        // 移除挂在常驻根节点上的玩法事件，避免监听目标阻止场景对象释放。
+        if (this.node?.isValid) {
+            for (const eventType of Object.values(ZRSJZ_MyEvent)) {
+                this.node.off(eventType);
+            }
+        }
+
+        const cachedNodes = new Set<Node>([
+            ...this._panelMap.values(),
+            ...this._playerPanelMap.values(),
+            ...this.InventoryMap.values(),
+            ...this._playerInventoryMap.values(),
+        ]);
+        for (const cachedNode of cachedNodes) {
+            if (cachedNode?.isValid) cachedNode.destroy();
+        }
+
+        this._panelMap.clear();
+        this._playerPanelMap.clear();
+        this.InventoryMap.clear();
+        this._playerInventoryMap.clear();
+        this._playerInventoryTasks.clear();
+        this._curPanel.length = 0;
+        this._curPlayerPanels.clear();
+        this._playerDiscardAreas.clear();
+        this._discardingPropIDs.clear();
+        this._curCurrencyUI.length = 0;
+
+        this.PropGridSFMap.clear();
+        this.PropSFMap.clear();
+        this.HeroIconSFMap.clear();
+        this.BoxSFMap.clear();
+        this.RoleSkinIconSFMap.clear();
+        this.WeaponryTextureMap.clear();
+
+        const audioManager = ZRSJZ_AudioManager.Instance;
+        if (audioManager?.isValid && audioManager.node === this.node) {
+            audioManager.StopMusic();
+            for (const source of audioManager.node.getComponents(AudioSource)) source.stop();
+            audioManager.AudioClipMaps.clear();
+            audioManager.CyclicSoundMap.clear();
+            ZRSJZ_AudioManager.Instance = null;
+        }
     }
     //#region 初始化
     public static Init() {
@@ -147,9 +261,12 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     public static InitUI() {
-
+        const instance = ZRSJZ_UIManager._instance;
+        const lifecycleVersion = ZRSJZ_UIManager._lifecycleVersion;
+        if (!instance?.IsAvailable()) return;
         let loadCount = 0;
         const loadCompleted: Function = () => {
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
             loadCount++;
             if (loadCount >= ZRSJZ_UIManager.LoadAssetsCount) {
                 ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_UI);
@@ -158,41 +275,50 @@ export class ZRSJZ_UIManager extends Component {
         }
         //初始话格子UI
         ZRSJZ_Tools.LoadSprites("Sprites/格子").then((sfs: SpriteFrame[]) => {
-            sfs.forEach(sf => ZRSJZ_UIManager._instance.PropGridSFMap.set(sf.name, sf));
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
+            sfs.forEach(sf => instance.PropGridSFMap.set(sf.name, sf));
             loadCompleted();
         });
         //初始化道具UI
         ZRSJZ_Tools.LoadSprites("Sprites/Prop").then((sfs: SpriteFrame[]) => {
-            sfs.forEach(sf => ZRSJZ_UIManager._instance.PropSFMap.set(sf.name, sf));
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
+            sfs.forEach(sf => instance.PropSFMap.set(sf.name, sf));
             loadCompleted();
 
         });
         //初始化皮肤Icon
         ZRSJZ_Tools.LoadSprites("Sprites/小地图/Icon").then((sfs: SpriteFrame[]) => {
-            sfs.forEach(sf => ZRSJZ_UIManager._instance.HeroIconSFMap.set(sf.name, sf));
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
+            sfs.forEach(sf => instance.HeroIconSFMap.set(sf.name, sf));
             loadCompleted();
 
         });
         //初始化武器UI
         ZRSJZ_Tools.LoadSprites("Sprites/Weaponry").then((sfs: SpriteFrame[]) => {
-            sfs.forEach(sf => ZRSJZ_UIManager._instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D));
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
+            sfs.forEach(sf => instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D));
             loadCompleted()
         });
         //初始化箱子
         ZRSJZ_Tools.LoadSprites("Sprites/箱子").then((sfs: SpriteFrame[]) => {
-            sfs.forEach(sf => ZRSJZ_UIManager._instance.BoxSFMap.set(sf.name, sf));
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
+            sfs.forEach(sf => instance.BoxSFMap.set(sf.name, sf));
             loadCompleted();
         });
         //初始化角色皮肤
         ZRSJZ_Tools.LoadSprites("Sprites/角色界面/皮肤").then((sfs: SpriteFrame[]) => {
-            sfs.forEach(sf => ZRSJZ_UIManager._instance.RoleSkinIconSFMap.set(sf.name, sf));
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
+            sfs.forEach(sf => instance.RoleSkinIconSFMap.set(sf.name, sf));
             loadCompleted();
         });
     }
 
     public static InitDLC() {
         if (!Banner.TimeMask) return;
+        const instance = ZRSJZ_UIManager._instance;
+        const lifecycleVersion = ZRSJZ_UIManager._lifecycleVersion;
         BundleManager.LoadBundle("73_ZRSJZ_DLC", () => {
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance?.IsAvailable()) return;
             ZRSJZ_UIManager.ZRSJZ_DLC = true;
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC);
         })
@@ -200,6 +326,9 @@ export class ZRSJZ_UIManager extends Component {
 
     //初始化仓库
     public static InitInventory() {
+        const instance = ZRSJZ_UIManager._instance;
+        const lifecycleVersion = ZRSJZ_UIManager._lifecycleVersion;
+        if (!instance?.IsAvailable()) return;
         const weaponry: ZRSJZ_INVENTORY[] = [
             ZRSJZ_INVENTORY.武器_枪,
             ZRSJZ_INVENTORY.武器_头盔,
@@ -208,6 +337,7 @@ export class ZRSJZ_UIManager extends Component {
             ZRSJZ_INVENTORY.武器_刀,
         ]
         ZRSJZ_Tools.LoadPrefab("Prefabs/UI/Inventory/Inventory").then((perfab: Prefab) => {
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
             for (let key in ZRSJZ_INVENTORY) {
                 if (
                     weaponry.includes(ZRSJZ_INVENTORY[key])
@@ -225,21 +355,25 @@ export class ZRSJZ_UIManager extends Component {
                     inventoryComponent = inventory.getComponent(ZRSJZ_Inventory);
                 }
                 inventoryComponent.Init(ZRSJZ_INVENTORY[key]);
-                ZRSJZ_UIManager._instance.InventoryMap.set(ZRSJZ_INVENTORY[key], inventory);
+                instance.InventoryMap.set(ZRSJZ_INVENTORY[key], inventory);
                 inventory.active = false;
             }
         })
         weaponry.forEach(async (key: string) => {
             const perfab: Prefab = await ZRSJZ_Tools.LoadPrefab("Prefabs/UI/Inventory/" + key);
+            if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
             const inventory: Node = instantiate(perfab);
             inventory.getComponent(ZRSJZ_Inventory).Init(ZRSJZ_INVENTORY[key]);
-            ZRSJZ_UIManager._instance.InventoryMap.set(ZRSJZ_INVENTORY[key], inventory);
+            instance.InventoryMap.set(ZRSJZ_INVENTORY[key], inventory);
             inventory.active = false;
         })
     }
 
     public static InitAudio() {
-        ZRSJZ_AudioManager.Instance = ZRSJZ_UIManager._instance.node.addComponent(ZRSJZ_AudioManager);
+        const instance = ZRSJZ_UIManager._instance;
+        const lifecycleVersion = ZRSJZ_UIManager._lifecycleVersion;
+        if (!instance?.IsAvailable()) return;
+        ZRSJZ_AudioManager.Instance = instance.node.addComponent(ZRSJZ_AudioManager);
         ZRSJZ_AudioManager.Instance.Init();
         //音频资源地址
         const audioRes: string[] = [
@@ -250,6 +384,7 @@ export class ZRSJZ_UIManager extends Component {
             const bundlePath: string = path.split("/").shift();
             const resPath: string = path.split("/").slice(1).join("/");
             ZRSJZ_Tools.LoadAudioClips(bundlePath, resPath).then((clips: AudioClip[]) => {
+                if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
                 clips.forEach((clip, index) => {
                     ZRSJZ_AudioManager.Instance.AudioClipMaps.set(clip.name, clip);
                     if (index === clips.length - 1) {
@@ -266,14 +401,14 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     public static InitEvent() {
-        input.on(Input.EventType.KEY_DOWN, (event: EventKeyboard) => {
-            if (event.keyCode == KeyCode.KEY_P) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.作弊界面);
-        });
+        input.off(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
+        input.on(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
     }
 
     //#region UI展示
     //展示面板
     public ShowPanel(panel: string, ...args: any[]) {
+        if (!this.IsAvailable()) return;
         const panelName = panel.split('/').pop() || panel;
 
         // 结算界面拥有最高优先级：显示前立即关闭其余弹窗，并终止未完成的异步弹窗请求。
@@ -304,6 +439,7 @@ export class ZRSJZ_UIManager extends Component {
             const bundlePath = panel.split('/')[0];
             const resPath = panel.replace(bundlePath, '');
             BundleManager.GetBundle(bundlePath).load(resPath, Prefab, (err: any, prefab: Prefab) => {
+                if (!this.IsAvailable()) return;
                 if (err) {
                     console.error(`加载 Bundle: 73_ZRSJZ Prefab 加载失败 Path: ${resPath}`);
                 } else {
@@ -327,6 +463,7 @@ export class ZRSJZ_UIManager extends Component {
 
     /** 在指定玩家的 UICanvas/.../PlayerX/Panel 下显示一份独立弹窗。 */
     public ShowPlayerPanel(panel: string, playerIndex: number, ...args: any[]): void {
+        if (!this.IsAvailable()) return;
         const normalizedIndex = playerIndex === 1 ? 1 : 0;
         // 只有局内双人模式才使用玩家独立弹窗。仓库等局外界面即使已经
         // 选择了 2p，也仍然使用全局 Panel，否则打开和关闭会落入两套缓存。
@@ -373,6 +510,7 @@ export class ZRSJZ_UIManager extends Component {
         const bundlePath = panel.split('/')[0];
         const resPath = panel.replace(bundlePath, '');
         BundleManager.GetBundle(bundlePath).load(resPath, Prefab, (err: any, prefab: Prefab) => {
+            if (!this.IsAvailable()) return;
             if (err) {
                 this._curPlayerPanels.delete(panelKey);
                 console.error(`加载玩家弹窗失败 Path: ${resPath}`, err);
@@ -507,14 +645,25 @@ export class ZRSJZ_UIManager extends Component {
     //展示提示
     public async ShowTip(tip: string) {
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/Tip").then((tipNode: Node) => {
+            if (!tipNode?.isValid) return;
+            if (!this.IsAvailable()) {
+                ZRSJZ_PoolManager.Instance.PutNode(tipNode);
+                return;
+            }
             tipNode.parent = this.node;
             tipNode.active = true;
-            tipNode.getComponent(ZRSJZ_Tip).Show(tip);
-        });
+            const tipComponent = tipNode.getComponent(ZRSJZ_Tip);
+            if (!tipComponent) {
+                ZRSJZ_PoolManager.Instance.PutNode(tipNode);
+                return;
+            }
+            tipComponent.Show(tip);
+        }).catch(error => console.error("[ZRSJZ_UIManager] 提示节点创建失败", error));
     }
 
     //展示获取金币特效
     public async ShowCurrencyEffect() {
+        if (!this.IsAvailable()) return;
         let TargetPos: Vec3 = new Vec3(0, 500, 0);
         if (this._curCurrencyUI.length > 0) {
             // console.error("没有显示的金币框！");
@@ -522,14 +671,25 @@ export class ZRSJZ_UIManager extends Component {
             TargetPos = this._curCurrencyUI[this._curCurrencyUI.length - 1].getWorldPosition().clone();
         }
         const effect: Node = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/货币特效");
+        if (!effect?.isValid) return;
+        if (!this.IsAvailable()) {
+            ZRSJZ_PoolManager.Instance.PutNode(effect);
+            return;
+        }
+        const currencyEffect = effect.getComponent(ZRSJZ_CurrencyEffect);
+        if (!currencyEffect) {
+            ZRSJZ_PoolManager.Instance.PutNode(effect);
+            return;
+        }
         effect.parent = this.node;
         effect.active = true;
-        effect.getComponent(ZRSJZ_CurrencyEffect).Show(TargetPos);
+        currencyEffect.Show(TargetPos);
     }
 
     //#region 获取UI
     //获取格子UI
     public GetPropGridUI(propGridName: string): Promise<SpriteFrame> {
+        if (!this.IsAvailable()) return Promise.resolve(null);
         if (this.PropGridSFMap.size == 0) {
             return new Promise(resolve => {
                 setTimeout(async () => {
@@ -546,6 +706,7 @@ export class ZRSJZ_UIManager extends Component {
 
     //获取道具UI
     public GetPropUI(propName: string): Promise<SpriteFrame> {
+        if (!this.IsAvailable()) return Promise.resolve(null);
         if (this.PropSFMap.size === 0) {
             return new Promise(resolve => {
                 setTimeout(async () => {
@@ -563,6 +724,7 @@ export class ZRSJZ_UIManager extends Component {
 
     //获取道具UI
     public GetWeaponryUI(propName: string): Promise<Texture2D> {
+        if (!this.IsAvailable()) return Promise.resolve(null);
         if (this.WeaponryTextureMap.size === 0) {
             return new Promise(resolve => {
                 setTimeout(async () => {
@@ -581,11 +743,16 @@ export class ZRSJZ_UIManager extends Component {
 
     //获取玩家Icon
     public GetHeroUI(heroName: string): Promise<SpriteFrame> {
+        if (!this.IsAvailable()) return Promise.resolve(null);
         if (this.HeroIconSFMap.has(heroName)) {
             return Promise.resolve(this.HeroIconSFMap.get(heroName));
         } else {
             return new Promise((resolve, reject) => {
                 BundleManager.GetBundle("73_ZRSJZ").load(`Sprites/小地图/Icon/${heroName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
+                    if (!this.IsAvailable()) {
+                        resolve(null);
+                        return;
+                    }
                     if (err) {
                         reject(err);
                         console.error(`加载 ${heroName} 失败`);
@@ -600,11 +767,16 @@ export class ZRSJZ_UIManager extends Component {
 
     //获取箱子Icon
     public GetBoxUI(boxName: string): Promise<SpriteFrame> {
+        if (!this.IsAvailable()) return Promise.resolve(null);
         if (this.BoxSFMap.has(boxName)) {
             return Promise.resolve(this.BoxSFMap.get(boxName));
         } else {
             return new Promise((resolve, reject) => {
                 BundleManager.GetBundle("73_ZRSJZ").load(`Sprites/箱子/${boxName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
+                    if (!this.IsAvailable()) {
+                        resolve(null);
+                        return;
+                    }
                     if (err) {
                         reject(err);
                         console.error(`加载 ${boxName} 失败`);
@@ -619,11 +791,16 @@ export class ZRSJZ_UIManager extends Component {
 
     //获取玩家Icon
     public GetHeroSkinIconUI(SkinName: string): Promise<SpriteFrame> {
+        if (!this.IsAvailable()) return Promise.resolve(null);
         if (this.RoleSkinIconSFMap.has(SkinName)) {
             return Promise.resolve(this.RoleSkinIconSFMap.get(SkinName));
         } else {
             return new Promise((resolve, reject) => {
                 BundleManager.GetBundle("73_ZRSJZ").load(`Sprites/角色界面/皮肤/${SkinName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
+                    if (!this.IsAvailable()) {
+                        resolve(null);
+                        return;
+                    }
                     if (err) {
                         reject(err);
                         console.error(`加载 ${SkinName} 失败`);
@@ -642,8 +819,10 @@ export class ZRSJZ_UIManager extends Component {
         playerIndex?: number,
         forcePlayerInstance: boolean = false,
     ): Promise<Node> {
+        if (!this.IsAvailable()) return null;
         if (this.InventoryMap.size === 0) {
             await new Promise<void>(resolve => setTimeout(resolve, 100));
+            if (!this.IsAvailable()) return null;
             return this.GetInventory(inventoryName, playerIndex, forcePlayerInstance);
         }
 
@@ -684,6 +863,10 @@ export class ZRSJZ_UIManager extends Component {
                     inventoryName as ZRSJZ_INVENTORY,
                     normalizedIndex,
                 );
+                if (!this.IsAvailable()) {
+                    if (inventory.isValid) inventory.destroy();
+                    return null;
+                }
                 inventory.active = false;
                 this._playerInventoryMap.set(inventoryKey, inventory);
                 return inventory;
@@ -1398,6 +1581,7 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     private WaitForInventory(inventoryType: ZRSJZ_INVENTORY): Promise<Node> {
+        if (!this.IsAvailable()) return Promise.resolve(null);
         const inventory = this.InventoryMap.get(inventoryType);
         if (
             inventory?.isValid
@@ -1407,7 +1591,9 @@ export class ZRSJZ_UIManager extends Component {
         }
 
         return new Promise(resolve => {
-            setTimeout(() => resolve(this.WaitForInventory(inventoryType)), 50);
+            setTimeout(() => {
+                resolve(this.IsAvailable() ? this.WaitForInventory(inventoryType) : null);
+            }, 50);
         });
     }
 

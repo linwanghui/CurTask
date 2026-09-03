@@ -87,7 +87,7 @@ export class ZRSJZ_GameDataDefaults {
     }
 
     /** 为指定玩家创建独立的初始战术匕首，避免两个玩家引用同一个道具实例。 */
-    private static InitializePlayerKnife(data: ZRSJZ_GameData, playerIndex: number): void {
+    public static InitializePlayerKnife(data: ZRSJZ_GameData, playerIndex: number): void {
         const knifeID = this.CreateProp(data, "战术匕首", 1);
         const weaponryIDs = playerIndex === 1 ? data.Player2WeaponryID : data.WeaponryID;
         weaponryIDs[4] = knifeID;
