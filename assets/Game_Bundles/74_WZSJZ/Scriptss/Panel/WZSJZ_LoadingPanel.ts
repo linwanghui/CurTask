@@ -15,6 +15,7 @@ export class WZSJZ_LoadingPanel extends PanelBase {
     Show(...args: any[]): void {
         // 场景切换期间静态 Instance 可能短暂重绑定，始终使用本次打开时的真实管理器。
         const uiManager = WZSJZ_UIManager.Instance;
+        uiManager?.ResetGameTimeScale();
         uiManager?.HideAllPanel();
         this.node.active = true;
         // this.LoadingLabel.string = `正在加载：${0}%`;

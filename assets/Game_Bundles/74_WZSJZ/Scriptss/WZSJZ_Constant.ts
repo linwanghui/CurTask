@@ -56,7 +56,7 @@ export interface WZSJZ_MaterialConfig {
     SkillDescription?: string[];
     /** 是否显示等级节点；功能性节点、钥匙等无等级物品可关闭。 */
     ShowLevel?: boolean;
-    /** 单局通过购买最多刷新多少个；未填写表示不限制。 */
+    /** 单局通过购买最多刷新多少个；功能性节点未填写时默认限制为1个。 */
     MaxPurchaseSpawnsPerGame?: number;
     /** 名字单位可通过经验升级，并在单独存在时播放待机动画。 */
     IsNameUnit?: boolean;
@@ -170,6 +170,16 @@ export class WZSJZ_Constant {
         ReturnPanel: "Panel/ReturnPanel",
         FinishPanel: "Panel/FinishPanel",
         CombinationAwardPanel: "Panel/CombinationAwardPanel",
+        SpeedUpPanel: "Panel/SpeedUpPanel",
+    };
+
+    /** 游戏速度与广告永久解锁配置。 */
+    public static readonly SpeedUp = {
+        NormalMultiplier: 1,
+        FastMultiplier: 2,
+        /** 仅供PC测试热键O使用，不属于玩家加速功能。 */
+        DebugMultiplier: 5,
+        PermanentUnlockVideoCount: 10,
     };
 
     /** 首页体力与钻石配置。时间全部使用真实时间戳，不受游戏倍速影响。 */
@@ -214,7 +224,8 @@ export class WZSJZ_Constant {
         BossRetreatSpeedMultiplier: 1.5,
         BossRetreatArrivalDistance: 8,
         VictoryBaseDiamondReward: 100,
-        VictoryDiamondRewardPerRound: 50,
+        /** 每完整循环一组六个Boss，之后关卡的通关奖励增加量。 */
+        VictoryDiamondRewardPerCampaignCycle: 50,
     };
 
     /** 全局战斗平衡参数。 */
@@ -278,6 +289,14 @@ export class WZSJZ_Constant {
     public static GetBossRoundAttributeMultiplier(round: number): number {
         return 1 + Math.max(0, Math.floor(round) - 1)
             * this.StageFlow.BossRoundAttributeIncrease;
+    }
+
+    /** 通关钻石按六个Boss组成的关卡大循环计算，与单局Boss暂退回合无关。 */
+    public static GetVictoryDiamondReward(level: number): number {
+        const cycleLength = Math.max(1, this.HomeLevel.BossCycle.length);
+        const cycleIndex = Math.floor((Math.max(1, Math.floor(level)) - 1) / cycleLength);
+        return this.StageFlow.VictoryBaseDiamondReward
+            + cycleIndex * this.StageFlow.VictoryDiamondRewardPerCampaignCycle;
     }
 
     /** 商店商品配置；数量、售价和广告奖励均从这里调整。 */
@@ -1408,6 +1427,12 @@ export class WZSJZ_Constant {
         UnlockFallbackDuration: 0.97,
     };
 
+    /** 战斗期间即使没有任何资源单位，也会每秒获得的保底资源。 */
+    public static readonly BaseResourceProductionPerSecond = {
+        Money: 2,
+        Food: 2,
+    };
+
     /** 本局第一次成功购买时的保底物资池，仍按各自 PurchaseWeight 抽取。 */
     public static readonly FirstPurchaseGuaranteedMaterials: readonly string[] = [
         "刀", "枪", "雷", "炮",
@@ -1538,12 +1563,12 @@ export class WZSJZ_Constant {
             UpgradeTimes: 5,
             MergeSameLevelCount: 2,
             Levels: [
-                { Level: 1, SpritePath: "Sprites/游戏内/围墙/0", DisplaySpritePath: "Sprites/游戏内/显示围墙/0", ProductionPerSecond: 0, MaxHealth: 500 },
-                { Level: 2, SpritePath: "Sprites/游戏内/围墙/1", DisplaySpritePath: "Sprites/游戏内/显示围墙/1", ProductionPerSecond: 0, MaxHealth: 800 },
-                { Level: 3, SpritePath: "Sprites/游戏内/围墙/2", DisplaySpritePath: "Sprites/游戏内/显示围墙/2", ProductionPerSecond: 0, MaxHealth: 1200 },
-                { Level: 4, SpritePath: "Sprites/游戏内/围墙/3", DisplaySpritePath: "Sprites/游戏内/显示围墙/3", ProductionPerSecond: 0, MaxHealth: 1800 },
-                { Level: 5, SpritePath: "Sprites/游戏内/围墙/4", DisplaySpritePath: "Sprites/游戏内/显示围墙/4", ProductionPerSecond: 0, MaxHealth: 3000 },
-                { Level: 6, SpritePath: "Sprites/游戏内/围墙/5", DisplaySpritePath: "Sprites/游戏内/显示围墙/5", ProductionPerSecond: 0, MaxHealth: 5000 },
+                { Level: 1, SpritePath: "Sprites/游戏内/围墙/0", DisplaySpritePath: "Sprites/游戏内/显示围墙/0", ProductionPerSecond: 0, MaxHealth: 800 },
+                { Level: 2, SpritePath: "Sprites/游戏内/围墙/1", DisplaySpritePath: "Sprites/游戏内/显示围墙/1", ProductionPerSecond: 0, MaxHealth: 1100 },
+                { Level: 3, SpritePath: "Sprites/游戏内/围墙/2", DisplaySpritePath: "Sprites/游戏内/显示围墙/2", ProductionPerSecond: 0, MaxHealth: 1500 },
+                { Level: 4, SpritePath: "Sprites/游戏内/围墙/3", DisplaySpritePath: "Sprites/游戏内/显示围墙/3", ProductionPerSecond: 0, MaxHealth: 2100 },
+                { Level: 5, SpritePath: "Sprites/游戏内/围墙/4", DisplaySpritePath: "Sprites/游戏内/显示围墙/4", ProductionPerSecond: 0, MaxHealth: 3300 },
+                { Level: 6, SpritePath: "Sprites/游戏内/围墙/5", DisplaySpritePath: "Sprites/游戏内/显示围墙/5", ProductionPerSecond: 0, MaxHealth: 5300 },
             ],
         },
         "钥匙": {

@@ -113,7 +113,7 @@ export class WZSJZ_EconomySystem extends Component {
             this._purchaseCount--;
             return false;
         }
-        this.RecordPurchaseSpawn(prefab.data.name);
+        this.RecordPurchaseSpawn(materialConfig?.Name || prefab.data.name);
         if (materialConfig?.Name === this._forcedNextPurchaseName) {
             this._forcedNextPurchaseName = "";
         }
@@ -235,8 +235,10 @@ export class WZSJZ_EconomySystem extends Component {
     }
 
     private CanPurchaseSpawn(config: WZSJZ_MaterialConfig): boolean {
-        const limit = config.MaxPurchaseSpawnsPerGame;
-        return !limit || (this._purchaseSpawnCounts.get(config.Name) || 0) < limit;
+        // 所有功能性节点默认每局最多购买生成一个，避免新增配置时漏填上限。
+        const limit = config.MaxPurchaseSpawnsPerGame
+            ?? (config.IsFunctionalNode ? 1 : 0);
+        return limit <= 0 || (this._purchaseSpawnCounts.get(config.Name) || 0) < limit;
     }
 
     private CanRollMaterial(config: WZSJZ_MaterialConfig, weightKey: MaterialWeightKey): boolean {
@@ -278,8 +280,9 @@ export class WZSJZ_EconomySystem extends Component {
     }
 
     private ProduceResources = (): void => {
-        let money = 0;
-        let food = 0;
+        // 保底产出独立于场上节点，避免没有抽到资源单位时经济彻底停滞。
+        let money = WZSJZ_Constant.BaseResourceProductionPerSecond.Money;
+        let food = WZSJZ_Constant.BaseResourceProductionPerSecond.Food;
         for (const cell of this._formationCells) {
             if (!cell.IsUnlocked || cell.IsEmpty()) {
                 continue;
