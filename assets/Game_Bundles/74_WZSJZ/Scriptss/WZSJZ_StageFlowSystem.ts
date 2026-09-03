@@ -111,6 +111,11 @@ export class WZSJZ_StageFlowSystem extends Component {
 
     private async SpawnRound(token: number): Promise<void> {
         const progress = WZSJZ_GameData.Instance.GetLevelProgressSnapshot();
+        console.log(
+            `[WZSJZ][StageFlow] 开始生成回合：token=${token}，`
+            + `selectedLevel=${progress.SelectedLevel}，boss=${progress.BossName}，`
+            + `state=${this._state}，round=${this._round}`,
+        );
         const ready = await this._combatSystem.PrepareStageEnemyPrefabs(progress.BossName);
         if (!ready || token !== this._flowToken || this._state !== "spawning") {
             if (!ready) this.AbortToPreparation("敌人资源加载失败");

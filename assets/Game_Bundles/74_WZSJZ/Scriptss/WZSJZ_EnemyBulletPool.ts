@@ -71,9 +71,23 @@ export class WZSJZ_EnemyBulletPool {
     /** 战斗结束或撤离时清掉已发射但尚未命中的敌方子弹。 */
     public static RecycleAll(): void {
         for (const bullet of [...this._active]) {
-            bullet?.RecycleImmediately();
+            // 统一由对象池回收，不依赖组件上的公开方法。
+            // Web 发布构建中如果活动集合残留了已失效的组件实例，直接调用实例方法
+            // 会抛出异常并中断 GameManager.start() 后续所有系统的初始化。
+            if (typeof bullet?.unscheduleAllCallbacks === "function") {
+                bullet.unscheduleAllCallbacks();
+            }
+            this.Recycle(bullet);
         }
         this._active.clear();
+    }
+
+    /** 场景销毁时释放静态池，避免组件引用跨场景残留。 */
+    public static Reset(): void {
+        this.RecycleAll();
+        this._pool.clear();
+        this._prefab = null;
+        this._loading = null;
     }
 
     private static SetLayerRecursively(node: Node, layer: number): void {
@@ -84,6 +98,9 @@ export class WZSJZ_EnemyBulletPool {
     private static Recycle = (bullet: WZSJZ_EnemyBullet): void => {
         WZSJZ_EnemyBulletPool._active.delete(bullet);
         if (!bullet?.node?.isValid) return;
+        if (typeof bullet.unscheduleAllCallbacks === "function") {
+            bullet.unscheduleAllCallbacks();
+        }
         bullet.node.active = false;
         WZSJZ_EnemyBulletPool._pool.put(bullet.node);
     };

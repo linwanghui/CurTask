@@ -1,4 +1,4 @@
-import { _decorator, instantiate, Node, NodePool, Prefab, UITransform, Vec3 } from 'cc';
+import { _decorator, instantiate, isValid, Node, NodePool, Prefab, UITransform, Vec3 } from 'cc';
 import { WZSJZ_Boss } from './WZSJZ_Boss';
 import { WZSJZ_Boss_LaoTaiTank } from './WZSJZ_Boss_LaoTaiTank';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
@@ -35,9 +35,28 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
         recycleCallback: (enemy: WZSJZ_Enemy) => void,
         enemyProjectileLayer: Node = null,
         healthBarLayer: Node = null,
+        statMultiplier: number = 1,
     ): boolean {
+        console.log(
+            `[WZSJZ][LaoTai] Initialize开始：node=${this.node?.name}，`
+            + `active=${this.node?.activeInHierarchy}，wall=${!!wall}，`
+            + `projectileLayer=${enemyProjectileLayer?.name || "<空>"}，`
+            + `healthBarLayer=${healthBarLayer?.name || "<空>"}，倍率=${statMultiplier}，`
+            + `残留战车=${this._activeTanks.size}`,
+        );
         this.RecycleAllTanks();
-        if (!super.Initialize(wall, recycleCallback, enemyProjectileLayer, healthBarLayer)) {
+        const initialized = super.Initialize(
+            wall,
+            recycleCallback,
+            enemyProjectileLayer,
+            healthBarLayer,
+            statMultiplier,
+        );
+        if (!initialized) {
+            console.error(
+                `[WZSJZ][LaoTai] 父类Initialize返回false：node=${this.node?.name}，`
+                + `wallAlive=${wall?.IsAlive}`,
+            );
             return false;
         }
         this._projectileLayer = enemyProjectileLayer;
@@ -48,6 +67,10 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
         this.ResetSkillTimer();
         void WZSJZ_EnemyBulletPool.Prepare();
         void WZSJZ_Boss_LaoTai.PrepareTankPrefab();
+        console.log(
+            `[WZSJZ][LaoTai] Initialize成功：node=${this.node?.name}，`
+            + `active=${this.node?.activeInHierarchy}，parent=${this.node?.parent?.name}`,
+        );
         return true;
     }
 
@@ -283,21 +306,18 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
 
     private RecycleOwnedTank(tank: WZSJZ_Boss_LaoTaiTank): void {
         this._activeTanks.delete(tank);
-        if (!tank?.node?.isValid) return;
-        tank.node.active = false;
-        WZSJZ_Boss_LaoTai._tankPool.put(tank.node);
+        const tankNode = tank?.node;
+        if (!tankNode || !isValid(tankNode, true)) return;
+        // 禁用节点时战车自身的 onDisable 会停止回调、清除 Spine 监听并复位状态。
+        // 池管理器不再调用组件公开方法，避免 RPK 运行时组件实例方法缺失。
+        tankNode.active = false;
+        WZSJZ_Boss_LaoTai._tankPool.put(tankNode);
     }
 
     private RecycleAllTanks(): void {
-        for (const tank of [...this._activeTanks]) {
-            tank?.RecycleImmediately();
-        }
+        const tanks = [...this._activeTanks];
         this._activeTanks.clear();
-    }
-
-    protected onDisable(): void {
-        this.RecycleAllTanks();
-        super.onDisable();
+        for (const tank of tanks) this.RecycleOwnedTank(tank);
     }
 
 }

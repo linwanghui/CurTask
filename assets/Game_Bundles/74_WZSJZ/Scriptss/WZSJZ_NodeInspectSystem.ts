@@ -79,7 +79,6 @@ export class WZSJZ_NodeInspectSystem extends Component {
 
     protected onDestroy(): void {
         this.HideAttackRange();
-        WZSJZ_UIManager.Instance.HidePanel(WZSJZ_Constant.Panel.IntroducePanel);
         if (WZSJZ_NodeInspectSystem._instance === this) {
             WZSJZ_NodeInspectSystem._instance = null;
         }

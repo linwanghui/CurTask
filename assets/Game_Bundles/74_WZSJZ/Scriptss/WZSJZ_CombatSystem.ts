@@ -3,6 +3,7 @@ import {
     Animation,
     Component,
     instantiate,
+    isValid,
     Node,
     NodePool,
     Prefab,
@@ -94,6 +95,7 @@ export class WZSJZ_CombatSystem extends Component {
         this._mineOwners.clear();
         this._mineUnitsOnField.clear();
         this._pendingWeaponAttacks.clear();
+        WZSJZ_EnemyBulletPool.Reset();
         if (WZSJZ_CombatSystem._instance === this) {
             WZSJZ_CombatSystem._instance = null;
         }
@@ -206,6 +208,10 @@ export class WZSJZ_CombatSystem extends Component {
         statMultiplier: number = 1,
     ): WZSJZ_Enemy | null {
         if (!prefab || !this._enemyArea || !this._wall) {
+            console.error(
+                `[WZSJZ][EnemySpawn] 生成前置条件不足：prefab=${!!prefab}，`
+                + `enemyArea=${!!this._enemyArea}，wall=${!!this._wall}`,
+            );
             return null;
         }
         const enemyName = prefab.data.name;
@@ -235,14 +241,47 @@ export class WZSJZ_CombatSystem extends Component {
             }
         }
 
-        const enemy = enemyNode.getComponent(WZSJZ_Enemy);
-        if (!enemy?.Initialize(
-            this._wall,
-            this.RecycleEnemy,
-            this._enemyProjectileLayer,
-            this._healthBarLayer,
-            statMultiplier,
-        )) {
+        // 快游戏分包环境中，同一个基类可能由不同模块实例注册，按构造器查询
+        // 偶尔会拿不到预制体上真实存在的子类组件。按能力扫描作为发布版回退。
+        const typedEnemy = enemyNode.getComponent(WZSJZ_Enemy);
+        const fallbackEnemy = typedEnemy ? null : enemyNode.components.find((component) =>
+                typeof (component as any)?.Initialize === "function"
+                && typeof (component as any)?.BeginRetreat === "function",
+            ) as WZSJZ_Enemy;
+        const enemy = typedEnemy || fallbackEnemy;
+        if (!enemy) {
+            console.error(
+                `[WZSJZ][EnemySpawn] ${enemyName}找不到敌人组件，组件列表=`,
+                enemyNode.components.map((component) =>
+                    `${component?.constructor?.name || "未知"}`,
+                ),
+            );
+            pool.put(enemyNode);
+            return null;
+        }
+        if (fallbackEnemy) {
+            console.warn(`[WZSJZ][EnemySpawn] ${enemyName}使用组件扫描回退。`);
+        }
+        let initialized = false;
+        try {
+            initialized = enemy.Initialize(
+                this._wall,
+                this.RecycleEnemy,
+                this._enemyProjectileLayer,
+                this._healthBarLayer,
+                statMultiplier,
+            );
+        } catch (error) {
+            console.error(`[WZSJZ][EnemySpawn] ${enemyName}执行Initialize时抛出异常。`, error);
+            throw error;
+        }
+        if (!initialized) {
+            console.error(
+                `[WZSJZ][EnemySpawn] ${enemyName}的Initialize返回false：`
+                + `wallAlive=${this._wall?.IsAlive}，`
+                + `projectileLayerValid=${this._enemyProjectileLayer?.isValid}，`
+                + `healthBarLayerValid=${this._healthBarLayer?.isValid}`,
+            );
             pool.put(enemyNode);
             return null;
         } else {
@@ -269,13 +308,42 @@ export class WZSJZ_CombatSystem extends Component {
         bossLevel: number = 1,
     ): Promise<WZSJZ_Boss | null> {
         const path = WZSJZ_Constant.EnemyPrefabPathByName[bossName];
-        if (!path || !this._isGameStarted) return null;
+        console.log(
+            `[WZSJZ][BossSpawn] 收到生成请求：boss=${bossName}，path=${path || "<空>"}，`
+            + `combatActive=${this._isGameStarted}，level=${bossLevel}，倍率=${statMultiplier}`,
+        );
+        if (!path || !this._isGameStarted) {
+            console.error(
+                `[WZSJZ][BossSpawn] 请求被拒绝：path=${path || "<空>"}，`
+                + `combatActive=${this._isGameStarted}`,
+            );
+            return null;
+        }
         try {
             const prefab = await WZSJZ_Incident.Loadprefab(path);
-            const enemy = this.SpawnEnemyFromPrefab(prefab, statMultiplier);
-            const boss = enemy?.node.getComponent(WZSJZ_Boss) || null;
-            if (enemy && !boss) enemy.RecycleImmediately();
-            boss?.SetBossLevel(bossLevel);
+            console.log(
+                `[WZSJZ][BossSpawn] 预制体加载完成：请求=${bossName}，`
+                + `资源名=${prefab?.name}，节点名=${prefab?.data?.name}`,
+            );
+            // 该路径来自Boss专用映射；SpawnEnemyFromPrefab返回的组件本身就是
+            // 实际Boss子类。不要在RPK中再次按WZSJZ_Boss构造器查询并误判为空。
+            const boss = this.SpawnEnemyFromPrefab(
+                prefab,
+                statMultiplier,
+            ) as WZSJZ_Boss | null;
+            if (!boss) {
+                console.error(`[WZSJZ] Boss预制体缺少可用敌人组件：${bossName}`);
+                return null;
+            }
+            if (typeof boss.SetBossLevel === "function") {
+                boss.SetBossLevel(bossLevel);
+            }
+            console.log(
+                `[WZSJZ][BossSpawn] 生成成功：boss=${bossName}，`
+                + `node=${boss.node?.name}，active=${boss.node?.activeInHierarchy}，`
+                + `parent=${boss.node?.parent?.name}，world=(${boss.node?.worldPosition.x},`
+                + `${boss.node?.worldPosition.y})`,
+            );
             return boss;
         } catch (error) {
             console.error(`[WZSJZ] 关卡Boss加载失败：${bossName}`, error);
@@ -881,19 +949,24 @@ export class WZSJZ_CombatSystem extends Component {
     }
 
     private RecycleMine = (mine: WZSJZ_Mine): void => {
-        if (mine?.node?.isValid) {
-            const owner = this._mineOwners.get(mine);
-            this._mineOwners.delete(mine);
-            if (owner) {
-                const mines = this._ownerMines.get(owner);
-                mines?.delete(mine);
-                if (mines?.size === 0) {
-                    this._ownerMines.delete(owner);
-                }
+        const owner = this._mineOwners.get(mine);
+        this._mineOwners.delete(mine);
+        if (owner) {
+            const mines = this._ownerMines.get(owner);
+            mines?.delete(mine);
+            if (mines?.size === 0) {
+                this._ownerMines.delete(owner);
             }
-            mine.unscheduleAllCallbacks();
-            this._minePool.put(mine.node);
         }
+        const mineNode = mine?.node;
+        // 第二个参数会把“本帧已标记销毁”的节点也视为无效；场景切换时
+        // 这些节点交给 Cocos 销毁，不再重新塞回对象池。
+        if (!mineNode || !isValid(mineNode, true)) return;
+        if (typeof mine.unscheduleAllCallbacks === "function") {
+            mine.unscheduleAllCallbacks();
+        }
+        mineNode.active = false;
+        this._minePool.put(mineNode);
     };
 
     public RemoveMinesByOwner(owner: WZSJZ_GameNode): void {
@@ -905,7 +978,8 @@ export class WZSJZ_CombatSystem extends Component {
         this._ownerMines.delete(owner);
         for (const mine of [...mines]) {
             this._mineOwners.delete(mine);
-            mine.ForceRecycle();
+            // 回收行为由池管理器统一执行，不依赖地雷组件上的公开方法。
+            this.RecycleMine(mine);
         }
     }
 
