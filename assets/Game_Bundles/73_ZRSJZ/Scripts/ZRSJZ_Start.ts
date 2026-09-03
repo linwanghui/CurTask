@@ -2,7 +2,7 @@ import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
 import { _decorator, Component, director, easing, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_PANEL } from './ZRSJZ_Constant';
+import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_MAIL_TYPE, ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
@@ -10,6 +10,8 @@ import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Ma
 import { ZRSJZ_GradeService } from "./Service/ZRSJZ_GradeService";
 import { ZRSJZ_TaskService } from "./Service/ZRSJZ_TaskService";
 import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
+import { CombinationGameData, ZRSJZ_PropDataItem } from "db://assets/Scripts/CombinationGameData";
+import { BundleManager } from "db://assets/Scripts/Framework/Managers/BundleManager";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -33,6 +35,9 @@ export class ZRSJZ_Start extends Component {
     @property(Label)
     MailCount: Label = null;
 
+    @property(Node)
+    MoreGameBtn: Node = null;
+
     protected start(): void {
 
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
@@ -44,6 +49,7 @@ export class ZRSJZ_Start extends Component {
             //关闭所有面板
             ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
             this.showRedTaskTip();
+            this.showMoreGameBtnAni();
             this.LoadPanel.active = false;
 
             if (ZRSJZ_AccountService.CanClaimSignInReward()) {
@@ -56,6 +62,14 @@ export class ZRSJZ_Start extends Component {
             this.RefreshMailTip();
             // 对局经验只在回到大厅、等级 UI 已注册事件后统一发放。
             ZRSJZ_GradeService.ClaimPendingExperience();
+
+            CombinationGameData.Instance.AddZRSJZProp("光头弹药箱");
+            CombinationGameData.Instance.AddZRSJZProp("战神勋章");
+            CombinationGameData.Instance.AddZRSJZProp("混乱勋章");
+            CombinationGameData.Instance.AddZRSJZProp("裂空之弩");
+            CombinationGameData.Instance.AddZRSJZProp("裂空之弩");
+
+            this.GetCombinationGameData();
         }
 
         if (ZRSJZ_UIManager.ZRSJZ_UI) cb();
@@ -133,6 +147,11 @@ export class ZRSJZ_Start extends Component {
             case "邮件":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.邮件界面);
                 break;
+            case "更多游戏":
+                BundleManager.LoadBundle("74_WZSJZ", () => {
+
+                })
+                break;
             case "主页":
                 ProjectEventManager.emit(ProjectEvent.返回主页按钮事件, () => {
                     ProjectEventManager.emit(ProjectEvent.返回主页);
@@ -197,6 +216,31 @@ export class ZRSJZ_Start extends Component {
             .union()
             .repeatForever()
             .start();
+    }
+
+    private showMoreGameBtnAni() {
+        Tween.stopAllByTarget(this.MoreGameBtn);
+        tween(this.MoreGameBtn)
+            .to(0.3, { scale: v3(1.5, 1.5, 1) })
+            .to(0.3, { scale: v3(1, 1, 1) })
+            .union()
+            .repeatForever()
+            .start();
+    }
+
+    //领取其他模式中获得的道具
+    public async GetCombinationGameData() {
+        if (CombinationGameData.Instance.ZRSJZ_PropData.length <= 0) return;
+        const propAwards: { PropName: string, Count: number }[] = [];
+        CombinationGameData.Instance.ZRSJZ_PropData.forEach((prpData: ZRSJZ_PropDataItem) => {
+            propAwards.push({
+                PropName: prpData.Name,
+                Count: prpData.Num,
+            });
+        })
+        CombinationGameData.Instance.ZRSJZ_PropData = [];
+        CombinationGameData.DateSave();
+        const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards(propAwards, ZRSJZ_MAIL_TYPE.其他模式中获取道具);
     }
 
 }

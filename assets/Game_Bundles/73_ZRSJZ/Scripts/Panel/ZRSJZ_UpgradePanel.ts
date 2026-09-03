@@ -179,14 +179,14 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
         const currentLevel = ZRSJZ_FacilityService.GetFacilityLevel(this._facilityName);
         const config = this.GetNextLevelConfig(currentLevel);
         if (!config) {
-            await ZRSJZ_UIManager.Instance.ShowTip(
+            ZRSJZ_UIManager.Instance.ShowTip(
                 `${ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName]}已达到最高等级`,
             );
             return;
         }
 
         if (ZRSJZ_GameData.Instance.Gold < config.Gold) {
-            await ZRSJZ_UIManager.Instance.ShowTip("金币不足");
+            ZRSJZ_UIManager.Instance.ShowTip("金币不足");
             return;
         }
 
@@ -194,7 +194,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
             ZRSJZ_InventoryService.GetPropCountByName(material.PropName) < material.Count
         );
         if (lackingMaterial) {
-            await ZRSJZ_UIManager.Instance.ShowTip(`${lackingMaterial.PropName}数量不足`);
+            ZRSJZ_UIManager.Instance.ShowTip(`${lackingMaterial.PropName}数量不足`);
             return;
         }
 

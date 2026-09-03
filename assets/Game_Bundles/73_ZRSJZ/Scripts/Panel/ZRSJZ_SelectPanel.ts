@@ -266,7 +266,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
         const mapKey = this.GetSelectedMapKey();
         const config = ZRSJZ_MAP_CONFIG.get(mapKey);
         if (!config) {
-            await ZRSJZ_UIManager.Instance.ShowTip("该关卡暂未开放");
+            ZRSJZ_UIManager.Instance.ShowTip("该关卡暂未开放");
             return;
         }
         ZRSJZ_UIManager.Instance.ShowPanel(
@@ -280,7 +280,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
     private async EnterSelectedLevel(mapKey: string): Promise<void> {
         const result = this.CanEnterLevel(mapKey);
         if (!result.CanEnter) {
-            await ZRSJZ_UIManager.Instance.ShowTip(result.Reason);
+            ZRSJZ_UIManager.Instance.ShowTip(result.Reason);
             return;
         }
         ZRSJZ_GameData.Instance.CurMap = mapKey;

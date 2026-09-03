@@ -135,33 +135,36 @@ export class ZRSJZ_GetBulletPanel extends ZRSJZ_Panel {
     private async Purchase(): Promise<void> {
         if (this._isPurchasing) return;
         if (!this._ammoName || this._count <= 0) {
-            await ZRSJZ_UIManager.Instance.ShowTip("金币不足，无法购买子弹");
+            ZRSJZ_UIManager.Instance.ShowTip("金币不足，无法购买子弹");
             return;
         }
         const totalPrice = this._count * this._unitPrice;
+        this._isPurchasing = true;
+        const awards = [{
+            PropName: this._ammoName,
+            Count: this._count,
+        }];
+        if (!await ZRSJZ_UIManager.Instance.CanReceivePropAwards(awards)) {
+            this._isPurchasing = false;
+            ZRSJZ_UIManager.Instance.ShowTip("仓库已满，请先整理仓库！");
+            return;
+        }
         if (ZRSJZ_GameData.Instance.Gold < totalPrice) {
-            await ZRSJZ_UIManager.Instance.ShowTip("金币不足");
+            this._isPurchasing = false;
+            ZRSJZ_UIManager.Instance.ShowTip("金币不足");
             return;
         }
 
-        this._isPurchasing = true;
         ZRSJZ_AccountService.ChangeGold(-totalPrice);
-        const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards([{
-            PropName: this._ammoName,
-            Count: this._count,
-        }]);
+        const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards(awards);
         if (result.PlacedPropIDs.length === 0 && result.MailAwards.length === 0) {
             ZRSJZ_AccountService.ChangeGold(totalPrice);
             this._isPurchasing = false;
-            await ZRSJZ_UIManager.Instance.ShowTip("子弹加入仓库失败");
+            ZRSJZ_UIManager.Instance.ShowTip("子弹加入仓库失败");
             return;
         }
 
-        await ZRSJZ_UIManager.Instance.ShowTip(
-            result.MailAwards.length > 0
-                ? `成功购买${this._count}发${this._ammoName}，剩余子弹已发送至邮件`
-                : `成功购买${this._count}发${this._ammoName}`,
-        );
+        ZRSJZ_UIManager.Instance.ShowTip(`成功购买${this._count}发${this._ammoName}`);
         ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.购买子弹弹窗);
         ZRSJZ_TaskService.CompleteTask(`在商城购买[${this._ammoName}]`, this._count);
     }

@@ -90,9 +90,9 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
 
         const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards(propAwards);
         if (result.MailAwards.length > 0) {
-            await ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，剩余道具已发送至邮件");
+            ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，剩余道具已发送至邮件");
         } else {
-            await ZRSJZ_UIManager.Instance.ShowTip("道具已添加到仓库");
+            ZRSJZ_UIManager.Instance.ShowTip("道具已添加到仓库");
         }
     }
 

@@ -1,4 +1,4 @@
-import { _decorator, EventTouch, find, instantiate, Label, Node, Prefab, ScrollView, Sprite, SpriteFrame } from 'cc';
+import { _decorator, EventTouch, find, instantiate, Label, Layout, Node, Prefab, ScrollView, Sprite, SpriteFrame, v2 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_MailItem } from '../UI/ZRSJZ_MailItem';
@@ -120,7 +120,20 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
         if (hasMail) {
             // 打开邮件界面时默认展示最后生成的一封邮件。
             this.CheckMail(mailIDs[mailIDs.length - 1]);
-            this.scheduleOnce(() => this.MailScrollView?.scrollToBottom(0), 0);
+
+            const layout = this.MailItemContent.getComponent(Layout);
+            layout?.updateLayout(true);
+
+            this.scheduleOnce(() => {
+                layout?.updateLayout(true);
+
+                this.scheduleOnce(() => {
+                    if (!this.node.activeInHierarchy) return;
+
+                    this.MailScrollView?.stopAutoScroll();
+                    this.MailScrollView?.scrollToTop(0);
+                }, 0);
+            }, 0);
         } else {
             this._curMailID = "";
             this.MailDescNode.active = false;
@@ -249,7 +262,7 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
                 !this._isPartialClaim || this._selectedAwardKeys.has(selectionKey)
             );
         if (selectedEntries.length <= 0) {
-            await ZRSJZ_UIManager.Instance.ShowTip("请先选择需要领取的道具");
+            ZRSJZ_UIManager.Instance.ShowTip("请先选择需要领取的道具");
             return;
         }
 
@@ -280,11 +293,11 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
 
             const receivedCount = claimCount - failedCount;
             if (receivedCount <= 0) {
-                await ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，所选道具仍保留在邮件中");
+                ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，所选道具仍保留在邮件中");
             } else if (failedCount > 0) {
-                await ZRSJZ_UIManager.Instance.ShowTip("已领取可存放的道具，剩余道具继续保留在邮件中");
+                ZRSJZ_UIManager.Instance.ShowTip("已领取可存放的道具，剩余道具继续保留在邮件中");
             } else {
-                await ZRSJZ_UIManager.Instance.ShowTip("邮件道具领取成功");
+                ZRSJZ_UIManager.Instance.ShowTip("邮件道具领取成功");
             }
             this.ShowReceivedAwards(receivedAwards);
         } finally {
@@ -298,7 +311,7 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
         const mailIDs = ZRSJZ_MailService.GetMailIDs()
             .filter(mailID => ZRSJZ_MailService.GetMailProps(mailID).length > 0);
         if (mailIDs.length <= 0) {
-            await ZRSJZ_UIManager.Instance.ShowTip("当前没有可领取的邮件道具");
+            ZRSJZ_UIManager.Instance.ShowTip("当前没有可领取的邮件道具");
             return;
         }
 
@@ -332,11 +345,11 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
         }
 
         if (receivedCount <= 0) {
-            await ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，邮件道具均未领取");
+            ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，邮件道具均未领取");
         } else if (failedCount > 0) {
-            await ZRSJZ_UIManager.Instance.ShowTip("已领取可存放的邮件道具，其余仍保留在原邮件中");
+            ZRSJZ_UIManager.Instance.ShowTip("已领取可存放的邮件道具，其余仍保留在原邮件中");
         } else {
-            await ZRSJZ_UIManager.Instance.ShowTip("全部邮件道具领取成功");
+            ZRSJZ_UIManager.Instance.ShowTip("全部邮件道具领取成功");
         }
         this.ShowReceivedAwards(this.MergeAwards(receivedAwards));
     }
@@ -347,7 +360,7 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
         this.ExitPartialClaim();
         const deleteCount = ZRSJZ_MailService.DeleteClaimedMails();
         this.InitMailItems();
-        await ZRSJZ_UIManager.Instance.ShowTip(
+        ZRSJZ_UIManager.Instance.ShowTip(
             deleteCount > 0
                 ? `已删除${deleteCount}封已领取邮件`
                 : "没有可以删除的已领取邮件",

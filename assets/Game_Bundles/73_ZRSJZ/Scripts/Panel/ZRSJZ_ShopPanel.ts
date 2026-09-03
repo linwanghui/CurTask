@@ -53,6 +53,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
     private _weaponSkinNodes: Node[] = [];
     private _shopListVersion: number = 0;
     private _shopDisplayVersion: number = 0;
+    private _isPurchasing: boolean = false;
 
     protected onLoad(): void {
         this.CheckedNode = find("Panel/商品类型/Checked", this.node);
@@ -384,19 +385,19 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             const skinConfig = ZRSJZ_WEAPON_SKIN.get(this._curShop)
                 ?.find(skin => skin.Name === this._selectedWeaponSkin);
             if (!skinConfig || skinConfig.UnlockType !== "金币") {
-                await ZRSJZ_UIManager.Instance.ShowTip("该皮肤不能使用金币购买");
+                ZRSJZ_UIManager.Instance.ShowTip("该皮肤不能使用金币购买");
                 return;
             }
 
             if (ZRSJZ_GameData.Instance.Gold < skinConfig.Price) {
-                await ZRSJZ_UIManager.Instance.ShowTip("金币不足");
+                ZRSJZ_UIManager.Instance.ShowTip("金币不足");
                 return;
             }
             ZRSJZ_AccountService.ChangeGold(-skinConfig.Price);
             ZRSJZ_AccountService.AddWeaponSkin(this._curShop, this._selectedWeaponSkin);
             this.RefreshWeaponSkinState();
             this.RefreshPurchaseState();
-            await ZRSJZ_UIManager.Instance.ShowTip("皮肤购买成功");
+            ZRSJZ_UIManager.Instance.ShowTip("皮肤购买成功");
             return;
         }
 
@@ -409,21 +410,27 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             return;
         }
 
-        if (ZRSJZ_GameData.Instance.Gold < this._shopPrice) {
-            await ZRSJZ_UIManager.Instance.ShowTip("金币不足");
-            return;
+        if (this._isPurchasing || !shopData) return;
+        this._isPurchasing = true;
+        const shopName = this._curShop;
+        const shopPrice = this._shopPrice;
+        const count = shopData.MaxCount ?? 1;
+        try {
+            const awards = [{ PropName: shopName, Count: count }];
+            if (!await ZRSJZ_UIManager.Instance.CanReceivePropAwards(awards)) {
+                ZRSJZ_UIManager.Instance.ShowTip("仓库已满，请先整理仓库！");
+                return;
+            }
+            if (ZRSJZ_GameData.Instance.Gold < shopPrice) {
+                ZRSJZ_UIManager.Instance.ShowTip("金币不足");
+                return;
+            }
+            ZRSJZ_AccountService.ChangeGold(-shopPrice);
+            await ZRSJZ_UIManager.Instance.ReceivePropAwards(awards);
+            ZRSJZ_UIManager.Instance.ShowTip("购买成功");
+        } finally {
+            this._isPurchasing = false;
         }
-        ZRSJZ_AccountService.ChangeGold(-this._shopPrice);
-        const count = ZRSJZ_PROP_CONFIG.get(this._curShop)?.MaxCount ?? 1;
-        const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards([{
-            PropName: this._curShop,
-            Count: count,
-        }]);
-        await ZRSJZ_UIManager.Instance.ShowTip(
-            result.MailAwards.length > 0
-                ? "购买成功，仓库空间不足，道具已发送至邮件"
-                : "购买成功",
-        );
     }
 
     private async OnWatchWeaponSkinVideo(): Promise<void> {
@@ -434,7 +441,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         const skinConfig = ZRSJZ_WEAPON_SKIN.get(weaponName)
             ?.find(skin => skin.Name === skinName);
         if (!skinConfig || skinConfig.UnlockType !== "视频") {
-            await ZRSJZ_UIManager.Instance.ShowTip("该皮肤不能通过视频解锁");
+            ZRSJZ_UIManager.Instance.ShowTip("该皮肤不能通过视频解锁");
             return;
         }
         if (ZRSJZ_AccountService.HasWeaponSkin(weaponName, skinName)) {
@@ -446,7 +453,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             ZRSJZ_AccountService.AddWeaponSkin(weaponName, skinName);
             this.RefreshWeaponSkinState();
             this.RefreshPurchaseState();
-            await ZRSJZ_UIManager.Instance.ShowTip("视频观看完成，皮肤已解锁");
+            ZRSJZ_UIManager.Instance.ShowTip("视频观看完成，皮肤已解锁");
         });
     }
 
@@ -457,12 +464,12 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             return;
         }
         if (!ZRSJZ_AccountService.SetWeaponSkin(this._curShop, this._selectedWeaponSkin)) {
-            await ZRSJZ_UIManager.Instance.ShowTip("皮肤使用失败");
+            ZRSJZ_UIManager.Instance.ShowTip("皮肤使用失败");
             return;
         }
         this.RefreshWeaponSkinState();
         this.RefreshPurchaseState();
-        await ZRSJZ_UIManager.Instance.ShowTip("皮肤使用成功");
+        ZRSJZ_UIManager.Instance.ShowTip("皮肤使用成功");
     }
 
     TweenShop() {

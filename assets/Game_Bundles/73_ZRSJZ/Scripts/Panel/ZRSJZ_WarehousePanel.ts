@@ -171,7 +171,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     /** 只整理当前页签对应的仓库，不跨仓库移动道具。 */
     private async OrganizeCurrentWarehouse(): Promise<void> {
         if (this._isSelling) {
-            await ZRSJZ_UIManager.Instance.ShowTip("请先结束批量出售");
+            ZRSJZ_UIManager.Instance.ShowTip("请先结束批量出售");
             return;
         }
 
@@ -183,13 +183,13 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
             || !inventory?.IsInitialized
             || inventory.InventoryType !== expectedInventory
         ) {
-            await ZRSJZ_UIManager.Instance.ShowTip("当前仓库尚未加载完成");
+            ZRSJZ_UIManager.Instance.ShowTip("当前仓库尚未加载完成");
             return;
         }
 
         const hasProp = inventory.Grids.some(row => row.some(propID => propID !== ""));
         if (!hasProp) {
-            await ZRSJZ_UIManager.Instance.ShowTip("当前仓库没有需要整理的道具");
+            ZRSJZ_UIManager.Instance.ShowTip("当前仓库没有需要整理的道具");
             return;
         }
 
@@ -198,17 +198,17 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         try {
             const organized = await inventory.AutoOrganize();
             if (!organized) {
-                await ZRSJZ_UIManager.Instance.ShowTip("当前仓库整理失败");
+                ZRSJZ_UIManager.Instance.ShowTip("当前仓库整理失败");
                 return;
             }
 
             // 整理后清除中间空行并同步可滚动高度。
             await inventory.ShowPropItem();
             if (this.ScrollView?.isValid) this.ScrollView.scrollToTop(0.2);
-            await ZRSJZ_UIManager.Instance.ShowTip("当前仓库整理完成");
+            ZRSJZ_UIManager.Instance.ShowTip("当前仓库整理完成");
         } catch (error) {
             console.error("[ZRSJZ_WarehousePanel] 当前仓库整理失败", error);
-            await ZRSJZ_UIManager.Instance.ShowTip("当前仓库整理失败");
+            ZRSJZ_UIManager.Instance.ShowTip("当前仓库整理失败");
         } finally {
             if (this.ScrollView?.isValid) this.ScrollView.enabled = true;
             this._isOrganizing = false;
@@ -352,12 +352,12 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
             const targetNode = await ZRSJZ_UIManager.Instance.GetInventory(targetInventory);
             const target = targetNode?.getComponent(ZRSJZ_Inventory);
             if (!target || !target.IsAdaptive(propID)) {
-                await ZRSJZ_UIManager.Instance.ShowTip(`该道具不能放入${targetName}仓库`);
+                ZRSJZ_UIManager.Instance.ShowTip(`该道具不能放入${targetName}仓库`);
                 return;
             }
             const moved = await target.TryReceiveProp(sourceInventory, propID, true);
             if (!moved) {
-                await ZRSJZ_UIManager.Instance.ShowTip(`${targetName}仓库空间不足`);
+                ZRSJZ_UIManager.Instance.ShowTip(`${targetName}仓库空间不足`);
             }
         } finally {
             // 成功、失败或异步加载异常都恢复两边仓库的格子显示状态。

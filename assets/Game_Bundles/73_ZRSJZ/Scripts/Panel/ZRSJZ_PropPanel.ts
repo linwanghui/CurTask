@@ -293,7 +293,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 storedInventory = ZRSJZ_INVENTORY.仓库_全部;
             }
             if (!isStored) {
-                await ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，无法卸下装备");
+                ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，无法卸下装备");
                 return;
             }
             await this.RefreshWarehouseInventories(storedInventory);

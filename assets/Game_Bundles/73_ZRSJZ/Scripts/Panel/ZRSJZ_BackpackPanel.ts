@@ -100,7 +100,7 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
             );
             const organized = await backpackNode?.getComponent(ZRSJZ_Inventory)?.AutoOrganize();
             if (!organized) {
-                await ZRSJZ_UIManager.Instance.ShowTip("背包整理失败");
+                ZRSJZ_UIManager.Instance.ShowTip("背包整理失败");
             }
         } finally {
             this._isOrganizing = false;

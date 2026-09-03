@@ -506,10 +506,11 @@ export class ZRSJZ_UIManager extends Component {
 
     //展示提示
     public async ShowTip(tip: string) {
-        const tipNode = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/Tip")
-        tipNode.parent = this.node;
-        tipNode.active = true;
-        tipNode.getComponent(ZRSJZ_Tip).Show(tip);
+        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/Tip").then((tipNode: Node) => {
+            tipNode.parent = this.node;
+            tipNode.active = true;
+            tipNode.getComponent(ZRSJZ_Tip).Show(tip);
+        });
     }
 
     //展示获取金币特效
@@ -742,6 +743,91 @@ export class ZRSJZ_UIManager extends Component {
         } finally {
             releaseQueue();
         }
+    }
+
+    /**
+     * 只预演道具入库，不创建道具、修改格子或保存数据。
+     * 用于商店在扣款前确认整批商品都能按“分类仓库 -> 主库”的规则放下。
+     */
+    public async CanReceivePropAwards(
+        awards: ReadonlyArray<Readonly<ZRSJZ_PropAwardInput>>,
+    ): Promise<boolean> {
+        // 等待正在执行的发奖结束，避免拿到尚未稳定的仓库布局。
+        await this._receiveAwardsQueue;
+
+        const simulatedGrids = new Map<ZRSJZ_INVENTORY, string[][]>();
+        const getInventorySnapshot = async (inventoryType: ZRSJZ_INVENTORY): Promise<string[][]> => {
+            const cached = simulatedGrids.get(inventoryType);
+            if (cached) return cached;
+
+            const inventoryNode = await this.WaitForInventory(inventoryType);
+            const inventory = inventoryNode?.getComponent(ZRSJZ_Inventory);
+            if (!inventory?.IsInitialized) return null;
+            const grids = inventory.Grids.map(row => row.slice());
+            simulatedGrids.set(inventoryType, grids);
+            return grids;
+        };
+        const tryPlace = async (
+            inventoryType: ZRSJZ_INVENTORY,
+            width: number,
+            height: number,
+        ): Promise<boolean> => {
+            const grids = await getInventorySnapshot(inventoryType);
+            if (!grids?.length) return false;
+            const colCount = grids[0]?.length ?? 0;
+            const orientations = width === height
+                ? [{ width, height }]
+                : [{ width, height }, { width: height, height: width }];
+
+            for (const orientation of orientations) {
+                if (orientation.width > colCount) continue;
+                for (let y = 0; y <= grids.length - orientation.height; y++) {
+                    for (let x = 0; x <= colCount - orientation.width; x++) {
+                        let canPlace = true;
+                        for (let row = y; row < y + orientation.height && canPlace; row++) {
+                            for (let col = x; col < x + orientation.width; col++) {
+                                if (grids[row]?.[col] !== "") {
+                                    canPlace = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!canPlace) continue;
+                        for (let row = y; row < y + orientation.height; row++) {
+                            for (let col = x; col < x + orientation.width; col++) {
+                                grids[row][col] = "__SHOP_PREVIEW__";
+                            }
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+
+        for (const award of awards) {
+            const propConfig = ZRSJZ_PROP_CONFIG.get(award?.PropName);
+            const totalCount = Math.max(0, Math.floor(Number(award?.Count) || 0));
+            if (!propConfig || totalCount <= 0) return false;
+
+            const width = Number(propConfig.GridType[2]);
+            const height = Number(propConfig.GridType[0]);
+            if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+                return false;
+            }
+
+            const maxCount = Math.max(1, Math.floor(Number(propConfig.MaxCount) || 1));
+            const stackCount = Math.ceil(totalCount / maxCount);
+            const preferredInventory = ZRSJZ_Tools.GetInventoryByPropType(propConfig.PropType);
+            for (let index = 0; index < stackCount; index++) {
+                let isPlaced = await tryPlace(preferredInventory, width, height);
+                if (!isPlaced && preferredInventory !== ZRSJZ_INVENTORY.仓库_全部) {
+                    isPlaced = await tryPlace(ZRSJZ_INVENTORY.仓库_全部, width, height);
+                }
+                if (!isPlaced) return false;
+            }
+        }
+        return true;
     }
 
     private async DoReceivePropAwards(
