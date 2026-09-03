@@ -67,7 +67,8 @@ export class ZRSJZ_Player extends Component {
     private _reservedGunBullet: Node = null;
     private _reservedGunAmmoName: string = "";
     private _gunAttackRequestId: number = 0;
-    private _lastValidMuzzlePos: Vec3 = null;
+    /** 最近一次有效枪口相对玩家的位置；骨骼短暂不可读时跟随玩家，而不是使用旧世界坐标。 */
+    private _lastValidMuzzleOffset: Vec3 = null;
     /** 无锁定目标时，停火后继续保持枪械朝向的剩余时间。 */
     private _gunDirectionReleaseRemaining: number = 0;
     private static readonly GUN_DIRECTION_RELEASE_DELAY: number = 1;
@@ -213,6 +214,7 @@ export class ZRSJZ_Player extends Component {
 
     protected onDisable(): void {
         this.CancelGunAttackState();
+        this._lastValidMuzzleOffset = null;
         ZRSJZ_Game.Instance?.CancelEvacuation(this.PlayerIndex);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, this.Move, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, this.Attack, this);
@@ -544,7 +546,8 @@ export class ZRSJZ_Player extends Component {
                 this.RecycleAsyncNode(muzzleEffect);
                 return;
             }
-            muzzle.Show(this.GetReliableMuzzlePos(), attackX, attackY);
+            // 异步加载结束时玩家可能已经移动或改变瞄准方向，必须沿用这一发的枪口快照。
+            muzzle.Show(mainBulletSpawnPos, attackX, attackY);
         }).catch(error => console.error("[ZRSJZ_Player] 枪口特效创建失败", error));
 
         if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._magazineAmmo.length <= 0) {
@@ -562,8 +565,8 @@ export class ZRSJZ_Player extends Component {
             const cos = Math.cos(offsetRadian);
             const sin = Math.sin(offsetRadian);
 
-            void this.SpawnExtraBullet(attackX * cos - attackY * sin, attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
-            void this.SpawnExtraBullet(attackX * cos + attackY * sin, -attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
+            void this.SpawnExtraBullet(mainBulletSpawnPos, attackX * cos - attackY * sin, attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
+            void this.SpawnExtraBullet(mainBulletSpawnPos, attackX * cos + attackY * sin, -attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
         }
         ZRSJZ_AudioManager.Instance.PlaySound(audioName);
 
@@ -693,6 +696,7 @@ export class ZRSJZ_Player extends Component {
 
         this.CancelKnifeAttackState();
         this.CancelGunAttackState();
+        this._lastValidMuzzleOffset = null;
         this.WeaponType = weaponType;
         if (this.WeaponType === "枪") {
             this.PlayerSkeleton.HasDirection = this.TargetEnemy != null;
@@ -1092,7 +1096,9 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
-    private async SpawnExtraBullet(dirX: number, dirY: number, range: number, harm: number, bulletLevel: number): Promise<void> {
+    private async SpawnExtraBullet(spawnWorldPos: Vec3, dirX: number, dirY: number, range: number, harm: number, bulletLevel: number): Promise<void> {
+        // 在 await 之前保存本次开火位置，保证散弹的三颗弹丸来自同一个枪口点。
+        const shotWorldPos = spawnWorldPos.clone();
         const bulletRequestGame = ZRSJZ_Game.Instance;
         let bullet: Node = null;
         try {
@@ -1103,9 +1109,8 @@ export class ZRSJZ_Player extends Component {
                 if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
                 return;
             }
-            const spawnWorldPos = this.GetReliableMuzzlePos();
             bullet.parent = bulletParent;
-            bulletComponent.Show(spawnWorldPos, dirX, dirY, range, harm, bulletLevel);
+            bulletComponent.Show(shotWorldPos, dirX, dirY, range, harm, bulletLevel);
         } catch (error) {
             if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
             console.error("[ZRSJZ_Player] 散弹额外弹丸创建失败", error);
@@ -1317,13 +1322,17 @@ export class ZRSJZ_Player extends Component {
     private GetReliableMuzzlePos(): Vec3 {
         const currentMuzzlePos = this.getMuzzlePos();
         if (currentMuzzlePos) {
-            this._lastValidMuzzlePos = currentMuzzlePos.clone();
+            this._lastValidMuzzleOffset = new Vec3();
+            Vec3.subtract(this._lastValidMuzzleOffset, currentMuzzlePos, this.node.worldPosition);
             return currentMuzzlePos;
         }
 
         // 已经播放开枪动画并预留子弹时，即使本帧 Spine 骨骼暂时不可读，也必须补出主子弹。
-        if (this._lastValidMuzzlePos) return this._lastValidMuzzlePos.clone();
-        return this.node.worldPosition.clone();
+        const playerWorldPos = this.node.worldPosition.clone();
+        if (this._lastValidMuzzleOffset) {
+            Vec3.add(playerWorldPos, playerWorldPos, this._lastValidMuzzleOffset);
+        }
+        return playerWorldPos;
     }
 
     private getMuzzlePos() {

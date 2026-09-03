@@ -27,8 +27,10 @@ export class ZRSJZ_Bullet extends Component {
     private _isFlying: boolean = false;
     private _harm: number = 0;
     private _isRemove = false;
+    private readonly _initialScale: Vec3 = new Vec3(1, 1, 1);
 
     Init() {
+        this._initialScale.set(this.node.scale);
         this.Collider = this.getComponent(Collider2D);
         this.Collider?.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this);
         this._rigidBody = this.getComponent(RigidBody2D);
@@ -48,7 +50,16 @@ export class ZRSJZ_Bullet extends Component {
             this._isInit = true;
             this.Init();
         }
+        // 节点停用后 scheduleOnce 会暂停而不是自动丢弃；清掉上一轮可能残留的回收回调。
+        this.unscheduleAllCallbacks();
         this._isRemove = false;
+        this._isFlying = false;
+        this._maxRange = 0;
+        this._curRange = 0;
+        this._dirX = 0;
+        this._dirY = 0;
+        this._harm = 0;
+        this.node.setScale(this._initialScale);
         this.node.setWorldPosition(worldPos.clone());
         const bulletVisual = this.node.getChildByName("子弹");
         if (bulletVisual) bulletVisual.active = true;
@@ -132,7 +143,14 @@ export class ZRSJZ_Bullet extends Component {
 
     private Recycle() {
         if (!this.node.active) return;
+        this.unscheduleAllCallbacks();
         this._isFlying = false;
+        this._maxRange = 0;
+        this._curRange = 0;
+        this._dirX = 0;
+        this._dirY = 0;
+        this._harm = 0;
+        this._isRemove = false;
         if (this._rigidBody) {
             this._rigidBody.linearVelocity = v2(0, 0);
             this._rigidBody.angularVelocity = 0;
