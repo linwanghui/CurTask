@@ -1,4 +1,4 @@
-import { _decorator, Camera, Component, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
+import { _decorator, Camera, Component, director, Director, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
@@ -165,8 +165,19 @@ export class ZRSJZ_Game extends Component {
     private readonly _directions: Node[] = [];
     private readonly _checkedNodes: Node[] = [];
     private _cameraViewScaled: boolean = false;
+    private readonly _tiledLayers: TiledLayer[] = [];
+    private readonly _tiledLayerOriginalCulling = new Map<TiledLayer, () => void>();
+    private readonly _tileCullingWorldCorners: Vec3[] = Array.from({ length: 8 }, () => new Vec3());
+    private readonly _tileCullingLocalPoint: Vec3 = new Vec3();
     private static readonly PLAYER1_CHECKED_LAYER = 1 << 28;
     private static readonly PLAYER2_CHECKED_LAYER = 1 << 27;
+
+    private IsCurrentBattle(): boolean {
+        return ZRSJZ_Game.Instance === this
+            && this.isValid
+            && this.node?.isValid
+            && this.node.activeInHierarchy;
+    }
 
     protected onLoad(): void {
         ZRSJZ_Game.Instance = this;
@@ -235,9 +246,13 @@ export class ZRSJZ_Game extends Component {
 
     protected onEnable(): void {
         ZRSJZ_UIManager.IsBattle = true;
+        // 在所有组件的 lateUpdate 之后、正式提交渲染数据之前覆盖引擎的单相机裁剪结果。
+        director.on(Director.EVENT_BEFORE_DRAW, this.UpdateCombinedTileMapCulling, this);
     }
 
     protected onDisable(): void {
+        director.off(Director.EVENT_BEFORE_DRAW, this.UpdateCombinedTileMapCulling, this);
+        this.RestoreBuiltInTileMapCulling();
         this.DestroyVanguardOperationIntro();
         ZRSJZ_GradeService.FlushOnlineTime();
         // 场景被主动退出时仍保留已开始战局统计，但不生成对局经验。
@@ -667,6 +682,7 @@ export class ZRSJZ_Game extends Component {
         const bundle = mapConfig.MapName === "新手村" || mapConfig.MapName === "城镇" ? "73_ZRSJZ" : "73_ZRSJZ_DLC";
 
         BundleManager.GetBundle(bundle).load("Prefabs/Map/" + mapConfig.MapName, Prefab, (err: any, prefab: Prefab) => {
+            if (!this.IsCurrentBattle()) return;
             if (err) {
                 console.error(`加载 Bundle: ${bundle} Prefab 加载失败 Path: Prefabs/Map/${mapConfig.MapName}`);
             } else {
@@ -681,20 +697,136 @@ export class ZRSJZ_Game extends Component {
         });
     }
 
-    /**
-     * Cocos 3.8 的 TiledLayer 只使用第一个可见相机计算裁剪区域。
-     * 双人分屏时若继续开启裁剪，玩家2超出玩家1视野的瓦片不会生成渲染数据。
-     */
+    /** 双人分屏模式准备接管 TileMap 裁剪；单相机模式保持引擎原始行为。 */
     private ConfigureTileMapForPlayerCount(): void {
-        if (ZRSJZ_GameData.Instance.CurModel !== "2p" || !this.CurMap?.node) return;
-        const tiledLayers = this.CurMap.node.getComponentsInChildren(TiledLayer);
-        for (const tiledLayer of tiledLayers) {
+        this.RestoreBuiltInTileMapCulling();
+        this._tiledLayers.length = 0;
+        if (!this.CurMap?.node?.isValid) return;
+        this._tiledLayers.push(...this.CurMap.node.getComponentsInChildren(TiledLayer));
+        if (ZRSJZ_GameData.Instance.CurModel !== "2p" || this.IsTutorial) return;
+        for (const tiledLayer of this._tiledLayers) {
+            // TiledMap 初始化完成前 _offset 等内部数据还不存在。先关闭裁剪，避免相机
+            // 移动事件提前触发引擎 updateCulling；渲染前确认数据完整后再开启。
             tiledLayer.enableCulling = false;
+        }
+    }
+
+    private RestoreBuiltInTileMapCulling(): void {
+        for (const [tiledLayer, originalUpdateCulling] of this._tiledLayerOriginalCulling) {
+            if (tiledLayer?.isValid) tiledLayer.updateCulling = originalUpdateCulling;
+        }
+        this._tiledLayerOriginalCulling.clear();
+    }
+
+    private TakeOverTileMapCulling(tiledLayer: TiledLayer): void {
+        if (this._tiledLayerOriginalCulling.has(tiledLayer)) return;
+        this._tiledLayerOriginalCulling.set(tiledLayer, tiledLayer.updateCulling);
+        // TiledMap assembler 会在 EVENT_BEFORE_DRAW 之后再次调用此方法。双相机期间
+        // 必须阻止它把联合区域覆盖回第一台相机的区域。
+        tiledLayer.updateCulling = () => undefined;
+    }
+
+    private IsTiledLayerCullingReady(tiledLayer: TiledLayer): boolean {
+        const state = tiledLayer as unknown as {
+            _offset?: { x: number; y: number };
+            _mapTileSize?: { width: number; height: number };
+            _layerSize?: { width: number; height: number };
+            _layerOrientation?: number | null;
+        };
+        return !!state._offset
+            && !!state._mapTileSize
+            && state._mapTileSize.width > 0
+            && state._mapTileSize.height > 0
+            && !!state._layerSize
+            && state._layerSize.width > 0
+            && state._layerSize.height > 0
+            && state._layerOrientation !== null
+            && state._layerOrientation !== undefined;
+    }
+
+    /**
+     * Cocos 3.8 的 TiledLayer 内置逻辑只取第一台渲染相机。这里复用其公开的
+     * updateViewPort 接口，把所有有效战斗相机的四个视角点转换到各图层本地坐标并取并集。
+     */
+    private UpdateCombinedTileMapCulling(): void {
+        if (!this.node?.isValid || !this.CurMap?.node?.isValid || this._tiledLayers.length === 0) return;
+        if (ZRSJZ_GameData.Instance.CurModel !== "2p" || this.IsTutorial) {
+            this.RestoreBuiltInTileMapCulling();
+            return;
+        }
+
+        const cameras: Camera[] = [];
+        for (const gameCamera of this.Cameras) {
+            if (!gameCamera?.node?.isValid || !gameCamera.node.activeInHierarchy) continue;
+            const camera = gameCamera.getComponent(Camera);
+            if (camera?.enabled && camera.camera?.width > 0 && camera.camera?.height > 0) cameras.push(camera);
+        }
+        // 必须确实存在两台正在渲染的战斗相机才接管；玩家死亡切换为单相机全屏后恢复默认裁剪。
+        if (cameras.length !== 2) {
+            this.RestoreBuiltInTileMapCulling();
+            if (this.Cameras.length > 0) {
+                for (const tiledLayer of this._tiledLayers) {
+                    if (tiledLayer?.isValid && this.IsTiledLayerCullingReady(tiledLayer)) {
+                        tiledLayer.enableCulling = true;
+                    }
+                }
+            }
+            return;
+        }
+
+        let worldCornerCount = 0;
+        for (const camera of cameras) {
+            const viewport = camera.rect;
+            const screenWidth = camera.camera.width;
+            const screenHeight = camera.camera.height;
+            const viewportLeft = viewport.x * screenWidth;
+            const viewportBottom = viewport.y * screenHeight;
+            const viewportRight = (viewport.x + viewport.width) * screenWidth;
+            const viewportTop = (viewport.y + viewport.height) * screenHeight;
+            for (let corner = 0; corner < 4; corner++) {
+                const worldPoint = this._tileCullingWorldCorners[worldCornerCount++];
+                worldPoint.set(
+                    (corner & 1) === 0 ? viewportLeft : viewportRight,
+                    (corner & 2) === 0 ? viewportBottom : viewportTop,
+                    0,
+                );
+                camera.screenToWorld(worldPoint, worldPoint);
+            }
+        }
+
+        for (const tiledLayer of this._tiledLayers) {
+            if (!tiledLayer?.isValid || !tiledLayer.node?.isValid || !tiledLayer.node.activeInHierarchy) continue;
+            if (!this.IsTiledLayerCullingReady(tiledLayer)) {
+                tiledLayer.enableCulling = false;
+                continue;
+            }
+            this.TakeOverTileMapCulling(tiledLayer);
+
+            let minX = Number.POSITIVE_INFINITY;
+            let minY = Number.POSITIVE_INFINITY;
+            let maxX = Number.NEGATIVE_INFINITY;
+            let maxY = Number.NEGATIVE_INFINITY;
+            for (let cornerIndex = 0; cornerIndex < worldCornerCount; cornerIndex++) {
+                tiledLayer.node.inverseTransformPoint(
+                    this._tileCullingLocalPoint,
+                    this._tileCullingWorldCorners[cornerIndex],
+                );
+                minX = Math.min(minX, this._tileCullingLocalPoint.x);
+                minY = Math.min(minY, this._tileCullingLocalPoint.y);
+                maxX = Math.max(maxX, this._tileCullingLocalPoint.x);
+                maxY = Math.max(maxY, this._tileCullingLocalPoint.y);
+            }
+
+            if (Number.isFinite(minX) && Number.isFinite(minY) && maxX > minX && maxY > minY) {
+                tiledLayer.updateViewPort(minX, minY, maxX - minX, maxY - minY);
+                if (!tiledLayer.enableCulling) tiledLayer.enableCulling = true;
+            }
         }
     }
 
     LoadPlayer() {
         ZRSJZ_Tools.LoadPrefab("Prefabs/Unit/Player").then((prefab: Prefab) => {
+            if (!this.IsCurrentBattle() || !prefab || !this.CurMap?.Unit?.isValid) return;
             const playerCount = ZRSJZ_GameData.Instance.CurModel === "2p" && !this.IsTutorial ? 2 : 1;
             this.Players.length = 0;
             this.Cameras.length = 0;
@@ -729,7 +861,7 @@ export class ZRSJZ_Game extends Component {
             this.LoadUI();
             ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
             ZRSJZ_AudioManager.Instance.PlayMusic("战斗BGM");
-        })
+        }).catch(error => console.error("[ZRSJZ_Game] 玩家预制体加载失败", error))
     }
 
     LoadUI() {
@@ -1122,11 +1254,24 @@ export class ZRSJZ_Game extends Component {
     }
 
     async CreateDieEffect(worldPos: Vec3, cb: Function = null) {
+        const requestGame = ZRSJZ_Game.Instance;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/DieEffect").then((effect: Node) => {
-            effect.parent = this.CurMap.BulletParent;
+            if (!effect?.isValid) return;
+            const effectParent = requestGame?.CurMap?.BulletParent;
+            const effectComponent = effect.getComponent(ZRSJZ_Effect_CB);
+            if (requestGame !== this || !this.IsCurrentBattle() || !effectParent?.isValid || !effectComponent) {
+                ZRSJZ_PoolManager.Instance.PutNode(effect);
+                return;
+            }
+            effect.parent = effectParent;
             effect.active = true;
-            effect.getComponent(ZRSJZ_Effect_CB).Show(worldPos, cb);
-        });
+            const safeCallback = cb
+                ? () => {
+                    if (requestGame === this && this.IsCurrentBattle()) cb();
+                }
+                : null;
+            effectComponent.Show(worldPos, safeCallback);
+        }).catch(error => console.error("[ZRSJZ_Game] 死亡特效创建失败", error));
     }
 
     OnButtonClick(event: EventTouch) {
@@ -1198,7 +1343,7 @@ export class ZRSJZ_Game extends Component {
         if (this._miniMapIcon) {
             ZRSJZ_UIManager.Instance.GetHeroUI(ZRSJZ_GameData.Instance.CurSkin[0])
                 .then((sf: SpriteFrame) => {
-                    if (this._miniMapIcon?.node?.isValid) {
+                    if (this.IsCurrentBattle() && this._miniMapIcon?.node?.isValid) {
                         this._miniMapIcon.spriteFrame = sf;
                     }
                 })
@@ -1210,7 +1355,7 @@ export class ZRSJZ_Game extends Component {
                 ?? ZRSJZ_GameData.Instance.CurSkin[0],
             )
                 .then((sf: SpriteFrame) => {
-                    if (this._miniMapPlayer2Icon?.node?.isValid) {
+                    if (this.IsCurrentBattle() && this._miniMapPlayer2Icon?.node?.isValid) {
                         this._miniMapPlayer2Icon.spriteFrame = sf;
                     }
                 })

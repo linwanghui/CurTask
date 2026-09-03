@@ -292,6 +292,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     BeHit(harm: number) {
+        const harmRequestGame = ZRSJZ_Game.Instance;
+        const harmWorldPosition = this.node.worldPosition.clone();
         this._health -= harm;
         if (this._health <= 0) {
             this._health = 0;
@@ -301,10 +303,22 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             this.beHitEffect();
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
-            effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+            if (!effect?.isValid) return;
+            const effectParent = harmRequestGame?.CurMap?.BulletParent;
+            const harmEffect = effect.getComponent(ZRSJZ_HarmEffect);
+            if (ZRSJZ_Game.Instance !== harmRequestGame
+                || !harmRequestGame?.isValid
+                || !harmRequestGame.node?.isValid
+                || !harmRequestGame.node.activeInHierarchy
+                || !effectParent?.isValid
+                || !harmEffect) {
+                ZRSJZ_PoolManager.Instance.PutNode(effect);
+                return;
+            }
+            effect.parent = effectParent;
             effect.active = true;
-            effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), harm);
-        })
+            harmEffect.Show(harmWorldPosition, harm);
+        }).catch(error => console.error("[ZRSJZ_EnemyBase] 受伤特效创建失败", error))
         this.HP.Show(this._health);
     }
 
@@ -402,6 +416,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     /** 按地图配置生成箱子，并把数量、品质概率和地图物品池传入箱子。 */
     protected async SpawnDropBox(worldPos: Vec3, parent: Node): Promise<void> {
         const config = this.DropBoxConfig;
+        const mapProp = this.MapProp;
+        const requestGame = ZRSJZ_Game.Instance;
         if (!config?.BoxName) {
             return;
         }
@@ -419,6 +435,14 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             return;
         }
 
+        if (ZRSJZ_Game.Instance !== requestGame
+            || !requestGame?.isValid
+            || !requestGame.node?.isValid
+            || !requestGame.node.activeInHierarchy) {
+            ZRSJZ_PoolManager.Instance.PutNode(node);
+            return;
+        }
+
         const box = node.getComponent(ZRSJZ_Box);
         if (!box) {
             console.error(`[ZRSJZ_EnemyBase] 箱子预制体缺少 ZRSJZ_Box: ${config.BoxName}`);
@@ -427,8 +451,13 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         }
 
         node.active = false;
-        node.parent = parent?.isValid ? parent : ZRSJZ_Game.Instance.CurMap?.Unit;
-        box.Configure(config, this.MapProp);
+        const dropParent = parent?.isValid ? parent : requestGame.CurMap?.Unit;
+        if (!dropParent?.isValid) {
+            ZRSJZ_PoolManager.Instance.PutNode(node);
+            return;
+        }
+        node.parent = dropParent;
+        box.Configure(config, mapProp);
         node.active = true;
         box.Show(worldPos);
     }

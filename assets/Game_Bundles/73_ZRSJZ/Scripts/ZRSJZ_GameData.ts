@@ -48,6 +48,9 @@ export class ZRSJZ_GameData {
             console.warn("[ZRSJZ_GameData] 检测到缺少 Versions 的旧存档，已删除并创建新存档");
             sys.localStorage.removeItem(this.STORAGE_KEY);
             return this.CreateNewData();
+        } else if (savedData.Versions < 3 && savedData.PropData) {
+            //版本3之前的道具全部删掉
+            savedData.PropData = {};
         }
 
         this._instance = Object.assign(new ZRSJZ_GameData(), savedData);

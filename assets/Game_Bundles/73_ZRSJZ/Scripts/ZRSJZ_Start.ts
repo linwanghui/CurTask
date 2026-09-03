@@ -1,6 +1,6 @@
 import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
-import { _decorator, Component, director, easing, EventTouch, Label, Node, Tween, tween, v3 } from 'cc';
+import { _decorator, Component, director, easing, EventTouch, Label, Node, Tween, tween, UITransform, v3, Vec3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_MAIL_TYPE, ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
@@ -12,6 +12,8 @@ import { ZRSJZ_TaskService } from "./Service/ZRSJZ_TaskService";
 import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
 import { CombinationGameData, ZRSJZ_PropDataItem } from "db://assets/Scripts/CombinationGameData";
 import { BundleManager } from "db://assets/Scripts/Framework/Managers/BundleManager";
+import { Panel, UIManager } from "db://assets/Scripts/Framework/Managers/UIManager";
+import { DataManager } from "db://assets/Scripts/Framework/Managers/DataManager";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -38,6 +40,9 @@ export class ZRSJZ_Start extends Component {
     @property(Node)
     MoreGameBtn: Node = null;
 
+    @property(Node)
+    UIPanel: Node = null;
+
     protected start(): void {
 
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
@@ -51,6 +56,7 @@ export class ZRSJZ_Start extends Component {
             this.showRedTaskTip();
             this.showMoreGameBtnAni();
             this.LoadPanel.active = false;
+            this.UIPanel.setScale(this.GetPanelScale());
 
             if (ZRSJZ_AccountService.CanClaimSignInReward()) {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
@@ -62,12 +68,6 @@ export class ZRSJZ_Start extends Component {
             this.RefreshMailTip();
             // 对局经验只在回到大厅、等级 UI 已注册事件后统一发放。
             ZRSJZ_GradeService.ClaimPendingExperience();
-
-            CombinationGameData.Instance.AddZRSJZProp("光头弹药箱");
-            CombinationGameData.Instance.AddZRSJZProp("战神勋章");
-            CombinationGameData.Instance.AddZRSJZProp("混乱勋章");
-            CombinationGameData.Instance.AddZRSJZProp("裂空之弩");
-            CombinationGameData.Instance.AddZRSJZProp("裂空之弩");
 
             this.GetCombinationGameData();
         }
@@ -149,7 +149,7 @@ export class ZRSJZ_Start extends Component {
                 break;
             case "更多游戏":
                 BundleManager.LoadBundle("74_WZSJZ", () => {
-
+                    UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("文字三角洲"), "WZSJZ_Start"]);
                 })
                 break;
             case "主页":
@@ -221,8 +221,8 @@ export class ZRSJZ_Start extends Component {
     private showMoreGameBtnAni() {
         Tween.stopAllByTarget(this.MoreGameBtn);
         tween(this.MoreGameBtn)
-            .to(0.3, { scale: v3(1.5, 1.5, 1) })
-            .to(0.3, { scale: v3(1, 1, 1) })
+            .to(0.5, { scale: v3(1.1, 1.1, 1) })
+            .to(0.5, { scale: v3(1, 1, 1) })
             .union()
             .repeatForever()
             .start();
@@ -241,6 +241,32 @@ export class ZRSJZ_Start extends Component {
         CombinationGameData.Instance.ZRSJZ_PropData = [];
         CombinationGameData.DateSave();
         const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards(propAwards, ZRSJZ_MAIL_TYPE.其他模式中获取道具);
+    }
+
+    GetPanelScale(): Vec3 {
+        const panelTransform = this.UIPanel?.getComponent(UITransform);
+        const containerTransform = this.UIPanel.parent?.getComponent(UITransform)
+            ?? this.node.getComponent(UITransform);
+        if (!panelTransform || !containerTransform) return Vec3.ONE.clone();
+
+        const panelWidth = panelTransform.contentSize.width;
+        const panelHeight = panelTransform.contentSize.height;
+        const containerWidth = containerTransform.contentSize.width;
+        const containerHeight = containerTransform.contentSize.height;
+        if (
+            panelWidth <= 0 || panelHeight <= 0
+            || containerWidth <= 0 || containerHeight <= 0
+        ) {
+            return Vec3.ONE.clone();
+        }
+
+        // 等比缩小到当前弹窗容器内。全屏模式通常保持 1，分屏模式下
+        // 则会根据玩家 UI 容器的实际宽高自动缩小，避免内容越界。
+        const scale = Math.min(
+            containerWidth / panelWidth,
+            containerHeight / panelHeight,
+        );
+        return v3(scale, scale, 1);
     }
 
 }

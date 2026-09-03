@@ -78,6 +78,23 @@ export class ZRSJZ_Player extends Component {
     private _isLaserCasting: boolean = false;
     private _shielding: boolean = false;
     private _knifeCount: number = 0;
+
+    /** 异步资源返回时，确认请求仍属于当前战斗且玩家节点没有被销毁/停用。 */
+    private CanUseAsyncResult(expectedGame: ZRSJZ_Game): boolean {
+        return !!expectedGame
+            && ZRSJZ_Game.Instance === expectedGame
+            && expectedGame.isValid
+            && expectedGame.node?.isValid
+            && expectedGame.node.activeInHierarchy
+            && this.isValid
+            && this.node?.isValid
+            && this.node.activeInHierarchy;
+    }
+
+    private RecycleAsyncNode(node: Node): void {
+        if (node?.isValid) ZRSJZ_PoolManager.Instance.PutNode(node);
+    }
+
     private _knifeAttackIndex: number = 2;
     private _magazineGunID: string = "";
     /** 按实际装入顺序保存每一发子弹的名称，射击时从队首取出。 */
@@ -300,14 +317,30 @@ export class ZRSJZ_Player extends Component {
                     this.PlayerSkeleton.ShowEquipment(weaponName);
                 }
                 this.PlayAni(ZRSJZ_ANI.Idle_Q);
+                const laserRequestGame = ZRSJZ_Game.Instance;
                 ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/LaserEffect").then((laser: Node) => {
+                    if (!laser?.isValid) {
+                        if (this.CanUseAsyncResult(laserRequestGame)) this.FinishLaserCasting(isKnife);
+                        return;
+                    }
+                    if (!this.CanUseAsyncResult(laserRequestGame)) {
+                        this.RecycleAsyncNode(laser);
+                        return;
+                    }
+                    const effectParent = this.node.parent?.parent;
+                    const laserSkill = laser.getComponent(ZRSJZ_Laser);
+                    if (!effectParent?.isValid || !laserSkill) {
+                        this.RecycleAsyncNode(laser);
+                        this.FinishLaserCasting(isKnife);
+                        return;
+                    }
                     // 激光留在地图特效层，由组件按玩家的世界位置和实时朝向独立跟随。
-                    laser.parent = this.node.parent.parent;
+                    laser.parent = effectParent;
                     laser.active = true;
                     const harm = 15 * (1 + ZRSJZ_BoosterShotService.GetBooster("攻击针"))
-                    const laserSkill = laser.getComponent(ZRSJZ_Laser);
                     const muzzlePosition = this.getMuzzlePos() ?? this.node.worldPosition.clone();
                     laserSkill.Show(muzzlePosition, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, harm, () => {
+                        if (!this.CanUseAsyncResult(laserRequestGame)) return;
                         this.FinishLaserCasting(isKnife);
                     });
                     laserSkill.Follow(
@@ -322,30 +355,55 @@ export class ZRSJZ_Player extends Component {
                 break;
             case "轰炸":
                 const cb: Function = () => {
+                    const bombRequestGame = ZRSJZ_Game.Instance;
                     ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/BombEffect").then((bomb: Node) => {
-                        if (!this.IsLockEnemy) {
+                        if (!bomb?.isValid || !this.CanUseAsyncResult(bombRequestGame)) {
+                            this.RecycleAsyncNode(bomb);
+                            return;
+                        }
+                        const effectParent = this.node.parent?.parent;
+                        const targetEnemy = this.TargetEnemy;
+                        const bombSkill = bomb.getComponent(ZRSJZ_Skill);
+                        if (!this.IsLockEnemy || !targetEnemy?.isValid || !effectParent?.isValid || !bombSkill) {
+                            this.RecycleAsyncNode(bomb);
                             this.unschedule(cb);
                             return;
                         }
-                        bomb.parent = this.node.parent.parent;
+                        bomb.parent = effectParent;
                         bomb.active = true;
                         const harm = 30 * (1 + ZRSJZ_BoosterShotService.GetBooster("攻击针"))
-                        bomb.getComponent(ZRSJZ_Skill).Show(this.TargetEnemy.worldPosition.clone(), 0, 0, harm);
-                    })
+                        bombSkill.Show(targetEnemy.worldPosition.clone(), 0, 0, harm);
+                    }).catch(error => console.error('[ZRSJZ_Player] 轰炸特效加载失败:', error))
                 }
                 cb();
                 this.schedule(cb, 1, 2, 0);
                 break;
             case "护盾":
                 this._shielding = true;
-                ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/ShieldEffect").then((laser: Node) => {
-                    laser.parent = this.node;
-                    laser.active = true;
-                    laser.getComponent(ZRSJZ_Skill).Show(this.node.worldPosition.clone(), 0, 0, 0, () => {
+                const shieldRequestGame = ZRSJZ_Game.Instance;
+                ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/ShieldEffect").then((shield: Node) => {
+                    if (!shield?.isValid) {
+                        if (this.CanUseAsyncResult(shieldRequestGame)) this._shielding = false;
+                        return;
+                    }
+                    if (!this.CanUseAsyncResult(shieldRequestGame)) {
+                        this.RecycleAsyncNode(shield);
+                        return;
+                    }
+                    const shieldSkill = shield.getComponent(ZRSJZ_Skill);
+                    if (!shieldSkill) {
+                        this.RecycleAsyncNode(shield);
+                        this._shielding = false;
+                        return;
+                    }
+                    shield.parent = this.node;
+                    shield.active = true;
+                    shieldSkill.Show(this.node.worldPosition.clone(), 0, 0, 0, () => {
+                        if (!this.CanUseAsyncResult(shieldRequestGame)) return;
                         this._shielding = false;
                     })
                 }).catch((error) => {
-                    this._isStop = false;
+                    if (this.CanUseAsyncResult(shieldRequestGame)) this._shielding = false;
                     console.error('[ZRSJZ_Player] 技能特效加载失败:', error);
                 })
                 break;
@@ -473,10 +531,20 @@ export class ZRSJZ_Player extends Component {
 
         // 主子弹确认生成后再显示枪口和播放声音，避免出现只有开火表现却没有子弹。
         // ZRSJZ_Game.Instance?.Cameras[this.PlayerIndex]?.Shake();
+        const muzzleRequestGame = ZRSJZ_Game.Instance;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
             if (!muzzleEffect?.isValid) return;
+            if (!this.CanUseAsyncResult(muzzleRequestGame)) {
+                this.RecycleAsyncNode(muzzleEffect);
+                return;
+            }
             muzzleEffect.parent = this.node;
-            muzzleEffect.getComponent(ZRSJZ_MuzzleEffect)?.Show(this.GetReliableMuzzlePos(), attackX, attackY);
+            const muzzle = muzzleEffect.getComponent(ZRSJZ_MuzzleEffect);
+            if (!muzzle) {
+                this.RecycleAsyncNode(muzzleEffect);
+                return;
+            }
+            muzzle.Show(this.GetReliableMuzzlePos(), attackX, attackY);
         }).catch(error => console.error("[ZRSJZ_Player] 枪口特效创建失败", error));
 
         if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._magazineAmmo.length <= 0) {
@@ -650,11 +718,22 @@ export class ZRSJZ_Player extends Component {
     async Recover(hp: number) {
         this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
         this.HP.Show(this.CurHP);
+        const recoverRequestGame = ZRSJZ_Game.Instance;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect").then((effect: Node) => {
+            if (!effect?.isValid) return;
+            if (!this.CanUseAsyncResult(recoverRequestGame)) {
+                this.RecycleAsyncNode(effect);
+                return;
+            }
+            const recoverEffect = effect.getComponent(ZRSJZ_Effect_CB);
+            if (!recoverEffect) {
+                this.RecycleAsyncNode(effect);
+                return;
+            }
             effect.parent = this.node;
             effect.active = true;
-            effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition);
-        });
+            recoverEffect.Show(this.node.worldPosition.clone());
+        }).catch(error => console.error("[ZRSJZ_Player] 恢复特效创建失败", error));
         ZRSJZ_AudioManager.Instance.PlaySound("恢复");
     }
 
@@ -665,11 +744,22 @@ export class ZRSJZ_Player extends Component {
         this._isStop = false;
         this.HP.Show(this.CurHP);
         this.CurSpeed = this.MaxSpeed;
+        const resurgenceRequestGame = ZRSJZ_Game.Instance;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/RecoverEffect").then((effect: Node) => {
+            if (!effect?.isValid) return;
+            if (!this.CanUseAsyncResult(resurgenceRequestGame)) {
+                this.RecycleAsyncNode(effect);
+                return;
+            }
+            const recoverEffect = effect.getComponent(ZRSJZ_Effect_CB);
+            if (!recoverEffect) {
+                this.RecycleAsyncNode(effect);
+                return;
+            }
             effect.parent = this.node;
             effect.active = true;
-            effect.getComponent(ZRSJZ_Effect_CB).Show(this.node.worldPosition);
-        });
+            recoverEffect.Show(this.node.worldPosition.clone());
+        }).catch(error => console.error("[ZRSJZ_Player] 复活特效创建失败", error));
         this.Skill("护盾");
         this._isSlide = false;
         this._aniName = "";
@@ -790,11 +880,20 @@ export class ZRSJZ_Player extends Component {
             ZRSJZ_AudioManager.Instance.PlaySound(audioName);
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 6);
         }
+        const harmRequestGame = ZRSJZ_Game.Instance;
+        const harmWorldPosition = this.node.worldPosition.clone();
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
-            effect.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+            if (!effect?.isValid) return;
+            const effectParent = harmRequestGame?.CurMap?.BulletParent;
+            const harmEffect = effect.getComponent(ZRSJZ_HarmEffect);
+            if (!this.CanUseAsyncResult(harmRequestGame) || !effectParent?.isValid || !harmEffect) {
+                this.RecycleAsyncNode(effect);
+                return;
+            }
+            effect.parent = effectParent;
             effect.active = true;
-            effect.getComponent(ZRSJZ_HarmEffect).Show(this.node.worldPosition.clone(), madeHarm);
-        })
+            harmEffect.Show(harmWorldPosition, madeHarm);
+        }).catch(error => console.error("[ZRSJZ_Player] 受伤特效创建失败", error))
         this.HP.Show(this.CurHP);
     }
 
@@ -994,12 +1093,13 @@ export class ZRSJZ_Player extends Component {
     }
 
     private async SpawnExtraBullet(dirX: number, dirY: number, range: number, harm: number, bulletLevel: number): Promise<void> {
+        const bulletRequestGame = ZRSJZ_Game.Instance;
         let bullet: Node = null;
         try {
             bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
-            const bulletParent = ZRSJZ_Game.Instance?.CurMap?.BulletParent;
+            const bulletParent = bulletRequestGame?.CurMap?.BulletParent;
             const bulletComponent = bullet?.getComponent(ZRSJZ_Bullet);
-            if (!bullet?.isValid || !bulletParent?.isValid || !bulletComponent) {
+            if (!bullet?.isValid || !this.CanUseAsyncResult(bulletRequestGame) || !bulletParent?.isValid || !bulletComponent) {
                 if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
                 return;
             }
@@ -1026,6 +1126,7 @@ export class ZRSJZ_Player extends Component {
         }
 
         this._preparingGunAttack = true;
+        const bulletRequestGame = ZRSJZ_Game.Instance;
         const requestId = ++this._gunAttackRequestId;
         let bullet: Node = null;
         try {
@@ -1039,9 +1140,10 @@ export class ZRSJZ_Player extends Component {
             if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
             return;
         }
-        const bulletParent = ZRSJZ_Game.Instance?.CurMap?.BulletParent;
+        const bulletParent = bulletRequestGame?.CurMap?.BulletParent;
         if (
             !bullet?.isValid
+            || !this.CanUseAsyncResult(bulletRequestGame)
             || !bullet.getComponent(ZRSJZ_Bullet)
             || !bulletParent?.isValid
             || !this.PlayerSkeleton?.QKBone
@@ -1056,7 +1158,7 @@ export class ZRSJZ_Player extends Component {
         }
 
         this._reservedGunBullet = bullet;
-        this._reservedGunAmmoName = ZRSJZ_Game.Instance.UnlimitedFirepower
+        this._reservedGunAmmoName = bulletRequestGame.UnlimitedFirepower
             ? (this._magazineAmmo[0] ?? "1级子弹")
             : (this._magazineAmmo.shift() ?? "");
 
