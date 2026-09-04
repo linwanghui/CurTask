@@ -4,6 +4,7 @@ import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_TaskAward')
@@ -103,6 +104,9 @@ export class ZRSJZ_TaskAward extends Component {
     }
 
     OnTouchEnd(event: EventTouch) {
+        // 钞票和经验只有数值展示，不属于可查看详情的道具。
+        if (this.PropName === "钞票" || this.PropName === "经验") return;
+
         if (this._isGeting) {
             ZRSJZ_AudioManager.Instance.PlaySound("点击");
             this._isGetCheck = !this._isGetCheck;
@@ -112,7 +116,20 @@ export class ZRSJZ_TaskAward extends Component {
                 this.SelectionKey,
                 this._isGetCheck,
             );
+            return;
         }
+
+        // 邮件未处于选择领取状态时，以及其他奖励展示场景中，点击普通道具显示只读详情。
+        if (!ZRSJZ_PROP_CONFIG.has(this.PropName)) return;
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
+        const playerIndex = ZRSJZ_InventoryService.GetActivePlayerIndex();
+        ZRSJZ_UIManager.Instance.ShowPlayerPanel(
+            ZRSJZ_PANEL.道具弹窗,
+            playerIndex,
+            this.PropName,
+            playerIndex,
+            true,
+        );
     }
 
 }

@@ -59,10 +59,10 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 ? 0
                 : ZRSJZ_InventoryService.GetActivePlayerIndex();
         super.Show();
-        this.ShowProp(args[0]);
+        this.ShowProp(args[0], args[2] === true);
     }
 
-    async ShowProp(propIDOrName: string) {
+    async ShowProp(propIDOrName: string, forceReadOnly: boolean = false) {
         const propData = ZRSJZ_GameData.Instance.PropData[propIDOrName];
         const propName = propData?.Name ?? propIDOrName;
         const propConfig = ZRSJZ_PROP_CONFIG.get(propName);
@@ -73,6 +73,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         }
 
         const isConfigPreview = !propData;
+        const isReadOnly = forceReadOnly || isConfigPreview;
         this._propID = propIDOrName;
         this._isOperating = false;
         const showVersion = ++this._showVersion;
@@ -103,7 +104,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             find("Desc", this.PropDesc2).getComponent(Label).string = `${propConfig.Description}`;
         }
         //显示按钮
-        if (isConfigPreview) {
+        if (isReadOnly) {
             this.LoadBtn.active = false;
             this.UnloadBtn.active = false;
             this.ReplaceBtn.active = false;

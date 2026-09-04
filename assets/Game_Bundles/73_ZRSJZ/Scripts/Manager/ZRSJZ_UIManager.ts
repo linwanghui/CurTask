@@ -1096,17 +1096,28 @@ export class ZRSJZ_UIManager extends Component {
         );
     }
 
-    /** 把已经存在于局内库存的道具逐件转入仓库，失败项合并为一封邮件。 */
-    private async ReceiveExistingProps(propIDs: ReadonlyArray<string>): Promise<void> {
+    /**
+     * 把已经存在的道具逐件转入分类仓库，再回退到主仓库。
+     * 两处都放不下的道具会删除临时实例并合并为一封邮件。
+     */
+    public async ReceiveExistingProps(
+        propIDs: ReadonlyArray<string>,
+    ): Promise<ZRSJZ_MailPropAward[]> {
         const overflowCounts = new Map<string, number>();
-        for (const propID of propIDs) {
+        for (const propID of new Set(propIDs.filter(Boolean))) {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
             if (!propData) continue;
 
-            const preferredInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
-            let isPlaced = await this.TryPlaceAwardProp(propID, preferredInventory);
-            if (!isPlaced && preferredInventory !== ZRSJZ_INVENTORY.仓库_全部) {
-                isPlaced = await this.TryPlaceAwardProp(propID, ZRSJZ_INVENTORY.仓库_全部);
+            let isPlaced = false;
+            try {
+                const preferredInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
+                isPlaced = await this.TryPlaceAwardProp(propID, preferredInventory);
+                if (!isPlaced && preferredInventory !== ZRSJZ_INVENTORY.仓库_全部) {
+                    isPlaced = await this.TryPlaceAwardProp(propID, ZRSJZ_INVENTORY.仓库_全部);
+                }
+            } catch (error) {
+                // 库存节点在场景切换时若被销毁，仍然走邮件兜底，避免道具丢失。
+                console.error("道具转入仓库失败，将改为邮件发放:", propID, error);
             }
             if (isPlaced) continue;
 
@@ -1122,6 +1133,7 @@ export class ZRSJZ_UIManager extends Component {
         if (mailAwards.length > 0) {
             ZRSJZ_MailService.AddMail(ZRSJZ_MAIL_TYPE.仓库已满, mailAwards);
         }
+        return mailAwards;
     }
 
     /** 面板激活前先停用玩家库存，防止旧视图的 onEnable 与新玩家 Init 并发。 */

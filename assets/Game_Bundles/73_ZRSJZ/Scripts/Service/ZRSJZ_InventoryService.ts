@@ -204,11 +204,13 @@ export class ZRSJZ_InventoryService {
 
     /**
      * 用助战礼包完整替换指定玩家的枪、头盔、防弹衣、背包和六格弹药。
-     * 原装备实例不会销毁，而是解除玩家归属后放回综合仓库；近战武器保持不变。
+     * 原装备实例不会销毁，而是解除玩家归属后等待放回仓库；近战武器保持不变。
+     * replacedPropIDs 用于返回被替换的实例，由调用方完成格子放置和满仓邮件兜底。
      */
     public static ApplyAssistFightingGift(
         gift: Readonly<ZRSJZ_AssistFightingGiftConfig>,
         playerIndex: number = this._activePlayerIndex,
+        replacedPropIDs?: string[],
     ): boolean {
         const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
         const equipment = [
@@ -233,7 +235,12 @@ export class ZRSJZ_InventoryService {
             ...weaponryIDs.slice(0, 4),
             ...ammoIDs,
         ].filter(Boolean));
-        replacedIDs.forEach(propID => this.ReturnPropToWarehouse(propID));
+        replacedIDs.forEach(propID => {
+            this.ReturnPropToWarehouse(propID);
+            if (replacedPropIDs && !replacedPropIDs.includes(propID)) {
+                replacedPropIDs.push(propID);
+            }
+        });
 
         for (const item of equipment) {
             const propID = this.AddPropByName(item.name, 1);
@@ -279,6 +286,7 @@ export class ZRSJZ_InventoryService {
         ammoNames: readonly string[],
         countPerAmmo: number,
         playerIndex: number = this._activePlayerIndex,
+        replacedPropIDs?: string[],
     ): boolean {
         const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
         const normalizedNames = ammoNames.slice(0, 3);
@@ -300,9 +308,15 @@ export class ZRSJZ_InventoryService {
         }
 
         const data = ZRSJZ_GameData.Instance;
-        this.GetAmmoIDs(normalizedPlayerIndex)
-            .filter(Boolean)
-            .forEach(propID => this.ReturnPropToWarehouse(propID));
+        const replacedIDs = new Set(
+            this.GetAmmoIDs(normalizedPlayerIndex).filter(Boolean),
+        );
+        replacedIDs.forEach(propID => {
+            this.ReturnPropToWarehouse(propID);
+            if (replacedPropIDs && !replacedPropIDs.includes(propID)) {
+                replacedPropIDs.push(propID);
+            }
+        });
 
         const newAmmoIDs: string[] = [];
         for (const ammoName of normalizedNames) {
