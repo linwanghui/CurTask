@@ -38,6 +38,26 @@ export class WZSJZ_AudioManager extends Component {
         node.addComponent(WZSJZ_AudioManager);
     }
 
+    /** 真正退出WZSJZ玩法时停止声音并销毁常驻音频节点。 */
+    public static DestroyInstance(): void {
+        const instance = this.Instance;
+        this.AudioSource?.stop();
+        for (const source of this.AudioSourceMap.values()) source?.stop();
+        this.AudioSourceMap.clear();
+        this._lastPlayTime.clear();
+        this.Instance = null;
+        this.AudioSource = null;
+        if (instance?.node && isValid(instance.node)) instance.node.destroy();
+    }
+
+    protected onDestroy(): void {
+        if (!WZSJZ_AudioManager.Instance || WZSJZ_AudioManager.Instance === this) {
+            WZSJZ_AudioManager.Instance = null;
+            WZSJZ_AudioManager.AudioSource = null;
+            WZSJZ_AudioManager.AudioSourceMap.clear();
+        }
+    }
+
     protected onLoad(): void {
         if (WZSJZ_AudioManager.Instance
             && WZSJZ_AudioManager.Instance !== this

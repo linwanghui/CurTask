@@ -6,6 +6,7 @@ import { WZSJZ_UIManager } from './WZSJZ_UIManager';
 import { WZSJZ_HomeLevelSelector } from './WZSJZ_HomeLevelSelector';
 import { Panel, UIManager } from '../../../Scripts/Framework/Managers/UIManager';
 import { DataManager } from '../../../Scripts/Framework/Managers/DataManager';
+import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -100,9 +101,20 @@ export class WZSJZ_StartPanel extends Component {
                 this.ShowHandBookPanel();
                 break;
             case "返回主页面":
-                UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("真人三角洲"), "ZRSJZ_Start"]);
+                this.ReturnToMainPage();
                 break;
         }
+    }
+
+    /** 离开整个WZSJZ玩法；局内返回本游戏主页不会经过这里。 */
+    private ReturnToMainPage(): void {
+        UIManager.ShowPanel(
+            Panel.LoadingPanel,
+            [DataManager.GetGameData("真人三角洲"), "ZRSJZ_Start"],
+        );
+        WZSJZ_GameData.DestroyInstance();
+        WZSJZ_AudioManager.DestroyInstance();
+        WZSJZ_UIManager.DestroyInstance();
     }
 
     private ShowSignInPanel = (): void => {

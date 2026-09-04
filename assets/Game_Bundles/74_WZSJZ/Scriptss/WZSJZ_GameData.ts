@@ -25,6 +25,24 @@ export class WZSJZ_GameData extends Component {
         return this._instance;
     }
 
+    /** 保存后销毁WZSJZ专用的常驻数据组件；下次进入时会从本地存档重建。 */
+    public static DestroyInstance(): void {
+        const instance = this._instance;
+        if (!instance) return;
+        WZSJZ_GameData.DateSave();
+        instance.unscheduleAllCallbacks();
+        this._saveScheduled = false;
+        this._instance = null;
+        if (instance.node?.isValid) instance.node.destroy();
+    }
+
+    protected onDestroy(): void {
+        if (!WZSJZ_GameData._instance || WZSJZ_GameData._instance === this) {
+            WZSJZ_GameData._instance = null;
+            WZSJZ_GameData._saveScheduled = false;
+        }
+    }
+
     public static Maxversions: number = 0;//最高版本号
     public versions: number = 0;//版本号
     public Money: number = 100000;//钱

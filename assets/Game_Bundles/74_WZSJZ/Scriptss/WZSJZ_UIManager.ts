@@ -45,6 +45,22 @@ export class WZSJZ_UIManager extends Component {
         }
         return this._instance;
     }
+
+    /**
+     * 真正离开WZSJZ玩法时销毁常驻UI根节点。
+     * 只允许外部主页入口调用；WZSJZ_Start与WZSJZ_Game之间切换时仍复用同一实例。
+     */
+    public static DestroyInstance(): void {
+        const instance = this._instance;
+        if (!instance?.node || !isValid(instance.node)) {
+            this._instance = null;
+            return;
+        }
+        instance.ResetGameTimeScale();
+        // 先断开静态入口，避免销毁流程中的异步回调重新取得即将销毁的组件。
+        this._instance = null;
+        instance.node.destroy();
+    }
     protected onLoad(): void {
         // 返回开始场景时场景里会再次带入一个UIManager，保留原常驻实例即可。
         if (WZSJZ_UIManager._instance
@@ -69,11 +85,17 @@ export class WZSJZ_UIManager extends Component {
     }
 
     protected onDestroy(): void {
-        if (WZSJZ_UIManager._instance === this) {
+        if (!WZSJZ_UIManager._instance || WZSJZ_UIManager._instance === this) {
             const normal = WZSJZ_Constant.SpeedUp.NormalMultiplier;
             WZSJZ_UIManager._gameTimeScale = normal;
             WZSJZ_UIManager._playerGameTimeScale = normal;
             WZSJZ_UIManager._debugFiveTimesEnabled = false;
+            // 退出玩法后还原Cocos原始主循环，避免外部主页继续经过WZSJZ的dt包装。
+            if (WZSJZ_UIManager._originalDirectorTick) {
+                director.tick = WZSJZ_UIManager._originalDirectorTick;
+                WZSJZ_UIManager._originalDirectorTick = null;
+                director.getScheduler().setTimeScale(1);
+            }
             WZSJZ_UIManager._instance = null;
         }
     }
