@@ -48,10 +48,10 @@ export class ZRSJZ_Start extends Component {
 
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
         const cb: Function = () => {
-            // if (!ZRSJZ_GameData.Instance.IsTutorial) {
-            //     this.InitTutorial();
-            //     return;
-            // }
+            if (!ZRSJZ_GameData.Instance.IsTutorial) {
+                this.InitTutorial();
+                return;
+            }
             //关闭所有面板
             ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
             this.showRedTaskTip();

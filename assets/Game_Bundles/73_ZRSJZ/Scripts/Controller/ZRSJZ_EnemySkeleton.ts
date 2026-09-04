@@ -1,6 +1,6 @@
-import { _decorator, Component, Director, director, Node, sp, Vec3 } from 'cc';
+import { _decorator, Director, director, sp, Vec3 } from 'cc';
 import { ZRSJZ_Skeleton } from './ZRSJZ_Skeleton';
-import { ZRSJZ_ANI, ZRSJZ_SKIN_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_ANI } from '../ZRSJZ_Constant';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_EnemySkeleton')
@@ -17,7 +17,7 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
     private _baseScale = new Vec3();
 
     protected onLoad(): void {
-        this.Skeleton = this.getComponent(sp.Skeleton);
+        super.onLoad();
         this._mzBone = this.Skeleton?.findBone('mz');
         this._baseScale.set(this.node.scale.x, this.node.scale.y, this.node.scale.z);
     }
@@ -31,13 +31,7 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
     }
 
     SetSkin(skinName: string) {
-        const skinConfig = ZRSJZ_SKIN_CONFIG.get(skinName);
-        if (!skinConfig) {
-            return;
-        }
-
-        this.SkinName = skinName;
-        this.Skeleton.setSkin(skinConfig.Skin);
+        super.SetSkin(skinName);
     }
 
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null) {
@@ -98,21 +92,9 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
         }
 
         const skeleton = this.Skeleton._skeleton;
-
-        // Find the owning slot by attachment name instead of hard-coding slot names.
-        for (let slotIndex = 0; slotIndex < skeleton.slots.length; slotIndex++) {
-            const slot = skeleton.slots[slotIndex];
-            const slotName1 = slot?.data?.name;
-
-            if (!slotName1 || !skeleton.getAttachmentByName(slotName1, equipmentName)) {
-                continue;
-            }
-            // if (!skeleton.getAttachment(slotIndex, equipmentName)) {
-            //     continue;
-            // }
-
-            const targetSlot = skeleton.slots[slotIndex];
-            const slotName = targetSlot.data.name;
+        const slotName = this.FindAttachmentSlotName(equipmentName);
+        const targetSlot = slotName ? skeleton.findSlot(slotName) : null;
+        if (slotName && targetSlot) {
 
             // The gun and knife use different slots, so hide the other weapon slot.
             if (slotName === '步枪') {

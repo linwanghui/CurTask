@@ -68,11 +68,7 @@ export class ZRSJZ_MainSkeleton extends ZRSJZ_Skeleton {
         if (!this.Skeleton) return;
 
         this.SetSkin(ZRSJZ_GameData.Instance.CurSkin[this.CurPlayerIndex]);
-        const weaponryIDs = this.GetEquippedWeaponryIDs();
-        for (let i = weaponryIDs.length - 1; i >= 0; i--) {
-            const prop = ZRSJZ_GameData.Instance.PropData[weaponryIDs[i]];
-            if (prop) void this.ShowEquipment(prop.Name);
-        }
+        this.RefreshEquipmentAppearance();
     }
 
     SetSkin(skinName: string): void {
@@ -150,7 +146,7 @@ export class ZRSJZ_MainSkeleton extends ZRSJZ_Skeleton {
 
             if (shouldHide) {
                 if (slot.attachment) slot.setAttachment(null);
-            } else if (!slot.attachment) {
+            } else if (!slot.attachment && this.HasAttachmentForSlot(handSlot.name, handSlot.name)) {
                 // Cocos 3.8.6 Android 的 Skeleton.getAttachment JSB 转换在高频调用时可能
                 // 访问失效的 spine::String 并直接造成 libcocos.so 原生崩溃。这里通过
                 // Skeleton 组件按名称恢复附件，彻底避开该 getAttachment 原生接口。
