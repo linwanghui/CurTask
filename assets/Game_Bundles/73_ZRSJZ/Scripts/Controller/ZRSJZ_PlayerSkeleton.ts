@@ -49,22 +49,20 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         this.Show();
         director.on(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
     }
 
     protected onDisable(): void {
         director.off(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
         this.ClearAttackAnimation();
         this._trackCompleteCallbacks.clear();
     }
 
     Show(): void {
         this.SetSkin(ZRSJZ_GameData.Instance.CurSkin[this.CurPlayerIndex]);
-        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex);
-        for (let i = weaponryIDs.length - 1; i >= 0; i--) {
-            const prop = ZRSJZ_GameData.Instance.PropData[weaponryIDs[i]];
-            if (prop) void this.ShowEquipment(prop.Name);
-        }
+        this.RefreshEquipmentAppearance();
     }
 
     private OnEquipmentChanged(
@@ -73,7 +71,12 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         playerIndex?: number,
     ): void {
         if (playerIndex !== undefined && playerIndex !== this.CurPlayerIndex) return;
-        void this.ShowEquipment(equipmentName, isEquipment);
+        this.RefreshEquipmentAppearance();
+    }
+
+    private OnLoadoutChanged(playerIndex: number): void {
+        if (playerIndex !== this.CurPlayerIndex) return;
+        this.RefreshEquipmentAppearance();
     }
 
     /** Track 0：待机、移动、滑铲和死亡等基础全身状态。 */
@@ -179,7 +182,12 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
             if (!isGunHand && !isKnifeHand) continue;
 
             const shouldHide = this.IsKnife ? isKnifeHand : isGunHand;
-            slot.setAttachment(shouldHide ? null : skeleton.getAttachment(slotIndex, slotName));
+
+            if (shouldHide) {
+                slot.setAttachment(null);
+            } else if (this.HasAttachmentForSlot(slotName, slotName)) {
+                this.Skeleton.setAttachment(slotName, slotName);
+            }
         }
     }
 
@@ -199,14 +207,9 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
             return;
         }
 
-        const skeleton = this.Skeleton._skeleton;
-        for (let slotIndex = 0; slotIndex < skeleton.slots.length; slotIndex++) {
-            if (!skeleton.getAttachment(slotIndex, equipmentName)) continue;
-            if (skeleton.slots[slotIndex].data.name === 'dao' && isEquipment) {
-                this.GunType = "";
-                this.QKBone = null;
-            }
-            break;
+        if (this.FindAttachmentSlotName(equipmentName) === 'dao' && isEquipment) {
+            this.GunType = "";
+            this.QKBone = null;
         }
         await super.ShowEquipment(equipmentName, isEquipment);
     }

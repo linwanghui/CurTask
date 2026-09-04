@@ -19,19 +19,20 @@ export class ZRSJZ_WarehouseSkeleton extends ZRSJZ_Skeleton {
     protected onEnable(): void {
         this.RefreshPlayerDisplay();
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_PLAYER_CHANGE, this.RefreshPlayerDisplay, this);
     }
 
     protected onDisable(): void {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_PLAYER_CHANGE, this.RefreshPlayerDisplay, this);
     }
 
     private RefreshPlayerDisplay(): void {
         this.ShowSkin();
-        this.Skeleton?._skeleton?.setSlotsToSetupPose();
         this._weaponType = ZRSJZ_InventoryService.GetWeaponryIDs()[0] ? "枪" : "刀";
-        this.ShowAllEquipment();
+        this.RefreshEquipmentAppearance();
         this.RefreshWeaponAnimation();
     }
 
@@ -44,7 +45,7 @@ export class ZRSJZ_WarehouseSkeleton extends ZRSJZ_Skeleton {
             playerIndex !== undefined
             && playerIndex !== ZRSJZ_InventoryService.GetActivePlayerIndex()
         ) return;
-        void this.ShowEquipment(equipmentName, isEquipment);
+        this.RefreshEquipmentAppearance();
         const changedType = this.GetWeaponType(equipmentName);
         if (changedType && isEquipment) {
             this._weaponType = changedType;
@@ -55,16 +56,19 @@ export class ZRSJZ_WarehouseSkeleton extends ZRSJZ_Skeleton {
         this.RefreshWeaponAnimation();
     }
 
+    private OnLoadoutChanged(playerIndex: number): void {
+        if (playerIndex !== ZRSJZ_InventoryService.GetActivePlayerIndex()) return;
+        this.RefreshEquipmentAppearance();
+        this._weaponType = ZRSJZ_InventoryService.GetWeaponryIDs()[0] ? "枪" : "刀";
+        this.RefreshWeaponAnimation();
+    }
+
     ShowSkin() {
         this.SetSkin(ZRSJZ_GameData.Instance.CurSkin[ZRSJZ_PlayerSwitchButton.CurPlayer == "1p" ? 0 : 1]);
     }
 
     ShowAllEquipment() {
-        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs();
-        for (let i = weaponryIDs.length - 1; i >= 0; i--) {
-            const prop = ZRSJZ_GameData.Instance.PropData[weaponryIDs[i]];
-            if (prop) this.ShowEquipment(prop.Name);
-        }
+        this.RefreshEquipmentAppearance();
     }
 
     private RefreshWeaponAnimation(): void {

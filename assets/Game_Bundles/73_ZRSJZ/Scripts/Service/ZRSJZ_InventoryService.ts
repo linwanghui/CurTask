@@ -157,8 +157,15 @@ export class ZRSJZ_InventoryService {
     }
 
     public static SetWeaponry(weaponryIndex: number, weaponryID: string, playerIndex: number = this._activePlayerIndex): void {
-        this.GetWeaponryIDs(playerIndex)[weaponryIndex] = weaponryID;
+        const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
+        const weaponryIDs = this.GetWeaponryIDs(normalizedPlayerIndex);
+        if (weaponryIDs[weaponryIndex] === weaponryID) return;
+        weaponryIDs[weaponryIndex] = weaponryID;
         ZRSJZ_GameData.SaveData();
+        ZRSJZ_EventManager.EmitPersist(
+            ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE,
+            normalizedPlayerIndex,
+        );
     }
 
     public static SetAmmoID(ammoID: string[], playerIndex: number = this._activePlayerIndex): void {
@@ -230,6 +237,10 @@ export class ZRSJZ_InventoryService {
         if (normalizedPlayerIndex === 1) data.Player2AmmoID = newAmmoIDs;
         else data.AmmoID = newAmmoIDs;
 
+        ZRSJZ_EventManager.EmitPersist(
+            ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE,
+            normalizedPlayerIndex,
+        );
         this.NotifyInventoryChanged();
         return true;
     }
@@ -508,16 +519,23 @@ export class ZRSJZ_InventoryService {
     }
 
     private static RemoveLoadoutReference(propID: string): void {
+        const changedPlayers = new Set<number>();
         for (const playerIndex of [0, 1]) {
             const weaponryIDs = this.GetWeaponryIDs(playerIndex);
             const ammoIDs = this.GetAmmoIDs(playerIndex);
             for (let index = 0; index < weaponryIDs.length; index++) {
-                if (weaponryIDs[index] === propID) weaponryIDs[index] = "";
+                if (weaponryIDs[index] === propID) {
+                    weaponryIDs[index] = "";
+                    changedPlayers.add(playerIndex);
+                }
             }
             for (let index = 0; index < ammoIDs.length; index++) {
                 if (ammoIDs[index] === propID) ammoIDs[index] = "";
             }
         }
+        changedPlayers.forEach(playerIndex => {
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, playerIndex);
+        });
     }
 
     private static NotifyInventoryChanged(): void {

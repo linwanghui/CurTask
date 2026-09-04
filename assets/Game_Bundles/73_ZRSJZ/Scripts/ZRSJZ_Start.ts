@@ -248,7 +248,7 @@ export class ZRSJZ_Start extends Component {
         })
         CombinationGameData.Instance.ZRSJZ_PropData = [];
         CombinationGameData.DateSave();
-        const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards(propAwards, ZRSJZ_MAIL_TYPE.其他模式中获取道具);
+        ZRSJZ_MailService.AddMail(ZRSJZ_MAIL_TYPE.其他模式中获取道具, propAwards,);
     }
 
     GetPanelScale(): Vec3 {

@@ -45,6 +45,7 @@ export class ZRSJZ_PlayerMain extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN, this.ChangeSkin, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
         this.Collider.on(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.on(Contact2DType.END_CONTACT, this.EndContact, this)
     }
@@ -56,6 +57,7 @@ export class ZRSJZ_PlayerMain extends Component {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SLIDE, this.Slide, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_CHANGE_SKIN, this.ChangeSkin, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
         this.Collider.off(Contact2DType.BEGIN_CONTACT, this.BeginContact, this)
         this.Collider.off(Contact2DType.END_CONTACT, this.EndContact, this)
     }
@@ -98,7 +100,7 @@ export class ZRSJZ_PlayerMain extends Component {
         this.ApplyWeaponType(targetType);
     }
 
-    private ApplyWeaponType(weaponType: string): void {
+    private ApplyWeaponType(weaponType: string, refreshEquipment: boolean = true): void {
         const targetIndex = weaponType === "枪" ? 0 : 4;
         const targetID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerSkeleton.CurPlayerIndex)[targetIndex];
         const propData = ZRSJZ_GameData.Instance.PropData[targetID];
@@ -117,7 +119,7 @@ export class ZRSJZ_PlayerMain extends Component {
         }
 
         this.PlayerSkeleton.IsKnife = weaponType === "刀";
-        this.PlayerSkeleton.ShowEquipment(propData.Name);
+        if (refreshEquipment) this.PlayerSkeleton.ShowEquipment(propData.Name);
         this._aniName = "";
         if (weaponType === "枪") {
             this.PlayerSkeleton.ClearAttackAnimation();
@@ -199,6 +201,8 @@ export class ZRSJZ_PlayerMain extends Component {
     ): void {
         if (playerIndex !== undefined && playerIndex !== this.PlayerSkeleton.CurPlayerIndex) return;
         const changedType = this.GetWeaponType(equipmentName);
+        // 头盔、防弹衣和背包也必须实时刷新；完整重建同时清除替换前的旧附件。
+        this.PlayerSkeleton.RefreshEquipmentAppearance();
         if (!changedType) return;
 
         const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerSkeleton.CurPlayerIndex);
@@ -210,7 +214,8 @@ export class ZRSJZ_PlayerMain extends Component {
 
         const targetIndex = this._weaponType === "枪" ? 0 : 4;
         if (weaponryIDs[targetIndex] && ZRSJZ_GameData.Instance.PropData[weaponryIDs[targetIndex]]) {
-            this.ApplyWeaponType(this._weaponType);
+            // 外观已经按完整配置刷新，这里只同步大厅的枪/刀动画状态。
+            this.ApplyWeaponType(this._weaponType, false);
             return;
         }
 
@@ -224,14 +229,16 @@ export class ZRSJZ_PlayerMain extends Component {
         return ZRSJZ_KNIFE.includes(equipmentName) ? "刀" : null;
     }
 
+    private OnLoadoutChanged(playerIndex: number): void {
+        if (playerIndex !== this.PlayerSkeleton.CurPlayerIndex) return;
+        this.PlayerSkeleton.RefreshEquipmentAppearance();
+        this.Show();
+    }
+
     ChangeSkin(playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerSkeleton.CurPlayerIndex) return;
         this.PlayerSkeleton.SetSkin(ZRSJZ_GameData.Instance.CurSkin[this.PlayerSkeleton.CurPlayerIndex]);
-        const weaponryIDs = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerSkeleton.CurPlayerIndex);
-        for (let i = weaponryIDs.length - 1; i >= 0; i--) {
-            const prop = ZRSJZ_GameData.Instance.PropData[weaponryIDs[i]];
-            if (prop) this.PlayerSkeleton.ShowEquipment(prop.Name);
-        }
+        this.PlayerSkeleton.RefreshEquipmentAppearance();
     }
 
 }
