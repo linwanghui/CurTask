@@ -47,7 +47,9 @@ export enum ZRSJZ_PANEL {
     邮件界面 = "73_ZRSJZ/Prefabs/Panel/邮件界面",
     收藏室界面 = "73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面",
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
+    锻造界面 = "73_ZRSJZ_DLC/Prefabs/Panel/锻造界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
+
 }
 
 //物理层级
@@ -134,6 +136,13 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     //1x1 --  金
     ["脑机数据", { Name: "脑机数据", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 46000, MaxCount: 1 }],
     ["怀表", { Name: "怀表", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 52000, MaxCount: 1 }],
+    ["刀蓝图", { Name: "刀蓝图", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 50000, MaxCount: 1 }],
+    ["头盔蓝图", { Name: "头盔蓝图", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 50000, MaxCount: 1 }],
+    ["枪蓝图", { Name: "枪蓝图", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 50000, MaxCount: 1 }],
+    ["背包蓝图", { Name: "背包蓝图", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 50000, MaxCount: 1 }],
+    ["防弹衣蓝图", { Name: "防弹衣蓝图", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 50000, MaxCount: 1 }],
+
+
     //1x1 --  红
     ["纵横", { Name: "纵横", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 250000, MaxCount: 1 }],
     ["金条", { Name: "金条", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 220000, MaxCount: 1 }],
@@ -433,7 +442,12 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["混乱勋章", "金色左轮与黑鸦羽翼交织而成的神秘勋章，中央红宝石闪烁着危险微光，据说它曾见证秩序崩塌前最疯狂的一场决斗。"],
     ["裂空之弩", "搭载高倍率瞄具与赤红能量核心的战术强弩，精密弩臂可将力量汇聚于一点，离弦弩箭仿佛连空气都能撕裂。"],
     ["高科技护目镜", "集成目标识别、环境扫描与战术标记模块的智能护目镜，湛蓝显示屏能实时捕捉战场信息，是尖端科技凝结而成的珍贵装备。"],
-
+    //蓝图
+    ["刀蓝图", "锻造处制作刀的必备蓝图。"],
+    ["头盔蓝图", "锻造处制作头盔的必备蓝图。"],
+    ["枪蓝图", "锻造处制作枪的必备蓝图。"],
+    ["背包蓝图", "锻造处制作背包的必备蓝图。"],
+    ["防弹衣蓝图", "锻造处制作防弹衣的必备蓝图。"],
     //房卡
     ["低级房卡", "用于开启普通封锁房间的电子门禁卡，卡片上的紫色权限标识仍然有效。"],
     ["中级房卡", "拥有较高区域权限的加密门禁卡，可开启存放稀有物资的金色房间。"],
