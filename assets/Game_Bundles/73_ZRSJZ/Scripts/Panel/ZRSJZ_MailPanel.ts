@@ -103,6 +103,8 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
 
     InitMailItems() {
         this.ExitPartialClaim();
+        // 列表重建后需要允许默认邮件重新初始化详情。
+        this._curMailID = "";
         for (const child of [...this.MailItemContent.children]) {
             child.removeFromParent();
             child.destroy();
@@ -144,7 +146,8 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
     }
 
     CheckMail(mailID: string) {
-        if (this._isClaiming) return;
+        // 同一封邮件已选中时不重复回收、创建奖励节点和刷新 MailDesc。
+        if (this._isClaiming || !mailID || mailID === this._curMailID) return;
         this.ExitPartialClaim();
         const hasMail = ZRSJZ_GameData.Instance.MailData.hasOwnProperty(mailID);
         this.MailDescNode.active = hasMail;

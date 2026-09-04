@@ -76,7 +76,8 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
 
     private OnMapSelected(event: EventTouch): void {
         const mapName = event.getCurrentTarget().name;
-        if (!this._mapNames.includes(mapName)) return;
+        // 当前地图已选中时，不重复刷新关卡信息和专属掉落。
+        if (!this._mapNames.includes(mapName) || mapName === this._selectedMapName) return;
 
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         this._selectedMapName = mapName;
@@ -85,7 +86,8 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
 
     private OnActionSelected(event: EventTouch): void {
         const actionName = event.getCurrentTarget().name;
-        if (!this._actionNames.includes(actionName)) return;
+        // 当前行动难度已选中时，不重复刷新关卡信息和专属掉落。
+        if (!this._actionNames.includes(actionName) || actionName === this._selectedActionName) return;
 
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         this._selectedActionName = actionName;
