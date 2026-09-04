@@ -101,9 +101,15 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
 
         // Find the owning slot by attachment name instead of hard-coding slot names.
         for (let slotIndex = 0; slotIndex < skeleton.slots.length; slotIndex++) {
-            if (!skeleton.getAttachment(slotIndex, equipmentName)) {
+            const slot = skeleton.slots[slotIndex];
+            const slotName1 = slot?.data?.name;
+
+            if (!slotName1 || !skeleton.getAttachmentByName(slotName1, equipmentName)) {
                 continue;
             }
+            // if (!skeleton.getAttachment(slotIndex, equipmentName)) {
+            //     continue;
+            // }
 
             const targetSlot = skeleton.slots[slotIndex];
             const slotName = targetSlot.data.name;

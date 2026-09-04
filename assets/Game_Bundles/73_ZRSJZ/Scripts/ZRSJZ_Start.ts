@@ -48,10 +48,10 @@ export class ZRSJZ_Start extends Component {
 
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
         const cb: Function = () => {
-            if (!ZRSJZ_GameData.Instance.IsTutorial) {
-                this.InitTutorial();
-                return;
-            }
+            // if (!ZRSJZ_GameData.Instance.IsTutorial) {
+            //     this.InitTutorial();
+            //     return;
+            // }
             //关闭所有面板
             ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
             this.showRedTaskTip();
@@ -245,7 +245,7 @@ export class ZRSJZ_Start extends Component {
         })
         CombinationGameData.Instance.ZRSJZ_PropData = [];
         CombinationGameData.DateSave();
-        const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards(propAwards, ZRSJZ_MAIL_TYPE.其他模式中获取道具);
+        ZRSJZ_MailService.AddMail(ZRSJZ_MAIL_TYPE.其他模式中获取道具, propAwards,);
     }
 
     GetPanelScale(): Vec3 {

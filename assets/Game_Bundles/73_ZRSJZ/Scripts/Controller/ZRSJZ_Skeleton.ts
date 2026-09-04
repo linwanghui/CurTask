@@ -73,7 +73,13 @@ export class ZRSJZ_Skeleton extends Component {
 
         const skeleton = this.Skeleton._skeleton;
         for (let slotIndex = 0; slotIndex < skeleton.slots.length; slotIndex++) {
-            if (!skeleton.getAttachment(slotIndex, equipmentName)) continue;
+            const slot = skeleton.slots[slotIndex];
+            const slotName1 = slot?.data?.name;
+
+            if (!slotName1 || !skeleton.getAttachmentByName(slotName1, equipmentName)) {
+                continue;
+            }
+            // if (!skeleton.getAttachment(slotIndex, equipmentName)) continue;
 
             const targetSlot = skeleton.slots[slotIndex];
             const slotName = targetSlot.data.name;
@@ -89,7 +95,13 @@ export class ZRSJZ_Skeleton extends Component {
                 const headsets = ZRSJZ_SKIN_CONFIG.get(this.SkinName)?.Headset;
                 headsets?.filter(Boolean).forEach(headsetName => {
                     for (let headsetSlotIndex = 0; headsetSlotIndex < skeleton.slots.length; headsetSlotIndex++) {
-                        if (!skeleton.getAttachment(headsetSlotIndex, headsetName)) continue;
+                        const slot = skeleton.slots[slotIndex];
+                        const slotName = slot?.data?.name;
+
+                        if (!slotName || !skeleton.getAttachmentByName(slotName, equipmentName)) {
+                            continue;
+                        }
+                        // if (!skeleton.getAttachment(headsetSlotIndex, headsetName)) continue;
                         const headsetSlot = skeleton.slots[headsetSlotIndex];
                         if (isEquipment) headsetSlot.setAttachment(null);
                         else this.Skeleton.setAttachment(headsetSlot.data.name, headsetName);

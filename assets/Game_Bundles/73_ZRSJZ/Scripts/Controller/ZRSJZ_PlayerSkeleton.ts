@@ -179,7 +179,9 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
             if (!isGunHand && !isKnifeHand) continue;
 
             const shouldHide = this.IsKnife ? isKnifeHand : isGunHand;
-            slot.setAttachment(shouldHide ? null : skeleton.getAttachment(slotIndex, slotName));
+
+            // slot.setAttachment(shouldHide ? null : skeleton.getAttachment(slotIndex, slotName));
+            slot.setAttachment(shouldHide ? null : skeleton.getAttachmentByName(slotName, slotName));
         }
     }
 
@@ -201,7 +203,13 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
         const skeleton = this.Skeleton._skeleton;
         for (let slotIndex = 0; slotIndex < skeleton.slots.length; slotIndex++) {
-            if (!skeleton.getAttachment(slotIndex, equipmentName)) continue;
+            const slot = skeleton.slots[slotIndex];
+            const slotName1 = slot?.data?.name;
+
+            if (!slotName1 || !skeleton.getAttachmentByName(slotName1, equipmentName)) {
+                continue;
+            }
+            // if (!skeleton.getAttachment(slotIndex, equipmentName)) continue;
             if (skeleton.slots[slotIndex].data.name === 'dao' && isEquipment) {
                 this.GunType = "";
                 this.QKBone = null;
