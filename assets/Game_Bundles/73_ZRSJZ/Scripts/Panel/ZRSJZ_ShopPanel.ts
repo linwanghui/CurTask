@@ -94,8 +94,13 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
 
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
+        const targetNode = event.getCurrentTarget();
+        const targetName = targetNode.name;
+        const shopTypes = ["武器", "头盔", "防弹衣", "背包", "匕首", "弹药", "房卡"];
+        // 当前商品分类已选中时，不播放音效，也不重复刷新商品列表。
+        if (shopTypes.includes(targetName) && targetName === this._shopType) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
-        switch (event.getCurrentTarget().name) {
+        switch (targetName) {
             case "Close":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.商店界面);
                 break;
@@ -129,12 +134,12 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             case "匕首":
             case "弹药":
             case "房卡":
-                this._scale = event.getCurrentTarget().name == "防弹衣" || event.getCurrentTarget().name == "背包" ? 1 : 2;
-                this.SwitchButton(event.getCurrentTarget());
+                this._scale = targetName == "防弹衣" || targetName == "背包" ? 1 : 2;
+                this.SwitchButton(targetNode);
                 break;
             default:
-                if (event.getCurrentTarget().name.startsWith("WeaponSkin_")) {
-                    const skinIndex = Number(event.getCurrentTarget().name.replace("WeaponSkin_", ""));
+                if (targetName.startsWith("WeaponSkin_")) {
+                    const skinIndex = Number(targetName.replace("WeaponSkin_", ""));
                     const skins = ZRSJZ_WEAPON_SKIN.get(this._curShop);
                     if (skins?.[skinIndex]) {
                         this._selectedWeaponSkin = skins[skinIndex].Name;
@@ -145,7 +150,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
                     }
                     break;
                 }
-                const clickIndex = Number(event.getCurrentTarget().name);
+                const clickIndex = Number(targetName);
                 if (clickIndex == this._curShowIndex) {
                     this._isWeaponSkinOperation = false;
                     this._selectedWeaponSkin = ZRSJZ_AccountService.GetWeaponSkin(this._curShop);
@@ -163,11 +168,11 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
 
     SwitchButton(shopTypeNode: Node, isShow: boolean = false) {
         const shopType = shopTypeNode.name;
+        if (this._shopType == shopType && !isShow) return;
         this.ShopPurchase.active = false;
         this.ShopVideo.active = false;
         this.ShopLeft.active = false;
         this.ShopRight.active = false;
-        if (this._shopType == shopType && !isShow) return;
         this._shopType = shopType;
         Tween.stopAllByTarget(this.CheckedNode);
         tween(this.CheckedNode)

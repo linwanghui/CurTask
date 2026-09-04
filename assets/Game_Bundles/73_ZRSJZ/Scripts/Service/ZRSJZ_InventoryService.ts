@@ -124,6 +124,31 @@ export class ZRSJZ_InventoryService {
         return propID;
     }
 
+    /**
+     * 按道具名称向综合仓库增加指定总数量，并按配置的最大堆叠数自动拆分。
+     * 返回本次创建的实例 ID；名称不存在或数量无效时返回空数组。
+     */
+    public static AddPropsToWarehouseByName(propName: string, totalCount: number = 1): string[] {
+        const normalizedName = typeof propName === "string" ? propName.trim() : "";
+        const normalizedCount = Math.floor(Number(totalCount));
+        const config = ZRSJZ_PROP_CONFIG.get(normalizedName);
+        if (!config || !Number.isFinite(normalizedCount) || normalizedCount <= 0) return [];
+
+        const maxCount = Math.max(1, Math.floor(Number(config.MaxCount) || 1));
+        const createdIDs: string[] = [];
+        let remaining = normalizedCount;
+        while (remaining > 0) {
+            const stackCount = Math.min(maxCount, remaining);
+            const propID = this.AddPropByName(normalizedName, stackCount);
+            if (!propID) break;
+            createdIDs.push(propID);
+            remaining -= stackCount;
+        }
+
+        if (createdIDs.length > 0) this.NotifyInventoryChanged();
+        return createdIDs;
+    }
+
     public static AddAmmoToWarehouse(ammoName: string, totalCount: number): string[] {
         const config = ZRSJZ_PROP_CONFIG.get(ammoName);
         if (!config || config.PropType !== "弹药") return [];

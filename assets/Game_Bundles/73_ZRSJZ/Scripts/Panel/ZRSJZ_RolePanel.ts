@@ -72,6 +72,8 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     }
 
     protected onEnable(): void {
+        // 预制体重新打开时允许当前角色重新初始化一次，之后再拦截重复点击。
+        this._curRoleData = null;
         this.Skeleton.node.active = false;
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.ShowRoleDesc, this);
     }
@@ -117,6 +119,8 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     }
 
     ShowRoleDesc(roleName: string) {
+        // 当前角色已选中时，不重复生成皮肤列表和刷新角色详情。
+        if (this._curRoleData?.Name === roleName) return;
         const roleData = ZRSJZ_ROLE_CONFIG.get(roleName);
         if (!roleData) return;
         this._curRoleData = roleData;

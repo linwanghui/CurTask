@@ -136,14 +136,18 @@ export class ZRSJZ_Skeleton extends Component {
         if (!this.Skeleton?._skeleton) return;
 
         this.Skeleton._skeleton.setSlotsToSetupPose();
-        const equipmentSlots = new Set<string>([
-            ...ZRSJZ_WEAPONRY_TYPE.keys(),
-            'dao',
-            't',
-            'j',
-            'b',
-        ]);
-        for (const slotName of equipmentSlots) {
+        // vivo RPK 的构建转换不会正确展开 Map.keys()：
+        // `[...map.keys()]` 会把 MapIterator 本身塞进数组，传给 Spine findSlot 后
+        // 在 wasm 绑定层触发 "Cannot pass non-string to std::string"。
+        // 使用 Map.forEach + 普通数组/下标循环，兼容 APK、浏览器和快游戏运行时。
+        const equipmentSlots: string[] = ['dao', 't', 'j', 'b'];
+        ZRSJZ_WEAPONRY_TYPE.forEach((_weaponNames, gunSlotName) => {
+            if (typeof gunSlotName === 'string' && equipmentSlots.indexOf(gunSlotName) < 0) {
+                equipmentSlots.push(gunSlotName);
+            }
+        });
+        for (let index = 0; index < equipmentSlots.length; index++) {
+            const slotName = equipmentSlots[index];
             this.Skeleton.findSlot(slotName)?.setAttachment(null);
         }
 

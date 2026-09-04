@@ -11,18 +11,22 @@ export class ZRSJZ_RoleItem extends Component {
     RoleName: string = "";
 
     Chekced: Node = null;
+    private _isDetailSelected: boolean = false;
 
     protected onLoad(): void {
         this.Chekced = this.node.getChildByName("Checked");
     }
 
     protected onEnable(): void {
+        this._isDetailSelected = false;
         this.ShowItem();
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_ITEM, this.ShowItem, this);
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.OnRoleDescChanged, this);
     }
 
     protected onDisable(): void {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_ITEM, this.ShowItem, this);
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.OnRoleDescChanged, this);
     }
 
     ShowItem(roleName: string = ZRSJZ_GameData.Instance.CurRole[ZRSJZ_PlayerSwitchButton.CurPlayer == "1p" ? 0 : 1]) {
@@ -30,9 +34,14 @@ export class ZRSJZ_RoleItem extends Component {
     }
 
     OnClick() {
+        if (this._isDetailSelected) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_ITEM, this.RoleName);
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.RoleName);
+    }
+
+    private OnRoleDescChanged(roleName: string): void {
+        this._isDetailSelected = this.RoleName === roleName;
     }
 }
 

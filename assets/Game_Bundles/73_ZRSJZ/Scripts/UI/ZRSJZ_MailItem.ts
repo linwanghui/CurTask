@@ -68,6 +68,8 @@ export class ZRSJZ_MailItem extends Component {
 
     private OnTouchEnd(): void {
         if (!this._mailID || !ZRSJZ_GameData.Instance.MailData[this._mailID]) return;
+        // 当前邮件已经处于选中状态时不再重复触发详情刷新。
+        if (this.Checked?.active) return;
         ZRSJZ_AudioManager.Instance?.PlaySound("点击");
         this._onClick?.(this._mailID);
     }
