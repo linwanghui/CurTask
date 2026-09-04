@@ -36,6 +36,7 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
     CheckMask: Node = null;
     ClaimAllBtn: Node = null;
     DeleteReadBtn: Node = null;
+    NullMail: Node = null;
 
 
     private _curMailID: string = "";
@@ -61,6 +62,7 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
         this.CheckMask = find("Panel/MailDesc/CheckMask", this.node);
         this.ClaimAllBtn = find("Panel/全部领取", this.node);
         this.DeleteReadBtn = find("Panel/删除已读", this.node);
+        this.NullMail = find("Panel/空邮件", this.node);
         this.CheckMask.active = false;
         this.PartialClaimChecked.active = false;
     }
@@ -109,6 +111,7 @@ export class ZRSJZ_MailPanel extends ZRSJZ_Panel {
         const hasMail = mailIDs.length > 0;
         this.ClaimAllBtn.active = hasMail;
         this.DeleteReadBtn.active = hasMail;
+        this.NullMail.active = !hasMail;
         for (const mailID of mailIDs) {
             const mailitem = instantiate(this.MailItemPrefab);
             mailitem.parent = this.MailItemContent;
