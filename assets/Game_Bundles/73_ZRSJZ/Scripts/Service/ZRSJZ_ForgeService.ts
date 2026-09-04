@@ -1,8 +1,8 @@
 import { sys } from 'cc';
-import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
-import { ZRSJZ_AccountService } from '../../73_ZRSJZ/Scripts/Service/ZRSJZ_AccountService';
-import { ZRSJZ_InventoryService } from '../../73_ZRSJZ/Scripts/Service/ZRSJZ_InventoryService';
-import { GetForgeRecipe, ZRSJZ_ForgeRecipe } from 'db://assets/Game_Bundles/73_ZRSJZ_DLC/Scripts/ZRSJZ_ForgeConstant';
+import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_AccountService } from './ZRSJZ_AccountService';
+import { ZRSJZ_InventoryService } from './ZRSJZ_InventoryService';
+import { GetForgeRecipe, ZRSJZ_ForgeRecipe } from '../ZRSJZ_ForgeConstant';
 
 export type ZRSJZ_ForgeTask = {
     itemName: string,

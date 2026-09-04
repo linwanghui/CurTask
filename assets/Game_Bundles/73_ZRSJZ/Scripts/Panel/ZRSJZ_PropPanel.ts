@@ -62,26 +62,25 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         this.ShowProp(args[0]);
     }
 
-    async ShowProp(propID: string) {
-        const propData = ZRSJZ_GameData.Instance.PropData[propID];
-        if (!propData) {
-            console.error("没找到道具Id:", propID);
-            ZRSJZ_UIManager.Instance.HidePlayerPanel(ZRSJZ_PANEL.道具弹窗, this.PlayerIndex);
-            return;
-        }
-        const propConfig = ZRSJZ_PROP_CONFIG.get(propData.Name);
+    async ShowProp(propIDOrName: string) {
+        const propData = ZRSJZ_GameData.Instance.PropData[propIDOrName];
+        const propName = propData?.Name ?? propIDOrName;
+        const propConfig = ZRSJZ_PROP_CONFIG.get(propName);
         if (!propConfig) {
-            console.error("没找到道具配置:", propData.Name);
+            console.error("没找到道具Id或配置:", propIDOrName);
             ZRSJZ_UIManager.Instance.HidePlayerPanel(ZRSJZ_PANEL.道具弹窗, this.PlayerIndex);
             return;
         }
 
-        this._propID = propID;
+        const isConfigPreview = !propData;
+        this._propID = propIDOrName;
         this._isOperating = false;
         const showVersion = ++this._showVersion;
-        this.Name.string = propData.Name;
-        this.Price.string = `${Math.floor(propData.UnitPrice * propData.CurCount)}`;
-        if (ZRSJZ_PROP_PROPERTY.has(propData.Name)) {
+        this.Name.string = propName;
+        this.Price.string = `${Math.floor(
+            isConfigPreview ? propConfig.UnitPrice : propData.UnitPrice * propData.CurCount,
+        )}`;
+        if (ZRSJZ_PROP_PROPERTY.has(propName)) {
             //有属性
             this.PropDesc1.active = true;
             this.PropDesc2.active = false;
@@ -89,7 +88,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             //显示desc
             find("Desc", this.PropDesc1).getComponent(Label).string = `${propConfig.Description}`;
             //显示属性
-            const propProperty = ZRSJZ_PROP_PROPERTY.get(propData.Name);
+            const propProperty = ZRSJZ_PROP_PROPERTY.get(propName);
             for (const [key, propStats] of this._propPropertyMap) {
                 if (propProperty.hasOwnProperty(key)) {
                     propStats.Show(propProperty[key], ZRSJZ_PROP_PROPERTY_MAX.get(key))
@@ -104,7 +103,12 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             find("Desc", this.PropDesc2).getComponent(Label).string = `${propConfig.Description}`;
         }
         //显示按钮
-        if (propConfig.PropType == "物品" || propConfig.PropType == "弹药") {
+        if (isConfigPreview) {
+            this.LoadBtn.active = false;
+            this.UnloadBtn.active = false;
+            this.ReplaceBtn.active = false;
+            this.SellBtn.active = false;
+        } else if (propConfig.PropType == "物品" || propConfig.PropType == "弹药") {
             this.LoadBtn.active = false;
             this.UnloadBtn.active = false;
             this.ReplaceBtn.active = false;
@@ -154,9 +158,13 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
 
         const [gridSpriteFrame, propSpriteFrame] = await Promise.all([
             ZRSJZ_UIManager.Instance.GetPropGridUI(`${propConfig.Quality}1_2`),
-            ZRSJZ_UIManager.Instance.GetPropUI(propData.Name),
+            ZRSJZ_UIManager.Instance.GetPropUI(propName),
         ]);
-        if (showVersion !== this._showVersion || this._propID !== propID || !this.node.active) return;
+        if (
+            showVersion !== this._showVersion
+            || this._propID !== propIDOrName
+            || !this.node.active
+        ) return;
         this.PropGrid.spriteFrame = gridSpriteFrame;
         this.PropIcon.spriteFrame = propSpriteFrame;
         ZRSJZ_Tools.ScaleNodeToFit(this.PropIcon.node, 269 - 30, 132 - 30);

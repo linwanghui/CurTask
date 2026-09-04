@@ -1,4 +1,4 @@
-import { ZRSJZ_PROP_CONFIG } from '../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
+import { ZRSJZ_PROP_CONFIG } from './ZRSJZ_Constant';
 
 export type ZRSJZ_ForgeCategory = '枪械' | '头盔' | '防弹衣' | '背包' | '近战';
 
