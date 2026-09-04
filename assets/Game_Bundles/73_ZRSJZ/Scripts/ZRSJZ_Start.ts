@@ -148,6 +148,9 @@ export class ZRSJZ_Start extends Component {
             case "邮件":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.邮件界面);
                 break;
+            case "锻造台":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.锻造界面);
+                break;
             case "更多游戏":
                 UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("文字三角洲"), "WZSJZ_Start"]);
                 ZRSJZ_UIManager.Recycle();
