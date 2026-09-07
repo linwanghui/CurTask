@@ -106,6 +106,7 @@ export class WZSJZ_GameManager extends Component {
     /** 区分“本局已初始化”和“当前回合正在战斗”，避免第二轮重新回满城墙。 */
     private _hasGameInitialized: boolean = false;
     private _initializationFinished: boolean = false;
+    private _startupTraceFrame: number = 0;
     private _keySlotNode: Node = null;
     private _keyDragVisual: Node = null;
     private _keyDragStartWorldPosition: Vec3 = new Vec3();
@@ -258,6 +259,18 @@ export class WZSJZ_GameManager extends Component {
         );
         this._initializationFinished = true;
         console.info('[WZSJZ][Init] 游戏初始化完成');
+    }
+
+    protected update(deltaTime: number): void {
+        if (!this._initializationFinished || this._startupTraceFrame >= 3) return;
+        this._startupTraceFrame++;
+        console.info(`[WZSJZ][FirstFrame] update ${this._startupTraceFrame}，dt=${deltaTime}`);
+    }
+
+    protected lateUpdate(): void {
+        if (!this._initializationFinished || this._startupTraceFrame > 3) return;
+        console.info(`[WZSJZ][FirstFrame] lateUpdate ${this._startupTraceFrame}`);
+        if (this._startupTraceFrame === 3) this._startupTraceFrame++;
     }
 
     private async PrepareRuntimeMaterialPrefabs(): Promise<void> {
