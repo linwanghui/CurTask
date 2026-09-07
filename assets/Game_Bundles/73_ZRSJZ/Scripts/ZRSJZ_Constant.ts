@@ -49,6 +49,7 @@ export enum ZRSJZ_PANEL {
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     锻造界面 = "73_ZRSJZ_DLC/Prefabs/Panel/锻造界面",
     宠物界面 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物界面",
+    宠物皮肤弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物皮肤弹窗",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
 
 }
@@ -2144,3 +2145,78 @@ export interface ZRSJZ_MailConfig {
     Time: string;//时间
     PropAwards: Array<string | ZRSJZ_MailPropAward>;//道具奖励（string 用于兼容旧存档）
 }
+//#region 宠物
+
+export interface ZRSJZ_PetSkinConfig {
+    PetSkinName: string;//宠物皮肤名称
+    PetSkinQuality: string;//宠物品质
+    PetSkinAddition: string;//宠物属性加成
+    PetSkinUnlock: string;//宠物解锁条件
+}
+
+
+export interface ZRSJZ_PetConfig {
+    PetName: string;//宠物名称
+    PetSkins: string[];//宠物皮肤
+    PetSkills: string[];//宠物技能
+    PetUnlock: string;//宠物解锁条件
+    PetUnlockValue?: number;//金币解锁所需金币或等级解锁所需账号等级；视频解锁不需要
+    PetHarmony: number;//宠物攻击力
+    PetHP: number;//宠物生命值
+    PetArmor: number;//宠物防御力
+    PetBackpack: number;//宠物背包容量
+    PetDesc: string;//宠物描述
+}
+
+
+export const ZRSJZ_PET_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkinConfig>> = new Map([
+    ["龙宝宝", {
+        PetSkinName: "龙宝宝",
+        PetSkinQuality: "普通",
+        PetSkinAddition: "",
+        PetSkinUnlock: "",
+    }],
+    ["星核幼龙", {
+        PetSkinName: "星核幼龙",
+        PetSkinQuality: "传说",
+        PetSkinAddition: "攻击+10",
+        PetSkinUnlock: "视频x免费获取",
+    }],
+    ["小蜜蜂", {
+        PetSkinName: "小蜜蜂",
+        PetSkinQuality: "普通",
+        PetSkinAddition: "",
+        PetSkinUnlock: "",
+    }],
+    ["蜜蜂侠客", {
+        PetSkinName: "蜜蜂侠客",
+        PetSkinQuality: "史诗",
+        PetSkinAddition: "攻击+7",
+        PetSkinUnlock: "金币x1000000",
+    }],
+])
+
+export const ZRSJZ_PET_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetConfig>> = new Map([
+    ["龙宝宝", {
+        PetName: "龙宝宝",
+        PetSkins: ["龙宝宝", "星核幼龙"],
+        PetSkills: ["龙宝宝技能1", "龙宝宝技能2", "龙宝宝技能3", "龙宝宝技能4"],
+        PetUnlock: "视频解锁",
+        PetHarmony: 10,
+        PetHP: 100,
+        PetArmor: 5,
+        PetBackpack: 1,
+        PetDesc: "龙宝宝出击",
+    }],
+    ["小蜜蜂", {
+        PetName: "小蜜蜂",
+        PetSkins: ["小蜜蜂", "蜜蜂侠客"],
+        PetSkills: ["小蜜蜂技能1", "小蜜蜂技能2", "小蜜蜂技能3", "小蜜蜂技能4"],
+        PetUnlock: "视频解锁",
+        PetHarmony: 8,
+        PetHP: 200,
+        PetArmor: 5,
+        PetBackpack: 1,
+        PetDesc: "小蜜蜂来喽",
+    }],
+])

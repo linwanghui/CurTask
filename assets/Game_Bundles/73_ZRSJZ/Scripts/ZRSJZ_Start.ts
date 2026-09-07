@@ -1,6 +1,6 @@
 import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
-import { _decorator, Component, director, easing, EventTouch, Label, Node, Tween, tween, UITransform, v3, Vec3 } from 'cc';
+import { _decorator, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3 } from 'cc';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_MAIL_TYPE, ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
@@ -15,6 +15,7 @@ import { BundleManager } from "db://assets/Scripts/Framework/Managers/BundleMana
 import { Panel, UIManager } from "db://assets/Scripts/Framework/Managers/UIManager";
 import { DataManager } from "db://assets/Scripts/Framework/Managers/DataManager";
 import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
+import Banner, { BannerMode } from "db://assets/Scripts/Banner";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
@@ -49,8 +50,14 @@ export class ZRSJZ_Start extends Component {
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
         const cb: Function = () => {
             if (!ZRSJZ_GameData.Instance.IsTutorial) {
-                this.InitTutorial();
-                return;
+                if (Banner.Mode != BannerMode.测试包 && !sys.isBrowser) {
+                    this.InitTutorial();
+                    return;
+                } else {
+                    ZRSJZ_GameData.Instance.IsTutorial = true;
+                    ZRSJZ_GameData.Instance.CurMap = "五号小镇_机密行动";
+                    ZRSJZ_TaskService.CompleteTask("完成新手教程");
+                }
             }
             //关闭所有面板
             ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
@@ -158,14 +165,6 @@ export class ZRSJZ_Start extends Component {
                 UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("文字三角洲"), "WZSJZ_Start"]);
                 ZRSJZ_UIManager.Recycle();
                 break;
-            case "主页":
-                ProjectEventManager.emit(ProjectEvent.返回主页按钮事件, () => {
-                    ProjectEventManager.emit(ProjectEvent.返回主页);
-                    ZRSJZ_UIManager.Recycle();
-                    director.loadScene("Start");
-                });
-                break;
-
         }
     }
 

@@ -15,6 +15,7 @@ import { ZRSJZ_Tip } from '../UI/ZRSJZ_Tip';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './ZRSJZ_EventManager';
 import { ZRSJZ_MailService } from '../Service/ZRSJZ_MailService';
 import Banner from 'db://assets/Scripts/Banner';
+import { ProjectEvent, ProjectEventManager } from "db://assets/Scripts/Framework/Managers/ProjectEventManager";
 const { ccclass, property } = _decorator;
 
 export interface ZRSJZ_PropAwardInput {
@@ -403,6 +404,7 @@ export class ZRSJZ_UIManager extends Component {
     public static InitEvent() {
         input.off(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
         input.on(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
+        director.getScene().once("退出游戏", this.Recycle, this);
     }
 
     //#region UI展示
@@ -431,6 +433,7 @@ export class ZRSJZ_UIManager extends Component {
             if (panelNode) {
                 panelNode.setSiblingIndex(99);
                 panelNode.getComponent(ZRSJZ_Panel).Show(...args);
+                ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
             }
         }
 
@@ -1306,7 +1309,7 @@ export class ZRSJZ_UIManager extends Component {
         }
     }
 
-    /** 处理局内库存道具的双击快捷转移。 */
+    /** 处理局内背包/物资与局外仓库道具的双击快捷转移。 */
     public async QuickTransferProp(
         sourceInventory: ZRSJZ_INVENTORY,
         propID: string,
@@ -1317,10 +1320,17 @@ export class ZRSJZ_UIManager extends Component {
 
         let targetInventory: ZRSJZ_INVENTORY = null;
         let organizeBeforePlacement = false;
+        const isWarehouseSource = [
+            ZRSJZ_INVENTORY.仓库_全部,
+            ZRSJZ_INVENTORY.仓库_装备,
+            ZRSJZ_INVENTORY.仓库_武器,
+            ZRSJZ_INVENTORY.仓库_弹药,
+            ZRSJZ_INVENTORY.仓库_物品,
+        ].includes(sourceInventory);
         if (sourceInventory === ZRSJZ_INVENTORY.物资) {
             targetInventory = ZRSJZ_INVENTORY.背包;
             organizeBeforePlacement = true;
-        } else if (sourceInventory === ZRSJZ_INVENTORY.背包) {
+        } else if (sourceInventory === ZRSJZ_INVENTORY.背包 || isWarehouseSource) {
             switch (propData.PropType) {
                 case "枪":
                     targetInventory = ZRSJZ_INVENTORY.武器_枪;
@@ -1351,15 +1361,18 @@ export class ZRSJZ_UIManager extends Component {
             return false;
         }
 
-        // 物资/背包弹窗展示的是当前玩家独立库存实例。快捷转移也必须取得
-        // 同一个实例；否则单人模式会写入全局默认背包，当前界面只看到物资消失。
+        // 局内物资/背包必须使用玩家独立实例；局外仓库则必须使用
+        // 仓库界面正在显示的全局装备栏、弹药栏和卡包，避免道具被装入隐藏副本。
         const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
         const targetNode = await this.GetInventory(
             targetInventory,
             normalizedPlayerIndex,
-            true,
+            !isWarehouseSource,
         );
         const target = targetNode?.getComponent(ZRSJZ_Inventory);
+        if (isWarehouseSource && target) {
+            await target.ShowForPlayer(targetInventory, normalizedPlayerIndex);
+        }
         if (!target || target.PlayerViewIndex !== normalizedPlayerIndex) {
             console.error("快捷转移目标库存尚未初始化:", targetInventory);
             return false;

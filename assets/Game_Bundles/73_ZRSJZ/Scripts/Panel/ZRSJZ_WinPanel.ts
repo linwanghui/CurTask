@@ -6,6 +6,7 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_PropGrid } from '../UI/ZRSJZ_PropGrid';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ProjectEvent, ProjectEventManager } from 'db://assets/Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_WinPanel')
@@ -60,6 +61,7 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
                 .to(0.3, { scale: Vec3.ONE }, { easing: 'circIn' })
                 .start();
         });
+        ProjectEventManager.emit(ProjectEvent.游戏结束, "真人三角洲");
     }
 
     async ShowAllProp(propID: string[]) {

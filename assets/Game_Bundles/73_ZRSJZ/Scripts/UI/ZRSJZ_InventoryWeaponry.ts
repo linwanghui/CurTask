@@ -121,7 +121,7 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
                         if (this.Grids[0][0] === "") {
                             await this.ChangeGrid(id);
                         } else {
-                            await this.ReplaceProp(id);
+                            await this.ReplaceProp(id, inventory);
                         }
                     }
                 } else {
@@ -172,17 +172,17 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
     }
 
     public async TryReceiveProp(
-        _sourceInventory: ZRSJZ_INVENTORY,
+        sourceInventory: ZRSJZ_INVENTORY,
         id: string,
         _organizeBeforePlacement: boolean = false,
     ): Promise<boolean> {
         if (!this.IsAdaptive(id)) return false;
         return this.Grids[0][0] === ""
             ? this.ChangeGrid(id)
-            : this.ReplaceProp(id);
+            : this.ReplaceProp(id, sourceInventory);
     }
 
-    async ReplaceProp(id: string) {
+    async ReplaceProp(id: string, expectedSourceInventory?: ZRSJZ_INVENTORY): Promise<boolean> {
         await this._initTask;
         const propData = ZRSJZ_GameData.Instance.PropData[id];
         if (!propData) return false;
@@ -197,13 +197,27 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
         if (!targetInventory) return false;
 
 
-        // 道具可能同时显示在“仓库_全部”和分类仓库中，跨仓库时一并清除旧映射。
+        // 先把旧装备放回新装备的来源库存。只有回收成功后才提交换装，
+        // 避免旧装备尺寸更大、来源库存放不下时仍覆盖 WeaponryID。
+        const sourceInventoryType = expectedSourceInventory ?? propData.CurInventory;
         const inventoryNodes = ZRSJZ_UIManager.Instance.GetAllInventoryNodes();
+        let isReturned = false;
         for (const inventoryNode of inventoryNodes) {
             const sourceInventory = inventoryNode.getComponent(ZRSJZ_Inventory);
-            if (!sourceInventory) continue;
-            if (sourceInventory.Grids.some(row => row.includes(id))) {
-                await sourceInventory.Replace(id, this.Grids[0][0]);
+            if (
+                !sourceInventory
+                || sourceInventory === this
+                || sourceInventory.InventoryType !== sourceInventoryType
+                || !sourceInventory.InventoryConfig
+                || !Array.isArray(sourceInventory.Grids)
+            ) continue;
+            if (
+                ZRSJZ_InventoryService.IsPlayerInventory(sourceInventoryType)
+                && sourceInventory.PlayerViewIndex !== this.PlayerViewIndex
+            ) continue;
+            if (sourceInventory.Grids.some(row => Array.isArray(row) && row.includes(id))) {
+                isReturned = await sourceInventory.Replace(id, this.Grids[0][0]);
+                if (!isReturned) continue;
                 const propNode = this.node.children.find(child => {
                     const propGrid = child.getComponent(ZRSJZ_PropGrid);
                     return propGrid?.PropID === this.Grids[0][0];
@@ -211,8 +225,10 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
                 if (propNode) {
                     ZRSJZ_PoolManager.Instance.PutNode(propNode);
                 }
+                break;
             }
         }
+        if (!isReturned) return false;
 
         // 替换武器同样要先提交新装备数据，避免动画刷新时仍读取旧武器。
         await this.createWeapon(id, false);

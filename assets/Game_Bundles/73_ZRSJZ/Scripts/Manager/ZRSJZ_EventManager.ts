@@ -56,6 +56,7 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_MAIL_GET_PROP_ADD: string = 'ZRSJZ_MAIL_GET_PROP_ADD';//领取邮件中的道具--添加一个
     public static ZRSJZ_MAIL_CHANGE: string = 'ZRSJZ_MAIL_CHANGE';//邮件新增、领取、删除或过期
 
+    public static ZRSJZ_PET_SKIN_ITEM_CHECKED: string = 'ZRSJZ_PET_SKIN_ITEM_CHECKED';//宠物皮肤选中
 }
 
 export class ZRSJZ_EventManager {

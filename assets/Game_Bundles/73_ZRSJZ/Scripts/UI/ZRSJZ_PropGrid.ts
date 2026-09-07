@@ -556,7 +556,17 @@ export class ZRSJZ_PropGrid extends Component {
 
     private SupportsQuickTransfer(): boolean {
         if (this._inventory === ZRSJZ_INVENTORY.物资) return true;
-        if (this._inventory !== ZRSJZ_INVENTORY.背包 || !this.PropData) return false;
+        const isWarehouseInventory = [
+            ZRSJZ_INVENTORY.仓库_全部,
+            ZRSJZ_INVENTORY.仓库_装备,
+            ZRSJZ_INVENTORY.仓库_武器,
+            ZRSJZ_INVENTORY.仓库_弹药,
+            ZRSJZ_INVENTORY.仓库_物品,
+        ].includes(this._inventory);
+        if (
+            (this._inventory !== ZRSJZ_INVENTORY.背包 && !isWarehouseInventory)
+            || !this.PropData
+        ) return false;
         return [
             "枪",
             "头盔",
@@ -579,6 +589,15 @@ export class ZRSJZ_PropGrid extends Component {
                 propID,
                 this.GetPanelPlayerIndex(),
             );
+        } catch (error) {
+            // 双击入口由事件回调以 void 方式触发，必须在这里收口异常，
+            // 避免单个道具状态异常升级为全局 PromiseRejectionEvent。
+            console.error("[ZRSJZ_PropGrid] 双击快捷转移失败:", propID, error);
+            try {
+                await ZRSJZ_UIManager.Instance.ShowTip("道具操作失败，请重试");
+            } catch (tipError) {
+                console.error("[ZRSJZ_PropGrid] 操作失败提示显示异常:", tipError);
+            }
         } finally {
             this._isQuickTransferring = false;
         }

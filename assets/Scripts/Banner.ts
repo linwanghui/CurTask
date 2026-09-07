@@ -2678,7 +2678,6 @@ export default class Banner {
     static get IS_WECHAT_MINI_GAME() { return !Banner.IS_KS_MINI_GAME && sys.platform === sys.Platform.WECHAT_GAME; }
     static get IS_KS_MINI_GAME() { return false; }
     static get IS_HarmonyOSNext_GAME() { return sys.platform === sys.Platform.OPENHARMONY; }
-
     //#endregion
 }
 

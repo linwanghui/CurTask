@@ -17,11 +17,19 @@ export class ZRSJZ_Tutorial extends Component {
 
     TipFlag: boolean[] = [false, false, false];
     PropID: string = "";
+    private _completed: boolean = false;
     protected onEnable(): void {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, this.Tutorial, this);
     }
 
+    protected onDisable(): void {
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, this.Tutorial, this);
+    }
+
     Tutorial(index: number, target?: Node, propID?: string) {
+        const game = ZRSJZ_Game.Instance;
+        // 第 5 步由成功结算发出，仍需发放教程奖励；其他引导不可覆盖结算。
+        if (!game || this._completed || (game.IsGameFinished && index !== 5)) return;
         if (index == 1) {
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.新手引导弹窗, "Mask", this.TutorialNodes[0], "搜索物资");
             ZRSJZ_Game.Instance.GamePaused = true;
@@ -39,6 +47,7 @@ export class ZRSJZ_Tutorial extends Component {
             ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.新手引导弹窗, "MaskTip", this.TutorialNodes[1], "背包里面可以切换装备", [
                 this.TutorialNodes[3]], ["可以通过切换来更换当前武器"]);
         } else if (index == 5) {
+            this._completed = true;
             ZRSJZ_GameData.Instance.IsTutorial = true;
             ZRSJZ_GameData.Instance.CurMap = "五号小镇_机密行动";
             ZRSJZ_GradeService.AddExperience(100);

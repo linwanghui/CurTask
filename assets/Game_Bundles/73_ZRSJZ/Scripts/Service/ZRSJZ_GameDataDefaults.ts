@@ -126,6 +126,11 @@ export class ZRSJZ_GameDataDefaults {
         [2, [
             { Key: "MailData", DefaultVaule: {} },
             { Key: "MailID", DefaultVaule: 0 }
+        ]],
+        [3, [
+            { Key: "PetData", DefaultVaule: {} },
+            { Key: "CurPet", DefaultVaule: "" },
+            { Key: "CurPetSkin", DefaultVaule: "" },
         ]]
     ])
 }

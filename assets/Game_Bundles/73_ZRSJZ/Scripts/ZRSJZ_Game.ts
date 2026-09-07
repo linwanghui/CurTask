@@ -20,6 +20,7 @@ import { ZRSJZ_Mailbox } from './Unit/ZRSJZ_Mailbox';
 import { ZRSJZ_GradeService } from './Service/ZRSJZ_GradeService';
 import { ZRSJZ_BoosterShotService } from './Service/ZRSJZ_BoosterShotService';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
+import { ProjectEvent, ProjectEventManager } from 'db://assets/Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
 
 interface ZRSJZ_MiniMapTaskMarker {
@@ -152,11 +153,14 @@ export class ZRSJZ_Game extends Component {
     private _evacuationElapsed: number = 0;
     private _isEvacuating: boolean = false;
     private _isGameFinished: boolean = false;
+    /** 结算一旦开始，本局不再接收受击、死亡、复活和引导恢复操作。 */
+    public get IsGameFinished(): boolean { return this._isGameFinished; }
     private _battleStatisticsStarted: boolean = false;
     private _battleStatisticsFinalized: boolean = false;
     private _evacuationMethod: string = "固定撤离点";
     /** 记录每名玩家当前所在的撤离点；只有所有存活玩家位于同一撤离点才开始倒计时。 */
     private readonly _playerEvacuationPoints = new Map<number, string>();
+    private readonly _evacuationHitCooldowns = new Map<number, number>();
     /** 双人模式中已经明确放弃复活的玩家。 */
     private readonly _playersGivenUpResurrection = new Set<number>();
     /** -1 表示左右分屏，0/1 表示当前由对应玩家独占全屏。 */
@@ -217,6 +221,7 @@ export class ZRSJZ_Game extends Component {
         this._evacuationElapsed = 0;
         this._isEvacuating = false;
         this._playerEvacuationPoints.clear();
+        this._evacuationHitCooldowns.clear();
         this._playersGivenUpResurrection.clear();
         this._fullscreenPlayerIndex = -1;
         ZRSJZ_UIManager.SinglePlayerBattleIndex = -1;
@@ -242,6 +247,7 @@ export class ZRSJZ_Game extends Component {
         await ZRSJZ_UIManager.Instance.InitializeBattleInventories();
         this.LoadMap();
         this.InitMiniMap();
+        ProjectEventManager.emit(ProjectEvent.游戏开始, "真人三角洲");
     }
 
     protected onEnable(): void {
@@ -442,6 +448,8 @@ export class ZRSJZ_Game extends Component {
             if (evacuationCompleted) {
                 this.CompleteEvacuation();
             }
+            // 在本帧撤离计时之后恢复资格，避免把等待时间计入撤离倒计时。
+            this.UpdateEvacuationHitCooldowns(deltaTime);
         }
     }
 
@@ -583,10 +591,35 @@ export class ZRSJZ_Game extends Component {
     CancelEvacuation(playerIndex?: number): void {
         if (playerIndex === undefined) {
             this._playerEvacuationPoints.clear();
+            this._evacuationHitCooldowns.clear();
         } else {
             this._playerEvacuationPoints.delete(playerIndex === 1 ? 1 : 0);
+            this._evacuationHitCooldowns.delete(playerIndex === 1 ? 1 : 0);
         }
         this.RefreshEvacuationEligibility();
+    }
+
+    /** 受击只暂时冻结资格，保留所在撤离点；重复进入回调不能绕过等待。 */
+    public InterruptEvacuationByHit(playerIndex: number): void {
+        if (this._isGameFinished || this.GamePaused) return;
+        const index = playerIndex === 1 ? 1 : 0;
+        if (!this._playerEvacuationPoints.has(index)) return;
+        this._evacuationHitCooldowns.set(index, 3);
+        this.RefreshEvacuationEligibility();
+    }
+
+    private UpdateEvacuationHitCooldowns(deltaTime: number): void {
+        if (this._isGameFinished || this.GamePaused) return;
+        let expired = false;
+        for (const [index, remaining] of this._evacuationHitCooldowns) {
+            if (remaining > deltaTime) {
+                this._evacuationHitCooldowns.set(index, remaining - deltaTime);
+            } else {
+                this._evacuationHitCooldowns.delete(index);
+                expired = true;
+            }
+        }
+        if (expired) this.RefreshEvacuationEligibility();
     }
 
     private RefreshEvacuationEligibility(): void {
@@ -594,7 +627,8 @@ export class ZRSJZ_Game extends Component {
         const evacuationPoint = livingPlayers.length > 0
             ? this._playerEvacuationPoints.get(livingPlayers[0].PlayerIndex)
             : "";
-        const canEvacuate = !!evacuationPoint && livingPlayers.every(player =>
+        const canEvacuate = !this._isGameFinished && !!evacuationPoint && livingPlayers.every(player =>
+            !this._evacuationHitCooldowns.has(player.PlayerIndex) &&
             this._playerEvacuationPoints.get(player.PlayerIndex) === evacuationPoint
         );
 
@@ -697,7 +731,7 @@ export class ZRSJZ_Game extends Component {
         });
     }
 
-    /** 双人分屏模式准备接管 TileMap 裁剪；单相机模式保持引擎原始行为。 */
+    /** 双人对局准备接管 TileMap 裁剪（包括存活玩家全屏）；单人对局保持引擎原始行为。 */
     private ConfigureTileMapForPlayerCount(): void {
         this.RestoreBuiltInTileMapCulling();
         this._tiledLayers.length = 0;
@@ -721,8 +755,8 @@ export class ZRSJZ_Game extends Component {
     private TakeOverTileMapCulling(tiledLayer: TiledLayer): void {
         if (this._tiledLayerOriginalCulling.has(tiledLayer)) return;
         this._tiledLayerOriginalCulling.set(tiledLayer, tiledLayer.updateCulling);
-        // TiledMap assembler 会在 EVENT_BEFORE_DRAW 之后再次调用此方法。双相机期间
-        // 必须阻止它把联合区域覆盖回第一台相机的区域。
+        // TiledMap assembler 会在 EVENT_BEFORE_DRAW 之后再次调用此方法。双人对局期间
+        // 必须阻止它把当前战斗相机的视野覆盖回引擎默认选择的相机区域。
         tiledLayer.updateCulling = () => undefined;
     }
 
@@ -761,18 +795,9 @@ export class ZRSJZ_Game extends Component {
             const camera = gameCamera.getComponent(Camera);
             if (camera?.enabled && camera.camera?.width > 0 && camera.camera?.height > 0) cameras.push(camera);
         }
-        // 必须确实存在两台正在渲染的战斗相机才接管；玩家死亡切换为单相机全屏后恢复默认裁剪。
-        if (cameras.length !== 2) {
-            this.RestoreBuiltInTileMapCulling();
-            if (this.Cameras.length > 0) {
-                for (const tiledLayer of this._tiledLayers) {
-                    if (tiledLayer?.isValid && this.IsTiledLayerCullingReady(tiledLayer)) {
-                        tiledLayer.enableCulling = true;
-                    }
-                }
-            }
-            return;
-        }
+        // 放弃复活后仍由这里更新裁剪：仅使用存活玩家相机的全屏 rect，
+        // 避免恢复内置逻辑后沿用旧视野或选中非战斗相机。
+        if (cameras.length === 0) return;
 
         let worldCornerCount = 0;
         for (const camera of cameras) {
@@ -939,6 +964,7 @@ export class ZRSJZ_Game extends Component {
 
     /** 玩家死亡只冻结自己；两名玩家均死亡后才暂停整场游戏。 */
     public OnPlayerDied(playerIndex: number): void {
+        if (this._isGameFinished) return;
         const normalizedIndex = playerIndex === 1 ? 1 : 0;
         this._playersGivenUpResurrection.delete(normalizedIndex);
         this._playerEvacuationPoints.delete(normalizedIndex);
@@ -949,6 +975,7 @@ export class ZRSJZ_Game extends Component {
 
     /** 复活只恢复指定玩家，并重新校验双人撤离条件。 */
     public OnPlayerResurrected(playerIndex: number): void {
+        if (this._isGameFinished) return;
         const normalizedIndex = playerIndex === 1 ? 1 : 0;
         this._playersGivenUpResurrection.delete(normalizedIndex);
         this.GamePaused = false;
@@ -1275,6 +1302,7 @@ export class ZRSJZ_Game extends Component {
     }
 
     OnButtonClick(event: EventTouch) {
+        if (this._isGameFinished) return;
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {

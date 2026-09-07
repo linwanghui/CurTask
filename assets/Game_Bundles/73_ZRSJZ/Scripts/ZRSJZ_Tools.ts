@@ -30,6 +30,19 @@ export class ZRSJZ_Tools {
         });
     }
 
+    public static LoadSpriteByBundle(bundle: string, path: string): Promise<SpriteFrame> {
+        return new Promise((resolve, reject) => {
+            BundleManager.GetBundle(bundle).load(path + "/spriteFrame", SpriteFrame, (err: any, sprites: SpriteFrame) => {
+                if (err) {
+                    reject(err);
+                    console.error(`加载 Bundle: ${bundle} SpriteFrame 加载失败 Path: ${path}`);
+                    return;
+                }
+                resolve && resolve(sprites);
+            });
+        });
+    }
+
     public static LoadAudioClips(bundlePath: string, resPath: string): Promise<AudioClip[]> {
         return new Promise((resolve, reject) => {
             BundleManager.GetBundle(bundlePath).loadDir(resPath, AudioClip, (err: any, sprites: AudioClip[]) => {
