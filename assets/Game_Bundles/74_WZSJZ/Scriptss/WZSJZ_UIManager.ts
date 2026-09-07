@@ -19,6 +19,7 @@ import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { BundleManager } from '../../../Scripts/Framework/Managers/BundleManager';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
+import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_UIManager')
@@ -188,6 +189,7 @@ export class WZSJZ_UIManager extends Component {
                     throw `查找不到脚本文件${scriptName}`;
                 }
                 this.SJZXD_Emit("打开页面_" + panelPath)
+                ProjectEventManager.emit(ProjectEvent.弹出窗口);
                 if (Banner.IS_BYTEDANCE_MINI_GAME) {//抖音埋点
                     //@ts-ignore
                     tt.reportAnalytics('OpenWindow', {
@@ -225,6 +227,7 @@ export class WZSJZ_UIManager extends Component {
                 throw `查找不到脚本文件${scriptName} 或者脚本中没有 Show() 方法...`;
             }
             this.SJZXD_Emit("打开页面_" + panelPath)
+            ProjectEventManager.emit(ProjectEvent.弹出窗口);
             if (Banner.IS_BYTEDANCE_MINI_GAME) {//抖音埋点
                 //@ts-ignore
                 tt.reportAnalytics('OpenWindow', {

@@ -7,6 +7,7 @@ import { WZSJZ_HomeLevelSelector } from './WZSJZ_HomeLevelSelector';
 import { Panel, UIManager } from '../../../Scripts/Framework/Managers/UIManager';
 import { DataManager } from '../../../Scripts/Framework/Managers/DataManager';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
+import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
 
 const { ccclass } = _decorator;
 

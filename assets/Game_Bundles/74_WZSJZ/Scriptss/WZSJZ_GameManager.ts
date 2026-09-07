@@ -6,6 +6,7 @@ import {
     EventTouch,
     Graphics,
     instantiate,
+    isValid,
     Label,
     Layout,
     Node,
@@ -46,6 +47,7 @@ import { WZSJZ_RecruitCardSystem } from './WZSJZ_RecruitCardSystem';
 import { WZSJZ_TutorialSystem } from './WZSJZ_TutorialSystem';
 import { WZSJZ_SpeedUpSystem } from './WZSJZ_SpeedUpSystem';
 import Banner from '../../../Scripts/Banner';
+import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
 
 /** 场景总入口；具体战斗、技能与表现逻辑由各子系统负责。 */
@@ -103,6 +105,7 @@ export class WZSJZ_GameManager extends Component {
     private _isGameStarted: boolean = false;
     /** 区分“本局已初始化”和“当前回合正在战斗”，避免第二轮重新回满城墙。 */
     private _hasGameInitialized: boolean = false;
+    private _initializationFinished: boolean = false;
     private _keySlotNode: Node = null;
     private _keyDragVisual: Node = null;
     private _keyDragStartWorldPosition: Vec3 = new Vec3();
@@ -147,7 +150,10 @@ export class WZSJZ_GameManager extends Component {
     }
 
     protected start(): void {
+        console.info('[WZSJZ][Init] 开始初始化棋盘');
+        ProjectEventManager.emit(ProjectEvent.游戏开始);
         this.InitBoard();
+        console.info('[WZSJZ][Init] 棋盘完成，开始配置战斗与特效系统');
         void this.PrepareRuntimeMaterialPrefabs();
         this._nodeInspectSystem = this.node.getComponent(WZSJZ_NodeInspectSystem)
             || this.node.addComponent(WZSJZ_NodeInspectSystem);
@@ -183,6 +189,7 @@ export class WZSJZ_GameManager extends Component {
         this._cellEffectSystem.Configure(this.FormationZone?.parent, this.DragLayer);
         this._economySystem = this.node.getComponent(WZSJZ_EconomySystem)
             || this.node.addComponent(WZSJZ_EconomySystem);
+        console.info('[WZSJZ][Init] 开始配置经济系统');
         this._economySystem.Configure(
             this.PreparationZone,
             this._formationCells,
@@ -197,6 +204,7 @@ export class WZSJZ_GameManager extends Component {
         );
         this._functionalNodeSystem = this.node.getComponent(WZSJZ_FunctionalNodeSystem)
             || this.node.addComponent(WZSJZ_FunctionalNodeSystem);
+        console.info('[WZSJZ][Init] 经济系统完成，配置功能与组合系统');
         this._functionalNodeSystem.Configure(
             this._formationCells,
             this.WallDisplayNode,
@@ -207,6 +215,7 @@ export class WZSJZ_GameManager extends Component {
         this._nameUnitSystem.Configure(this._formationCells, this._formationObjectLayer);
         // 道具锁内的默认物资依赖经济模块的权重池，必须在其配置完成后生成。
         this.RefreshPreparationItemLocks();
+        console.info('[WZSJZ][Init] 道具锁物资完成，开始配置回合及操作入口');
         this._stageFlowSystem = this.node.getComponent(WZSJZ_StageFlowSystem)
             || this.node.addComponent(WZSJZ_StageFlowSystem);
         this._stageFlowSystem.Configure(
@@ -247,13 +256,17 @@ export class WZSJZ_GameManager extends Component {
             this._preparationCells,
             this._economySystem,
         );
+        this._initializationFinished = true;
+        console.info('[WZSJZ][Init] 游戏初始化完成');
     }
 
     private async PrepareRuntimeMaterialPrefabs(): Promise<void> {
         for (const path of WZSJZ_Constant.RuntimeMaterialPrefabPaths) {
+            if (!isValid(this, true) || !isValid(this.node, true)) return;
             try {
                 const prefab = await WZSJZ_Incident.Loadprefab(path);
-                if (this.node?.isValid
+                if (!isValid(this, true) || !isValid(this.node, true)) return;
+                if (isValid(prefab, true)
                     && !this.MaterialPrefabs.some((item) => item?.data?.name === prefab.data.name)) {
                     this.MaterialPrefabs.push(prefab);
                 }
@@ -1028,11 +1041,18 @@ export class WZSJZ_GameManager extends Component {
         playAppearAnimation: boolean = false,
     ): boolean {
         const targetLayer = this.GetObjectLayer(cell);
-        if (!prefab || !targetLayer || !cell.IsEmpty()) {
+        if (!isValid(this, true) || !isValid(this.node, true)
+            || !isValid(prefab, true) || !prefab.data
+            || !isValid(targetLayer, true) || !isValid(cell, true)
+            || !isValid(cell.node, true) || !cell.IsEmpty()) {
             return false;
         }
 
+        const traceInit = !this._initializationFinished;
+        const traceName = prefab.data.name;
+        if (traceInit) console.info(`[WZSJZ][MaterialInit] 实例化前：${traceName}，格子=${cell.Index}`);
         const materialNode = instantiate(prefab);
+        if (traceInit) console.info(`[WZSJZ][MaterialInit] 挂入场景前：${traceName}`);
         materialNode.setParent(targetLayer);
         const material = materialNode.getComponent("WZSJZ_GameNode") as WZSJZ_GameNode;
         if (!material) {
@@ -1042,6 +1062,7 @@ export class WZSJZ_GameManager extends Component {
         }
 
         cell.Occupant = materialNode;
+        if (traceInit) console.info(`[WZSJZ][MaterialInit] 初始化组件前：${traceName}`);
         material.Init(cell, level);
         this.SnapToCell(material, cell);
         if (playAppearAnimation) {
@@ -1050,6 +1071,7 @@ export class WZSJZ_GameManager extends Component {
         if (cell.Zone === "wall") {
             this.RefreshWallDisplay();
         }
+        if (traceInit) console.info(`[WZSJZ][MaterialInit] 完成：${traceName}`);
         return true;
     }
 
@@ -1097,6 +1119,10 @@ export class WZSJZ_GameManager extends Component {
         this.InitializeWallHealth(!this._hasGameInitialized);
         const expectedLevel = wall.Level;
         const spriteFrame = await WZSJZ_Incident.LoadSprite(levelConfig.DisplaySpritePath) as SpriteFrame;
+        if (!isValid(this, true) || !isValid(this.node, true)
+            || !isValid(this._wallCell, true) || !isValid(wall, true)
+            || !isValid(wallNode, true) || !isValid(displaySprite, true)
+            || !isValid(this.WallDisplayNode, true)) return;
         if (spriteFrame
             && this._wallCell.Occupant === wallNode
             && wall.Level === expectedLevel

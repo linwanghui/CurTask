@@ -67,9 +67,13 @@ export class WZSJZ_EconomySystem extends Component {
         this._priceIncreaseRate = priceIncreaseRate;
         this._createMaterial = createMaterial;
         this.RollNameCombinationsForGame();
+        console.info('[WZSJZ][Init] 开始绑定购买按钮');
         this.BindPurchaseButton();
+        console.info('[WZSJZ][Init] 开始缓存购买需求颜色');
         this.CacheRequirementColors();
+        console.info('[WZSJZ][Init] 开始刷新资源UI');
         this.RefreshViews();
+        console.info('[WZSJZ][Init] 资源UI刷新完成');
     }
 
     private OnCombatPhaseChanged(active: boolean): void {
