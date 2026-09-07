@@ -27,6 +27,8 @@ type StageState = "preparation" | "spawning" | "combat" | "retreat" | "finished"
 export class WZSJZ_StageFlowSystem extends Component {
     private _canvas: Node = null;
     private _preparationZone: Node = null;
+    private _preparationWidget: Widget = null;
+    private _preparationHomeBottom: number = 0;
     private _startButton: Node = null;
     private _countdownRoot: Node = null;
     private _countdownLabel: Label = null;
@@ -69,6 +71,9 @@ export class WZSJZ_StageFlowSystem extends Component {
             ?.getComponent(Widget) || null;
         this._skillBarPreparationBottom = this._skillBarWidget?.bottom || 0;
         if (preparationZone) {
+            this._preparationWidget = preparationZone.getComponent(Widget);
+            this._preparationHomeBottom = this._preparationWidget?.bottom || 0;
+            this._preparationWidget?.updateAlignment();
             this._preparationHomePosition.set(preparationZone.position);
             this.CalculateOffscreenPosition();
         }
@@ -257,6 +262,32 @@ export class WZSJZ_StageFlowSystem extends Component {
             return;
         }
         Tween.stopAllByTarget(this._preparationZone);
+        const widget = this._preparationWidget;
+        if (widget?.enabled && widget.isAlignBottom && widget.isAbsoluteBottom) {
+            // 广告返回/窗口尺寸变化会重新执行Widget对齐，因此退场状态必须写入
+            // bottom，不能只修改position，否则会被原来的bottom=0拉回屏幕。
+            Tween.stopAllByTarget(widget);
+            const transform = this._preparationZone.getComponent(UITransform);
+            const height = (transform?.contentSize.height || 384)
+                * Math.abs(this._preparationZone.scale.y);
+            tween(widget)
+                .to(
+                    WZSJZ_Constant.StageFlow.PreparationTweenDuration,
+                    { bottom: show ? this._preparationHomeBottom
+                        : -height - WZSJZ_Constant.StageFlow.PreparationOffscreenMargin },
+                    {
+                        easing: show ? "backOut" : "quadIn",
+                        onUpdate: () => widget.updateAlignment(),
+                    },
+                )
+                .call(() => {
+                    widget.updateAlignment();
+                    completed?.();
+                })
+                .start();
+            return;
+        }
+        this.CalculateOffscreenPosition();
         tween(this._preparationZone)
             .to(
                 WZSJZ_Constant.StageFlow.PreparationTweenDuration,

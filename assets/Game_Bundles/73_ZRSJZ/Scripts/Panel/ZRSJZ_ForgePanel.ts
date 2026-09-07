@@ -353,7 +353,7 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
                 countLabel.node.active = true;
                 countLabel.string = owned + '/' + material.count;
                 countLabel.color = owned >= material.count
-                    ? Color.WHITE
+                    ? Color.BLACK
                     : new Color(255, 84, 67);
             }
         }
@@ -371,7 +371,8 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
     }
 
     private RefreshProgress(task: ZRSJZ_ForgeTask): void {
-        if (!task) {
+        const recipe = this.GetSelectedRecipe();
+        if (!task || !recipe || task.itemName !== recipe.itemName) {
             this._progressRoot.active = false;
             return;
         }
