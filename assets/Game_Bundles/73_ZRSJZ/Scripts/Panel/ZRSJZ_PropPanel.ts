@@ -147,7 +147,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                         this.PlayerIndex,
                     );
                 }
-                const isLoading = weaponryIDs[weaponIndex] === propID;
+                const isLoading = weaponryIDs[weaponIndex] === propIDOrName;
                 this.UnloadBtn.active = isLoading;
                 const isHaveWeapon = weaponryIDs[weaponIndex] != "";
                 this.LoadBtn.active = !isLoading && !isHaveWeapon;
