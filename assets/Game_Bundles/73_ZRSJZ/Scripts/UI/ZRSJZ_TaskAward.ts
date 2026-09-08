@@ -18,6 +18,8 @@ export class ZRSJZ_TaskAward extends Component {
 
     @property(SpriteFrame)
     ExpSF: SpriteFrame = null;
+    @property(SpriteFrame)
+    WarehouseSF: SpriteFrame = null;
 
     Bottom: Sprite = null;
     Icon: Sprite = null;
@@ -64,7 +66,13 @@ export class ZRSJZ_TaskAward extends Component {
         this.ShowGetButton();
         this.Name.string = propName;
         this.Count.string = count.toString();
-        if (propName == "钞票") {
+        if (propName.startsWith('仓库_') && propName.endsWith('扩容')) {
+            this.Name.string = propName.replace('仓库_', '').replace('扩容', '仓库');
+            this.Count.string = `+${count}行`;
+            this.Icon.spriteFrame = this.WarehouseSF;
+            this.Bottom.spriteFrame = this.BottomSF;
+            ZRSJZ_Tools.ScaleNodeToFit(this.Icon.node, 110, 110);
+        } else if (propName == "钞票") {
             this.Icon.spriteFrame = this.GoldSF;
             this.Bottom.spriteFrame = this.BottomSF;
         } else if (propName == "经验") {
@@ -133,5 +141,4 @@ export class ZRSJZ_TaskAward extends Component {
     }
 
 }
-
 

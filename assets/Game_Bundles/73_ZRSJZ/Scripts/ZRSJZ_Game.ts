@@ -677,6 +677,11 @@ export class ZRSJZ_Game extends Component {
             true,
             ZRSJZ_GradeService.GetPropIDsValue(goodsIDs),
         );
+        const survivors = new Set(this.Players.filter(player => !player.IsDead).map(player => player.PlayerIndex));
+        ZRSJZ_TaskService.RecordExtraction(goodsIDs.filter(id => {
+            const prop = ZRSJZ_GameData.Instance.PropData[id];
+            return survivors.has(prop.OwnerPlayerIndex ?? 0);
+        }));
         ZRSJZ_UIManager.Instance.ShowPanel(
             ZRSJZ_PANEL.胜利弹窗,
             this._evacuationMethod,
@@ -1843,6 +1848,11 @@ export class ZRSJZ_Game extends Component {
     RecordKill(count: number = 1, killedEnemy: Node = null): void {
         if (!Number.isFinite(count) || count <= 0) return;
         this._killCount += Math.floor(count);
+        const guns = this.Players.filter(player => !player.IsDead).map(player => {
+            const gunID = ZRSJZ_InventoryService.GetWeaponryIDs(player.PlayerIndex)[0];
+            return ZRSJZ_GameData.Instance.PropData[gunID]?.Name;
+        }).filter(Boolean);
+        ZRSJZ_TaskService.RecordKills(guns, Math.floor(count));
         if (this._specialOperationState === "进行中"
             && this._specialOperationTaskType === "高价值目标"
             && killedEnemy === this._specialOperationTargetEnemy) {

@@ -3,6 +3,7 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_AccountService } from './ZRSJZ_AccountService';
 import { ZRSJZ_InventoryService } from './ZRSJZ_InventoryService';
 import { GetForgeRecipe, ZRSJZ_ForgeRecipe } from '../ZRSJZ_ForgeConstant';
+import { ZRSJZ_TaskService } from './ZRSJZ_TaskService';
 
 export type ZRSJZ_ForgeTask = {
     itemName: string,
@@ -103,6 +104,7 @@ export class ZRSJZ_ForgeService {
         const propID = ZRSJZ_InventoryService.AddPropByName(recipe.itemName, 1);
         if (!propID) return { success: false, message: '装备发放失败' };
         this.ClearTask();
+        ZRSJZ_TaskService.RecordForge(recipe.itemName);
         return {
             success: true,
             message: '已领取' + recipe.itemName,

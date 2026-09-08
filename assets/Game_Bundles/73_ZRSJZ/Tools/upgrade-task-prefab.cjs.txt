@@ -1,0 +1,95 @@
+// 开发工具源码归档，不能作为 Cocos 脚本导入；预制体已迁移，请勿再次运行。
+const fs = require('fs');
+const crypto = require('crypto');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+const read = f => JSON.parse(fs.readFileSync(path.join(root, f), 'utf8'));
+const save = (f, a) => fs.writeFileSync(path.join(root, f), JSON.stringify(a, null, 2) + '\n');
+const copy = o => JSON.parse(JSON.stringify(o));
+const sf = f => ({ __uuid__: read(f + '.meta').uuid + '@f9941', __expectedType__: 'cc.SpriteFrame' });
+const a = read('Prefabs/Panel/主线任务界面.prefab');
+if (a.some(n => n._name === 'Line_main')) throw new Error('预制体已迁移，不能重复执行');
+const component = (n, type) => a[n]._components.map(r => a[r.__id__]).find(c => c.__type__ === type);
+const size = (n,w,h,ax=0.5,ay=0.5) => {
+    const c=component(n,'cc.UITransform');
+    c._contentSize.width=w;c._contentSize.height=h;c._anchorPoint.x=ax;c._anchorPoint.y=ay;
+};
+const pos = (n,x,y) => {a[n]._lpos.x=x;a[n]._lpos.y=y;};
+function addComponent(n, template) {
+    const c=copy(template);c.node={__id__:n};c.__prefab={__id__:a.length+1};c._id='';
+    const id=a.length;a.push(c,{__type__:'cc.CompPrefabInfo',fileId:crypto.randomBytes(16).toString('hex')});
+    a[n]._components.push({__id__:id});return c;
+}
+function node(name,parent,w,h,x=0,y=0,ax=0.5,ay=0.5) {
+    const n=copy(a[22]);n._name=name;n._parent={__id__:parent};n._children=[];n._components=[];n._prefab=null;
+    const id=a.length;a.push(n);a[parent]._children.push({__id__:id});
+    addComponent(id,a[23]);size(id,w,h,ax,ay);pos(id,x,y);
+    n._prefab={__id__:a.length};a.push({__type__:'cc.PrefabInfo',root:{__id__:1},asset:{__id__:0},fileId:crypto.randomBytes(16).toString('hex')});
+    return id;
+}
+function sprite(name,parent,frame,w,h,x=0,y=0) {
+    const id=node(name,parent,w,h,x,y);const c=addComponent(id,a[64]);c._spriteFrame=frame;c._sizeMode=0;return id;
+}
+function label(name,parent,text,w,h,x=0,y=0,fontSize=36) {
+    const id=node(name,parent,w,h,x,y);const c=addComponent(id,a[25]);
+    c._string=text;c._fontSize=fontSize;c._lineHeight=fontSize+4;c._overflow=2;
+    c._color={__type__:'cc.Color',r:38,g:53,b:62,a:255};return id;
+}
+
+// 标题、双栏和固定详情区，使用现有弹板/目标/奖励图片。
+a[22]._name='Title';pos(22,0,414);size(22,300,64);
+Object.assign(a[25],{_string:'任务',_fontSize:52,_lineHeight:56,_overflow:2,
+    _color:{__type__:'cc.Color',r:255,g:255,b:255,a:255},_enableOutline:true,_outlineWidth:3});
+pos(28,-449,-40);size(28,550,758);pos(29,0,379);size(29,550,758,0.5,1);
+size(30,550,100,0.5,1);
+a[33]._verticalDirection=1;a[33]._spacingY=12;a[33]._paddingTop=0;a[33]._paddingBottom=12;
+pos(52,313,-40);size(52,840,758);a[173]._enabled=false;
+// 详情不滚动到按钮下面；按钮保持在固定底部。
+a[128]._enabled=false;pos(53,0,379);size(53,840,624,0.5,1);
+a[117]._enabled=false;a[119]._enabled=false;size(54,840,624,0.5,1);pos(54,0,0);
+pos(55,0,-46);size(55,820,72);pos(56,-382,0);size(56,764,60,0,0.5);a[59]._overflow=2;a[59]._string='初入禁区';
+pos(67,-382,-92);size(67,764,164,0,1);a[70]._overflow=2;a[70]._fontSize=36;a[70]._lineHeight=46;
+a[70]._string='完成新手教程，熟悉移动、战斗、搜索物资与撤离等基础操作，为接下来的行动做好准备。';
+pos(73,0,-342);size(73,809,145);
+pos(80,-294,-20);size(80,660,100,0,0.5);a[83]._fontSize=34;a[83]._lineHeight=40;a[83]._overflow=2;a[83]._string='完成新手教程 (0/1)';
+a[74]._active=false;
+pos(91,0,-520);size(91,809,205);
+for(const i of [131,146,161])pos(i,0,-311);
+a[131]._active=false;a[161]._active=false;
+
+// 六个任务组在预制体中常驻；运行时只克隆任务条目。
+const lines=[['main','禁区征途 · 主线'],['supply','后勤枢纽'],['armor','钢铁堡垒'],['weapon','尖兵军械'],['ammo','持续火力'],['goods','珍藏密库']];
+let y=0;
+for (const [id,title] of lines) {
+    const height=id==='main'?232:104;
+    const group=node('Line_'+id,30,550,height,0,y,0.5,1);
+    const header=node('Header',group,550,94,0,-47);
+    const opened=sprite('展开底',header,sf('Sprites/主线任务/任务打开.png'),550,94);
+    const closed=sprite('收起底',header,sf('Sprites/主线任务/任务合上.png'),550,94);
+    a[opened]._active=id==='main';a[closed]._active=id!=='main';
+    label('Name',header,title,420,68,28,0,34);
+    const dot=sprite('红点',header,{__uuid__:'69577499-209f-4552-833a-d847141b1ad9@f9941',__expectedType__:'cc.SpriteFrame'},26,26,253,30);
+    a[dot]._active=false;
+    const body=node('Body',group,550,id==='main'?128:0,0,-104,0.5,1);
+    a[body]._active=id==='main';
+    if(id==='main') {
+        const preview=sprite('编辑器任务预览',body,sf('Sprites/主线任务/任务选中.png'),517,116,0,-60);
+        label('任务名',preview,'初入禁区',290,70,-90,0,38);
+        sprite('进行中',preview,sf('Sprites/主线任务/进行中.png'),150,46,158,0);
+    }
+    y-=height+12;
+}
+size(30,550,-y,0.5,1);
+save('Prefabs/Panel/主线任务界面.prefab',a);
+
+const item=read('Prefabs/UI/MainTask.prefab');
+for (const c of item) {
+    if(c.__type__==='cc.UITransform' && c._contentSize.width===517)c._contentSize.height=116;
+}
+item[11]._overflow=2;item[11]._fontSize=38;item[11]._lineHeight=42;
+save('Prefabs/UI/MainTask.prefab',item);
+const reward=read('Prefabs/UI/TaskAward.prefab');
+const script=reward.find(c=>c.BottomSF && c.GoldSF && c.ExpSF);
+script.WarehouseSF=sf('Sprites/背包扩容/增加背包图标.png');
+save('Prefabs/UI/TaskAward.prefab',reward);
+console.log('Updated task panel, task row and expansion reward prefabs.');

@@ -2,6 +2,8 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager
 import { ZRSJZ_MAIN_TASK_CONFIG } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_GradeService } from "./ZRSJZ_GradeService";
+import { ZRSJZ_SIDE_TASK_CONFIG, ZRSJZ_SIDE_TASK_LINES, ZRSJZ_TaskObjective } from '../ZRSJZ_TaskLines';
+import { ZRSJZ_InventoryService } from './ZRSJZ_InventoryService';
 
 export class ZRSJZ_TaskService {
 
@@ -18,9 +20,22 @@ export class ZRSJZ_TaskService {
     }
 
     //领取任务奖励
-    public static GetTaskAward() {
+    public static GetTaskAward(taskID?: string): boolean {
+        if (taskID && ZRSJZ_SIDE_TASK_CONFIG.has(taskID)) {
+            if (this.GetTaskState(taskID) !== 2) return false;
+            const line = ZRSJZ_SIDE_TASK_LINES.find(line => line.Tasks.some(task => task.ID === taskID));
+            const progress = ZRSJZ_GameData.Instance.TaskLines[line.ID];
+            progress.index++;
+            progress.accepted = false;
+            progress.count = 0;
+            // 扩容接口一次保存进度与行数；先推进进度，防止重复点击或事件重入重复发奖。
+            ZRSJZ_InventoryService.AddInventoryRow(line.Warehouse, ZRSJZ_SIDE_TASK_CONFIG.get(taskID).TaskAwards[0].TaskAwardCount);
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW);
+            return true;
+        }
         const data = ZRSJZ_GameData.Instance;
-        if (!data.CurMainTask) return;
+        if (!data.CurMainTask || (taskID && data.CurMainTask.TaskName !== taskID)
+            || !this.IsTaskReadyToClaim(data.CurMainTask.TaskName)) return false;
         const taskName = data.CurMainTask.TaskName;
         this.GetTaskExperienceAward(taskName);
         data.MainTaskComplete.push(taskName);
@@ -34,11 +49,23 @@ export class ZRSJZ_TaskService {
         data.CurMainTask = null;
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW);
         ZRSJZ_GameData.SaveData();
+        return true;
     }
 
     //领取任务
-    public static GetNewTask() {
+    public static GetNewTask(taskID?: string) {
+        if (taskID && ZRSJZ_SIDE_TASK_CONFIG.has(taskID)) {
+            if (this.GetTaskState(taskID) !== 0) return;
+            const line = ZRSJZ_SIDE_TASK_LINES.find(line => line.Tasks.some(task => task.ID === taskID));
+            const progress = ZRSJZ_GameData.Instance.TaskLines[line.ID];
+            progress.accepted = true;
+            progress.count = 0;
+            ZRSJZ_GameData.SaveData();
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW);
+            return;
+        }
         const data = ZRSJZ_GameData.Instance;
+        if (data.CurMainTask || (taskID && taskID !== data.NewMainTask)) return;
         if (!data.NewMainTask || !ZRSJZ_MAIN_TASK_CONFIG.has(data.NewMainTask)) return;
         const task = ZRSJZ_MAIN_TASK_CONFIG.get(data.NewMainTask);
         // 兼容没有发布快照的旧存档；一旦生成后只读取，不再重新计算。
@@ -84,6 +111,15 @@ export class ZRSJZ_TaskService {
      */
     public static GetTaskState(taskName: string) {
         const data = ZRSJZ_GameData.Instance;
+        const line = ZRSJZ_SIDE_TASK_LINES.find(line => line.Tasks.some(task => task.ID === taskName));
+        if (line) {
+            const progress = data.TaskLines[line.ID];
+            const index = line.Tasks.findIndex(task => task.ID === taskName);
+            if (index < progress.index) return 3;
+            if (index > progress.index) return -1;
+            if (!progress.accepted) return 0;
+            return progress.count >= line.Tasks[index].Objective.count ? 2 : 1;
+        }
         if (data.MainTaskComplete.includes(taskName)) {
             return 3;
         } else if (data.CurMainTask && data.CurMainTask.TaskName == taskName) {
@@ -93,7 +129,7 @@ export class ZRSJZ_TaskService {
                 return 1;
             }
         } else {
-            return 0;
+            return data.NewMainTask === taskName ? 0 : -1;
         }
     }
 
@@ -101,13 +137,71 @@ export class ZRSJZ_TaskService {
     public static HasMainTaskReminder(): boolean {
         const data = ZRSJZ_GameData.Instance;
         const hasTaskToAccept = !!data.NewMainTask && ZRSJZ_MAIN_TASK_CONFIG.has(data.NewMainTask);
-        return hasTaskToAccept || this.IsTaskReadyToClaim(data.CurMainTask?.TaskName);
+        return hasTaskToAccept || this.IsTaskReadyToClaim(data.CurMainTask?.TaskName)
+            || ZRSJZ_SIDE_TASK_LINES.some(line => {
+                const task = line.Tasks[data.TaskLines[line.ID]?.index ?? 0];
+                return task && this.ShouldShowTaskReminder(task.ID);
+            });
     }
 
     /** 指定任务条目是否需要显示红点。 */
     public static ShouldShowTaskReminder(taskName: string): boolean {
         const data = ZRSJZ_GameData.Instance;
-        return data.NewMainTask === taskName || this.IsTaskReadyToClaim(taskName);
+        const state = this.GetTaskState(taskName);
+        return state === 0 || state === 2;
+    }
+
+    public static GetConfig(taskID: string) {
+        return ZRSJZ_SIDE_TASK_CONFIG.get(taskID) ?? ZRSJZ_MAIN_TASK_CONFIG.get(taskID);
+    }
+
+    public static GetProgress(taskID: string): number {
+        const line = ZRSJZ_SIDE_TASK_LINES.find(line => line.Tasks.some(task => task.ID === taskID));
+        if (this.GetTaskState(taskID) === 3) return this.GetConfig(taskID).TaskTargets[0].TaskTargetCount;
+        if (line) return line.Tasks[ZRSJZ_GameData.Instance.TaskLines[line.ID].index]?.ID === taskID
+            ? ZRSJZ_GameData.Instance.TaskLines[line.ID].count : 0;
+        return ZRSJZ_GameData.Instance.CurMainTask?.TaskName === taskID
+            ? ZRSJZ_GameData.Instance.CurMainTask.CurCount : 0;
+    }
+
+    private static Advance(match: (objective: ZRSJZ_TaskObjective) => number): void {
+        let changed = false;
+        const data = ZRSJZ_GameData.Instance;
+        ZRSJZ_SIDE_TASK_LINES.forEach(line => {
+            const progress = data.TaskLines[line.ID];
+            const task = line.Tasks[progress?.index];
+            if (!progress?.accepted || !task || progress.count >= task.Objective.count) return;
+            const increment = match(task.Objective);
+            if (!Number.isFinite(increment) || increment <= 0) return;
+            progress.count = Math.min(task.Objective.count, progress.count + increment);
+            changed = true;
+        });
+        if (!changed) return;
+        ZRSJZ_GameData.SaveData();
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW);
+    }
+
+    public static RecordKills(guns: readonly string[], count: number = 1): void {
+        this.Advance(o => o.kind === 'kills' || (o.kind === 'armedKills' && guns.includes(o.item)) ? count : 0);
+    }
+
+    public static RecordBoss(map: string): void {
+        this.Advance(o => o.kind === 'boss' && o.map === map ? 1 : 0);
+    }
+
+    public static RecordExtraction(propIDs: readonly string[]): void {
+        const props = Array.from(new Set(propIDs)).map(id => ZRSJZ_GameData.Instance.PropData[id])
+            .filter(prop => prop && prop.CurCount > 0);
+        const value = props.reduce((sum, prop) => sum + prop.UnitPrice * prop.CurCount, 0);
+        this.Advance(o => {
+            if (o.kind === 'extractValue') return value >= o.value ? 1 : 0;
+            if (o.kind === 'extractItem') return props.reduce((sum, prop) => sum + (prop.Name === o.item ? prop.CurCount : 0), 0);
+            return 0;
+        });
+    }
+
+    public static RecordForge(itemName: string): void {
+        this.Advance(o => o.kind === 'forge' && o.item === itemName ? 1 : 0);
     }
 
     private static IsTaskReadyToClaim(taskName: string): boolean {
@@ -120,5 +214,3 @@ export class ZRSJZ_TaskService {
     }
 
 }
-
-

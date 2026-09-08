@@ -1,0 +1,144 @@
+// 开发测试源码归档。仅可复制到 assets 之外运行，不能作为 Cocos 脚本导入。
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+const assert = require('assert');
+const ts = require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const root = path.resolve(__dirname, '..');
+const cache = new Map();
+const storage = new Map();
+const events = [];
+let Data;
+const stubs = {
+    cc: { sys: { localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v), removeItem: k => storage.delete(k) } } },
+    ZRSJZ_GradeService: { ZRSJZ_GradeService: { GetExperienceToNextLevel: () => 1234 } },
+    ZRSJZ_EventManager: { ZRSJZ_EventManager: { Emit: (...args) => events.push(args) }, ZRSJZ_MyEvent: {} },
+    ZRSJZ_MailService: { ZRSJZ_MailService: { CheckExpired() {} } },
+    ZRSJZ_InventoryService: { ZRSJZ_InventoryService: { AddInventoryRow(inventory, rows) {
+        const d=Data.Instance; d.InventoryRow[inventory]=(d.InventoryRow[inventory] ?? config.ZRSJZ_INVENTORY_CONFIG.get(inventory).Row)+rows;
+        Data.SaveData();
+    } } },
+};
+function load(file) {
+    file=path.resolve(root,file);
+    if(cache.has(file))return cache.get(file).exports;
+    const mod={exports:{}};cache.set(file,mod);
+    const src=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,experimentalDecorators:true}}).outputText;
+    const localRequire=req=> {
+        if(stubs[req])return stubs[req];
+        const base=path.basename(req);
+        if(stubs[base])return stubs[base];
+        return load(path.resolve(path.dirname(file),req+'.ts'));
+    };
+    vm.runInThisContext('(function(require,module,exports){'+src+'\n})',{filename:file})(localRequire,mod,mod.exports);
+    return mod.exports;
+}
+const config=load('Scripts/ZRSJZ_Constant.ts');
+const lines=load('Scripts/ZRSJZ_TaskLines.ts').ZRSJZ_SIDE_TASK_LINES;
+const forge=load('Scripts/ZRSJZ_ForgeConstant.ts');
+Data=load('Scripts/ZRSJZ_GameData.ts').ZRSJZ_GameData;
+const service=load('Scripts/Service/ZRSJZ_TaskService.ts').ZRSJZ_TaskService;
+const defaults=load('Scripts/Service/ZRSJZ_GameDataDefaults.ts').ZRSJZ_GameDataDefaults;
+assert.equal(lines.length,5);
+assert.equal(new Set(lines.flatMap(l=>l.Tasks.map(t=>t.ID))).size,50);
+for(const line of lines){
+    assert.equal(line.Tasks.length,10);
+    assert.equal(line.Tasks[3].Objective.kind,'forge');
+    for(const t of line.Tasks){
+        const o=t.Objective;
+        if(o.item)assert(config.ZRSJZ_PROP_CONFIG.has(o.item),'missing prop '+o.item);
+        if(o.kind==='forge')assert(forge.GetForgeRecipe(o.item),'missing recipe '+o.item);
+        if(o.kind==='boss')assert(config.ZRSJZ_MAP_CONFIG.has(o.map),'missing map '+o.map);
+        assert.equal(t.TaskAwards[0].TaskAwardCount,2);
+    }
+}
+// 各个正式旧版本、无版本存档都保留主线/已领取标志/仓库容量，并留存迁移备份。
+for(const version of [undefined,0,1,2,3,4]){
+    const old={MainTaskComplete:['初入禁区'],CurMainTask:{TaskName:'弹药补给',TaskTargetName:'在商城购买[1级子弹]',CurCount:1},NewMainTask:'',Gold:98765,
+        InventoryRow:{'仓库_全部':37,'仓库_装备':21},MainTaskExperienceAwards:{'弹药补给':876},PropData:{}};
+    if(version!==undefined)old.Versions=version;
+    storage.set('ZRSJZ_GameData',JSON.stringify(old));Data._instance=null;
+    const d=Data.Instance;
+    assert.equal(d.Versions,5);assert.deepStrictEqual(d.CurMainTask,old.CurMainTask);
+    assert.deepStrictEqual(d.MainTaskComplete,old.MainTaskComplete);
+    assert.deepStrictEqual(d.InventoryRow,old.InventoryRow);assert.equal(d.Gold,old.Gold);
+    assert.equal(d.MainTaskExperienceAwards['弹药补给'],876);
+    assert.equal(Object.keys(d.TaskLines).length,5);
+    assert.equal(storage.get('ZRSJZ_GameData_before_v5'),JSON.stringify(old));
+    const snapshot=JSON.stringify(d);assert.equal(defaults.Migrate(d,JSON.parse(snapshot)),false);assert.equal(JSON.stringify(d),snapshot);
+}
+storage.clear();Data._instance=null;let d=Data.Instance;assert.equal(d.Versions,5);
+function fulfill(o){
+    switch(o.kind){
+        case 'kills':service.RecordKills([],o.count);break;
+        case 'armedKills':service.RecordKills([o.item,o.item],o.count);break;
+        case 'forge':service.RecordForge(o.item);break;
+        case 'boss':for(let i=0;i<o.count;i++)service.RecordBoss(o.map);break;
+        case 'extractValue':
+            d.PropData.test={Name:'金条',CurCount:1,UnitPrice:o.value};service.RecordExtraction(['test','test']);break;
+        case 'extractItem':
+            d.PropData.test={Name:o.item,CurCount:o.count,UnitPrice:1};service.RecordExtraction(['test','test']);break;
+    }
+}
+// 全线全任务接取、错误目标、进度、重进存档、领奖、重复点击、最终上限。
+for(const line of lines){
+    const initial=config.ZRSJZ_INVENTORY_CONFIG.get(line.Warehouse).Row;
+    for(let i=0;i<10;i++){
+        const t=line.Tasks[i];assert.equal(service.GetTaskState(t.ID),0);
+        fulfill(t.Objective);assert.equal(service.GetProgress(t.ID),0,'未接取不计数');
+        if(i<9){service.GetNewTask(line.Tasks[i+1].ID);assert.equal(service.GetTaskState(line.Tasks[i+1].ID),-1);}
+        service.GetNewTask(t.ID);assert.equal(service.GetTaskState(t.ID),1);
+        assert.equal(service.GetTaskAward(t.ID),false,'未完成不能领奖');
+        service.RecordBoss('不存在');service.RecordForge('不存在');assert.equal(service.GetProgress(t.ID),0);
+        fulfill(t.Objective);assert.equal(service.GetTaskState(t.ID),2,t.ID);
+        service.GetNewTask(t.ID);assert.equal(service.GetTaskState(t.ID),2,'重复接取不能清进度');
+        Data.SaveData();Data._instance=null;d=Data.Instance;assert.equal(service.GetTaskState(t.ID),2);
+        assert(service.GetTaskAward(t.ID));assert.equal(service.GetTaskAward(t.ID),false);
+        assert.equal(service.GetTaskState(t.ID),3);assert.equal(d.InventoryRow[line.Warehouse],initial+(i+1)*2);
+    }
+}
+assert.equal(service.HasMainTaskReminder(),false);
+// 单局价值不足不累计，重复道具ID不重复统计。
+d.TaskLines.supply={index:4,accepted:true,count:0};d.PropData.test={Name:'金条',CurCount:1,UnitPrice:1000000};
+service.RecordExtraction(['test','test']);service.RecordExtraction(['test']);assert.equal(service.GetProgress('supply_5'),0);
+d.PropData.test.UnitPrice=2000000;service.RecordExtraction(['test']);assert.equal(service.GetTaskState('supply_5'),2);
+// 同一击杀可推进不同线，但相同枪械列表不会使同线翻倍。
+d.TaskLines.supply={index:2,accepted:true,count:0};d.TaskLines.weapon={index:0,accepted:true,count:0};
+service.RecordKills(['CN8-突击步枪','CN8-突击步枪']);assert.equal(service.GetProgress('supply_3'),1);assert.equal(service.GetProgress('weapon_1'),1);
+service.CompleteTask('完成新手教程');assert.equal(service.GetTaskState('初入禁区'),2);
+assert(service.GetTaskAward('初入禁区'));assert.equal(d.NewMainTask,'弹药补给');assert.equal(service.GetTaskAward('初入禁区'),false);
+console.log('PASS: 50任务配置、6种目标、六种旧存档迁移、重载/重复迁移、重复领奖、每仓+20行、并行推进、单局价值与去重、原主线兼容。');
+
+const prefab=JSON.parse(fs.readFileSync(path.join(root,'Prefabs/Panel/主线任务界面.prefab'),'utf8'));
+function findNode(nodePath){
+    let n=prefab[1];
+    for(const name of nodePath.split('/')){n=n._children.map(r=>prefab[r.__id__]).find(n=>n._name===name);assert(n,'missing node '+nodePath);}
+    return n;
+}
+const detail='Panel/TasksDesc/View/Content/';
+for(const p of ['TaskName/TaskName','TaskDesc','TaskTarget/TaskTargetDesc']){
+    assert(findNode(detail+p)._components.some(r=>prefab[r.__id__].__type__==='cc.Label'));
+}
+findNode(detail+'TaskTarget/Complete');findNode(detail+'TaskAward/View/Content');
+for(const name of ['领取任务','领取奖励','已接取任务'])findNode('Panel/TasksDesc/'+name);
+for(const id of ['main',...lines.map(l=>l.ID)]){
+    const base='Panel/Tasks/View/Content/Line_'+id+'/';
+    for(const name of ['Header','Header/展开底','Header/收起底','Header/Name','Header/红点','Body'])findNode(base+name);
+}
+for(let i=0;i<prefab.length;i++){
+    const n=prefab[i];if(n.__type__!=='cc.Node')continue;
+    for(const r of n._children)assert.equal(prefab[r.__id__]._parent.__id__,i,'parent mismatch');
+    for(const r of n._components)assert.equal(prefab[r.__id__].node.__id__,i,'component mismatch');
+}
+// 使用真实 Inventory 方法验证+2行起点、重复扩容事件及保存容量同步，不创建真实游戏节点。
+const inventorySource=fs.readFileSync(path.join(root,'Scripts/UI/ZRSJZ_Inventory.ts'),'utf8');
+const sourceTree=ts.createSourceFile('Inventory.ts',inventorySource,ts.ScriptTarget.Latest,true);
+const cls=sourceTree.statements.find(n=>ts.isClassDeclaration(n));
+const method=cls.members.find(n=>n.name?.getText(sourceTree)==='AddInventoryRow');
+const testClass=ts.transpileModule('class Inventory { '+method.getText(sourceTree)+' }',{compilerOptions:{target:ts.ScriptTarget.ES2020}}).outputText;
+const Inventory=vm.runInNewContext(testClass+'; Inventory;',{ZRSJZ_InventoryService:{GetInventoryRow:()=>12},ZRSJZ_GRID_SIZE:132,ZRSJZ_GRID_INTERVAL:5,UITransform:class {}});
+const inv=new Inventory();Object.assign(inv,{InventoryType:'仓库_全部',IsInitialized:true,InventoryConfig:{Row:10,Col:7},Grids:Array.from({length:10},()=>Array(7).fill(''))});
+const positions=[];inv.CreateEmptyGrid=(x,y)=>positions.push([x,y]);inv.getComponent=()=>({});
+inv.AddInventoryRow('仓库_全部',2);assert.equal(inv.Grids.length,12);assert.deepStrictEqual([...new Set(positions.map(p=>p[1]))],[10,11]);
+inv.AddInventoryRow('仓库_全部',2);assert.equal(inv.Grids.length,12);assert.equal(positions.length,14);
+console.log('PASS: 预制体所有运行时绑定路径、六个任务组、节点引用、实际仓库扩容方法的行号与重复事件。');

@@ -2,6 +2,7 @@ import { sys } from "cc";
 import { ZRSJZ_INVENTORY, ZRSJZ_MailConfig, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName } from "./ZRSJZ_Constant";
 import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
 import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
+import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
 
 /**
  * 游戏存档数据容器。
@@ -14,7 +15,7 @@ import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 4;//当前版本
+    public static readonly Versions = 5;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -44,11 +45,14 @@ export class ZRSJZ_GameData {
             && !Array.isArray(savedData);
         const hasVersions = isValidSavedData
             && Object.prototype.hasOwnProperty.call(savedData, "Versions");
-        if (!hasVersions || savedData.Versions < 3) {
-            console.warn("[ZRSJZ_GameData] 检测到缺少 Versions 的旧存档，已删除并创建新存档");
-            sys.localStorage.removeItem(this.STORAGE_KEY);
+        if (!isValidSavedData) {
             return this.CreateNewData();
         }
+        // 有效旧存档不再因版本较低而清空；先备份原始内容，再进入逐级迁移。
+        if (!hasVersions || savedData.Versions < this.Versions) {
+            sys.localStorage.setItem(this.STORAGE_KEY + '_before_v5', json);
+        }
+        if (!hasVersions || !Number.isFinite(savedData.Versions)) savedData.Versions = 0;
 
         this._instance = Object.assign(new ZRSJZ_GameData(), savedData);
         if (ZRSJZ_GameDataDefaults.Migrate(this._instance, savedData)) this.SaveData();
@@ -110,6 +114,7 @@ export class ZRSJZ_GameData {
     public MainTaskExperienceAwards: { [taskName: string]: number } = {};//任务发布时的经验奖励快照
     public CurMainTask: { TaskName: string, TaskTargetName: string, CurCount: number } = null;//正在进行的任务
     public NewMainTask: string = "";//新任务
+    public TaskLines: Record<string, ZRSJZ_TaskLineProgress> = {};//仓库支线独立进度
 
     //#region 等级系统
     public Grade: number = 1;//等级（1～60）

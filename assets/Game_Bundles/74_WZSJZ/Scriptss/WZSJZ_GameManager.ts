@@ -22,6 +22,7 @@ import {
 import { WZSJZ_Cell } from './WZSJZ_Cell';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { WZSJZ_Incident } from './WZSJZ_Incident';
+import { WZSJZ_StartupTrace } from './WZSJZ_StartupTrace';
 import { WZSJZ_GameData } from './WZSJZ_GameData';
 import { WZSJZ_Wall } from './WZSJZ_Wall';
 import { WZSJZ_CombatSystem } from './WZSJZ_CombatSystem';
@@ -107,6 +108,7 @@ export class WZSJZ_GameManager extends Component {
     private _hasGameInitialized: boolean = false;
     private _initializationFinished: boolean = false;
     private _startupTraceFrame: number = 0;
+    private _startupTrace: WZSJZ_StartupTrace = null;
     private _keySlotNode: Node = null;
     private _keyDragVisual: Node = null;
     private _keyDragStartWorldPosition: Vec3 = new Vec3();
@@ -151,6 +153,7 @@ export class WZSJZ_GameManager extends Component {
     }
 
     protected start(): void {
+        this._startupTrace = WZSJZ_StartupTrace.Start();
         console.info('[WZSJZ][Init] 开始初始化棋盘');
         ProjectEventManager.emit(ProjectEvent.游戏开始);
         this.InitBoard();
@@ -290,6 +293,7 @@ export class WZSJZ_GameManager extends Component {
     }
 
     protected onDestroy(): void {
+        this._startupTrace?.Stop();
         WZSJZ_UIManager.Instance?.ResetGameTimeScale();
         this.ClearKeyUnlockHints();
         if (WZSJZ_GameManager._instance === this) {

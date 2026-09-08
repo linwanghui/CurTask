@@ -146,7 +146,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 517,
-      "height": 140
+      "height": 116
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -312,18 +312,18 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 24,
-      "g": 46,
-      "b": 76,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_string": "TaskName",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 31,
-    "_fontSize": 30,
+    "_fontSize": 38,
     "_fontFamily": "Arial",
-    "_lineHeight": 40,
+    "_lineHeight": 42,
     "_overflow": 2,
     "_enableWrapText": true,
     "_font": {
@@ -337,7 +337,7 @@
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": false,
+    "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -938,7 +938,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 517,
-      "height": 140
+      "height": 116
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

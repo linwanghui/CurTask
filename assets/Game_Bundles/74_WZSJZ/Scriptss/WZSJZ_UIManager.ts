@@ -19,6 +19,7 @@ import { WZSJZ_Constant } from './WZSJZ_Constant';
 import { BundleManager } from '../../../Scripts/Framework/Managers/BundleManager';
 import { WZSJZ_AudioManager } from './WZSJZ_AudioManager';
 import { WZSJZ_EventManager } from './WZSJZ_EventManager';
+import { WZSJZ_NativeSpineGuard } from './WZSJZ_NativeSpineGuard';
 import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
 
@@ -72,6 +73,7 @@ export class WZSJZ_UIManager extends Component {
             return;
         }
         WZSJZ_UIManager._instance = this;
+        WZSJZ_NativeSpineGuard.Install();
         this.EnsurePanelDictionaries();
         WZSJZ_AudioManager.Initialize();
         this.InstallGlobalTimeScale();
@@ -87,6 +89,7 @@ export class WZSJZ_UIManager extends Component {
 
     protected onDestroy(): void {
         if (!WZSJZ_UIManager._instance || WZSJZ_UIManager._instance === this) {
+            WZSJZ_NativeSpineGuard.Uninstall();
             const normal = WZSJZ_Constant.SpeedUp.NormalMultiplier;
             WZSJZ_UIManager._gameTimeScale = normal;
             WZSJZ_UIManager._playerGameTimeScale = normal;

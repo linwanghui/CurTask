@@ -40,14 +40,15 @@ export class ZRSJZ_MainTask extends Component {
             this.node.on(Node.EventType.TOUCH_END, this.Click, this);
         }
         this.TaksName = taskName;
-        this.TaskNameLabel.string = taskName;
+        this.TaskNameLabel.string = ZRSJZ_TaskService.GetConfig(taskName)?.TaskName ?? taskName;
         this.Show();
     }
 
     Show() {
-        this.GetState.active = this.TaksName === ZRSJZ_GameData.Instance.NewMainTask;
-        this.CompleteState.active = ZRSJZ_GameData.Instance.MainTaskComplete.includes(this.TaksName);
-        this.UnderwayState.active = ZRSJZ_GameData.Instance.CurMainTask?.TaskName === this.TaksName;
+        const state = ZRSJZ_TaskService.GetTaskState(this.TaksName);
+        this.GetState.active = state === 0 || state === 2;
+        this.CompleteState.active = state === 3;
+        this.UnderwayState.active = state === 1;
         this.TipNode.active = ZRSJZ_TaskService.ShouldShowTaskReminder(this.TaksName);
     }
 
@@ -60,5 +61,4 @@ export class ZRSJZ_MainTask extends Component {
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_CHECK, this.TaksName);
     }
 }
-
 

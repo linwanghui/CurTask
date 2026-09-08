@@ -138,6 +138,10 @@ export interface WZSJZ_BossConfig {
 }
 
 export class WZSJZ_Constant {
+    /** 原生平台在骨骼退出后暂缓绘制，等下一次正常update清理原生队列。 */
+    public static readonly NativeSpineCompatibility = { Enabled: true };
+    /** 临时原生崩溃定位。修复后关闭Enabled，避免首帧日志影响性能。 */
+    public static readonly StartupDiagnostics = { Enabled: true, Frames: 3, MaxLogLines: 6000 };
     public static ZRSJZcombination: boolean = true;//是否开启和真人三角洲的联动
 
     /** 真人三角洲联动通关奖励；名称必须与“Sprites/特殊掉落物”中的图片同名。 */

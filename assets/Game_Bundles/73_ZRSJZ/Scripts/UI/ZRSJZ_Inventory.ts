@@ -109,10 +109,10 @@ export class ZRSJZ_Inventory extends Component {
     }
 
     AddInventoryRow(inventoryType: ZRSJZ_INVENTORY, addRow: number) {
-        if (inventoryType !== this.InventoryType) return;
-        this.InventoryConfig.Row += addRow;
-        const preRow = this.InventoryConfig.Row - 1;
-        for (let i = 0; i < addRow; i++) {
+        if (inventoryType !== this.InventoryType || !this.IsInitialized || !this.InventoryConfig) return;
+        const preRow = this.Grids.length;
+        this.InventoryConfig.Row = ZRSJZ_InventoryService.GetInventoryRow(inventoryType, preRow + addRow);
+        for (let i = 0; i < this.InventoryConfig.Row - preRow; i++) {
             const row = [];
             for (let j = 0; j < this.InventoryConfig.Col; j++) {
                 row.push("");
@@ -299,8 +299,7 @@ export class ZRSJZ_Inventory extends Component {
         inventoryType: ZRSJZ_INVENTORY,
     ): { Row: number, Col: number, IsDilatation: boolean } {
         const config = ZRSJZ_INVENTORY_CONFIG.get(inventoryType);
-        config.Row = ZRSJZ_InventoryService.GetInventoryRow(inventoryType, config.Row);
-        return config;
+        return { ...config, Row: ZRSJZ_InventoryService.GetInventoryRow(inventoryType, config.Row) };
     }
 
     private async SyncEmptyGridNodes() {

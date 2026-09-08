@@ -2,6 +2,7 @@ import { _decorator, director, isValid, Label, Sprite } from 'cc';
 import { PanelBase } from '../../../../Scripts/Framework/UI/PanelBase';
 import { WZSJZ_UIManager } from '../WZSJZ_UIManager';
 import { WZSJZ_Constant } from '../WZSJZ_Constant';
+import { WZSJZ_NativeSpineGuard } from '../WZSJZ_NativeSpineGuard';
 
 const { ccclass, property } = _decorator;
 
@@ -49,6 +50,7 @@ export class WZSJZ_LoadingPanel extends PanelBase {
             console.info(`[WZSJZ][SceneLoad] 预加载完成：${sceneName}`);
             this.scheduleOnce(() => {
                 if (!alive()) return;
+                WZSJZ_NativeSpineGuard.BeforeSceneSwitch();
                 const accepted = director.loadScene(sceneName, (loadError) => {
                     if (!alive()) return;
                     if (loadError) { failed(loadError); return; }

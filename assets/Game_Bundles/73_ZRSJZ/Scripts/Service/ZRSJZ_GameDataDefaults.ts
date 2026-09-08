@@ -7,6 +7,7 @@ import {
     ZRSJZ_PropData,
 } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
+import { ZRSJZ_SIDE_TASK_LINES } from '../ZRSJZ_TaskLines';
 
 /** 新存档初始化和旧存档迁移。此类不触发事件，也不主动写盘。 */
 export class ZRSJZ_GameDataDefaults {
@@ -29,32 +30,23 @@ export class ZRSJZ_GameDataDefaults {
             TaskTargetName: task.TaskTargets[0].TaskTargetName,
             CurCount: 0
         }
-
+        this.InitializeTaskLines(data);
+        data.Versions = ZRSJZ_GameData.Versions;
     }
 
     public static Migrate(data: ZRSJZ_GameData, savedData: any): boolean {
-        // Versions 出现之前的测试期存档会在 ReadData 中直接删除并重建，
-        // 因此这里不再保留历史测试数据的迁移和修正逻辑。
-        //
-        // 正式版本后如需修改存档结构，请在这里按 savedData.Versions
-        // 逐级迁移 data，完成后更新 data.Versions，并返回 true 触发保存。
-        // 示例：
-        // if (savedData.Versions < 1) {
-        //     // 将版本 0 的正式存档迁移到版本 1。
-        //     data.Versions = 1;
-        //     return true;
-        // }
+        // 逐级补充缺失字段，不覆盖玩家已有数据；版本4→5增加独立支线进度。
         let flag = false;
         if (data.Versions == 0) {
             data.Versions++;
-            data.IsTutorial = false;
-            return true;
+            if (savedData.IsTutorial === undefined) data.IsTutorial = false;
         }
 
         const loadData = () => {
-            this.DataDefaults.get(data.Versions).forEach(item => {
-                data[item.Key] = item.DefaultVaule;
+            (this.DataDefaults.get(data.Versions) ?? []).forEach(item => {
+                if (savedData[item.Key] === undefined) data[item.Key] = item.DefaultVaule;
             });
+            if (data.Versions === 4) this.InitializeTaskLines(data);
             data.Versions++;
         }
 
@@ -64,6 +56,14 @@ export class ZRSJZ_GameDataDefaults {
         }
 
         return flag;
+    }
+
+    private static InitializeTaskLines(data: ZRSJZ_GameData): void {
+        data.TaskLines ??= {};
+        ZRSJZ_SIDE_TASK_LINES.forEach(line => {
+            data.TaskLines[line.ID] ??= { index: 0, accepted: false, count: 0 };
+        });
+        // 主线字段和 InventoryRow 原样保留，不回溯发奖励，也不重置已有容量。
     }
 
     private static CreateProp(data: ZRSJZ_GameData, propName: string, count: number): string {
