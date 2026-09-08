@@ -3,6 +3,7 @@ import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ProjectEvent, ProjectEventManager } from 'db://assets/Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_FailPanel')
@@ -46,6 +47,7 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
                 .to(0.3, { scale: Vec3.ONE }, { easing: 'circIn' })
                 .start();
         });
+        ProjectEventManager.emit(ProjectEvent.游戏结束, "真人三角洲");
     }
 
     public async OnButtonClick(event: EventTouch): Promise<void> {

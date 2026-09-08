@@ -14,7 +14,7 @@ import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 3;//当前版本
+    public static readonly Versions = 4;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -168,5 +168,8 @@ export class ZRSJZ_GameData {
     //#region 版本2之后新增
     public MailData: { [Mail: string]: ZRSJZ_MailConfig } = {};
     public MailID: number = 0;
-
+    //#region 版本3之后新增
+    public PetData: { [PetName: string]: { Skins: string[], Level: number, CurrentSkin?: string } } = {};
+    public CurPet: string = "";
+    public CurPetSkin: string = "";
 }

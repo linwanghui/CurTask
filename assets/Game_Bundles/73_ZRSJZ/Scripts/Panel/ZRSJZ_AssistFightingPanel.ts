@@ -65,7 +65,7 @@ export class ZRSJZ_AssistFightingPanel extends ZRSJZ_Panel {
                 break;
             case "免费领取":
                 Banner.Instance.ShowVideoAd(() => {
-                    this.ClaimGift();
+                    void this.ClaimGift();
                 })
                 break;
         }
@@ -95,12 +95,17 @@ export class ZRSJZ_AssistFightingPanel extends ZRSJZ_Panel {
             .forEach((sprite, index) => sprite.spriteFrame = spriteFrames[index]);
     }
 
-    private ClaimGift(): void {
+    private async ClaimGift(): Promise<void> {
         if (this._isClaiming || !this._gift) return;
         this._isClaiming = true;
         const playerIndexes = ZRSJZ_GameData.Instance.CurModel === "2p" ? [0, 1] : [0];
+        const replacedPropIDs: string[] = [];
         const success = playerIndexes.every(playerIndex =>
-            ZRSJZ_InventoryService.ApplyAssistFightingGift(this._gift, playerIndex)
+            ZRSJZ_InventoryService.ApplyAssistFightingGift(
+                this._gift,
+                playerIndex,
+                replacedPropIDs,
+            )
         );
         if (!success) {
             this._isClaiming = false;
@@ -108,6 +113,10 @@ export class ZRSJZ_AssistFightingPanel extends ZRSJZ_Panel {
             return;
         }
 
+        const mailAwards = await ZRSJZ_UIManager.Instance.ReceiveExistingProps(replacedPropIDs);
+        if (mailAwards.length > 0) {
+            void ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，退下的装备和弹药已发送至邮件");
+        }
         this.startGame();
     }
 
@@ -120,5 +129,4 @@ export class ZRSJZ_AssistFightingPanel extends ZRSJZ_Panel {
     }
 
 }
-
 

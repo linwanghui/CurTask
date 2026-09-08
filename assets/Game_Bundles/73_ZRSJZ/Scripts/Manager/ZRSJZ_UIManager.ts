@@ -15,6 +15,7 @@ import { ZRSJZ_Tip } from '../UI/ZRSJZ_Tip';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './ZRSJZ_EventManager';
 import { ZRSJZ_MailService } from '../Service/ZRSJZ_MailService';
 import Banner from 'db://assets/Scripts/Banner';
+import { ProjectEvent, ProjectEventManager } from "db://assets/Scripts/Framework/Managers/ProjectEventManager";
 const { ccclass, property } = _decorator;
 
 export interface ZRSJZ_PropAwardInput {
@@ -403,6 +404,7 @@ export class ZRSJZ_UIManager extends Component {
     public static InitEvent() {
         input.off(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
         input.on(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
+        director.getScene().once("退出游戏", this.Recycle, this);
     }
 
     //#region UI展示
@@ -431,6 +433,7 @@ export class ZRSJZ_UIManager extends Component {
             if (panelNode) {
                 panelNode.setSiblingIndex(99);
                 panelNode.getComponent(ZRSJZ_Panel).Show(...args);
+                ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
             }
         }
 
@@ -1096,17 +1099,28 @@ export class ZRSJZ_UIManager extends Component {
         );
     }
 
-    /** 把已经存在于局内库存的道具逐件转入仓库，失败项合并为一封邮件。 */
-    private async ReceiveExistingProps(propIDs: ReadonlyArray<string>): Promise<void> {
+    /**
+     * 把已经存在的道具逐件转入分类仓库，再回退到主仓库。
+     * 两处都放不下的道具会删除临时实例并合并为一封邮件。
+     */
+    public async ReceiveExistingProps(
+        propIDs: ReadonlyArray<string>,
+    ): Promise<ZRSJZ_MailPropAward[]> {
         const overflowCounts = new Map<string, number>();
-        for (const propID of propIDs) {
+        for (const propID of new Set(propIDs.filter(Boolean))) {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
             if (!propData) continue;
 
-            const preferredInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
-            let isPlaced = await this.TryPlaceAwardProp(propID, preferredInventory);
-            if (!isPlaced && preferredInventory !== ZRSJZ_INVENTORY.仓库_全部) {
-                isPlaced = await this.TryPlaceAwardProp(propID, ZRSJZ_INVENTORY.仓库_全部);
+            let isPlaced = false;
+            try {
+                const preferredInventory = ZRSJZ_Tools.GetInventoryByPropType(propData.PropType);
+                isPlaced = await this.TryPlaceAwardProp(propID, preferredInventory);
+                if (!isPlaced && preferredInventory !== ZRSJZ_INVENTORY.仓库_全部) {
+                    isPlaced = await this.TryPlaceAwardProp(propID, ZRSJZ_INVENTORY.仓库_全部);
+                }
+            } catch (error) {
+                // 库存节点在场景切换时若被销毁，仍然走邮件兜底，避免道具丢失。
+                console.error("道具转入仓库失败，将改为邮件发放:", propID, error);
             }
             if (isPlaced) continue;
 
@@ -1122,6 +1136,7 @@ export class ZRSJZ_UIManager extends Component {
         if (mailAwards.length > 0) {
             ZRSJZ_MailService.AddMail(ZRSJZ_MAIL_TYPE.仓库已满, mailAwards);
         }
+        return mailAwards;
     }
 
     /** 面板激活前先停用玩家库存，防止旧视图的 onEnable 与新玩家 Init 并发。 */
@@ -1294,7 +1309,7 @@ export class ZRSJZ_UIManager extends Component {
         }
     }
 
-    /** 处理局内库存道具的双击快捷转移。 */
+    /** 处理局内背包/物资与局外仓库道具的双击快捷转移。 */
     public async QuickTransferProp(
         sourceInventory: ZRSJZ_INVENTORY,
         propID: string,
@@ -1305,10 +1320,17 @@ export class ZRSJZ_UIManager extends Component {
 
         let targetInventory: ZRSJZ_INVENTORY = null;
         let organizeBeforePlacement = false;
+        const isWarehouseSource = [
+            ZRSJZ_INVENTORY.仓库_全部,
+            ZRSJZ_INVENTORY.仓库_装备,
+            ZRSJZ_INVENTORY.仓库_武器,
+            ZRSJZ_INVENTORY.仓库_弹药,
+            ZRSJZ_INVENTORY.仓库_物品,
+        ].includes(sourceInventory);
         if (sourceInventory === ZRSJZ_INVENTORY.物资) {
             targetInventory = ZRSJZ_INVENTORY.背包;
             organizeBeforePlacement = true;
-        } else if (sourceInventory === ZRSJZ_INVENTORY.背包) {
+        } else if (sourceInventory === ZRSJZ_INVENTORY.背包 || isWarehouseSource) {
             switch (propData.PropType) {
                 case "枪":
                     targetInventory = ZRSJZ_INVENTORY.武器_枪;
@@ -1339,15 +1361,18 @@ export class ZRSJZ_UIManager extends Component {
             return false;
         }
 
-        // 物资/背包弹窗展示的是当前玩家独立库存实例。快捷转移也必须取得
-        // 同一个实例；否则单人模式会写入全局默认背包，当前界面只看到物资消失。
+        // 局内物资/背包必须使用玩家独立实例；局外仓库则必须使用
+        // 仓库界面正在显示的全局装备栏、弹药栏和卡包，避免道具被装入隐藏副本。
         const normalizedPlayerIndex = playerIndex === 1 ? 1 : 0;
         const targetNode = await this.GetInventory(
             targetInventory,
             normalizedPlayerIndex,
-            true,
+            !isWarehouseSource,
         );
         const target = targetNode?.getComponent(ZRSJZ_Inventory);
+        if (isWarehouseSource && target) {
+            await target.ShowForPlayer(targetInventory, normalizedPlayerIndex);
+        }
         if (!target || target.PlayerViewIndex !== normalizedPlayerIndex) {
             console.error("快捷转移目标库存尚未初始化:", targetInventory);
             return false;

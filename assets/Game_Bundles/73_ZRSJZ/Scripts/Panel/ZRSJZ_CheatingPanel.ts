@@ -26,14 +26,28 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             PropName: propName,
             Count: count,
         }]);
+        if (result.InvalidAwards.length > 0) {
+            ZRSJZ_UIManager.Instance.ShowTip("道具名称或数量无效");
+            console.warn(`[ZRSJZ_CheatingPanel] 添加道具失败，名称或数量无效: ${propName}, ${count}`);
+            return false;
+        }
         if (result.MailAwards.length > 0) {
             ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，剩余道具已发送至邮件");
         } else {
             ZRSJZ_UIManager.Instance.ShowTip("道具已添加到仓库");
         }
+        return true;
+    }
 
-        console.warn(`[ZRSJZ_CheatingPanel] 添加道具失败，名称或数量无效: ${propName}, ${count}`);
-        return false;
+    private async AddAllProps(): Promise<void> {
+        const result = await ZRSJZ_UIManager.Instance.ReceivePropAwards(
+            Array.from(ZRSJZ_PROP_CONFIG.keys()).map(PropName => ({ PropName, Count: 1 })),
+        );
+        void ZRSJZ_UIManager.Instance.ShowTip(
+            result.MailAwards.length > 0
+                ? "仓库空间不足，放不下的道具已发送至邮件"
+                : "所有道具已添加到仓库",
+        );
     }
 
     OnButtonClick(event: EventTouch) {
@@ -43,7 +57,7 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.作弊界面);
                 break;
             case "所有道具加1":
-                ZRSJZ_InventoryService.AddAllProp();
+                void this.AddAllProps();
                 break;
             case "主库加一行":
                 ZRSJZ_InventoryService.AddInventoryRow(ZRSJZ_INVENTORY.仓库_全部, 1);

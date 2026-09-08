@@ -62,13 +62,16 @@ export class ZRSJZ_TutorialPanel extends ZRSJZ_Panel {
 
     TrackTarget(target: Node) {
         if (!target?.isValid) return;
+        const requestGame = ZRSJZ_Game.Instance;
         this.MaskNode.active = true;
         this.TrackGuide(this.MaskNode, target, 0, true, true);
         target.once(Node.EventType.TOUCH_END, () => {
             this.ClearTracking();
             this.MaskNode.active = false;
             ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.新手引导弹窗);
-            ZRSJZ_Game.Instance.GamePaused = false;
+            if (requestGame && ZRSJZ_Game.Instance === requestGame && !requestGame.IsGameFinished) {
+                requestGame.GamePaused = false;
+            }
         });
     }
 
@@ -279,5 +282,4 @@ export class ZRSJZ_TutorialPanel extends ZRSJZ_Panel {
     }
 
 }
-
 

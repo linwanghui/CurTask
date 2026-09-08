@@ -52,7 +52,7 @@ export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
                 this.Close();
                 break;
             case "免费领取":
-                Banner.Instance.ShowVideoAd(() => this.ClaimGift());
+                Banner.Instance.ShowVideoAd(() => void this.ClaimGift());
                 break;
         }
     }
@@ -84,18 +84,25 @@ export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
         });
     }
 
-    private ClaimGift(): void {
+    private async ClaimGift(): Promise<void> {
         if (this._isClaiming || this._ammoNames.length !== 3) return;
         this._isClaiming = true;
+        const replacedPropIDs: string[] = [];
         const success = ZRSJZ_InventoryService.ApplyAmmoGift(
             this._ammoNames,
             ZRSJZ_AmmoGiftBagPanel.AMMO_COUNT,
             this._playerIndex,
+            replacedPropIDs,
         );
         if (!success) {
             this._isClaiming = false;
             void ZRSJZ_UIManager.Instance.ShowTip("弹药大礼包领取失败");
             return;
+        }
+
+        const mailAwards = await ZRSJZ_UIManager.Instance.ReceiveExistingProps(replacedPropIDs);
+        if (mailAwards.length > 0) {
+            void ZRSJZ_UIManager.Instance.ShowTip("仓库空间不足，被替换的弹药已发送至邮件");
         }
 
         // 领取后立即为触发礼包的玩家装填弹夹，不向另一名玩家发送换弹事件。
@@ -114,5 +121,4 @@ export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
     }
 
 }
-
 

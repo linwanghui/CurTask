@@ -20,6 +20,13 @@ export class ZRSJZ_DeathPanel extends ZRSJZ_Panel {
     }
 
     public OnButtonClick(event: EventTouch): void {
+        const requestGame = ZRSJZ_Game.Instance;
+        if (!requestGame || requestGame.IsGameFinished) return;
+        const playerIndex = this.PlayerIndex;
+        const panelName = this.PanelName;
+        const canApplyResult = () => requestGame.isValid
+            && ZRSJZ_Game.Instance === requestGame
+            && !requestGame.IsGameFinished;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "关闭":
@@ -32,23 +39,28 @@ export class ZRSJZ_DeathPanel extends ZRSJZ_Panel {
                 ZRSJZ_UIManager.Instance.HidePlayerPanel(
                     this.PanelName,
                     this.PlayerIndex,
-                    () => ZRSJZ_Game.Instance.OnPlayerGiveUpResurrection(this.PlayerIndex),
+                    () => {
+                        if (canApplyResult()) requestGame.OnPlayerGiveUpResurrection(playerIndex);
+                    },
                 );
                 break;
             case "立即复活":
                 Banner.Instance.ShowVideoAd(() => {
-                    ZRSJZ_UIManager.Instance.HidePlayerPanel(this.PanelName, this.PlayerIndex, () => {
+                    if (!canApplyResult()) return;
+                    ZRSJZ_UIManager.Instance.HidePlayerPanel(panelName, playerIndex, () => {
+                        if (!canApplyResult()) return;
                         ZRSJZ_EventManager.Emit(
                             ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESURGENCE,
-                            this.PlayerIndex,
+                            playerIndex,
                         );
                     });
                 })
                 break;
             case "安全撤离":
                 Banner.Instance.ShowVideoAd(() => {
-                    ZRSJZ_UIManager.Instance.HidePlayerPanel(this.PanelName, this.PlayerIndex);
-                    ZRSJZ_Game.Instance.FinishGameByVipEvacuation();
+                    if (!canApplyResult()) return;
+                    ZRSJZ_UIManager.Instance.HidePlayerPanel(panelName, playerIndex);
+                    requestGame.FinishGameByVipEvacuation();
                 })
                 break;
         }

@@ -372,6 +372,7 @@ export class ZRSJZ_Inventory extends Component {
         height: number,
         isRotate: boolean,
     } {
+        if (!propData || !this.InventoryConfig || !Array.isArray(this.Grids)) return null;
         if (!this.SupportsAutoRotation() || propData.Width === propData.Height) {
             const pos = this.FindEmptyGrid(propData.Width, propData.Height);
             return pos ? { ...pos, width: propData.Width, height: propData.Height, isRotate: false } : null;
@@ -401,6 +402,7 @@ export class ZRSJZ_Inventory extends Component {
     }
 
     private FindEmptyGridInCurrentRows(width: number, height: number): { x: number, y: number } {
+        if (!this.InventoryConfig || !Array.isArray(this.Grids)) return null;
         if (width > this.InventoryConfig.Col) return null;
         for (let y = 0; y < this.Grids.length; y++) {
             for (let x = 0; x <= this.InventoryConfig.Col - width; x++) {
@@ -478,6 +480,7 @@ export class ZRSJZ_Inventory extends Component {
     }
 
     FindEmptyGrid(width: number, height: number): { x: number, y: number } {
+        if (!this.InventoryConfig || !Array.isArray(this.Grids)) return null;
         for (let y = 0; y < this.Grids.length; y++) {
             for (let x = 0; x <= this.InventoryConfig.Col - width; x++) {
                 if (this.CanPlace(x, y, width, height)) {
@@ -1026,7 +1029,7 @@ export class ZRSJZ_Inventory extends Component {
 
     async Replace(oldID: string, newID: string): Promise<boolean> {
         const newPropData = ZRSJZ_GameData.Instance.PropData[newID];
-        if (!newPropData) return false;
+        if (!newPropData || !this.InventoryConfig || !Array.isArray(this.Grids)) return false;
 
         const occupiedGrids: { x: number, y: number }[] = [];
         for (let row = 0; row < this.Grids.length; row++) {

@@ -1,5 +1,4 @@
 import { ZRSJZ_BoxroomService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_BoxroomService";
-import { ZRSJZ_InventoryService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_AccountService";
 import {
     _decorator,
@@ -211,8 +210,12 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
             this.SetCurrentValue(revealedValue);
         }
 
-        this.GrantRewards(rewards);
-        ZRSJZ_UIManager.Instance.ShowTip("所有的道具已经放入仓库中");
+        const mailAwards = await this.GrantRewards(rewards);
+        void ZRSJZ_UIManager.Instance.ShowTip(
+            mailAwards.length > 0
+                ? "仓库空间不足，放不下的道具已发送至邮件"
+                : "所有的道具已经放入仓库中",
+        );
         const redCount = rewards.reduce((count, reward) =>
             count + (reward.quality === ZRSJZ_PROP_QUALITY.红色 ? 1 : 0), 0
         );
@@ -488,10 +491,14 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
         return [Math.max(1, height || 1), Math.max(1, width || 1)];
     }
 
-    private GrantRewards(rewards: ZRSJZ_MysteryBoxReward[]): void {
+    private async GrantRewards(rewards: ZRSJZ_MysteryBoxReward[]) {
+        const rewardCounts = new Map<string, number>();
         for (const reward of rewards) {
-            ZRSJZ_InventoryService.AddPropByName(reward.name);
+            rewardCounts.set(reward.name, (rewardCounts.get(reward.name) ?? 0) + 1);
         }
+        return ZRSJZ_UIManager.Instance.ReceivePropAwards(
+            Array.from(rewardCounts.entries()).map(([PropName, Count]) => ({ PropName, Count })),
+        ).then(result => result.MailAwards);
     }
 
     private RefreshOpenBoxState(): void {

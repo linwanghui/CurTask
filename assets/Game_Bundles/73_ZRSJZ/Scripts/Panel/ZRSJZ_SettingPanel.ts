@@ -79,6 +79,7 @@ export class ZRSJZ_SettingPanel extends ZRSJZ_Panel {
                 ProjectEventManager.emit(ProjectEvent.返回主页按钮事件, () => {
                     ProjectEventManager.emit(ProjectEvent.返回主页);
                     director.loadScene("Start");
+                    ZRSJZ_UIManager.Recycle();
                 });
                 break;
 

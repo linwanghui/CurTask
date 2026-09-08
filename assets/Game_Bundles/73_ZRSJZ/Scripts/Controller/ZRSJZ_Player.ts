@@ -743,6 +743,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 复活
     Resurgence(playerIndex?: number) {
+        if (ZRSJZ_Game.Instance?.IsGameFinished) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         this.CurHP = this.MaxHP;
         this._isStop = false;
@@ -845,7 +846,9 @@ export class ZRSJZ_Player extends Component {
 
     //#region 受到打击
     BeHit(harm: number) {
-        if (this.CurHP <= 0) return;
+        const game = ZRSJZ_Game.Instance;
+        // 暂停不会撤回已经触发的碰撞/动画攻击回调，伤害入口必须再次检查。
+        if (!game || game.GamePaused || game.IsGameFinished || this.CurHP <= 0) return;
         const incomingHarm = Math.max(0, harm);
         const damageMultiplier = this._shielding
             ? 0.1
@@ -853,10 +856,14 @@ export class ZRSJZ_Player extends Component {
         const madeHarm = incomingHarm > 0
             ? Math.max(1, Math.round(damageMultiplier * incomingHarm))
             : 0;
+        // 等待 3 秒或离开再进入才能恢复撤离；连续受击重新计算等待时间。
+        if (madeHarm > 0) game.InterruptEvacuationByHit(this.PlayerIndex);
         this.CurHP -= madeHarm;
+        // 教程最低保留 1 点生命，继续走受击反馈，避免 0 血后再也无法受击/撤离。
+        if (game.IsTutorial) this.CurHP = Math.max(1, this.CurHP);
         if (this.CurHP <= 0) {
             this.CurHP = 0;
-            if (ZRSJZ_GameData.Instance.CurMap !== "新手村") {
+            if (!game.IsTutorial) {
                 this.CancelGunAttackState();
                 this.CancelKnifeAttackState();
                 this._isStop = true;
@@ -914,14 +921,21 @@ export class ZRSJZ_Player extends Component {
         return Math.min(0.5, Math.max(0, reductionPercent / 100));
     }
 
+    private _hitVisualBaseScale: Vec3 = null;
+
     private beHitEffect() {
         this.unschedule(this.changeColor);
         this.PlayerSkeleton.Skeleton.color = new Color(255, 0, 0, 255);
         this.scheduleOnce(this.changeColor, 0.04);
-        Tween.stopAllByTarget(this.node);
-        tween(this.node)
-            .to(0.02, { scale: v3(this._curScale + 0.03, this._curScale + 0.03, 1) }, { easing: 'linear' })
-            .to(0.02, { scale: v3(this._curScale, this._curScale, 1) }, { easing: 'linear' })
+        // 只缩放显示节点；缩放带碰撞体的玩家根节点会重建接触，误判为重新进入撤离点。
+        const visual = this.PlayerSkeleton.node;
+        if (!this._hitVisualBaseScale) this._hitVisualBaseScale = visual.scale.clone();
+        const baseScale = this._hitVisualBaseScale;
+        Tween.stopAllByTarget(visual);
+        visual.setScale(baseScale);
+        tween(visual)
+            .to(0.02, { scale: v3(baseScale.x * 1.03, baseScale.y * 1.03, baseScale.z) }, { easing: 'linear' })
+            .to(0.02, { scale: baseScale.clone() }, { easing: 'linear' })
             .start();
     }
 

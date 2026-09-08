@@ -13,6 +13,7 @@ export type ZRSJZ_ForgeTask = {
 export type ZRSJZ_ForgeActionResult = {
     success: boolean,
     message: string,
+    createdPropIDs?: string[],
 };
 
 export class ZRSJZ_ForgeService {
@@ -102,7 +103,11 @@ export class ZRSJZ_ForgeService {
         const propID = ZRSJZ_InventoryService.AddPropByName(recipe.itemName, 1);
         if (!propID) return { success: false, message: '装备发放失败' };
         this.ClearTask();
-        return { success: true, message: '已领取' + recipe.itemName };
+        return {
+            success: true,
+            message: '已领取' + recipe.itemName,
+            createdPropIDs: [propID],
+        };
     }
 
     private static ClearTask(): void {

@@ -43,6 +43,7 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
     private _listContent: Node = null;
     private _itemTemplate: Node = null;
     private _tabNodes: Map<ZRSJZ_ForgeCategory, Node> = new Map();
+    private _isProcessingAction: boolean = false;
     private _itemNameLabel: Label = null;
     private _itemPropertyLabel: Label = null;
     private _itemSprite: Sprite = null;
@@ -415,17 +416,31 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
         this._statusLabel.color = new Color(255, 172, 38);
     }
 
-    private OnAction(): void {
+    private async OnAction(): Promise<void> {
+        if (this._isProcessingAction) return;
         const recipe = this.GetSelectedRecipe();
         if (!recipe) return;
+        this._isProcessingAction = true;
         this.PlayClick();
 
-        const task = ZRSJZ_ForgeService.GetTask();
-        const result = task
-            ? ZRSJZ_ForgeService.Claim()
-            : ZRSJZ_ForgeService.Start(recipe);
-        ZRSJZ_UIManager.Instance.ShowTip(result.message);
-        this.RefreshAll();
+        try {
+            const task = ZRSJZ_ForgeService.GetTask();
+            const result = task
+                ? ZRSJZ_ForgeService.Claim()
+                : ZRSJZ_ForgeService.Start(recipe);
+            if (result.success && result.createdPropIDs?.length > 0) {
+                const mailAwards = await ZRSJZ_UIManager.Instance.ReceiveExistingProps(
+                    result.createdPropIDs,
+                );
+                if (mailAwards.length > 0) {
+                    result.message += '，仓库已满，装备已发送至邮件';
+                }
+            }
+            void ZRSJZ_UIManager.Instance.ShowTip(result.message);
+            this.RefreshAll();
+        } finally {
+            this._isProcessingAction = false;
+        }
     }
 
     private GetCategoryRecipes(): readonly ZRSJZ_ForgeRecipe[] {
