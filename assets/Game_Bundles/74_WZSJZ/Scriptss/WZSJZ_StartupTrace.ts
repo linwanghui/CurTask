@@ -1,5 +1,6 @@
 import { cclegacy, Component, Director, director, isValid, Node, sp, UIRenderer } from 'cc';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
+import { WZSJZ_NativePlatform } from './WZSJZ_NativePlatform';
 
 /** 临时首帧诊断：只观察调用，不吞异常、不改变调用参数、返回值和执行顺序。 */
 export class WZSJZ_StartupTrace {
@@ -12,6 +13,7 @@ export class WZSJZ_StartupTrace {
     private _stopped = false;
 
     public static Start(): WZSJZ_StartupTrace {
+        if (!WZSJZ_NativePlatform.IsSupported) return null;
         this._current?.Stop();
         const trace = new WZSJZ_StartupTrace();
         if (!WZSJZ_Constant.StartupDiagnostics.Enabled) return trace;
@@ -21,6 +23,7 @@ export class WZSJZ_StartupTrace {
     }
 
     public static Mark(message: string): void {
+        if (!WZSJZ_NativePlatform.IsSupported) return;
         this._current?.Log(message);
     }
 

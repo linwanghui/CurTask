@@ -1,3 +1,4 @@
+import { WZSJZ_NativePlatform } from './WZSJZ_NativePlatform';
 import { WZSJZ_Constant } from './WZSJZ_Constant';
 
 /** 3.8.6原生中间件移除列表延迟到update刷新的兼容保护。 */
@@ -6,6 +7,9 @@ export class WZSJZ_NativeSpineGuard {
     private static _markDirty: (() => void) = null;
 
     public static Install(): void {
+        // 按应用运行平台判断，不能按手机OS或middleware是否存在判断：
+        // Android手机上的RPK也可能提供middleware，但不属于Android原生包。
+        if (!WZSJZ_NativePlatform.IsSupported) return;
         if (this._stop || !WZSJZ_Constant.NativeSpineCompatibility.Enabled) return;
         const middleware = (globalThis as any).middleware;
         const manager = middleware?.MiddlewareManager?.getInstance?.();

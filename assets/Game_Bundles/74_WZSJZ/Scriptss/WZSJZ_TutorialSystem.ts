@@ -1,3 +1,4 @@
+import { WZSJZ_NativePlatform } from './WZSJZ_NativePlatform';
 import {
     _decorator,
     Button,
@@ -131,7 +132,7 @@ export class WZSJZ_TutorialSystem extends Component {
 
     private BeginTutorial = (): void => {
         if (WZSJZ_GameData.Instance.TutorialCompleted) return;
-        console.info('[WZSJZ][FirstFrame] 开始激活教程遮罩');
+        if (WZSJZ_NativePlatform.IsSupported) console.info('[WZSJZ][FirstFrame] 开始激活教程遮罩');
         this._stage = "purchase";
         this._tutorialRoot.active = true;
         this._tutorialRoot.setSiblingIndex(this._tutorialRoot.parent.children.length - 1);
@@ -140,7 +141,7 @@ export class WZSJZ_TutorialSystem extends Component {
             WZSJZ_Constant.Tutorial.PurchaseText,
             WZSJZ_Constant.Tutorial.PurchaseMaskPadding,
         );
-        console.info('[WZSJZ][FirstFrame] 教程遮罩布局完成');
+        if (WZSJZ_NativePlatform.IsSupported) console.info('[WZSJZ][FirstFrame] 教程遮罩布局完成');
     };
 
     private OnMaterialPurchased = (data: PurchaseEventData): void => {

@@ -1,3 +1,4 @@
+import { WZSJZ_NativePlatform } from './WZSJZ_NativePlatform';
 import {
     _decorator,
     Component,
@@ -62,7 +63,7 @@ export class WZSJZ_GameNode extends Component {
     }
 
     protected onEnable(): void {
-        WZSJZ_StartupTrace.Mark(`ENTER ${this.Name}#${this.node.uuid}.onEnable`);
+        if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`ENTER ${this.Name}#${this.node.uuid}.onEnable`);
         this.node.on(Node.EventType.TOUCH_START, this.OnTouchStart, this);
         this.node.on(Node.EventType.TOUCH_MOVE, this.OnTouchMove, this);
         this.node.on(Node.EventType.TOUCH_END, this.OnTouchEnd, this);
@@ -70,7 +71,7 @@ export class WZSJZ_GameNode extends Component {
         this.SetUpgradeHint(false);
         this.RefreshView();
         this.PlayInitialIdleAnimation();
-        WZSJZ_StartupTrace.Mark(`EXIT ${this.Name}#${this.node.uuid}.onEnable`);
+        if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`EXIT ${this.Name}#${this.node.uuid}.onEnable`);
     }
 
     protected onDestroy(): void {
@@ -444,7 +445,7 @@ export class WZSJZ_GameNode extends Component {
     }
 
     public RefreshView(): void {
-        WZSJZ_StartupTrace.Mark(`ENTER ${this.Name}#${this.node.uuid}.RefreshView level=${this.Level}`);
+        if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`ENTER ${this.Name}#${this.node.uuid}.RefreshView level=${this.Level}`);
         const levelNode = this.node.getChildByName("等级");
         const config = WZSJZ_Constant.GetMaterialConfig(this.Name);
         if (levelNode) {
@@ -458,7 +459,7 @@ export class WZSJZ_GameNode extends Component {
             label.string = this.Level.toString();
         }
         this.RefreshMaterialSprite();
-        WZSJZ_StartupTrace.Mark(`EXIT ${this.Name}#${this.node.uuid}.RefreshView（图片异步单独追踪）`);
+        if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`EXIT ${this.Name}#${this.node.uuid}.RefreshView（图片异步单独追踪）`);
     }
 
     /** 攻击单位在开战前也保持待机表现；是否攻击仍由战斗系统控制。 */
@@ -470,9 +471,9 @@ export class WZSJZ_GameNode extends Component {
         }
         const skeleton = this.node.getChildByName("图像")?.getComponent(sp.Skeleton);
         const animation = materialConfig?.IdleAnimation || "daiji";
-        WZSJZ_StartupTrace.Mark(`ENTER ${this.Name}#${this.node.uuid}.setAnimation ${animation} data=${skeleton?.skeletonData?.name}`);
+        if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`ENTER ${this.Name}#${this.node.uuid}.setAnimation ${animation} data=${skeleton?.skeletonData?.name}`);
         skeleton?.setAnimation(0, animation, true);
-        WZSJZ_StartupTrace.Mark(`EXIT ${this.Name}#${this.node.uuid}.setAnimation`);
+        if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`EXIT ${this.Name}#${this.node.uuid}.setAnimation`);
     }
 
     private async RefreshMaterialSprite(): Promise<void> {
@@ -489,14 +490,14 @@ export class WZSJZ_GameNode extends Component {
         }
 
         const requestedLevel = this.Level;
-        const traceId = `${this.Name}#${this.node.uuid} level=${requestedLevel} path=${levelConfig.SpritePath}`;
-        WZSJZ_StartupTrace.Mark(`REQUEST 图片 ${traceId}`);
+        const traceId = WZSJZ_NativePlatform.IsSupported ? `${this.Name}#${this.node.uuid} level=${requestedLevel} path=${levelConfig.SpritePath}` : "";
+        if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`REQUEST 图片 ${traceId}`);
         const spriteFrame = await WZSJZ_Incident.LoadSprite(levelConfig.SpritePath) as SpriteFrame;
-        WZSJZ_StartupTrace.Mark(`CALLBACK 图片 ${traceId}`);
+        if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`CALLBACK 图片 ${traceId}`);
         if (spriteFrame && this.node.isValid && this.Level === requestedLevel) {
-            WZSJZ_StartupTrace.Mark(`ENTER spriteFrame赋值 ${traceId}`);
+            if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`ENTER spriteFrame赋值 ${traceId}`);
             sprite.spriteFrame = spriteFrame;
-            WZSJZ_StartupTrace.Mark(`EXIT spriteFrame赋值 ${traceId}`);
+            if (WZSJZ_NativePlatform.IsSupported) WZSJZ_StartupTrace.Mark(`EXIT spriteFrame赋值 ${traceId}`);
         }
     }
 

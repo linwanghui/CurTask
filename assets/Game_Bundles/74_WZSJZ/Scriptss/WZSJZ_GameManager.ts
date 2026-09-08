@@ -1,3 +1,4 @@
+import { WZSJZ_NativePlatform } from './WZSJZ_NativePlatform';
 import {
     _decorator,
     Button,
@@ -153,11 +154,11 @@ export class WZSJZ_GameManager extends Component {
     }
 
     protected start(): void {
-        this._startupTrace = WZSJZ_StartupTrace.Start();
-        console.info('[WZSJZ][Init] 开始初始化棋盘');
+        if (WZSJZ_NativePlatform.IsSupported) this._startupTrace = WZSJZ_StartupTrace.Start();
+        if (WZSJZ_NativePlatform.IsSupported) console.info('[WZSJZ][Init] 开始初始化棋盘');
         ProjectEventManager.emit(ProjectEvent.游戏开始);
         this.InitBoard();
-        console.info('[WZSJZ][Init] 棋盘完成，开始配置战斗与特效系统');
+        if (WZSJZ_NativePlatform.IsSupported) console.info('[WZSJZ][Init] 棋盘完成，开始配置战斗与特效系统');
         void this.PrepareRuntimeMaterialPrefabs();
         this._nodeInspectSystem = this.node.getComponent(WZSJZ_NodeInspectSystem)
             || this.node.addComponent(WZSJZ_NodeInspectSystem);
@@ -193,7 +194,7 @@ export class WZSJZ_GameManager extends Component {
         this._cellEffectSystem.Configure(this.FormationZone?.parent, this.DragLayer);
         this._economySystem = this.node.getComponent(WZSJZ_EconomySystem)
             || this.node.addComponent(WZSJZ_EconomySystem);
-        console.info('[WZSJZ][Init] 开始配置经济系统');
+        if (WZSJZ_NativePlatform.IsSupported) console.info('[WZSJZ][Init] 开始配置经济系统');
         this._economySystem.Configure(
             this.PreparationZone,
             this._formationCells,
@@ -208,7 +209,7 @@ export class WZSJZ_GameManager extends Component {
         );
         this._functionalNodeSystem = this.node.getComponent(WZSJZ_FunctionalNodeSystem)
             || this.node.addComponent(WZSJZ_FunctionalNodeSystem);
-        console.info('[WZSJZ][Init] 经济系统完成，配置功能与组合系统');
+        if (WZSJZ_NativePlatform.IsSupported) console.info('[WZSJZ][Init] 经济系统完成，配置功能与组合系统');
         this._functionalNodeSystem.Configure(
             this._formationCells,
             this.WallDisplayNode,
@@ -219,7 +220,7 @@ export class WZSJZ_GameManager extends Component {
         this._nameUnitSystem.Configure(this._formationCells, this._formationObjectLayer);
         // 道具锁内的默认物资依赖经济模块的权重池，必须在其配置完成后生成。
         this.RefreshPreparationItemLocks();
-        console.info('[WZSJZ][Init] 道具锁物资完成，开始配置回合及操作入口');
+        if (WZSJZ_NativePlatform.IsSupported) console.info('[WZSJZ][Init] 道具锁物资完成，开始配置回合及操作入口');
         this._stageFlowSystem = this.node.getComponent(WZSJZ_StageFlowSystem)
             || this.node.addComponent(WZSJZ_StageFlowSystem);
         this._stageFlowSystem.Configure(
@@ -261,28 +262,28 @@ export class WZSJZ_GameManager extends Component {
             this._economySystem,
         );
         this._initializationFinished = true;
-        console.info('[WZSJZ][Init] 游戏初始化完成');
+        if (WZSJZ_NativePlatform.IsSupported) console.info('[WZSJZ][Init] 游戏初始化完成');
     }
 
     protected update(deltaTime: number): void {
-        if (!this._initializationFinished || this._startupTraceFrame >= 3) return;
+        if (!WZSJZ_NativePlatform.IsSupported || !this._initializationFinished || this._startupTraceFrame >= 3) return;
         this._startupTraceFrame++;
-        console.info(`[WZSJZ][FirstFrame] update ${this._startupTraceFrame}，dt=${deltaTime}`);
+        if (WZSJZ_NativePlatform.IsSupported) console.info(`[WZSJZ][FirstFrame] update ${this._startupTraceFrame}，dt=${deltaTime}`);
     }
 
     protected lateUpdate(): void {
-        if (!this._initializationFinished || this._startupTraceFrame > 3) return;
-        console.info(`[WZSJZ][FirstFrame] lateUpdate ${this._startupTraceFrame}`);
+        if (!WZSJZ_NativePlatform.IsSupported || !this._initializationFinished || this._startupTraceFrame > 3) return;
+        if (WZSJZ_NativePlatform.IsSupported) console.info(`[WZSJZ][FirstFrame] lateUpdate ${this._startupTraceFrame}`);
         if (this._startupTraceFrame === 3) this._startupTraceFrame++;
     }
 
     private async PrepareRuntimeMaterialPrefabs(): Promise<void> {
         for (const path of WZSJZ_Constant.RuntimeMaterialPrefabPaths) {
-            if (!isValid(this, true) || !isValid(this.node, true)) return;
+            if (WZSJZ_NativePlatform.IsSupported && (!isValid(this, true) || !isValid(this.node, true))) return;
             try {
                 const prefab = await WZSJZ_Incident.Loadprefab(path);
-                if (!isValid(this, true) || !isValid(this.node, true)) return;
-                if (isValid(prefab, true)
+                if (WZSJZ_NativePlatform.IsSupported && (!isValid(this, true) || !isValid(this.node, true))) return;
+                if ((WZSJZ_NativePlatform.IsSupported ? isValid(prefab, true) : this.node?.isValid)
                     && !this.MaterialPrefabs.some((item) => item?.data?.name === prefab.data.name)) {
                     this.MaterialPrefabs.push(prefab);
                 }
@@ -1058,15 +1059,16 @@ export class WZSJZ_GameManager extends Component {
         playAppearAnimation: boolean = false,
     ): boolean {
         const targetLayer = this.GetObjectLayer(cell);
-        if (!isValid(this, true) || !isValid(this.node, true)
+        if (WZSJZ_NativePlatform.IsSupported ? (!isValid(this, true) || !isValid(this.node, true)
             || !isValid(prefab, true) || !prefab.data
             || !isValid(targetLayer, true) || !isValid(cell, true)
-            || !isValid(cell.node, true) || !cell.IsEmpty()) {
+            || !isValid(cell.node, true) || !cell.IsEmpty())
+            : (!prefab || !targetLayer || !cell.IsEmpty())) {
             return false;
         }
 
-        const traceInit = !this._initializationFinished;
-        const traceName = prefab.data.name;
+        const traceInit = WZSJZ_NativePlatform.IsSupported && !this._initializationFinished;
+        const traceName = traceInit ? prefab.data.name : "";
         if (traceInit) console.info(`[WZSJZ][MaterialInit] 实例化前：${traceName}，格子=${cell.Index}`);
         const materialNode = instantiate(prefab);
         if (traceInit) console.info(`[WZSJZ][MaterialInit] 挂入场景前：${traceName}`);
@@ -1136,10 +1138,10 @@ export class WZSJZ_GameManager extends Component {
         this.InitializeWallHealth(!this._hasGameInitialized);
         const expectedLevel = wall.Level;
         const spriteFrame = await WZSJZ_Incident.LoadSprite(levelConfig.DisplaySpritePath) as SpriteFrame;
-        if (!isValid(this, true) || !isValid(this.node, true)
+        if (WZSJZ_NativePlatform.IsSupported && (!isValid(this, true) || !isValid(this.node, true)
             || !isValid(this._wallCell, true) || !isValid(wall, true)
             || !isValid(wallNode, true) || !isValid(displaySprite, true)
-            || !isValid(this.WallDisplayNode, true)) return;
+            || !isValid(this.WallDisplayNode, true))) return;
         if (spriteFrame
             && this._wallCell.Occupant === wallNode
             && wall.Level === expectedLevel
