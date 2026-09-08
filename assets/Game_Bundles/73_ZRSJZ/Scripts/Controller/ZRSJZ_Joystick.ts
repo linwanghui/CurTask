@@ -1,7 +1,5 @@
-import { _decorator, Component, EventKeyboard, EventTouch, Touch, Input, input, KeyCode, Node, UITransform, Vec2, Vec3, v3 } from 'cc';
+import { _decorator, Component, EventKeyboard, EventTouch, Touch, Game, game, Input, input, KeyCode, Node, UITransform, Vec2, Vec3, v3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Joystick')
@@ -13,6 +11,7 @@ export class ZRSJZ_Joystick extends Component {
     private _joystickBase: UITransform = null;
     private _joystickDot: Node = null;
     private _movementTouch: Touch = null;
+    private _inputCanvas: HTMLCanvasElement | null = null;
 
     start() {
         this._cameraArea = this.getComponent(UITransform);
@@ -25,10 +24,59 @@ export class ZRSJZ_Joystick extends Component {
         joystickArea.node.on(Node.EventType.TOUCH_END, this.OnTouchEnd_JoystickArea, this);
         joystickArea.node.on(Node.EventType.TOUCH_CANCEL, this.OnTouchEnd_JoystickArea, this);
 
+    }
+
+    protected onEnable(): void {
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
-
+        game.on(Game.EVENT_HIDE, this.resetMovement, this);
+        if (typeof window !== 'undefined') {
+            window.addEventListener('blur', this.resetMovement);
+        }
+        if (typeof document !== 'undefined') {
+            this._inputCanvas = game.canvas;
+            this._inputCanvas?.addEventListener('blur', this.resetMovement);
+            document.addEventListener('pointerdown', this.onDocumentPointerDown, true);
+            document.addEventListener('visibilitychange', this.onVisibilityChange);
+        }
     }
+
+    protected onDisable(): void {
+        input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
+        game.off(Game.EVENT_HIDE, this.resetMovement, this);
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('blur', this.resetMovement);
+        }
+        if (typeof document !== 'undefined') {
+            this._inputCanvas?.removeEventListener('blur', this.resetMovement);
+            this._inputCanvas = null;
+            document.removeEventListener('pointerdown', this.onDocumentPointerDown, true);
+            document.removeEventListener('visibilitychange', this.onVisibilityChange);
+        }
+        this.resetMovement();
+    }
+
+    private onDocumentPointerDown = (event: PointerEvent): void => {
+        // 同一网页内点击画布外不会触发 window.blur；捕获阶段也能覆盖阻止冒泡的页面控件。
+        if (this._inputCanvas && event.target !== this._inputCanvas) {
+            this.resetMovement();
+        }
+    };
+
+    private onVisibilityChange = (): void => {
+        if (document.hidden) this.resetMovement();
+    };
+
+    // 失焦后可能收不到 KEY_UP，主动清空输入并通知玩家停止。
+    private resetMovement = (): void => {
+        this._keysRow.length = 0;
+        this._keysCol.length = 0;
+        this.dir.set(0, 0);
+        this._movementTouch = null;
+        this._joystickDot?.setPosition(Vec3.ZERO);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0, this.PlayerIndex);
+    };
 
     //#region 移动
     OnTouchStart_JoystickArea(event: EventTouch) {
@@ -107,11 +155,13 @@ export class ZRSJZ_Joystick extends Component {
         switch (keyCode) {
             case KeyCode.KEY_A:
             case KeyCode.KEY_D:
+                if (this._keysRow.indexOf(keyCode) !== -1) return;
                 this._keysRow.push(keyCode);
                 this.updateDirection();
                 break;
             case KeyCode.KEY_W:
             case KeyCode.KEY_S:
+                if (this._keysCol.indexOf(keyCode) !== -1) return;
                 this._keysCol.push(keyCode);
                 this.updateDirection();
                 break;
@@ -124,11 +174,13 @@ export class ZRSJZ_Joystick extends Component {
         switch (keyCode) {
             case KeyCode.KEY_A:
             case KeyCode.KEY_D:
+                if (this._keysRow.indexOf(keyCode) === -1) return;
                 this._keysRow.splice(this._keysRow.indexOf(keyCode), 1);
                 this.updateDirection();
                 break;
             case KeyCode.KEY_W:
             case KeyCode.KEY_S:
+                if (this._keysCol.indexOf(keyCode) === -1) return;
                 this._keysCol.splice(this._keysCol.indexOf(keyCode), 1);
                 this.updateDirection();
                 break;
