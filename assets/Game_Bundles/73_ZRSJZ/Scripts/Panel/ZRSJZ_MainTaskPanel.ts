@@ -24,6 +24,7 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
     private _accept: Node;
     private _claim: Node;
     private _status: Node;
+    private _go: Node;
     private _selected = '';
     private _expanded = new Set<string>(['main']);
     private _awardVersion = 0;
@@ -41,6 +42,7 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
         this._accept = find('Panel/TasksDesc/领取任务', this.node);
         this._claim = find('Panel/TasksDesc/领取奖励', this.node);
         this._status = find('Panel/TasksDesc/已接取任务', this.node);
+        this._go = find('Panel/TasksDesc/前往', this.node);
         for (const id of ['main', ...ZRSJZ_SIDE_TASK_LINES.map(line => line.ID)]) {
             const group = this._content.getChildByName('Line_' + id);
             group.getChildByName('Header').on(Node.EventType.TOUCH_END, () => {
@@ -120,6 +122,7 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
     }
 
     private RefreshDetail(): void {
+        if (this._go) this._go.active = this.GetNavigationPanel() !== null;
         const config = ZRSJZ_TaskService.GetConfig(this._selected);
         if (!config) return;
         const state = ZRSJZ_TaskService.GetTaskState(this._selected);
@@ -146,6 +149,29 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
         }));
     }
 
+    /** 仅已接取且尚未完成的任务提供快捷入口。 */
+    private GetNavigationPanel(): ZRSJZ_PANEL | null {
+        if (ZRSJZ_TaskService.GetTaskState(this._selected) !== 1) return null;
+        const sideTask = ZRSJZ_SIDE_TASK_CONFIG.get(this._selected);
+        if (sideTask) {
+            switch (sideTask.Objective.kind) {
+                case 'forge': return ZRSJZ_PANEL.锻造界面;
+                case 'kills':
+                case 'armedKills':
+                case 'extractItem':
+                case 'extractValue':
+                case 'boss': return ZRSJZ_PANEL.选关界面;
+                default: return null;
+            }
+        }
+        const target = ZRSJZ_TaskService.GetConfig(this._selected)?.TaskTargets[0]?.TaskTargetName ?? '';
+        if (/在商[城店]购买/.test(target)) return ZRSJZ_PANEL.商店界面;
+        if (/^出售/.test(target)) return ZRSJZ_PANEL.仓库界面;
+        if (/^强化/.test(target)) return ZRSJZ_PANEL.强化界面;
+        if (/^击杀\[|^打败\[|^进入\[.*\]并成功撤离/.test(target)) return ZRSJZ_PANEL.选关界面;
+        return null;
+    }
+
     private ShowAwards(awards: ZRSJZ_MainTaskAwardConfig[]): void {
         const version = ++this._awardVersion;
         this._awards.children.slice().forEach(child => ZRSJZ_PoolManager.Instance.PutNode(child));
@@ -168,6 +194,15 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
         switch (event.getCurrentTarget().name) {
             case '关闭': ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.主线任务界面); break;
             case '领取任务': ZRSJZ_TaskService.GetNewTask(this._selected); break;
+            case '前往': {
+                const destination = this.GetNavigationPanel();
+                if (!destination || ZRSJZ_UIManager.Dragging) return;
+                // 使用预制体已有的按钮事件，不重复绑定触摸回调。
+                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.主线任务界面, () => {
+                    ZRSJZ_UIManager.Instance.ShowPanel(destination);
+                });
+                break;
+            }
             case '领取奖励': {
                 if (this._claiming || ZRSJZ_TaskService.GetTaskState(this._selected) !== 2) return;
                 this._claiming = true;
