@@ -57,6 +57,8 @@ export class ZRSJZ_MyEvent {
     public static ZRSJZ_MAIL_CHANGE: string = 'ZRSJZ_MAIL_CHANGE';//邮件新增、领取、删除或过期
 
     public static ZRSJZ_PET_SKIN_ITEM_CHECKED: string = 'ZRSJZ_PET_SKIN_ITEM_CHECKED';//宠物皮肤选中
+    public static ZRSJZ_PET_GENE_CHANGE: string = 'ZRSJZ_PET_GENE_CHANGE';//宠物学习基因，刷新等级和属性
+    public static ZRSJZ_PET_SKIN_CHANGE: string = 'ZRSJZ_PET_SKIN_CHANGE';//宠物更换皮肤，刷新Spine展示
 }
 
 export class ZRSJZ_EventManager {

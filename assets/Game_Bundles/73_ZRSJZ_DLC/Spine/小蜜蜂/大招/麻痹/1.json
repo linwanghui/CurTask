@@ -1,0 +1,227 @@
+{
+"skeleton": { "hash": "Tmte/CHqKpqEs0XTdQ0Tk518cW4", "spine": "3.8.75", "images": "./images/", "audio": "D:/2026/2d/动漫角色对决/特效5/2/lrsc910" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "ch1", "parent": "root" },
+	{ "name": "luodizhongxin", "parent": "ch1" },
+	{ "name": "sanbupin", "parent": "luodizhongxin" },
+	{ "name": "dizou", "parent": "sanbupin" },
+	{ "name": "dizou2", "parent": "sanbupin" },
+	{ "name": "sanbupin2", "parent": "luodizhongxin" },
+	{ "name": "dizou3", "parent": "sanbupin2" },
+	{ "name": "dizou4", "parent": "sanbupin2" }
+],
+"slots": [
+	{ "name": "dizou", "bone": "dizou", "blend": "additive" },
+	{ "name": "dizou3", "bone": "dizou3", "blend": "additive" },
+	{ "name": "dizou2", "bone": "dizou2", "blend": "additive" },
+	{ "name": "dizou4", "bone": "dizou4", "blend": "additive" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"dizou2": {
+				"effect/diansi_00": { "width": 77, "height": 154 },
+				"effect/diansi_01": { "width": 77, "height": 154 },
+				"effect/diansi_02": { "width": 77, "height": 154 },
+				"effect/diansi_03": { "width": 77, "height": 154 },
+				"effect/diansi_04": { "width": 77, "height": 154 },
+				"effect/diansi_05": { "width": 77, "height": 154 },
+				"effect/diansi_06": { "width": 77, "height": 154 },
+				"effect/diansi_07": { "width": 77, "height": 154 }
+			},
+			"dizou3": {
+				"effect/diansi_00": { "width": 77, "height": 154 },
+				"effect/diansi_01": { "width": 77, "height": 154 },
+				"effect/diansi_02": { "width": 77, "height": 154 },
+				"effect/diansi_03": { "width": 77, "height": 154 },
+				"effect/diansi_04": { "width": 77, "height": 154 },
+				"effect/diansi_05": { "width": 77, "height": 154 },
+				"effect/diansi_06": { "width": 77, "height": 154 },
+				"effect/diansi_07": { "width": 77, "height": 154 }
+			},
+			"dizou4": {
+				"effect/diansi_00": { "width": 77, "height": 154 },
+				"effect/diansi_01": { "width": 77, "height": 154 },
+				"effect/diansi_02": { "width": 77, "height": 154 },
+				"effect/diansi_03": { "width": 77, "height": 154 },
+				"effect/diansi_04": { "width": 77, "height": 154 },
+				"effect/diansi_05": { "width": 77, "height": 154 },
+				"effect/diansi_06": { "width": 77, "height": 154 },
+				"effect/diansi_07": { "width": 77, "height": 154 }
+			},
+			"dizou": {
+				"effect/diansi_00": { "width": 77, "height": 154 },
+				"effect/diansi_01": { "width": 77, "height": 154 },
+				"effect/diansi_02": { "width": 77, "height": 154 },
+				"effect/diansi_03": { "width": 77, "height": 154 },
+				"effect/diansi_04": { "width": 77, "height": 154 },
+				"effect/diansi_05": { "width": 77, "height": 154 },
+				"effect/diansi_06": { "width": 77, "height": 154 },
+				"effect/diansi_07": { "width": 77, "height": 154 }
+			}
+		}
+	}
+],
+"animations": {
+	"jineng": {
+		"slots": {
+			"dizou3": {
+				"attachment": [
+					{ "name": "effect/diansi_05" },
+					{ "time": 0.0333, "name": null },
+					{ "time": 0.0667, "name": "effect/diansi_06" },
+					{ "time": 0.1, "name": "effect/diansi_07" },
+					{ "time": 0.1333, "name": null },
+					{ "time": 0.1667, "name": "effect/diansi_00" },
+					{ "time": 0.2, "name": "effect/diansi_01" },
+					{ "time": 0.2333, "name": "effect/diansi_02" },
+					{ "time": 0.2667, "name": null },
+					{ "time": 0.3, "name": "effect/diansi_03" },
+					{ "time": 0.3333, "name": null },
+					{ "time": 0.3667, "name": "effect/diansi_04" },
+					{ "time": 0.4, "name": "effect/diansi_05" },
+					{ "time": 0.4333, "name": null },
+					{ "time": 0.4667, "name": "effect/diansi_06" },
+					{ "time": 0.5, "name": "effect/diansi_07" }
+				]
+			},
+			"dizou": {
+				"attachment": [
+					{ "name": "effect/diansi_00" },
+					{ "time": 0.0333, "name": "effect/diansi_01" },
+					{ "time": 0.0667, "name": "effect/diansi_02" },
+					{ "time": 0.1, "name": null },
+					{ "time": 0.1333, "name": "effect/diansi_03" },
+					{ "time": 0.1667, "name": null },
+					{ "time": 0.2, "name": "effect/diansi_04" },
+					{ "time": 0.2333, "name": "effect/diansi_05" },
+					{ "time": 0.2667, "name": null },
+					{ "time": 0.3, "name": "effect/diansi_06" },
+					{ "time": 0.3333, "name": "effect/diansi_07" },
+					{ "time": 0.3667, "name": null },
+					{ "time": 0.4333, "name": "effect/diansi_00" },
+					{ "time": 0.4667, "name": "effect/diansi_01" },
+					{ "time": 0.5, "name": "effect/diansi_02" }
+				]
+			},
+			"dizou2": {
+				"attachment": [
+					{ "name": "effect/diansi_07" },
+					{ "time": 0.0333, "name": null },
+					{ "time": 0.0667, "name": "effect/diansi_00" },
+					{ "time": 0.1, "name": "effect/diansi_01" },
+					{ "time": 0.1333, "name": "effect/diansi_02" },
+					{ "time": 0.1667, "name": null },
+					{ "time": 0.2, "name": "effect/diansi_03" },
+					{ "time": 0.2333, "name": null },
+					{ "time": 0.2667, "name": "effect/diansi_04" },
+					{ "time": 0.3, "name": "effect/diansi_05" },
+					{ "time": 0.3333, "name": null },
+					{ "time": 0.3667, "name": "effect/diansi_06" },
+					{ "time": 0.4, "name": "effect/diansi_07" },
+					{ "time": 0.4333, "name": null },
+					{ "time": 0.5, "name": "effect/diansi_00" }
+				]
+			},
+			"dizou4": {
+				"attachment": [
+					{ "name": "effect/diansi_05" },
+					{ "time": 0.0333, "name": null },
+					{ "time": 0.0667, "name": "effect/diansi_06" },
+					{ "time": 0.1, "name": null },
+					{ "time": 0.1333, "name": "effect/diansi_07" },
+					{ "time": 0.1667, "name": null },
+					{ "time": 0.2, "name": "effect/diansi_00" },
+					{ "time": 0.2333, "name": "effect/diansi_01" },
+					{ "time": 0.2667, "name": "effect/diansi_02" },
+					{ "time": 0.3, "name": null },
+					{ "time": 0.3333, "name": "effect/diansi_03" },
+					{ "time": 0.3667, "name": null },
+					{ "time": 0.4, "name": "effect/diansi_04" },
+					{ "time": 0.4333, "name": "effect/diansi_05" },
+					{ "time": 0.4667, "name": null },
+					{ "time": 0.5, "name": "effect/diansi_06" }
+				]
+			}
+		},
+		"bones": {
+			"dizou3": {
+				"rotate": [
+					{ "angle": -40.8 }
+				],
+				"translate": [
+					{ "x": 47.59, "y": 22.77 }
+				],
+				"scale": [
+					{ "x": 0.84, "y": 0.273 }
+				],
+				"shear": [
+					{ "x": 31.83, "y": -14.57 }
+				]
+			},
+			"dizou2": {
+				"rotate": [
+					{ "angle": -127.2 }
+				],
+				"translate": [
+					{ "x": 24.45, "y": -10.51 }
+				],
+				"scale": [
+					{ "x": 0.804, "y": 0.344 }
+				],
+				"shear": [
+					{ "x": -34.32 }
+				]
+			},
+			"dizou4": {
+				"rotate": [
+					{ "angle": -127.2 }
+				],
+				"translate": [
+					{ "x": 36.77, "y": -10.07 }
+				],
+				"scale": [
+					{ "x": 0.706, "y": 0.272 }
+				],
+				"shear": [
+					{ "x": -34.32 }
+				]
+			},
+			"dizou": {
+				"rotate": [
+					{ "angle": -40.8 }
+				],
+				"translate": [
+					{ "x": 17.93, "y": 25.24 }
+				],
+				"scale": [
+					{ "x": 0.952, "y": 0.275 }
+				],
+				"shear": [
+					{ "x": 31.83, "y": -14.57 }
+				]
+			},
+			"sanbupin2": {
+				"scale": [
+					{ "x": -1 }
+				]
+			},
+			"luodizhongxin": {
+				"scale": [
+					{ "x": 0.863, "y": 1.244 }
+				]
+			},
+			"ch1": {
+				"translate": [
+					{ "y": -0.91 }
+				],
+				"scale": [
+					{ "x": 0.492, "y": 0.86 }
+				]
+			}
+		}
+	}
+}
+}

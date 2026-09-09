@@ -1,0 +1,91 @@
+{
+"skeleton": { "hash": "qoC1GQq3LxltroGCVTrpbTQ7a+o", "spine": "3.8.75", "images": "./images/", "audio": "D:/2026/2d/动漫角色对决/特效5/1/lrsc223" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "bone3", "parent": "root", "length": 131.67 },
+	{ "name": "bone", "parent": "bone3", "length": 625.39, "rotation": -21.15, "x": -91.44, "y": -71.13 },
+	{ "name": "bone2", "parent": "bone3", "length": 625.39, "rotation": -21.15, "x": -91.44, "y": -71.13 }
+],
+"slots": [
+	{ "name": "1_0000", "bone": "bone" },
+	{ "name": "1_0", "bone": "bone2", "blend": "additive" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"1_0000": {
+				"1_0000": { "width": 720, "height": 1280 },
+				"1_0001": { "width": 720, "height": 1280 },
+				"1_0002": { "width": 720, "height": 1280 },
+				"1_0003": { "width": 720, "height": 1280 },
+				"1_0004": { "width": 720, "height": 1280 },
+				"1_0005": { "width": 720, "height": 1280 },
+				"1_0006": { "width": 720, "height": 1280 },
+				"1_0007": { "width": 720, "height": 1280 },
+				"1_0008": { "width": 720, "height": 1280 },
+				"1_0009": { "width": 720, "height": 1280 },
+				"1_0010": { "width": 720, "height": 1280 },
+				"1_0011": { "width": 720, "height": 1280 }
+			},
+			"1_0": {
+				"1_0000": { "width": 720, "height": 1280 },
+				"1_0001": { "width": 720, "height": 1280 },
+				"1_0002": { "width": 720, "height": 1280 },
+				"1_0003": { "width": 720, "height": 1280 },
+				"1_0004": { "width": 720, "height": 1280 },
+				"1_0005": { "width": 720, "height": 1280 },
+				"1_0006": { "width": 720, "height": 1280 },
+				"1_0007": { "width": 720, "height": 1280 },
+				"1_0008": { "width": 720, "height": 1280 },
+				"1_0009": { "width": 720, "height": 1280 },
+				"1_0010": { "width": 720, "height": 1280 },
+				"1_0011": { "width": 720, "height": 1280 }
+			}
+		}
+	}
+],
+"animations": {
+	"action": {
+		"slots": {
+			"1_0": {
+				"color": [
+					{ "color": "ffffffaa" }
+				],
+				"attachment": [
+					{ "name": "1_0000" },
+					{ "time": 0.1, "name": "1_0001" },
+					{ "time": 0.2, "name": "1_0002" },
+					{ "time": 0.3, "name": "1_0003" },
+					{ "time": 0.4, "name": "1_0004" },
+					{ "time": 0.5, "name": "1_0005" },
+					{ "time": 0.6, "name": "1_0006" },
+					{ "time": 0.7, "name": "1_0007" },
+					{ "time": 0.8, "name": "1_0008" },
+					{ "time": 0.9, "name": "1_0009" },
+					{ "time": 1, "name": "1_0010" },
+					{ "time": 1.1, "name": "1_0011" },
+					{ "time": 1.2, "name": "1_0000" }
+				]
+			},
+			"1_0000": {
+				"attachment": [
+					{ "name": "1_0000" },
+					{ "time": 0.1, "name": "1_0001" },
+					{ "time": 0.2, "name": "1_0002" },
+					{ "time": 0.3, "name": "1_0003" },
+					{ "time": 0.4, "name": "1_0004" },
+					{ "time": 0.5, "name": "1_0005" },
+					{ "time": 0.6, "name": "1_0006" },
+					{ "time": 0.7, "name": "1_0007" },
+					{ "time": 0.8, "name": "1_0008" },
+					{ "time": 0.9, "name": "1_0009" },
+					{ "time": 1, "name": "1_0010" },
+					{ "time": 1.1, "name": "1_0011" },
+					{ "time": 1.2, "name": "1_0000" }
+				]
+			}
+		}
+	}
+}
+}

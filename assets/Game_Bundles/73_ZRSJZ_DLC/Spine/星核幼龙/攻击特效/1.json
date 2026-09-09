@@ -1,0 +1,70 @@
+{
+"skeleton": { "hash": "pK5Nh9cql4r/gmJwLHACEQGA/q8", "spine": "3.8.75", "images": "./images/", "audio": "D:/2026/2d/三角洲（卡通真人版）/动画/宠物/星核幼龙/攻击" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "baozha", "parent": "root", "length": 336.85, "rotation": 90 },
+	{ "name": "zidan", "parent": "root", "length": 373.43 }
+],
+"slots": [
+	{ "name": "1", "bone": "baozha" },
+	{ "name": "qiu1", "bone": "zidan" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"1": {
+				"1": { "x": -2.73, "y": 1.71, "rotation": -90, "width": 278, "height": 278 },
+				"2": { "x": -2.23, "y": 1.21, "rotation": -90, "width": 275, "height": 275 },
+				"3": { "x": -2.23, "y": 1.21, "rotation": -90, "width": 327, "height": 325 },
+				"4": { "x": -17.73, "y": 2.21, "rotation": -90, "width": 325, "height": 356 },
+				"5": { "x": -19.23, "y": 5.21, "rotation": -90, "width": 325, "height": 355 },
+				"6": { "x": -8.73, "y": 2.21, "rotation": -90, "width": 325, "height": 376 },
+				"7": { "x": -7.73, "y": -0.79, "rotation": -90, "width": 323, "height": 316 }
+			},
+			"qiu1": {
+				"qiu1": { "x": -59.37, "y": 4.92, "width": 230, "height": 140 },
+				"qiu2": { "x": -65.37, "y": 1.92, "width": 240, "height": 140 },
+				"qiu3": { "x": -57.37, "y": 2.92, "width": 228, "height": 120 },
+				"qiu4": { "x": -61.87, "y": 5.42, "width": 229, "height": 141 },
+				"qiu5": { "x": -52.37, "y": 7.42, "width": 212, "height": 133 },
+				"qiu6": { "x": -54.87, "y": 5.42, "width": 215, "height": 143 },
+				"qiu7": { "x": -59.37, "y": 4.92, "width": 228, "height": 120 }
+			}
+		}
+	}
+],
+"animations": {
+	"baozha": {
+		"slots": {
+			"1": {
+				"attachment": [
+					{ "name": "1" },
+					{ "time": 0.0333, "name": "2" },
+					{ "time": 0.0667, "name": "3" },
+					{ "time": 0.1, "name": "4" },
+					{ "time": 0.1333, "name": "5" },
+					{ "time": 0.1667, "name": "6" },
+					{ "time": 0.2, "name": "7" },
+					{ "time": 0.2333, "name": null }
+				]
+			}
+		}
+	},
+	"zidan": {
+		"slots": {
+			"qiu1": {
+				"attachment": [
+					{ "name": "qiu1" },
+					{ "time": 0.0555, "name": "qiu2" },
+					{ "time": 0.1111, "name": "qiu3" },
+					{ "time": 0.1667, "name": "qiu4" },
+					{ "time": 0.2222, "name": "qiu5" },
+					{ "time": 0.2777, "name": "qiu6" },
+					{ "time": 0.3333, "name": "qiu7" }
+				]
+			}
+		}
+	}
+}
+}

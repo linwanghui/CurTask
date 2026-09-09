@@ -1,0 +1,257 @@
+{
+"skeleton": {
+	"hash": "BNGRyTakcrl+4sGe9FH6K0cMOsw",
+	"spine": "3.8.75",
+	"x": -137.87,
+	"y": -3.68,
+	"width": 275.05,
+	"height": 163.67,
+	"images": "./images/",
+	"audio": "D:/2026/2d/三角洲（卡通真人版）/动画/宠物/小蜜蜂/大招/小机械蜂"
+},
+"bones": [
+	{ "name": "root" },
+	{ "name": "bone", "parent": "root", "length": 88.34, "rotation": 90.15, "x": 10.11, "y": 33.17 },
+	{ "name": "bone2", "parent": "bone", "length": 43.96, "rotation": 34.07, "x": 81.51, "y": 14.04 },
+	{ "name": "bone3", "parent": "bone", "length": 41.02, "rotation": 22.45, "x": 78.59, "y": -30.55 },
+	{ "name": "bone4", "parent": "bone", "length": 97.16, "rotation": 60.2, "x": 32.53, "y": 55.62 },
+	{ "name": "bone5", "parent": "bone", "length": 79.37, "rotation": -71.67, "x": 23.45, "y": -39.21 },
+	{ "name": "bone6", "parent": "bone", "x": 20.26, "y": -24.09 }
+],
+"slots": [
+	{ "name": "触角-左", "bone": "bone3", "attachment": "触角-左" },
+	{ "name": "翅膀-右", "bone": "bone4", "attachment": "翅膀-右" },
+	{ "name": "翅膀-左", "bone": "bone5", "attachment": "翅膀-左" },
+	{ "name": "身体", "bone": "bone", "attachment": "身体" },
+	{ "name": "触角-右", "bone": "bone2", "attachment": "触角-右" },
+	{ "name": "表情", "bone": "bone6", "attachment": "表情" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"翅膀-右": {
+				"翅膀-右": { "x": 49.83, "y": -2.38, "rotation": -146.38, "width": 92, "height": 123 },
+				"翅膀-右1": { "x": 47.11, "y": -1.26, "rotation": -146.38, "width": 98, "height": 145 }
+			},
+			"触角-左": {
+				"触角-左": { "x": 19.36, "y": -1.55, "rotation": -108.63, "width": 35, "height": 54 }
+			},
+			"身体": {
+				"身体": { "x": 29.8, "y": 7.51, "rotation": -86.19, "width": 138, "height": 124 }
+			},
+			"触角-右": {
+				"触角-右": { "x": 21.96, "y": 0.99, "rotation": -120.26, "width": 38, "height": 53 }
+			},
+			"表情": {
+				"表情": { "x": 1.22, "y": 5.99, "rotation": -86.19, "width": 72, "height": 40 },
+				"表情-治疗": { "x": 0.36, "y": 3.93, "rotation": -86.19, "width": 68, "height": 44 },
+				"表情-麻痹": { "x": 1.99, "y": 2.03, "rotation": -86.19, "width": 64, "height": 45 }
+			},
+			"翅膀-左": {
+				"翅膀-左": { "x": 41.87, "y": -1.09, "rotation": -14.51, "width": 90, "height": 86 },
+				"翅膀-左1": { "x": 44.33, "y": -0.98, "rotation": -14.51, "width": 94, "height": 108 }
+			}
+		}
+	}
+],
+"animations": {
+	"daiji": {
+		"bones": {
+			"bone": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "y": 16.3, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone4": {
+				"shear": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1667, "x": 29.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "x": 29.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone5": {
+				"shear": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1667, "x": -24.85, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "x": -0.16, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "x": -24.85, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667, "x": -0.16 }
+				]
+			},
+			"bone3": {
+				"rotate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "angle": 13.22, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone2": {
+				"rotate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "angle": 13.22, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			}
+		}
+	},
+	"mabi": {
+		"slots": {
+			"表情": {
+				"attachment": [
+					{ "name": "表情-麻痹" }
+				]
+			}
+		},
+		"bones": {
+			"bone": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "y": 16.3, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone4": {
+				"shear": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1667, "x": 29.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "x": 29.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone5": {
+				"shear": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1667, "x": -24.85, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "x": -0.16, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "x": -24.85, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667, "x": -0.16 }
+				]
+			},
+			"bone3": {
+				"rotate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "angle": 13.22, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone2": {
+				"rotate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "angle": 13.22, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			}
+		}
+	},
+	"yidong": {
+		"slots": {
+			"翅膀-右": {
+				"attachment": [
+					{ "name": "翅膀-右1" }
+				]
+			},
+			"翅膀-左": {
+				"attachment": [
+					{ "name": "翅膀-左1" }
+				]
+			}
+		},
+		"bones": {
+			"bone": {
+				"rotate": [
+					{ "angle": -10.19 }
+				],
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1, "y": 5.47, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.2 }
+				]
+			},
+			"bone4": {
+				"shear": [
+					{ "x": 5.67, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1, "x": 31.72, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.2, "x": 5.67 }
+				]
+			},
+			"bone5": {
+				"shear": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1, "x": -22.18, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.2 }
+				]
+			},
+			"bone2": {
+				"rotate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1, "angle": 11.22, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.2 }
+				]
+			},
+			"bone3": {
+				"rotate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1, "angle": 11.22, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.2 }
+				]
+			}
+		}
+	},
+	"zhiliao": {
+		"slots": {
+			"表情": {
+				"attachment": [
+					{ "name": "表情-治疗" }
+				]
+			}
+		},
+		"bones": {
+			"bone": {
+				"translate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "y": 16.3, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone4": {
+				"shear": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1667, "x": 29.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "x": 29.66, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone5": {
+				"shear": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.1667, "x": -24.85, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "x": -0.16, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.5, "x": -24.85, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667, "x": -0.16 }
+				]
+			},
+			"bone3": {
+				"rotate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "angle": 13.22, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			},
+			"bone2": {
+				"rotate": [
+					{ "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.3333, "angle": 13.22, "curve": 0.25, "c3": 0.75 },
+					{ "time": 0.6667 }
+				]
+			}
+		}
+	}
+}
+}

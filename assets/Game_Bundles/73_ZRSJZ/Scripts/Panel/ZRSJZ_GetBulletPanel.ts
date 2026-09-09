@@ -1,5 +1,5 @@
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, Button, EventTouch, find, Label, Node, Sprite, UITransform, v3 } from 'cc';
+import { _decorator, Button, EventTouch, find, isValid, Label, Node, Sprite, UITransform, v3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -42,10 +42,14 @@ export class ZRSJZ_GetBulletPanel extends ZRSJZ_Panel {
     }
 
     protected onDestroy(): void {
-        this._track?.off(Node.EventType.TOUCH_START, this.OnSliderTouch, this);
-        this._track?.off(Node.EventType.TOUCH_MOVE, this.OnSliderTouch, this);
-        this._track?.off(Node.EventType.TOUCH_END, this.OnSliderTouch, this);
-        this._track?.off(Node.EventType.TOUCH_CANCEL, this.OnSliderTouch, this);
+        // 父节点销毁时，滑动条子节点先于本组件销毁，不能再访问其事件处理器。
+        const track = this._track;
+        this._track = null;
+        if (!isValid(track, true)) return;
+        track.off(Node.EventType.TOUCH_START, this.OnSliderTouch, this);
+        track.off(Node.EventType.TOUCH_MOVE, this.OnSliderTouch, this);
+        track.off(Node.EventType.TOUCH_END, this.OnSliderTouch, this);
+        track.off(Node.EventType.TOUCH_CANCEL, this.OnSliderTouch, this);
     }
 
     public Show(ammoName: string): void {

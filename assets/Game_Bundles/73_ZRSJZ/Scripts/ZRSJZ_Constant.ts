@@ -50,6 +50,7 @@ export enum ZRSJZ_PANEL {
     锻造界面 = "73_ZRSJZ_DLC/Prefabs/Panel/锻造界面",
     宠物界面 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物界面",
     宠物皮肤弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物皮肤弹窗",
+    宠物基因弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物基因弹窗",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
 
 }
@@ -2147,10 +2148,50 @@ export interface ZRSJZ_MailConfig {
 }
 //#region 宠物
 
+export type ZRSJZ_PetGeneType = "生命值" | "防御" | "攻击" | "攻速" | "技能" | "背包";
+
+export interface ZRSJZ_PetGeneConfig {
+    Level: number;// 学习后达到的宠物等级；必须按顺序学习
+    Type: ZRSJZ_PetGeneType;
+    CostProp: string;// 消耗道具名称，或“金币”
+    CostCount: number;
+    Value: number;// 固定属性增量；攻速为比例（0.05 = +5%）；技能为解锁数量
+}
+
+// 每五级：生命值、防御、攻击、攻速、技能/背包。
+// 当前提供20级默认数值；消耗与增幅均在此逐级调整。新宠物0级，学习Lv1后升为1级。
+// 旧存档保留已有宠物等级，对应等级及之前的基因视为已学习，不重复扣费。
+export const ZRSJZ_PET_GENE_CONFIG: readonly Readonly<ZRSJZ_PetGeneConfig>[] = [
+    { Level: 1, Type: "生命值", CostProp: "核桃", CostCount: 2, Value: 20 },
+    { Level: 2, Type: "防御", CostProp: "核桃", CostCount: 2, Value: 2 },
+    { Level: 3, Type: "攻击", CostProp: "核桃", CostCount: 2, Value: 3 },
+    { Level: 4, Type: "攻速", CostProp: "核桃", CostCount: 2, Value: 0.05 },
+    { Level: 5, Type: "技能", CostProp: "核桃", CostCount: 3, Value: 1 },
+    { Level: 6, Type: "生命值", CostProp: "核桃", CostCount: 3, Value: 30 },
+    { Level: 7, Type: "防御", CostProp: "核桃", CostCount: 3, Value: 3 },
+    { Level: 8, Type: "攻击", CostProp: "核桃", CostCount: 3, Value: 4 },
+    { Level: 9, Type: "攻速", CostProp: "核桃", CostCount: 3, Value: 0.05 },
+    { Level: 10, Type: "背包", CostProp: "核桃", CostCount: 4, Value: 1 },
+    { Level: 11, Type: "生命值", CostProp: "核桃", CostCount: 4, Value: 40 },
+    { Level: 12, Type: "防御", CostProp: "核桃", CostCount: 4, Value: 4 },
+    { Level: 13, Type: "攻击", CostProp: "核桃", CostCount: 4, Value: 5 },
+    { Level: 14, Type: "攻速", CostProp: "核桃", CostCount: 4, Value: 0.05 },
+    { Level: 15, Type: "技能", CostProp: "核桃", CostCount: 5, Value: 1 },
+    { Level: 16, Type: "生命值", CostProp: "核桃", CostCount: 5, Value: 50 },
+    { Level: 17, Type: "防御", CostProp: "核桃", CostCount: 5, Value: 5 },
+    { Level: 18, Type: "攻击", CostProp: "核桃", CostCount: 5, Value: 6 },
+    { Level: 19, Type: "攻速", CostProp: "核桃", CostCount: 5, Value: 0.05 },
+    { Level: 20, Type: "背包", CostProp: "核桃", CostCount: 6, Value: 1 },
+];
+
 export interface ZRSJZ_PetSkinConfig {
+    PetSkinSpineName?: string;// SkeletonDatas中对应资源的名称；未配置时使用宠物名称
+    PetSkinSpineSkin?: string;// Spine内部皮肤名，必须与导出的skins名称一致
     PetSkinName: string;//宠物皮肤名称
     PetSkinQuality: string;//宠物品质
-    PetSkinAddition: string;//宠物属性加成
+    // 当前穿戴时计入宠物总属性。支持攻击/生命值/防御/背包固定值、攻速百分比；多项用逗号或换行分隔。
+    // 示例："攻击+10，生命值+50，防御+2，背包+1，攻速+5%"；空字符串表示无加成。
+    PetSkinAddition: string;//宠物属性加成（同时用于界面显示和实际计算）
     PetSkinUnlock: string;//宠物解锁条件
 }
 
@@ -2159,6 +2200,7 @@ export interface ZRSJZ_PetConfig {
     PetName: string;//宠物名称
     PetSkins: string[];//宠物皮肤
     PetSkills: string[];//宠物技能
+    PetGeneValues?: Readonly<Partial<Record<number, number>>>;//按基因等级覆盖增幅，未填的等级使用公共基因配置
     PetUnlock: string;//宠物解锁条件
     PetUnlockValue?: number;//金币解锁所需金币或等级解锁所需账号等级；视频解锁不需要
     PetHarmony: number;//宠物攻击力
@@ -2172,26 +2214,34 @@ export interface ZRSJZ_PetConfig {
 export const ZRSJZ_PET_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkinConfig>> = new Map([
     ["龙宝宝", {
         PetSkinName: "龙宝宝",
+        PetSkinSpineName: "龙宝宝",
+        PetSkinSpineSkin: "pifu",
         PetSkinQuality: "普通",
         PetSkinAddition: "",
         PetSkinUnlock: "",
     }],
     ["星核幼龙", {
         PetSkinName: "星核幼龙",
+        PetSkinSpineName: "龙宝宝",
+        PetSkinSpineSkin: "pifu_shenyuan",
         PetSkinQuality: "传说",
         PetSkinAddition: "攻击+10",
         PetSkinUnlock: "视频x免费获取",
     }],
     ["小蜜蜂", {
         PetSkinName: "小蜜蜂",
+        PetSkinSpineName: "小蜜蜂",
+        PetSkinSpineSkin: "default",
         PetSkinQuality: "普通",
         PetSkinAddition: "",
         PetSkinUnlock: "",
     }],
     ["蜜蜂侠客", {
         PetSkinName: "蜜蜂侠客",
+        PetSkinSpineName: "小蜜蜂",
+        PetSkinSpineSkin: "default",//当前蜜蜂资源仅有default，新增皮肤后在此替换
         PetSkinQuality: "史诗",
-        PetSkinAddition: "攻击+7",
+        PetSkinAddition: "生命值+50",
         PetSkinUnlock: "金币x1000000",
     }],
 ])
@@ -2200,23 +2250,101 @@ export const ZRSJZ_PET_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetConfig>> = 
     ["龙宝宝", {
         PetName: "龙宝宝",
         PetSkins: ["龙宝宝", "星核幼龙"],
-        PetSkills: ["龙宝宝技能1", "龙宝宝技能2", "龙宝宝技能3", "龙宝宝技能4"],
+        PetSkills: ["虚能魔弹", "龙之鼓舞", "星陨", "星爆"],
+        // 攻击/攻速成长优先。键是基因等级，攻速0.08表示增加8%。
+        PetGeneValues: {
+            1: 15, 2: 1, 3: 5, 4: 0.08, 6: 20, 7: 2, 8: 7, 9: 0.08,
+            11: 25, 12: 2, 13: 9, 14: 0.08, 16: 30, 17: 3, 18: 12, 19: 0.08
+        },
         PetUnlock: "视频解锁",
         PetHarmony: 10,
         PetHP: 100,
         PetArmor: 5,
         PetBackpack: 1,
-        PetDesc: "龙宝宝出击",
+        PetDesc: "擅长攻击与攻速成长，为玩家提供攻击加成。",
     }],
     ["小蜜蜂", {
         PetName: "小蜜蜂",
         PetSkins: ["小蜜蜂", "蜜蜂侠客"],
-        PetSkills: ["小蜜蜂技能1", "小蜜蜂技能2", "小蜜蜂技能3", "小蜜蜂技能4"],
+        PetSkills: ["纳米修复", "蜂巢装甲", "晶能屏障", "蜂群部署"],
+        // 生存/携行成长优先，第10、20级每次增加2格背包。
+        PetGeneValues: {
+            1: 30, 2: 3, 3: 2, 4: 0.03, 6: 45, 7: 4, 8: 3, 9: 0.03,
+            10: 1, 11: 60, 12: 6, 13: 3, 14: 0.03, 16: 80, 17: 8, 18: 4, 19: 0.03, 20: 1
+        },
         PetUnlock: "视频解锁",
         PetHarmony: 8,
         PetHP: 200,
         PetArmor: 5,
         PetBackpack: 1,
-        PetDesc: "小蜜蜂来喽",
+        PetDesc: "擅长生命、防御与背包成长，为玩家提供生存加成。",
     }],
 ])
+
+export interface ZRSJZ_PetPlayerBonus {
+    Attack: number;//玩家枪械和近战固定伤害增量
+    MaxHP: number;//玩家最大生命固定增量
+    DamageReduction: number;//额外减伤比例，0.05表示5%
+}
+
+export interface ZRSJZ_PetSkillConfig {
+    Name: string;
+    Kind: "普通攻击" | "被动" | "主动";
+    Unlock: "购买" | "基因" | "视频";
+    GeneLevel?: number;
+    Description: string;
+    Animation?: string;
+    Cooldown?: number;//秒
+    DamageMultiplier?: number;//每次伤害相对宠物攻击力的倍率
+    HitCount?: number;
+    Range?: number;//游戏单位
+    Duration?: number;//秒
+    HealPlayerMaxHPRate?: number;//治疗玩家最大生命的比例
+    ShieldPlayerMaxHPRate?: number;//护盾为玩家最大生命的比例
+    PlayerBonus?: Readonly<ZRSJZ_PetPlayerBonus>;
+}
+
+// 每只宠物固定四个槽位：普攻、玩家属性被动、主动、视频主动。
+// 普攻/主动的动画及效果参数供宠物战斗执行器读取；被动由Player属性计算读取。
+export const ZRSJZ_PET_SKILL_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkillConfig>> = new Map([
+    ["虚能魔弹", {
+        Name: "虚能魔弹", Kind: "普通攻击", Unlock: "购买", Animation: "gongji",
+        Cooldown: 1.2, DamageMultiplier: 1, HitCount: 1, Range: 400,
+        Description: "发射魔弹攻击敌人，造成100%宠物攻击力伤害，基础间隔1.2秒。"
+    }],
+    ["龙之鼓舞", {
+        Name: "龙之鼓舞", Kind: "被动", Unlock: "基因", GeneLevel: 5,
+        PlayerBonus: { Attack: 10, MaxHP: 0, DamageReduction: 0 },
+        Description: "宠物出战时，玩家枪械和近战每次伤害增加10点。"
+    }],
+    ["星陨", {
+        Name: "星陨", Kind: "主动", Unlock: "基因", GeneLevel: 15, Animation: "jineng",
+        Cooldown: 12, DamageMultiplier: 1.5, HitCount: 1, Range: 300, Duration: 3,
+        Description: "召唤虚空中的陨石，持续对范围内敌人造成150%宠物攻击力伤害，冷却12秒。"
+    }],
+    ["星爆", {
+        Name: "星爆", Kind: "主动", Unlock: "视频", Animation: "jineng",
+        Cooldown: 25, DamageMultiplier: 2.5, HitCount: 3, Range: 450, Duration: 2,
+        Description: "召唤黑洞，持续拉扯敌人，最后造成250%宠物攻击力爆炸伤害，冷却25秒。"
+    }],
+    ["纳米修复", {
+        Name: "纳米修复", Kind: "普通攻击", Unlock: "购买", Animation: "gongji",
+        Cooldown: 0.8, DamageMultiplier: 2, HitCount: 1, Range: 350,
+        Description: "发动纳米修复，给玩家和自己恢复80%宠物攻击力的血量，基础间隔2秒。"
+    }],
+    ["蜂巢装甲", {
+        Name: "蜂巢装甲", Kind: "被动", Unlock: "基因", GeneLevel: 5,
+        PlayerBonus: { Attack: 0, MaxHP: 50, DamageReduction: 0.05 },
+        Description: "宠物出战时，玩家最大生命增加50点，额外减伤5%。"
+    }],
+    ["晶能屏障", {
+        Name: "晶能屏障", Kind: "主动", Unlock: "基因", GeneLevel: 15, Animation: "jineng",
+        Cooldown: 30, Duration: 6, ShieldPlayerMaxHPRate: 0.2,
+        Description: "为玩家提供两片能抵挡2次攻击的护盾，持续6秒，冷却30秒。"
+    }],
+    ["蜂群部署", {
+        Name: "蜂群部署", Kind: "主动", Unlock: "视频", Animation: "jineng",
+        Cooldown: 25, DamageMultiplier: 1.2, HitCount: 3, Range: 400, HealPlayerMaxHPRate: 0.2,
+        Description: "释放蜂群，蜂群附身到玩家身上可以给玩家每秒恢复100%宠物攻击力血量，附身到敌人身上会麻痹敌人，冷却25秒。"
+    }],
+]);
