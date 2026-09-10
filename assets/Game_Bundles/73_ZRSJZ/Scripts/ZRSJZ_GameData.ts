@@ -15,7 +15,7 @@ import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 5;//当前版本
+    public static readonly Versions = 6;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -50,7 +50,7 @@ export class ZRSJZ_GameData {
         }
         // 有效旧存档不再因版本较低而清空；先备份原始内容，再进入逐级迁移。
         if (!hasVersions || savedData.Versions < this.Versions) {
-            sys.localStorage.setItem(this.STORAGE_KEY + '_before_v5', json);
+            sys.localStorage.setItem(this.STORAGE_KEY + '_before_v' + this.Versions, json);
         }
         if (!hasVersions || !Number.isFinite(savedData.Versions)) savedData.Versions = 0;
 

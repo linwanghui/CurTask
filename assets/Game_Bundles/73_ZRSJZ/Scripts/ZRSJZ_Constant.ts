@@ -1895,14 +1895,14 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
     }],
     ["北境终局", {
         TaskName: "北境终局",
-        TaskDesc: "幕后首领已在极北之地的核心据点现身。进入绝密行动区域击败Boss，完成禁区主线行动。",
+        TaskDesc: "幕后首领已在极北之地的核心据点现身。进入绝密行动区域击败Boss，完成禁区主线行动。领取奖励后，安全箱永久扩容至3×3（9格）。",
         TaskTargets: [
             {
                 TaskTargetName: "打败[极北之地_绝密行动]Boss",
                 TaskTargetCount: 1,
             },
         ],
-        TaskAwards: CreateMainTaskAwards(5000000, 200, "6级子弹", "KK41-霰弹枪", "反应炉", "烽火奖杯"),
+        TaskAwards: CreateMainTaskAwards(5000000, 200, "6级子弹", "KK41-霰弹枪", "反应炉", "烽火奖杯", CreateMainTaskPropAward("安全箱扩容", 1)),
     }],
 ])
 
