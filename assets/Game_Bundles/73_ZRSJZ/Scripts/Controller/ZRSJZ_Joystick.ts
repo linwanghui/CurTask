@@ -27,6 +27,8 @@ export class ZRSJZ_Joystick extends Component {
     }
 
     protected onEnable(): void {
+        this.resetMovement();
+        ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESET_MOVEMENT, this.OnResetMovement, this);
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
         game.on(Game.EVENT_HIDE, this.resetMovement, this);
@@ -42,6 +44,7 @@ export class ZRSJZ_Joystick extends Component {
     }
 
     protected onDisable(): void {
+        ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESET_MOVEMENT, this.OnResetMovement, this);
         input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
         game.off(Game.EVENT_HIDE, this.resetMovement, this);
@@ -68,7 +71,11 @@ export class ZRSJZ_Joystick extends Component {
         if (document.hidden) this.resetMovement();
     };
 
-    // 失焦后可能收不到 KEY_UP，主动清空输入并通知玩家停止。
+    private OnResetMovement(playerIndex: number): void {
+        if (playerIndex === this.PlayerIndex) this.resetMovement();
+    }
+
+    // 失焦或死亡时可能收不到 KEY_UP，主动清空输入并通知玩家停止。
     private resetMovement = (): void => {
         this._keysRow.length = 0;
         this._keysCol.length = 0;

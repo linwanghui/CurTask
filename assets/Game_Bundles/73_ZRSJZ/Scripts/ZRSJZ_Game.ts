@@ -12,6 +12,7 @@ import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_InventoryService } from './Service/ZRSJZ_InventoryService';
 import { ZRSJZ_TaskService } from './Service/ZRSJZ_TaskService';
+import { ZRSJZ_LevelProgressService } from './Service/ZRSJZ_LevelProgressService';
 import { ZRSJZ_ParacargoBox } from './Unit/ZRSJZ_ParacargoBox';
 import { ZRSJZ_BombPlot } from './Unit/ZRSJZ_BombPlot';
 import { ZRSJZ_SpecialOperationsTaskIcon } from './Unit/ZRSJZ_SpecialOperationsTaskIcon';
@@ -184,7 +185,17 @@ export class ZRSJZ_Game extends Component {
             && this.node.activeInHierarchy;
     }
 
+    private _bossDefeatedThisBattle: boolean = false;
+    private _progressMapKey: string = '';
+
+    public RecordBossDefeated(): void {
+        if (this.IsTutorial || this._isGameFinished || this._battleStatisticsFinalized) return;
+        this._bossDefeatedThisBattle = true;
+    }
+
     protected onLoad(): void {
+        this._bossDefeatedThisBattle = false;
+        this._progressMapKey = ZRSJZ_GameData.Instance.CurMap;
         ZRSJZ_Game.Instance = this;
         ZRSJZ_InventoryService.ResetBackpackExpansion();
         this.ResolveBattleSceneNodes();
@@ -970,6 +981,9 @@ export class ZRSJZ_Game extends Component {
             || this.IsTutorial
         ) return;
         this._battleStatisticsFinalized = true;
+        if (evacuationSuccess && this._bossDefeatedThisBattle) {
+            ZRSJZ_LevelProgressService.RecordCompletion(this._progressMapKey);
+        }
         ZRSJZ_GradeService.RecordBattleFinished(
             evacuationSuccess,
             evacuationValue,
