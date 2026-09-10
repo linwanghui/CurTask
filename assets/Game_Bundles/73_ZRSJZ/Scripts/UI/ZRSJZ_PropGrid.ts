@@ -238,6 +238,18 @@ export class ZRSJZ_PropGrid extends Component {
         checkedWidget.right = -6;
     }
 
+    /** 交换时复用现有节点与贴图，只更新库存归属、位置和朝向。 */
+    public Relocate(inventory: ZRSJZ_INVENTORY, gridX: number, gridY: number, isRotate: boolean): void {
+        this._inventory = inventory;
+        this._gridX = gridX;
+        this._gridY = gridY;
+        this.CurScale = 1;
+        this._isSellCheck = false;
+        this.Check.active = false;
+        this.Checked.active = false;
+        this.ApplyOrientation(this.SupportsAutoRotation(inventory) && isRotate, this.PropData.Width, this.PropData.Height);
+    }
+
     private ApplyOrientation(isRotate: boolean, originalWidth: number, originalHeight: number): void {
         this.GridSprite.sizeMode = Sprite.SizeMode.RAW;
         this.IconSprite.node.setRotationFromEuler(0, 0, 0);

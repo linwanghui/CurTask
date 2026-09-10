@@ -18,6 +18,16 @@ export class ZRSJZ_Door extends Component {
     Sensor: Collider2D = null;
     Collider: Node = null;
     private _isOpened: boolean = false;
+    private _lastBlockedTipTime: number = 0;
+
+    /** 接触保险门时提示；短暂冷却避免碰撞抖动或双人同时接触刷屏。 */
+    public ShowMissingOperationTip(): void {
+        if (!this.IsInsuranceDoor || this._isOpened) return;
+        const now = Date.now();
+        if (now - this._lastBlockedTipTime < 3000) return;
+        this._lastBlockedTipTime = now;
+        void ZRSJZ_UIManager.Instance.ShowTip('本局没有“先锋行动”，无法进入房间');
+    }
 
     public get IsInsuranceDoor(): boolean {
         return this.Skin === "保险门";

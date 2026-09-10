@@ -112,5 +112,6 @@ export class ZRSJZ_Joystick_Drug extends Component {
         drug[2] += 1;
 
         this.RefreshDrugCount(true);
+        void ZRSJZ_UIManager.Instance.ShowTip('获得药品：高级药品×1、中级药品×1、初级药品×1');
     }
 }

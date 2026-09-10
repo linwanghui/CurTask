@@ -45,6 +45,30 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     Other: Node = null;
     Target: Node = null;
     HP: ZRSJZ_HP = null;
+    private _taskMarker: Node = null;
+    private _taskMarkerOrigin: Vec3 = null;
+    private _taskMarkerTween: Tween<Node> = null;
+
+    /** 仅由局内击杀任务的目标生成流程开启；普通小怪默认隐藏。 */
+    public SetTaskTargetMarker(visible: boolean): void {
+        this._taskMarkerTween?.stop();
+        this._taskMarkerTween = null;
+        if (!this._taskMarker?.isValid) {
+            this._taskMarker = this.node.getChildByName('红点');
+            this._taskMarkerOrigin = this._taskMarker?.position.clone() ?? null;
+        }
+        if (!this._taskMarker || !this._taskMarkerOrigin) return;
+        this._taskMarker.setPosition(this._taskMarkerOrigin);
+        this._taskMarker.active = visible && !this.IsDead;
+        if (!this._taskMarker.active) return;
+        const upper = this._taskMarkerOrigin.clone().add3f(0, 25, 0);
+        this._taskMarkerTween = tween(this._taskMarker)
+            .to(0.6, { position: upper }, { easing: 'sineInOut' })
+            .to(0.6, { position: this._taskMarkerOrigin.clone() }, { easing: 'sineInOut' })
+            .union()
+            .repeatForever()
+            .start();
+    }
 
     protected RigidBody: RigidBody2D = null;
     protected Colliders: Collider2D[] = [];
@@ -117,6 +141,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected onLoad(): void {
+        this.SetTaskTargetMarker(false);
         this.Other = this.node.getChildByName("Other");
         const enemyName = this.EnemyName.trim() || this.node.name;
         this.EnemyConfig = this.ResolveEnemyConfig(enemyName);
@@ -210,6 +235,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected onDisable(): void {
+        this.SetTaskTargetMarker(false);
         this._petStunRemaining = 0;
         this._petStunSources.clear();
         if (this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = false;
@@ -368,6 +394,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         }
 
         this._health = 0;
+        this.SetTaskTargetMarker(false);
         this.ChangeState(ZRSJZ_ENEMY_STATE.DEAD);
         ZRSJZ_Game.Instance?.RecordKill(1, this.node);
         this.Target = null;
@@ -454,7 +481,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     /** 按地图配置生成箱子，并把数量、品质概率和地图物品池传入箱子。 */
-    protected async SpawnDropBox(worldPos: Vec3, parent: Node): Promise<void> {
+    protected async SpawnDropBox(worldPos: Vec3, parent: Node, guaranteeGold: boolean = false): Promise<void> {
         const config = this.DropBoxConfig;
         const mapProp = this.MapProp;
         const requestGame = ZRSJZ_Game.Instance;
@@ -497,7 +524,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             return;
         }
         node.parent = dropParent;
-        box.Configure(config, mapProp);
+        box.Configure(config, mapProp, guaranteeGold);
         node.active = true;
         box.Show(worldPos);
     }

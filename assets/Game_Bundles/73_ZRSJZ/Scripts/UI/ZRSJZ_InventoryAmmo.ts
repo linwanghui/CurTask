@@ -56,6 +56,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         worldPos: Vec3,
         isConfirm: boolean,
     ) {
+        if (ZRSJZ_Inventory.SwapInProgress) return;
         const dragPlayerIndex = ZRSJZ_UIManager.DraggingPlayerIndex;
         if (!this.IsVisible || !worldPos || !this.UITransform) return;
         if (dragPlayerIndex >= 0 && this.PlayerViewIndex !== dragPlayerIndex) return;
@@ -94,13 +95,17 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
             return;
         }
 
+        const targetID = this.Grids[gridY]?.[gridX];
+        const canDrop = !targetID || targetID === id
+            || ZRSJZ_GameData.Instance.PropData[targetID]?.Name === propData.Name
+            || !!this.GetSwapPlan(id, gridX, gridY, 1, 1, false);
         if (!isConfirm) {
             ZRSJZ_EventManager.EmitPersist(
                 ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW,
                 this.InventoryType,
                 gridX,
                 gridY,
-                "绿",
+                canDrop ? "绿" : "红",
             );
             return;
         }
@@ -194,61 +199,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
             return;
         }
 
-        // 备战弹药栏内部拖动时交换格子；从外部拖入时，旧弹药回到新弹药原来的位置。
-        if (sourceInventory === this.InventoryType && sourceIndex >= 0) {
-            ammoIDs[sourceIndex] = targetID;
-            ammoIDs[targetIndex] = incomingID;
-            this.SaveAmmoPosition(targetID, sourceIndex);
-        } else {
-            const sourcePlacements = this.GetInventoryPlacements(incomingID);
-            const sourceGridIndex = sourceInventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
-            const sourceGrid = incomingData.GridData[sourceGridIndex];
-            const returnInventory = sourceInventory === ZRSJZ_INVENTORY.仓库_全部
-                ? incomingData.CurInventory
-                : sourceInventory;
-            const sourceBoxID = incomingData.SourceBoxID ?? "";
-
-            await this.RemoveFromOtherInventories(incomingID);
-            ammoIDs[targetIndex] = incomingID;
-            incomingData.SourceBoxID = "";
-            targetData.SourceBoxID = returnInventory === ZRSJZ_INVENTORY.物资
-                ? sourceBoxID
-                : "";
-            ZRSJZ_InventoryService.MovePropToInventory(
-                targetID,
-                returnInventory,
-                sourceGridIndex,
-                sourceGrid?.GridX ?? -1,
-                sourceGrid?.GridY ?? -1,
-                undefined,
-                this.PlayerViewIndex,
-            );
-            if (sourcePlacements.length > 0) {
-                for (const placement of sourcePlacements) {
-                    ZRSJZ_InventoryService.ChangePropGridPos(
-                        targetID,
-                        placement.gridIndex,
-                        placement.gridX,
-                        placement.gridY,
-                    );
-                    await placement.inventory.RestorePropAt(
-                        targetID,
-                        placement.gridX,
-                        placement.gridY,
-                    );
-                }
-            } else {
-                await this.RefreshReturnedAmmoInventories(
-                    sourceInventory,
-                    returnInventory,
-                    sourceBoxID,
-                );
-            }
-        }
-
-        this.SaveAmmoPosition(incomingID, targetIndex);
-        ZRSJZ_InventoryService.SetAmmoID(ammoIDs, this.PlayerViewIndex);
-        await this.RebuildView();
+        await this.CommitSwap(this.GetSwapPlan(incomingID, gridX, gridY, 1, 1, false));
     }
 
     private async MergeAmmo(incomingID: string, targetID: string, sourceIndex: number) {

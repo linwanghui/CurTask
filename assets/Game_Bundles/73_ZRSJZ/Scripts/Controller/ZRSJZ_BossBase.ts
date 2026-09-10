@@ -421,7 +421,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         const deathPosition = this.node.worldPosition.clone();
         const dropParent = this.node.parent;
         ZRSJZ_Game.Instance.CreateDieEffect(deathPosition, () => {
-            this.SpawnDropBox(deathPosition, dropParent).finally(() => {
+            this.SpawnDropBox(deathPosition, dropParent, true).finally(() => {
                 ZRSJZ_PoolManager.Instance.PutNode(this.node);
             });
         });

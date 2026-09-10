@@ -1387,6 +1387,9 @@ export class ZRSJZ_Player extends Component {
             );
         } else if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Door)) {
             const door = otherCollider.node.getComponent(ZRSJZ_Door);
+            if (door?.IsInsuranceDoor && !ZRSJZ_Game.Instance.HasBreakWallOperation) {
+                door.ShowMissingOperationTip();
+            }
             if (door?.CanOpenManually) {
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, door, this.PlayerIndex);
             } else {

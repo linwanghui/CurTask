@@ -97,6 +97,7 @@ export class ZRSJZ_Box extends Component {
     Configure(
         config: Readonly<ZRSJZ_BoxConfig>,
         mapProp: readonly (readonly string[])[],
+        guaranteeGold: boolean = false,
     ): void {
         this.DisposeInventory();
         this._boxConfig = {
@@ -113,6 +114,7 @@ export class ZRSJZ_Box extends Component {
         this._nextLootIndex = 0;
         this._inventoryID = `${this.node.uuid}_${++ZRSJZ_Box._inventorySerial}`;
         this.LootProps = this.GenerateLootProps();
+        if (guaranteeGold) this.EnsureGoldLoot();
         this._isInit = false;
         this.Init();
     }
@@ -330,6 +332,25 @@ export class ZRSJZ_Box extends Component {
         if (changed) {
             ZRSJZ_GameData.SaveData();
         }
+    }
+
+    /** Boss专用保底：已有金色不追加，否则补一件金色物品，保留原掉落。 */
+    private EnsureGoldLoot(): void {
+        if (this.LootProps.some(name => ZRSJZ_PROP_CONFIG.get(name)?.Quality === ZRSJZ_PROP_QUALITY.金色)) return;
+        // 保底只选物品，沿用箱子不掉落背包及高阶装备的限制。
+        const isGoldItem = (name: string): boolean => {
+            const prop = ZRSJZ_PROP_CONFIG.get(name);
+            return prop?.Quality === ZRSJZ_PROP_QUALITY.金色 && prop.PropType === '物品';
+        };
+        const goldIndex = ZRSJZ_LOOT_QUALITY_ORDER.indexOf(ZRSJZ_PROP_QUALITY.金色);
+        let candidates = (this._mapProp[goldIndex] ?? []).filter(isGoldItem);
+        // 防止地图金色池缺失时保底失效；兜底仍只使用有效的金色物品配置。
+        if (!candidates.length) candidates = Array.from(ZRSJZ_PROP_CONFIG.keys()).filter(isGoldItem);
+        if (!candidates.length) {
+            console.error('[ZRSJZ_Box] Boss保底失败：没有可用的金色物品配置');
+            return;
+        }
+        this.LootProps.push(candidates[Math.floor(Math.random() * candidates.length)]);
     }
 
     private GenerateLootProps(): string[] {

@@ -1,4 +1,4 @@
-import { _decorator, Camera, Component, director, Director, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
+import { _decorator, Camera, Color, Component, director, Director, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
@@ -7,6 +7,7 @@ import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { GetSpecialOperationConfig, ZRSJZ_BOMB_PLOT_SPAWN_CONFIG, ZRSJZ_INVENTORY, ZRSJZ_MainTaskAwardConfig, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_SPECIAL_OPERATION_CONFIG, ZRSJZ_SpecialOperationConfig, ZRSJZ_SpecialOperationTaskType } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
+import { ZRSJZ_EnemyBase } from './Controller/ZRSJZ_EnemyBase';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
@@ -118,6 +119,8 @@ export class ZRSJZ_Game extends Component {
     private _specialTaskWorldPosition: Vec3 = new Vec3();
     private _currentMapName: string = "";
     private _elapsedGameTime: number = 0;
+    private _fiveMinuteWarningShown: boolean = false;
+    private _normalTimerColor: Color = null;
     private _timeLimitSeconds: number = 0;
     private _killCount: number = 0;
     private _acceptedSpecialOperationMapKey: string = "";
@@ -1854,6 +1857,7 @@ export class ZRSJZ_Game extends Component {
 
     //#region 获取游戏时间
     private InitializeBattleTimer(): void {
+        this._fiveMinuteWarningShown = false;
         const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
         const limitMinutes = Number(mapConfig?.TimeLimitMinutes ?? 0);
         this._timeLimitSeconds = Number.isFinite(limitMinutes)
@@ -1864,9 +1868,18 @@ export class ZRSJZ_Game extends Component {
 
     private RefreshGameTime(): void {
         if (!this.GameTime) return;
+        if (!this._normalTimerColor) this._normalTimerColor = this.GameTime.color.clone();
         this.GameTime.string = this._timeLimitSeconds > 0
             ? this.GetRemainingGameTime()
             : this.GetGameTime();
+        const remainingSeconds = this._timeLimitSeconds - this._elapsedGameTime;
+        const isLastFiveMinutes = !this.IsTutorial && this._timeLimitSeconds > 0 && remainingSeconds <= 300;
+        this.GameTime.color = isLastFiveMinutes ? Color.RED : this._normalTimerColor;
+        if (isLastFiveMinutes && remainingSeconds > 0 && this._battleStarted
+            && !this._isGameFinished && !this._fiveMinuteWarningShown) {
+            this._fiveMinuteWarningShown = true;
+            void ZRSJZ_UIManager.Instance.ShowTip('剩余时间不足五分钟，请尽快撤离！');
+        }
     }
 
     private GetRemainingGameTime(): string {
@@ -1967,6 +1980,10 @@ export class ZRSJZ_Game extends Component {
 
     IsSpecialOperationInProgress(): boolean {
         return this._specialOperationState === "进行中";
+    }
+
+    public get HasBreakWallOperation(): boolean {
+        return this._breakWallAvailableThisBattle;
     }
 
     public IsBreakWallOperationInProgress(): boolean {
@@ -2141,6 +2158,7 @@ export class ZRSJZ_Game extends Component {
         );
         this._specialOperationTargetEnemy = target;
         target.active = true;
+        target.getComponent(ZRSJZ_EnemyBase)?.SetTaskTargetMarker(true);
         void ZRSJZ_UIManager.Instance.ShowTip("高价值目标已出现");
     }
 

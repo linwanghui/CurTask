@@ -99,6 +99,7 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
         worldPos: Vec3,
         isConfirm: boolean,
     ) {
+        if (ZRSJZ_Inventory.SwapInProgress) return;
         const dragPlayerIndex = ZRSJZ_UIManager.DraggingPlayerIndex;
         await this._initTask;
         if (
@@ -125,7 +126,7 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
                         }
                     }
                 } else {
-                    const propType: string = this.Grids[0][0] === "" && this.IsAdaptive(id) ? "绿" : "红";
+                    const propType: string = this.IsAdaptive(id) && (this.Grids[0][0] === "" || !!this.GetSwapPlan(id, 0, 0, 1, 1, false)) ? "绿" : "红";
                     const gridName: string = this.InventoryType == ZRSJZ_INVENTORY.武器_枪 ? "枪_" : "空格子_";
                     this._GridSprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropGridUI(gridName + propType);
                 }
@@ -182,63 +183,14 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
             : this.ReplaceProp(id, sourceInventory);
     }
 
-    async ReplaceProp(id: string, expectedSourceInventory?: ZRSJZ_INVENTORY): Promise<boolean> {
+    async ReplaceProp(id: string, _expectedSourceInventory?: ZRSJZ_INVENTORY): Promise<boolean> {
         await this._initTask;
-        const propData = ZRSJZ_GameData.Instance.PropData[id];
-        if (!propData) return false;
-        if (
-            ZRSJZ_UIManager.IsBattle
-            && (propData.OwnerPlayerIndex === 0 || propData.OwnerPlayerIndex === 1)
-            && propData.OwnerPlayerIndex !== this.PlayerViewIndex
-        ) return false;
+        return this.CommitSwap(this.GetSwapPlan(id, 0, 0, 1, 1, false));
+    }
 
-        // 仓库_全部是综合视图，实际归属仍使用道具对应的分类仓库。
-        const targetInventory = this.InventoryType;
-        if (!targetInventory) return false;
-
-
-        // 先把旧装备放回新装备的来源库存。只有回收成功后才提交换装，
-        // 避免旧装备尺寸更大、来源库存放不下时仍覆盖 WeaponryID。
-        const sourceInventoryType = expectedSourceInventory ?? propData.CurInventory;
-        const inventoryNodes = ZRSJZ_UIManager.Instance.GetAllInventoryNodes();
-        let isReturned = false;
-        for (const inventoryNode of inventoryNodes) {
-            const sourceInventory = inventoryNode.getComponent(ZRSJZ_Inventory);
-            if (
-                !sourceInventory
-                || sourceInventory === this
-                || sourceInventory.InventoryType !== sourceInventoryType
-                || !sourceInventory.InventoryConfig
-                || !Array.isArray(sourceInventory.Grids)
-            ) continue;
-            if (
-                ZRSJZ_InventoryService.IsPlayerInventory(sourceInventoryType)
-                && sourceInventory.PlayerViewIndex !== this.PlayerViewIndex
-            ) continue;
-            if (sourceInventory.Grids.some(row => Array.isArray(row) && row.includes(id))) {
-                isReturned = await sourceInventory.Replace(id, this.Grids[0][0]);
-                if (!isReturned) continue;
-                const propNode = this.node.children.find(child => {
-                    const propGrid = child.getComponent(ZRSJZ_PropGrid);
-                    return propGrid?.PropID === this.Grids[0][0];
-                });
-                if (propNode) {
-                    ZRSJZ_PoolManager.Instance.PutNode(propNode);
-                }
-                break;
-            }
-        }
-        if (!isReturned) return false;
-
-        // 替换武器同样要先提交新装备数据，避免动画刷新时仍读取旧武器。
-        await this.createWeapon(id, false);
-        ZRSJZ_EventManager.EmitPersist(
-            ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT,
-            ZRSJZ_GameData.Instance.PropData[id].Name,
-            true,
-            this.PlayerViewIndex,
-        );
-        return true;
+    protected AdaptSwappedProp(propGrid: ZRSJZ_PropGrid): void {
+        this.ScaleNodeToFit(propGrid.node);
+        if (this._Normal) this._Normal.active = false;
     }
 
     private ScaleNodeToFit(targetNode: Node): void {

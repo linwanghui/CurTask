@@ -13,6 +13,50 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager
 /** 道具、装备、仓库、弹药及房卡相关业务。 */
 export class ZRSJZ_InventoryService {
 
+    /** 调用方完成双向占格校验后，一次性提交交换，最后才保存及广播。 */
+    public static ApplySwap(moves: { id: string, inventory: ZRSJZ_INVENTORY, playerIndex: number,
+        gridX: number, gridY: number, isRotate: boolean, sourceBoxID: string }[]): void {
+        const data = ZRSJZ_GameData.Instance;
+        const equipment = [ZRSJZ_INVENTORY.武器_枪, ZRSJZ_INVENTORY.武器_头盔, ZRSJZ_INVENTORY.武器_防弹衣,
+            ZRSJZ_INVENTORY.武器_背包, ZRSJZ_INVENTORY.武器_刀];
+        const ids = new Set(moves.map(move => move.id));
+        const equipmentEvents: { name: string, equipped: boolean, player: number }[] = [];
+        for (const player of [0, 1]) {
+            for (const refs of [this.GetWeaponryIDs(player), this.GetAmmoIDs(player)]) {
+                refs.forEach((id, index) => { if (ids.has(id)) refs[index] = ''; });
+            }
+        }
+        for (const move of moves) {
+            const prop = data.PropData[move.id];
+            if (equipment.includes(prop.CurInventory)) {
+                equipmentEvents.push({ name: prop.Name, equipped: false, player: prop.OwnerPlayerIndex ?? 0 });
+            }
+            prop.CurInventory = move.inventory;
+            prop.OwnerPlayerIndex = this.IsPlayerInventory(move.inventory) ? (move.playerIndex === 1 ? 1 : 0) : -1;
+            prop.SourceBoxID = move.inventory === ZRSJZ_INVENTORY.物资 ? move.sourceBoxID : '';
+            prop.GridData.forEach(grid => { grid.GridX = -1; grid.GridY = -1; });
+            const grid = prop.GridData[move.inventory === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1];
+            grid.GridX = move.gridX;
+            grid.GridY = move.gridY;
+            grid.IsRotate = move.isRotate;
+            const slot = equipment.indexOf(move.inventory);
+            if (slot >= 0) {
+                this.GetWeaponryIDs(move.playerIndex)[slot] = move.id;
+                equipmentEvents.push({ name: prop.Name, equipped: true, player: move.playerIndex });
+            }
+            if (move.inventory === ZRSJZ_INVENTORY.弹药) this.GetAmmoIDs(move.playerIndex)[move.gridY * 3 + move.gridX] = move.id;
+        }
+        this.RefreshRoomCardIDs(0);
+        this.RefreshRoomCardIDs(1);
+        ZRSJZ_GameData.SaveData();
+        // 先通知卸下，再通知装备，监听者始终读到完整的新配置。
+        equipmentEvents.sort((a, b) => Number(a.equipped) - Number(b.equipped)).forEach(event =>
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, event.name, event.equipped, event.player));
+        new Set(equipmentEvents.map(event => event.player)).forEach(player =>
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, player));
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+    }
+
     //#region 版本1之后新增
     //获取对应仓库的行数
     public static GetInventoryRow(inventory: ZRSJZ_INVENTORY, defaultValue: number = 0): number {

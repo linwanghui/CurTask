@@ -9,8 +9,250 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 const { ccclass, property } = _decorator;
 
+interface ZRSJZ_SwapPlacement {
+    inventory: ZRSJZ_Inventory;
+    id: string;
+    gridX: number;
+    gridY: number;
+    width: number;
+    height: number;
+    isRotate: boolean;
+}
+
 @ccclass('ZRSJZ_Inventory')
 export class ZRSJZ_Inventory extends Component {
+    protected static SwapInProgress = false;
+
+    protected IsEquipmentSlot(): boolean {
+        return String(this.InventoryType).startsWith('武器_');
+    }
+
+    /** 交换校验用临时占格副本，仍调用子类 CanPlace，保留宠物锁格等限制。 */
+    private CanPlaceForSwap(placement: ZRSJZ_SwapPlacement, ignored: Set<string>, reserved: ZRSJZ_SwapPlacement[]): boolean {
+        const original = this.Grids;
+        this.Grids = original.map(row => row.map(id => ignored.has(id) ? '' : id));
+        try {
+            for (const item of reserved.filter(item => item.inventory === this)) {
+                for (let y = item.gridY; y < item.gridY + item.height; y++) {
+                    for (let x = item.gridX; x < item.gridX + item.width; x++) this.Grids[y][x] = '#swap';
+                }
+            }
+            return this.CanPlace(placement.gridX, placement.gridY, placement.width, placement.height);
+        } finally {
+            this.Grids = original;
+        }
+    }
+
+    /** 只生成计划；任何道具越出覆盖区或不能回到来源区域，都整笔拒绝。 */
+    protected GetSwapPlan(id: string, gridX: number, gridY: number, width: number, height: number, isRotate: boolean): ZRSJZ_SwapPlacement[] | null {
+        if (![gridX, gridY, width, height].every(Number.isInteger) || gridX < 0 || gridY < 0 || width <= 0 || height <= 0) return null;
+        if (ZRSJZ_Inventory.SwapInProgress || !this.IsInitialized || this._isShowingPropItem || this._isAutoOrganizing) return null;
+        const data = ZRSJZ_GameData.Instance.PropData;
+        const incoming = data[id];
+        if (!incoming || !this.IsAdaptive(id)) return null;
+        const inventories = ZRSJZ_UIManager.Instance.GetAllInventoryNodes().map(node => node.getComponent(ZRSJZ_Inventory));
+        const source = inventories.find(item => item?.IsInitialized && item.BelongsToInventory(incoming, item.InventoryType)
+            && item.Grids.some(row => row.includes(id)));
+        if (!source || source._isShowingPropItem || source._isAutoOrganizing) return null;
+        const movable = (propID: string, from: ZRSJZ_Inventory, to: ZRSJZ_Inventory): boolean => {
+            const prop = data[propID];
+            return !!prop && !prop.IsSearchLocked && !prop.IsRewardVideoLocked && to.IsAdaptive(propID)
+                && from.InventoryType !== ZRSJZ_INVENTORY.武器_刀
+                && !(ZRSJZ_UIManager.IsBattle && from.InventoryType === ZRSJZ_INVENTORY.武器_背包)
+                && !(ZRSJZ_UIManager.IsBattle && (prop.OwnerPlayerIndex === 0 || prop.OwnerPlayerIndex === 1)
+                    && prop.OwnerPlayerIndex !== to.PlayerViewIndex);
+        };
+        if (!movable(id, source, this)) return null;
+        const occupants = new Set<string>();
+        for (let y = gridY; y < gridY + height; y++) {
+            for (let x = gridX; x < gridX + width; x++) {
+                const occupant = this.Grids[y]?.[x];
+                if (occupant === undefined) return null;
+                if (occupant && occupant !== id) occupants.add(occupant);
+            }
+        }
+        if (!occupants.size) return null;
+        const bounds = (inventory: ZRSJZ_Inventory, propID: string) => {
+            const cells: { x: number, y: number }[] = [];
+            inventory.Grids.forEach((row, y) => row.forEach((value, x) => { if (value === propID) cells.push({ x, y }); }));
+            return { x: Math.min(...cells.map(c => c.x)), y: Math.min(...cells.map(c => c.y)),
+                width: Math.max(...cells.map(c => c.x)) - Math.min(...cells.map(c => c.x)) + 1,
+                height: Math.max(...cells.map(c => c.y)) - Math.min(...cells.map(c => c.y)) + 1 };
+        };
+        const origin = bounds(source, id);
+        const ignored = new Set([id, ...occupants]);
+        const plan: ZRSJZ_SwapPlacement[] = [{ inventory: this, id, gridX, gridY, width, height, isRotate }];
+        if (!this.CanPlaceForSwap(plan[0], ignored, [])) return null;
+        // 先完整校验所有被覆盖道具，再决定回填布局。
+        for (const targetID of occupants) {
+            const occupied = bounds(this, targetID);
+            if (occupied.x < gridX || occupied.y < gridY || occupied.x + occupied.width > gridX + width
+                || occupied.y + occupied.height > gridY + height || !movable(targetID, this, source)) return null;
+        }
+        if (source === this && origin.x < gridX + width && origin.x + origin.width > gridX
+            && origin.y < gridY + height && origin.y + origin.height > gridY) {
+            return this.FillVacatedSwapCells(plan, [...occupants], origin, ignored) ? plan : null;
+        }
+        for (const targetID of occupants) {
+            const occupied = bounds(this, targetID);
+            if (occupied.x < gridX || occupied.y < gridY || occupied.x + occupied.width > gridX + width
+                || occupied.y + occupied.height > gridY + height || !movable(targetID, this, source)) return null;
+            const prop = data[targetID];
+            const targetIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+            let rotated = !source.IsEquipmentSlot() && this.SupportsAutoRotation() && prop.GridData[targetIndex].IsRotate;
+            let returnWidth = source.IsEquipmentSlot() ? 1 : rotated ? prop.Height : prop.Width;
+            let returnHeight = source.IsEquipmentSlot() ? 1 : rotated ? prop.Width : prop.Height;
+            let offsetX = occupied.x - gridX;
+            let offsetY = occupied.y - gridY;
+            // 来源与目标占格方向相反时，整块回填布局旋转90度。
+            if (!source.IsEquipmentSlot() && !this.IsEquipmentSlot() && origin.width === height && origin.height === width && width !== height) {
+                if (!source.SupportsAutoRotation()) return null;
+                offsetX = height - (occupied.y - gridY) - occupied.height;
+                offsetY = occupied.x - gridX;
+                rotated = !rotated;
+                [returnWidth, returnHeight] = [returnHeight, returnWidth];
+            }
+            if (rotated && !source.SupportsAutoRotation()) return null;
+            if (offsetX + returnWidth > origin.width || offsetY + returnHeight > origin.height) return null;
+            const returned = { inventory: source, id: targetID, gridX: origin.x + offsetX, gridY: origin.y + offsetY,
+                width: returnWidth, height: returnHeight, isRotate: !!rotated };
+            if (!source.CanPlaceForSwap(returned, ignored, plan)) return null;
+            plan.push(returned);
+        }
+        return plan;
+    }
+
+    /** 部分重叠时只回填原道具腾出的区域，绝不占用它的新位置。 */
+    private FillVacatedSwapCells(plan: ZRSJZ_SwapPlacement[], ids: string[],
+        origin: { x: number, y: number, width: number, height: number }, ignored: Set<string>): boolean {
+        const data = ZRSJZ_GameData.Instance.PropData;
+        const gridIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+        // 大道具优先；候选位置仅在原占格区域中生成，不重排仓库其他道具。
+        ids.sort((a, b) => data[b].Width * data[b].Height - data[a].Width * data[a].Height);
+        const candidates = ids.map(id => {
+            const prop = data[id];
+            const rotated = this.SupportsAutoRotation() && prop.GridData[gridIndex].IsRotate === true;
+            const orientations = [rotated];
+            if (this.SupportsAutoRotation() && prop.Width !== prop.Height) orientations.push(!rotated);
+            const choices: { placement: ZRSJZ_SwapPlacement, cells: string[] }[] = [];
+            for (const isRotate of orientations) {
+                const width = isRotate ? prop.Height : prop.Width;
+                const height = isRotate ? prop.Width : prop.Height;
+                for (let y = origin.y; y + height <= origin.y + origin.height; y++) {
+                    for (let x = origin.x; x + width <= origin.x + origin.width; x++) {
+                        const placement = { inventory: this, id, gridX: x, gridY: y, width, height, isRotate };
+                        if (!this.CanPlaceForSwap(placement, ignored, plan)) continue;
+                        const cells: string[] = [];
+                        for (let row = y; row < y + height; row++) {
+                            for (let col = x; col < x + width; col++) cells.push(`${col}_${row}`);
+                        }
+                        choices.push({ placement, cells });
+                    }
+                }
+            }
+            return choices;
+        });
+        if (candidates.some(choices => choices.length === 0)) return false;
+        const used = new Set<string>();
+        const failed = new Set<string>();
+        const place = (index: number): boolean => {
+            if (index === candidates.length) return true;
+            const key = `${index}:${[...used].sort().join(';')}`;
+            if (failed.has(key)) return false;
+            for (const choice of candidates[index]) {
+                if (choice.cells.some(cell => used.has(cell))) continue;
+                choice.cells.forEach(cell => used.add(cell));
+                plan.push(choice.placement);
+                if (place(index + 1)) return true;
+                plan.pop();
+                choice.cells.forEach(cell => used.delete(cell));
+            }
+            failed.add(key);
+            return false;
+        };
+        return place(0);
+    }
+
+    protected async CommitSwap(plan: ZRSJZ_SwapPlacement[]): Promise<boolean> {
+        if (!plan || ZRSJZ_Inventory.SwapInProgress) return false;
+        const inventories = new Set(plan.map(item => item.inventory));
+        const ids = new Set(plan.map(item => item.id));
+        const propNodes = new Map<string, ZRSJZ_PropGrid>();
+        const affected = new Map<ZRSJZ_Inventory, Set<string>>();
+        for (const inventory of inventories) {
+            const cells = new Set<string>();
+            affected.set(inventory, cells);
+            inventory.Grids.forEach((row, y) => row.forEach((id, x) => {
+                if (ids.has(id)) cells.add(`${x}_${y}`);
+            }));
+            for (const child of inventory.node.children) {
+                const propGrid = child.getComponent(ZRSJZ_PropGrid);
+                if (propGrid && ids.has(propGrid.PropID)) propNodes.set(propGrid.PropID, propGrid);
+            }
+        }
+        // 缺少显示节点时不提交，避免存档先变更而界面无法完成交换。
+        if (plan.some(item => !propNodes.get(item.id)?.node?.isValid)) return false;
+        ZRSJZ_Inventory.SwapInProgress = true;
+        try {
+            for (const inventory of inventories) {
+                for (const key of affected.get(inventory)) {
+                    const [x, y] = key.split('_').map(Number);
+                    inventory.Grids[y][x] = '';
+                }
+            }
+            for (const item of plan) {
+                for (let y = item.gridY; y < item.gridY + item.height; y++) {
+                    for (let x = item.gridX; x < item.gridX + item.width; x++) {
+                        item.inventory.Grids[y][x] = item.id;
+                        affected.get(item.inventory).add(`${x}_${y}`);
+                    }
+                }
+            }
+            ZRSJZ_InventoryService.ApplySwap(plan.map(item => ({
+                id: item.id, inventory: item.inventory.InventoryType, playerIndex: item.inventory.PlayerViewIndex,
+                gridX: item.gridX, gridY: item.gridY, isRotate: item.isRotate,
+                sourceBoxID: (item.inventory as ZRSJZ_Inventory & { BoxID?: string }).BoxID ?? '',
+            })));
+            // 等松手回调清理完拖拽预览，再直接转移原道具节点。
+            await Promise.resolve();
+            for (const item of plan) {
+                const propGrid = propNodes.get(item.id);
+                propGrid.node.parent = item.inventory.node;
+                propGrid.Relocate(item.inventory.InventoryType, item.gridX, item.gridY, item.isRotate);
+                item.inventory.AdaptSwappedProp(propGrid);
+            }
+            for (const inventory of inventories) {
+                await inventory.SyncSwapEmptyGrids(affected.get(inventory));
+            }
+            return true;
+        } finally {
+            ZRSJZ_Inventory.SwapInProgress = false;
+        }
+    }
+
+    /** 装备槽可在复用道具节点后应用自身缩放。 */
+    protected AdaptSwappedProp(_propGrid: ZRSJZ_PropGrid): void {}
+
+    /** 只增删交换区域的空格节点；未参与交换的道具与空格保持原样。 */
+    private async SyncSwapEmptyGrids(cells: Set<string>): Promise<void> {
+        if (this.IsEquipmentSlot()) return;
+        const existing = new Set<string>();
+        for (const child of this.node.children.slice()) {
+            const propGrid = child.getComponent(ZRSJZ_PropGrid);
+            if (!propGrid || propGrid.PropID) continue;
+            const key = `${propGrid.GridX}_${propGrid.GridY}`;
+            if (!cells.has(key)) continue;
+            if (this.Grids[propGrid.GridY]?.[propGrid.GridX] !== '' || existing.has(key)) {
+                ZRSJZ_PoolManager.Instance.PutNode(child);
+            } else {
+                existing.add(key);
+            }
+        }
+        for (const key of cells) {
+            const [x, y] = key.split('_').map(Number);
+            if (this.Grids[y]?.[x] === '' && !existing.has(key)) await this.CreateEmptyGrid(x, y);
+        }
+    }
 
     public InventoryType: ZRSJZ_INVENTORY = ZRSJZ_INVENTORY.仓库_全部;
     public Grids: string[][] = [];
@@ -865,6 +1107,7 @@ export class ZRSJZ_Inventory extends Component {
         worldPos: Vec3,
         isConfirm: boolean,
     ) {
+        if (ZRSJZ_Inventory.SwapInProgress) return;
         const dragPlayerIndex = ZRSJZ_UIManager.DraggingPlayerIndex;
         if (!this.IsVisible || !worldPos || !this.InventoryConfig || !this.UITransform) return;
         if (
@@ -891,10 +1134,27 @@ export class ZRSJZ_Inventory extends Component {
                 const pos: Vec3 = this.UITransform.convertToNodeSpaceAR(worldPos);
                 const propData = ZRSJZ_GameData.Instance.PropData[id];
                 if (!propData) return;
-                const placement = this.GetDropPlacement(propData, pos.x, pos.y, id);
+                let placement = this.GetDropPlacement(propData, pos.x, pos.y, id);
+                let swapPlan: ZRSJZ_SwapPlacement[] = null;
+                if (!placement) {
+                    const orientations = [{ width: propData.Width, height: propData.Height, isRotate: false }];
+                    if (this.SupportsAutoRotation() && propData.Width !== propData.Height) {
+                        orientations.push({ width: propData.Height, height: propData.Width, isRotate: true });
+                    }
+                    orientations.sort((a, b) => b.width - a.width);
+                    for (const orientation of orientations) {
+                        const grid = this.GetGridPositionByCenter(pos.x, pos.y, orientation.width, orientation.height);
+                        swapPlan = this.GetSwapPlan(id, grid.gridX, grid.gridY, orientation.width, orientation.height, orientation.isRotate);
+                        if (swapPlan) { placement = { ...orientation, ...grid }; break; }
+                    }
+                }
 
                 //确定修改
                 if (isConfirm) {
+                    if (swapPlan) {
+                        await this.CommitSwap(swapPlan);
+                        return;
+                    }
                     if (placement && this.IsAdaptive(id)) {
                         const isMoved = await this.ChangeGrid(inventory, id, placement.gridX, placement.gridY, placement.width, placement.height, placement.isRotate);
                         if (isMoved && inventory === this.InventoryType) {
