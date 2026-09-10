@@ -1,4 +1,7 @@
 import { ZRSJZ_BoxroomService } from "../../73_ZRSJZ/Scripts/Service/ZRSJZ_BoxroomService";
+import { ZRSJZ_InventoryService } from "../../73_ZRSJZ/Scripts/Service/ZRSJZ_InventoryService";
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../../73_ZRSJZ/Scripts/Manager/ZRSJZ_EventManager";
+import { ZRSJZ_BOXROOM_LEVEL_COST } from './ZRSJZ_BoxroomConstant';
 import { _decorator, Component, isValid, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
@@ -14,6 +17,24 @@ export class ZRSJZ_BoxroomBox extends Component {
 
     private _propName: string = "";
     private _clickCallback: (propName: string) => void = null;
+
+    protected onEnable(): void {
+        this.RefreshUpgradeTip();
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshUpgradeTip, this);
+    }
+
+    protected onDisable(): void {
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshUpgradeTip, this);
+    }
+
+    private RefreshUpgradeTip(): void {
+        const tip = this.node.getChildByName('红点');
+        if (!tip) return;
+        const level = ZRSJZ_BoxroomService.GetBoxroomPropLevel(this._propName);
+        const cost = ZRSJZ_BOXROOM_LEVEL_COST[level];
+        tip.active = !!this._propName && level < 3 && cost > 0
+            && ZRSJZ_InventoryService.GetPropCountByName(this._propName) >= cost;
+    }
 
     public async Init(
         propName: string,
@@ -50,6 +71,7 @@ export class ZRSJZ_BoxroomBox extends Component {
     }
 
     public RefreshLevel(): void {
+        this.RefreshUpgradeTip();
         const level = ZRSJZ_BoxroomService.GetBoxroomPropLevel(this._propName);
         const gridSprite = this.getComponent(Sprite);
         if (gridSprite && this.GridSFs.length > 0) {
@@ -88,5 +110,4 @@ export class ZRSJZ_BoxroomBox extends Component {
         }
     }
 }
-
 

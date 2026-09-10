@@ -42,7 +42,7 @@ function line(id: string, name: string, warehouse: ZRSJZ_INVENTORY, entries: Ent
         ID: id, Name: name, Warehouse: warehouse,
         Tasks: entries.map(([title, objective], index) => ({
             ID: `${id}_${index + 1}`, TaskName: title, Objective: objective,
-            TaskDesc: `${name} · 第${index + 1}阶段\n${DescribeTaskObjective(objective)}。接取后开始统计，完成后可永久扩容${warehouse.replace('仓库_', '')}仓库2行。`
+            TaskDesc: `${name} · 第${index + 1}阶段\n${DescribeTaskObjective(objective)}。接取后开始统计，完成后可永久扩容${warehouse === ZRSJZ_INVENTORY.仓库_全部 ? '主库' : warehouse.replace('仓库_', '') + '仓库'}2行。`
                 + (objective.kind === 'extractItem' ? '带出物品不会因任务扣除。' : '')
                 + (objective.kind === 'armedKills' ? '双人模式以存活队员装备的枪械为准，同一次击杀只计一次。' : ''),
             TaskTargets: [{ TaskTargetName: DescribeTaskObjective(objective), TaskTargetCount: objective.count }],
