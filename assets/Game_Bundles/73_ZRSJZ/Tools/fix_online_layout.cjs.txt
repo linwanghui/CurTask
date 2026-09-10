@@ -1,0 +1,42 @@
+// 开发工具（.txt 防止被 Cocos 当作游戏模块加载）。只修改现有预制体尺寸，不重建节点。
+const fs=require('fs'),cp=require('child_process'),path=require('path');
+const root=path.resolve(__dirname,'..');
+const dest=path.resolve(root,'../73_ZRSJZ_DLC/Prefabs/Panel/联机界面.prefab');
+const a=JSON.parse(fs.readFileSync(dest,'utf8'));
+const component=(n,type)=>n._components?.map(r=>a[r.__id__]).find(c=>c.__type__===type);
+const resize=(n,w,h)=>{const t=component(n,'cc.UITransform');if(t)t._contentSize={__type__:'cc.Size',width:w,height:h};};
+for(const n of a.filter(x=>x.__type__==='cc.Node')){
+ if(n._name==='背景')resize(n,1440,960);
+ if(n._name==='数字键盘')resize(n,1185,790);
+ if(n._name==='成员信息'){resize(n,840,100);n._lpos.y=-200;}
+ if(n._name==='状态'){resize(n,960,60);n._lpos.x=-130;}
+ if(n._name==='说明')component(n,'cc.Label')._string='共享怪物 · 掉落各自独立 · 房主选图后双方需重新准备';
+ if(!component(n,'cc.Button'))continue;
+ let w=300;
+ if(n._name==='关闭'){w=210;n._lpos.x=570;}
+ else if(n._name==='连接')w=210;
+ else if(n._name==='房间号输入')w=330;
+ else if(['五号小镇','沙漠古迹','极北之地','机密行动','绝密行动'].includes(n._name))w=270;
+ else if(['准备','开始游戏','取消输入','完成输入'].includes(n._name))w=330;
+ else if(n._name.startsWith('数字')||['清空','退格','离开房间'].includes(n._name))w=240;
+ if(['机密行动','绝密行动'].includes(n._name))n._lpos.y=0;
+ resize(n,w,w/3);
+ for(const r of n._children||[]){const child=a[r.__id__],label=component(child,'cc.Label');if(label){resize(child,w-30,w/3-12);if(n._name==='关闭')label._string='关闭';}}
+}
+for(const n of a.filter(x=>x.__type__==='cc.Node'&&component(x,'cc.Button'))){const s=component(n,'cc.UITransform')._contentSize;if(Math.abs(s.width/s.height-3)>0.001)throw Error('Button aspect');}
+function patch(body){const r=cp.spawnSync('C:/Users/Administrator/AppData/Local/OpenAI/Codex/bin/fd4c151a749f3ab4/codex.exe',['--codex-run-as-apply-patch','*** Begin Patch\n'+body+'\n*** End Patch'],{encoding:'utf8'});if(r.status)throw Error(r.stdout+r.stderr);}
+const stage=path.resolve(root,'Tools/online_layout_staging.txt').replace(/\\/g,'/');
+patch('*** Add File: '+stage+'\n+[\n+]');
+let text='',first=true;function flush(){if(!text)return;patch('*** Update File: '+stage+'\n@@\n-]\n'+text.split('\n').map(l=>'+'+l).join('\n')+'\n+]');text='';}
+for(const o of a){const s=(first?'':',\n')+JSON.stringify(o);first=false;if(text.length+s.length>14000)flush();text+=s;}flush();
+JSON.parse(fs.readFileSync(stage,'utf8'));
+patch('*** Update File: '+stage+'\n*** Move to: '+dest.replace(/\\/g,'/')+'\n@@\n-]\n+]');
+console.log('PASS: existing prefab nodes preserved; backgrounds 3:2; buttons 3:1.');
+const petPath=path.resolve(root,'../73_ZRSJZ_DLC/Prefabs/Unit/OnlinePet.prefab').replace(/\\/g,'/');
+if(!fs.existsSync(petPath)){
+ const pet=JSON.parse(fs.readFileSync(path.resolve(root,'../73_ZRSJZ_DLC/Prefabs/Unit/OnlinePeer.prefab'),'utf8'));
+ pet[0]._name='OnlinePet';pet[1]._name='OnlinePet';
+ for(const o of pet){if(o.__type__==='sp.Skeleton'){o._skeletonData=null;o.defaultSkin='';o.defaultAnimation='';}if(o.__type__==='cc.Label')o._string='队友宠物';}
+ patch('*** Add File: '+petPath+'\n'+JSON.stringify(pet,null,2).split('\n').map(l=>'+'+l).join('\n'));
+ patch('*** Add File: '+petPath+'.meta\n+'+JSON.stringify({ver:'1.1.50',importer:'prefab',imported:true,uuid:'146d6471-45d7-4163-9cf7-08593f5045bc',files:['.json'],subMetas:{},userData:{}}));
+}

@@ -1,0 +1,44 @@
+// 在临时端口运行真实 Python 服务，测试生产 TS 连接代码；不打开游戏窗口。
+const fs=require('fs'),vm=require('vm'),cp=require('child_process'),path=require('path'),assert=require('assert');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const serverRoot='C:/Users/Administrator/Desktop/SJZonline';
+const source=fs.readFileSync(path.resolve(__dirname,'../Scripts/Service/ZRSJZ_OnlineService.ts'),'utf8');
+const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
+class Events{constructor(){this.m=new Map();}on(k,f,t){const a=this.m.get(k)||[];a.push([f,t]);this.m.set(k,a);}emit(k,...args){for(const[f,t]of this.m.get(k)||[])f.apply(t,args);}}
+function client(){const exports={};vm.runInNewContext(compiled,{exports,require:()=>({EventTarget:Events,ZRSJZ_MAP_CONFIG:new Map([['极北之地_绝密行动',{}]])}),WebSocket,setInterval,clearInterval,Date,console});return exports.ZRSJZ_OnlineService;}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function until(fn){for(let i=0;i<120;i++){if(fn())return;await sleep(50);}throw Error('Timed out');}
+async function main(){
+ const port=19000+Math.floor(Math.random()*10000);
+ const proc=cp.spawn(serverRoot+'/.venv/Scripts/python.exe',['-u',serverRoot+'/server.py','--host','127.0.0.1','--port',String(port)],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+ let ready=false;proc.stdout.on('data',()=>ready=true);proc.stderr.on('data',()=>{});
+ const a=client(),b=client();
+ try{
+  await until(()=>ready);a.Connect('ws://127.0.0.1:'+port);b.Connect('ws://127.0.0.1:'+port);
+  await until(()=>a.SelfID&&b.SelfID);a.Create();await until(()=>a.Room);b.Join(a.Room.code);
+  await until(()=>a.Room.members.length===2&&b.Room);a.Send('select_map',{map:'极北之地_绝密行动'});
+  await until(()=>a.Map==='极北之地_绝密行动'&&b.Map===a.Map);
+  a.Send('ready',{ready:true,map:a.Map});b.Send('ready',{ready:true,map:b.Map});
+  await until(()=>a.Room.members.every(m=>m.ready));a.Send('start');await until(()=>a.Battle&&b.Battle);
+  const pose={x:88,y:92,sx:-1,sy:1,skin:'default',animation:'daiji_q'};a.Send('pose',{pose});
+  await until(()=>b.PeerPose);assert.equal(JSON.stringify(b.PeerPose),JSON.stringify(pose));
+  assert.equal(a.BattleHost,true);assert.equal(b.BattleHost,false);
+  const state={id:'e1',name:'Boss1',x:12,y:23,sx:0.5,sy:0.5,fx:1,fy:1,hp:20,ax:0,ay:0,aim:false,stun:false,dead:false,animation:'daiji'};
+  a.Combat({kind:'states',states:[state]});await until(()=>b.CombatStates.get('e1'));
+  assert.equal(b.CombatStates.get('e1').hp,20);
+  let hit=null,pet=null,shot=null;
+  a.Events.on('combat',p=>{if(p.kind==='hit')hit=p;});
+  b.Events.on('combat',p=>{if(p.kind==='pet')pet=p;if(p.kind==='shot')shot=p;});
+  b.Combat({kind:'hit',id:'e1',harm:10});await until(()=>hit);assert.equal(hit.harm,10);
+  a.Combat({kind:'shot',x:0,y:0,dx:1,dy:0,range:1000,harm:20,speed:1000});await until(()=>shot);
+  a.Combat({kind:'pet',pet:{name:'小蜜蜂',x:1,y:2,sx:1,sy:1,rx:0.5,ry:0.5,ox:0,oy:0,skin:'pifu',animation:'daiji',dead:false}});await until(()=>pet);
+  a.Combat({kind:'states',states:[{...state,hp:0,dead:true}]});await until(()=>b.CombatStates.get('e1').dead);
+  // 复发快照保持同一个敌人键，而不是新增掉落事件。
+  a.Combat({kind:'states',states:[{...state,hp:0,dead:true}]});await sleep(100);assert.equal(b.CombatStates.size,1);
+  b.Combat({kind:'states',states:[state]});await sleep(100);assert.equal(a.CombatStates.size,0);
+  a.Disconnect();await until(()=>b.Room.members.length===1);assert.equal(b.PeerPose,null);
+  assert.equal(b.BattleEnded,true);
+  console.log('PASS: production TS clients: lobby/maps/readiness, host roles, movement, enemy/death snapshots, hits, shots, pets, authority rejection, disconnect termination.');
+ }finally{a.Disconnect();b.Disconnect();proc.kill();}
+}
+main().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,0 +1,12 @@
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const path=require('path');
+const root=path.resolve(__dirname,'..'),project=path.resolve(root,'../../..');
+const config=ts.getParsedCommandLineOfConfigFile(path.join(project,'tsconfig.json'),{}, {...ts.sys,onUnRecoverableConfigFileDiagnostic:console.error});
+const files=['Scripts/Controller/ZRSJZ_OnlineBattle.ts','Scripts/Controller/ZRSJZ_Enemy.ts','Scripts/Controller/ZRSJZ_Enemy_Firebat.ts','Scripts/Controller/ZRSJZ_BossBase.ts','Scripts/Controller/ZRSJZ_Bullet.ts','Scripts/Service/ZRSJZ_OnlineCombat.ts','../73_ZRSJZ_DLC/Scripts/Pet/ZRSJZ_PetBase.ts','../73_ZRSJZ_DLC/Scripts/Panel/ZRSJZ_OnlinePanel.ts'].map(p=>path.resolve(root,p));
+files.push(path.resolve(root,'Scripts/Controller/ZRSJZ_Boss.ts'));
+const program=ts.createProgram(files,{...config.options,skipLibCheck:true,noEmit:true});
+const all=ts.getPreEmitDiagnostics(program);
+const relevant=all.filter(d=>!d.file||/73_ZRSJZ(?:_DLC)?[\\/]/.test(d.file.fileName));
+for(const d of relevant)console.log(ts.flattenDiagnosticMessageText(d.messageText,'\n'),d.file?.fileName,d.file&&d.file.getLineAndCharacterOfPosition(d.start).line+1);
+console.log('Bundle errors:',relevant.length,'; other imported project errors:',all.length-relevant.length);
+process.exitCode=relevant.length?1:0;

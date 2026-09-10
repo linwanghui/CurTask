@@ -20,6 +20,8 @@ import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_TaskService } from '../Service/ZRSJZ_TaskService';
 import { ZRSJZ_KillTipPanel } from '../Panel/ZRSJZ_KillTipPanel';
+import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
+import { ZRSJZ_OnlineCombat as Coop } from '../Service/ZRSJZ_OnlineCombat';
 
 const { ccclass, property } = _decorator;
 
@@ -39,6 +41,74 @@ export enum ZRSJZ_ENEMY_STATE {
  */
 @ccclass('ZRSJZ_EnemyBase')
 export abstract class ZRSJZ_EnemyBase extends Component {
+    public OnlineID = '';
+    public static OnlineEnemies = new Map<string, ZRSJZ_EnemyBase>();
+    private static onlineSerial = 0;
+    private onlineStarted = false;
+    private onlinePosition: Vec3 = null;
+    private soloState: any = null;
+    private soloTaken = false;
+    public OnlineSuppressed = false;
+    /** 原副本就地接管，不能重新 Init 血量、掉落或击杀计数。 */
+    public TakeOverLocally(state: any): void {
+        if (this.soloTaken) return;
+        if (!this.onlineStarted) { this.soloState = state; return; }
+        this.soloTaken = true;
+        this.soloState = null;
+        this.ApplyOnlineState(state);
+        if (this.IsDead) return;
+        this.Target = null;
+        this.onlinePosition = null;
+        this._state = ZRSJZ_ENEMY_STATE.PATROL;
+        this._patrolCenter.set(this.node.worldPosition);
+        this.ClearNavigation();
+        this._targetSearchRemaining = 0;
+        this._animationName = '';
+        if (this.EnemySkeleton?.Skeleton) {
+            this.EnemySkeleton.Skeleton.paused = false;
+            this.EnemySkeleton.Skeleton.setCompleteListener(null);
+        }
+        this.SelectNextPatrolPoint();
+        if (this.EnemyConfig) this.PlayAnimation(this.EnemyConfig.IdleAnimation);
+    }
+    /** 开场一个快照都未收到时，恢复本地图原生敌人作为兜底。 */
+    public RestoreSuppressedEnemy(): void {
+        if (!this.OnlineSuppressed) return;
+        this.OnlineSuppressed = false;
+        this._state = ZRSJZ_ENEMY_STATE.PATROL;
+        this.node.active = true;
+    }
+    public GetOnlineState(): any {
+        const skeleton = this.EnemySkeleton?.Skeleton;
+        const pos = this.node.worldPosition;
+        return { id: this.OnlineID, name: this.EnemyName.trim() || this.node.name,
+            x: pos.x, y: pos.y, sx: this.node.scale.x, sy: this.node.scale.y,
+            fx: this.EnemySkeleton?.node.scale.x || 1, fy: this.EnemySkeleton?.node.scale.y || 1,
+            animation: skeleton?.getCurrent(0)?.animation?.name || '', hp: this._health,
+            dead: this.IsDead, ax: this.EnemySkeleton?.AttackX || 0, ay: this.EnemySkeleton?.AttackY || 0,
+            aim: this.EnemySkeleton?.HasDirection || false, stun: this.IsPetStunned };
+    }
+    public ApplyOnlineState(state: any): void {
+        if (!this.onlineStarted || this.IsDead) return;
+        this.StopMoving();
+        const target = new Vec3(state.x, state.y, 0);
+        if (!this.onlinePosition || state.dead || Vec3.distance(this.node.worldPosition, target) > 1200) this.node.setWorldPosition(target);
+        this.onlinePosition = target;
+        this.node.setScale(state.sx, state.sy, 1);
+        this._health = state.hp;
+        this.HP?.Show(this._health);
+        if (state.dead) { this.Die(); return; }
+        const visual = this.EnemySkeleton;
+        if (!visual) return;
+        visual.node.setScale(state.fx, state.fy, 1);
+        visual.AttackX = state.ax; visual.AttackY = state.ay; visual.HasDirection = state.aim;
+        const skeleton = visual.Skeleton;
+        skeleton.paused = !!state.stun;
+        if (state.animation && skeleton.skeletonData?.getRuntimeData()?.findAnimation(state.animation)
+            && skeleton.getCurrent(0)?.animation?.name !== state.animation) {
+            skeleton.setAnimation(0, state.animation, true);
+        }
+    }
     @property({ tooltip: '敌人配置名；留空时使用当前节点名' })
     EnemyName: string = '';
 
@@ -88,6 +158,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     public get IsPetStunned(): boolean { return this._petStunRemaining > 0 || this._petStunSources.size > 0; }
 
     public ApplyPetStun(duration: number, source?: object): void {
+        if (Coop.Replica) { if (this.OnlineID) Online.Combat({ kind: 'stun', id: this.OnlineID, duration }); return; }
         if (this.IsDead || duration <= 0) return;
         if (source) this._petStunSources.set(source, Math.max(this._petStunSources.get(source) ?? 0, duration));
         else this._petStunRemaining = Math.max(this._petStunRemaining, duration);
@@ -96,6 +167,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     public ApplyPetPull(center: Vec3, distance: number): void {
+        if (Coop.Replica) { if (this.OnlineID) Online.Combat({ kind: 'pull', id: this.OnlineID, x: center.x, y: center.y, distance }); return; }
         if (this.IsDead || distance <= 0 || !this.HasDirectPath(center)) return;
         const pos = this.node.worldPosition.clone();
         const length = Vec3.distance(pos, center);
@@ -157,9 +229,21 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.EnemySkeleton = this.getComponentInChildren(ZRSJZ_EnemySkeleton);
         this._health = Math.max(1, this.EnemyConfig.MaxHealth);
         this.Colliders = this.getComponents(Collider2D);
+        if (Online.Battle || Coop.SuppressNative) {
+            if ((Coop.Replica || Coop.SuppressNative) && !this.OnlineID) {
+                // 部分旧自动瞄准只检查 IsDead，隐藏的地图原生敌人不能成为幽灵目标。
+                this._state = ZRSJZ_ENEMY_STATE.DEAD;
+                this.OnlineSuppressed = true;
+                this.node.active = false;
+                return;
+            }
+            if (!this.OnlineID) this.OnlineID = 'e' + (++ZRSJZ_EnemyBase.onlineSerial);
+            ZRSJZ_EnemyBase.OnlineEnemies.set(this.OnlineID, this);
+        }
     }
 
     protected start(): void {
+        this.onlineStarted = true;
         this._patrolCenter.set(this.node.worldPosition);
         this.SelectNextPatrolPoint();
         this.TryFindTarget();
@@ -174,10 +258,17 @@ export abstract class ZRSJZ_EnemyBase extends Component {
                 this.OnAnimationEvent(event.data.name);
             }
         });
+        if (this.soloState) this.TakeOverLocally(this.soloState);
     }
 
     protected update(dt: number): void {
-        if (ZRSJZ_Game.Instance.GamePaused) {
+        if (Coop.Stopped) { this.StopMoving(); return; }
+        if (Coop.Replica) {
+            this.StopMoving();
+            if (!this.IsDead && this.onlinePosition) this.node.setWorldPosition(Vec3.lerp(new Vec3(), this.node.worldPosition, this.onlinePosition, Math.min(1, dt * 15)));
+            return;
+        }
+        if (ZRSJZ_Game.Instance.GamePaused && !Online.Battle) {
             this.RigidBody.linearVelocity = Vec2.ZERO;
             return;
         }
@@ -357,6 +448,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     BeHit(harm: number) {
+        if (this.IsDead || !Number.isFinite(harm) || harm <= 0 || Coop.Stopped) return;
+        if (Coop.Replica) { if (this.OnlineID) Online.Combat({ kind: 'hit', id: this.OnlineID, harm }); return; }
         const harmRequestGame = ZRSJZ_Game.Instance;
         const harmWorldPosition = this.node.worldPosition.clone();
         this._health -= harm;
@@ -396,6 +489,11 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this._health = 0;
         this.SetTaskTargetMarker(false);
         this.ChangeState(ZRSJZ_ENEMY_STATE.DEAD);
+        if (Online.Battle && Online.BattleHost) {
+            const state = this.GetOnlineState();
+            Online.CombatStates.set(this.OnlineID, state);
+            Online.Combat({ kind: 'states', states: [state] });
+        }
         ZRSJZ_Game.Instance?.RecordKill(1, this.node);
         this.Target = null;
         this.ClearNavigation();
@@ -436,7 +534,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
     /** 子类可拦截 Spine 动画事件；默认将事件交给普通攻击处理。 */
     protected OnAnimationEvent(eventName: string): void {
-        if (this.IsDead || this.IsPetStunned || ZRSJZ_Game.Instance?.GamePaused || ZRSJZ_Game.Instance?.IsGameFinished) return;
+        if (Coop.Replica || Coop.Stopped) return;
+        if (this.IsDead || this.IsPetStunned || (ZRSJZ_Game.Instance?.GamePaused && !Online.Battle) || ZRSJZ_Game.Instance?.IsGameFinished) return;
         this.OnAttack(eventName);
     }
 
@@ -568,6 +667,14 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     private RefreshTarget(dt: number): void {
+        if (Online.Battle && Online.BattleHost) {
+            this._targetSearchRemaining -= dt;
+            if (this._targetSearchRemaining <= 0) {
+                this._targetSearchRemaining = 0.25;
+                this.Target = Coop.ChooseTarget(this.node.worldPosition, this.FindTarget());
+            }
+            return;
+        }
         if (this.IsTargetAvailable()) {
             return;
         }
@@ -582,13 +689,14 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
     private TryFindTarget(): void {
         if (!this.IsTargetAvailable()) {
-            this.Target = this.FindTarget();
+            this.Target = Coop.ChooseTarget(this.node.worldPosition, this.FindTarget());
         } else if (this.Target && !this.Target.getComponent(ZRSJZ_Player)?.IsDead && Vec3.distance(this.node.worldPosition, this.Target.worldPosition) > 300) {
-            this.Target = this.FindTarget();
+            this.Target = Coop.ChooseTarget(this.node.worldPosition, this.FindTarget());
         }
     }
 
     protected IsTargetAvailable(): boolean {
+        if (this.Target === Coop.Peer && Online.PeerPose?.dead) return false;
         return !!this.Target && this.Target.isValid && this.Target.activeInHierarchy && !this.Target.getComponent(ZRSJZ_Player)?.IsDead;
     }
 

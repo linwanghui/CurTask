@@ -1,0 +1,98 @@
+// 手动开发工具（.txt 防止 Cocos 当运行时代码导入）。所有文本修改均经 apply_patch。
+const fs = require('fs'), path = require('path'), crypto = require('crypto'), cp = require('child_process');
+const main = path.resolve(__dirname, '..'), dlc = path.resolve(main, '../73_ZRSJZ_DLC');
+const exe = 'C:/Users/Administrator/AppData/Local/OpenAI/Codex/bin/fd4c151a749f3ab4/codex.exe';
+const clone = x => JSON.parse(JSON.stringify(x));
+const read = p => JSON.parse(fs.readFileSync(p, 'utf8').replace(/^\uFEFF/, ''));
+const ref = i => ({__id__:i});
+function patch(body) {
+    const r = cp.spawnSync(exe, ['--codex-run-as-apply-patch', '*** Begin Patch\n'+body+'\n*** End Patch'], {encoding:'utf8'});
+    if(r.status !== 0) throw Error(r.stdout+'\n'+r.stderr);
+}
+function add(p, text) { if(fs.existsSync(p)) throw Error('Already exists: '+p); patch('*** Add File: '+p.replace(/\\/g,'/')+'\n'+text.split('\n').map(l=>'+'+l).join('\n')); }
+function modifyObject(p, old, next) {
+    const format=o=>JSON.stringify(o,null,2).split('\n').map(l=>'  '+l).join('\n');
+    let a=format(old),b=format(next);if(a===b)return;
+    const content=fs.readFileSync(p,'utf8').replace(/\r\n/g,'\n');
+    if(content.split(a).length!==2)throw Error('Object not unique: '+p+' '+old.__type__);
+    if(content[content.indexOf(a)+a.length]===','){a+=',';b+=',';}
+    patch('*** Update File: '+p.replace(/\\/g,'/')+'\n@@\n'+a.split('\n').map(l=>'-'+l).join('\n')+'\n'+b.split('\n').map(l=>'+'+l).join('\n'));
+}
+function append(p, objects, hasObjects=true) {
+    let batch='';
+    const flush=()=>{if(!batch)return;patch('*** Update File: '+p.replace(/\\/g,'/')+'\n@@\n-]\n'+batch.split('\n').map(l=>'+'+l).join('\n')+'\n+]');batch='';};
+    for(const o of objects){const s=(hasObjects?',\n':'')+JSON.stringify(o);hasObjects=true;if(batch.length+s.length>14000)flush();batch+=s;}flush();
+}
+function save(p, old, next) {for(let i=0;i<old.length;i++)modifyObject(p,old[i],next[i]);append(p,next.slice(old.length));JSON.parse(fs.readFileSync(p,'utf8'));}
+function meta(p, importer, version) {
+    const file=p+'.meta';if(fs.existsSync(file))return read(file).uuid;
+    const uuid=crypto.randomUUID();add(file,JSON.stringify({ver:version,importer,imported:true,uuid,files:[],subMetas:{},userData:{}},null,2));return uuid;
+}
+function compress(uuid){const hex=uuid.replace(/-/g,''),chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';let out=hex.slice(0,5);for(let i=5;i<32;i+=3){const n=parseInt(hex.slice(i,i+3),16);out+=chars[n>>6]+chars[n&63];}return out;}
+const panelUUID=meta(dlc+'/Scripts/Panel/ZRSJZ_OnlinePanel.ts','typescript','4.0.24');
+const battleUUID=meta(main+'/Scripts/Controller/ZRSJZ_OnlineBattle.ts','typescript','4.0.24');
+meta(main+'/Scripts/Service/ZRSJZ_OnlineService.ts','typescript','4.0.24');
+const gen='C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/';
+const images=[['exec-88fcfcd6-446f-4dd3-a5d3-3dfeb179317d.png',dlc+'/Sprites/联机界面/联机底板.png'],['exec-bf5481bc-c6cf-4de0-a3e7-eaf628b45a4c.png',dlc+'/Sprites/联机界面/联机按钮.png'],['exec-91148661-fda0-496a-891f-73685a77a4bc.png',main+'/Sprites/主页/联机游戏.png']];
+const imageUUIDs=[];
+for(const [src,dest] of images){
+    if(!fs.existsSync(dest))fs.copyFileSync(gen+src,dest,fs.constants.COPYFILE_EXCL);
+    if(fs.existsSync(dest+'.meta')){imageUUIDs.push(read(dest+'.meta').uuid);continue;}
+    const buf=fs.readFileSync(dest),w=buf.readUInt32BE(16),h=buf.readUInt32BE(20),uuid=crypto.randomUUID();
+    let m=read(main+'/Sprites/主页/锻造.png.meta');m=JSON.parse(JSON.stringify(m).replaceAll(m.uuid,uuid).replaceAll('锻造',path.basename(dest,'.png')));
+    const u=m.subMetas.f9941.userData;Object.assign(u,{width:w,height:h,rawWidth:w,rawHeight:h,trimType:'none',trimX:0,trimY:0,offsetX:0,offsetY:0});
+    u.vertices={rawPosition:[-w/2,-h/2,0,w/2,-h/2,0,-w/2,h/2,0,w/2,h/2,0],indexes:[0,1,2,2,1,3],uv:[0,h,w,h,0,0,w,0],nuv:[0,0,1,0,0,1,1,1],minPos:[-w/2,-h/2,0],maxPos:[w/2,h/2,0]};
+    add(dest+'.meta',JSON.stringify(m,null,2));imageUUIDs.push(uuid);
+}
+const startPath=main+'/Scenes/ZRSJZ_Start.scene', start=read(startPath);
+const cheats=read(main+'/Prefabs/Panel/作弊界面.prefab');
+const templates={node:start[222],transform:start[223],sprite:start[224],button:start[225],label:cheats.find(o=>o.__type__==='cc.Label'),edit:cheats.find(o=>o.__type__==='cc.EditBox')};
+class Builder{
+    constructor(a,root=1,layer=1){this.a=a;this.root=root;this.layer=layer;}
+    push(o){this.a.push(o);return this.a.length-1;}
+    component(n,o){o=clone(o);o.node=ref(n);o.__prefab=null;o._id=crypto.randomUUID();const id=this.push(o);this.a[n]._components.push(ref(id));return id;}
+    node(name,parent,x,y,w,h){let n=clone(templates.node);Object.assign(n,{_name:name,_parent:parent===null?null:ref(parent),_children:[],_components:[],_prefab:null,_id:crypto.randomUUID(),_layer:this.layer});n._lpos={__type__:'cc.Vec3',x,y,z:0};const id=this.push(n);if(parent!==null)this.a[parent]._children.push(ref(id));const t=clone(templates.transform);t._contentSize={__type__:'cc.Size',width:w,height:h};this.component(id,t);return id;}
+    sprite(n,uuid){let s=clone(templates.sprite);s._spriteFrame={__uuid__:uuid+'@f9941',__expectedType__:'cc.SpriteFrame'};s._sizeMode=0;return this.component(n,s);}
+    label(name,parent,text,x,y,w,h,size=30){const n=this.node(name,parent,x,y,w,h),l=clone(templates.label);Object.assign(l,{_string:text,_font:null,_isSystemFontUsed:true,_fontSize:size,_actualFontSize:size,_lineHeight:size+10,_horizontalAlign:1,_verticalAlign:1,_overflow:2,_enableWrapText:true,_isBold:true,_enableOutline:true,_outlineWidth:2});l._color={__type__:'cc.Color',r:255,g:255,b:255,a:255};return {node:n,label:this.component(n,l)};}
+    button(name,text,x,y,w=280,h=86){const n=this.node(name,12,x,y,w,h);this.sprite(n,imageUUIDs[1]);const click=this.push({__type__:'cc.ClickEvent',target:ref(1),component:'',_componentId:compress(panelUUID),handler:'OnButtonClick',customEventData:''});const b=clone(templates.button);b.clickEvents=[ref(click)];b._target=ref(n);b._zoomScale=1.04;b._transition=1;this.component(n,b);this.label('文字',n,text,0,0,w-24,h-10,30);return n;}
+    input(name,placeholder,x,y,w,maxLength=200){const n=this.node(name,12,x,y,w,64);const s=clone(templates.sprite);s._spriteFrame=clone(templates.edit._backgroundImage);s._sizeMode=0;s._type=1;this.component(n,s);const text=this.label('TEXT_LABEL',n,'',0,0,w-28,58,26);const hint=this.label('PLACEHOLDER_LABEL',n,placeholder,0,0,w-28,58,24);this.a[text.label]._color={__type__:'cc.Color',r:15,g:30,b:40,a:255};this.a[text.label]._enableOutline=false;this.a[hint.label]._color={__type__:'cc.Color',r:95,g:110,b:120,a:255};this.a[hint.label]._enableOutline=false;const e=clone(templates.edit);Object.assign(e,{_textLabel:ref(text.label),_placeholderLabel:ref(hint.label),_maxLength:maxLength,_inputMode:6,_inputFlag:5,_string:'',_tabIndex:name==='服务器地址'?0:1});this.component(n,e);return n;}
+}
+const panelPath=dlc+'/Prefabs/Panel/联机界面.prefab',oldPanel=read(panelPath),p=clone(oldPanel),b=new Builder(p);
+if(p.some(o=>o._name==='服务器地址'))throw Error('Online prefab already built');
+p[13]._contentSize={__type__:'cc.Size',width:1500,height:960};p[15]._enabled=false;
+b.component(1,{__type__:compress(panelUUID),_name:'',_objFlags:0,__editorExtras__:{},_enabled:true});
+const bg=b.node('背景',12,0,0,1500,960);b.sprite(bg,imageUUIDs[0]);
+b.label('标题',12,'好友联机',0,398,1000,65,48);
+b.button('关闭','×',650,395,92,80);
+b.label('说明',12,'联机原型测试 · 仅同步角色移动 / 朝向 / 基础动作',0,292,1300,55,28);
+b.label('地址标题',12,'服务器地址',-480,220,280,50,28);
+b.input('服务器地址','ws://服务器IP:8765',-50,150,1060);
+b.button('连接','连接',550,150,170,78);
+b.button('创建房间','创建房间',-430,38,310,90);
+b.input('房间号输入','输入6位房间号',5,38,410,6);
+b.button('加入房间','加入房间',440,38,300,90);
+b.label('房间信息',12,'创建房间，然后把房间号发给好友',-100,-72,1000,55,32);
+b.button('复制房间号','复制房间号',490,-72,260,78);
+b.label('成员信息',12,'等待组队\n最多两人 · 掉落各自独立',-200,-176,780,125,32);
+b.button('离开房间','离开房间',490,-180,260,78);
+b.button('准备','准备',-230,-297,320,95);
+b.button('开始联机','开始联机',230,-297,320,95);
+b.label('状态',12,'未连接服务器',0,-390,1260,60,25);
+save(panelPath,oldPanel,p);
+// 主页仅新增一个与锻造台同规格的入口，不改变其他按钮。
+const s=clone(start), sb=new Builder(s,1,33554432);
+const home=sb.node('联机游戏',12,-619,266,160,160);sb.sprite(home,imageUUIDs[2]);
+const click=sb.push(clone(start[226]));const btn=clone(templates.button);btn.clickEvents=[ref(click)];btn._target=ref(home);sb.component(home,btn);
+const widget=clone(start[227]);widget._left=471;sb.component(home,widget);
+save(startPath,start,s);
+// 渲染用远端角色：只有 UITransform + Spine，不包含玩家脚本、碰撞器或刚体。
+const player=read(main+'/Prefabs/Unit/Player.prefab'),peerPath=dlc+'/Prefabs/Unit/OnlinePeer.prefab';
+const peer=[clone(player[0])];peer[0]._name='OnlinePeer';const pb=new Builder(peer,1,4);
+const root=pb.node('OnlinePeer',null,0,0,210,380);peer[root]._lscale=clone(player[1]._lscale);
+const spineNode=pb.node('Spine',root,0,0,426,757);peer[spineNode]._lscale=clone(player[2]._lscale);const spine=clone(player[5]);pb.component(spineNode,spine);
+pb.label('队友标记',root,'联机队友',0,720,300,65,35);
+add(peerPath,'[\n]');append(peerPath,peer,false);meta(peerPath,'prefab','1.1.50');
+const gamePath=main+'/Scenes/ZRSJZ_Game.scene',oldGame=read(gamePath),g=clone(oldGame);
+const gameUUID=compress(read(main+'/Scripts/ZRSJZ_Game.ts.meta').uuid);const gameComp=g.find(o=>o.__type__===gameUUID);if(!gameComp)throw Error('Game script missing');
+new Builder(g).component(gameComp.node.__id__,{__type__:compress(battleUUID),_name:'',_objFlags:0,__editorExtras__:{},_enabled:true});save(gamePath,oldGame,g);
+console.log('Online prefabs, scene bindings and image metadata written via apply_patch.');

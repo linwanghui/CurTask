@@ -11,6 +11,8 @@ import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_TaskService } from '../Service/ZRSJZ_TaskService';
+import { ZRSJZ_OnlineCombat as Coop } from '../Service/ZRSJZ_OnlineCombat';
+import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
 
 const { ccclass } = _decorator;
 
@@ -123,7 +125,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     }
 
     protected update(dt: number): void {
-        if (ZRSJZ_Game.Instance.GamePaused) {
+        if (Coop.Replica || Coop.Stopped) { super.update(dt); return; }
+        if (ZRSJZ_Game.Instance.GamePaused && !Online.Battle) {
             this.RigidBody.linearVelocity = Vec2.ZERO;
             return;
         }

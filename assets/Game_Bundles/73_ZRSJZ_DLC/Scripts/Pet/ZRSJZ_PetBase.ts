@@ -5,6 +5,7 @@ import { ZRSJZ_EnemyBase } from '../../../73_ZRSJZ/Scripts/Controller/ZRSJZ_Enem
 import { ZRSJZ_HP } from '../../../73_ZRSJZ/Scripts/UI/ZRSJZ_HP';
 import { ZRSJZ_PetService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_PetService';
 import { ZRSJZ_FriendlyDamageService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_FriendlyDamageService';
+import { ZRSJZ_OnlineCombat as Coop } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_OnlineCombat';
 import { ZRSJZ_PET_BATTLE_CONFIG, ZRSJZ_PET_SKIN_CONFIG, ZRSJZ_PetBattleSkillConfig } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
 
 const { ccclass, property } = _decorator;
@@ -47,6 +48,14 @@ export abstract class ZRSJZ_PetBase extends Component {
     private _spineOrigin = new Vec3();
 
     public Init(owner: ZRSJZ_Player, petName: string): void {
+        Coop.PetPose = () => {
+            if (!this.node?.isValid || !this.node.activeInHierarchy || !this._spine || this.Game !== ZRSJZ_Game.Instance) return null;
+            const pos = this.node.worldPosition, scale = this._spine.node.scale;
+            const skin = ZRSJZ_PET_SKIN_CONFIG.get(ZRSJZ_PetService.GetCurrentSkin(this.PetName, this.Owner.PlayerIndex));
+            return { name: this.PetName, x: pos.x, y: pos.y, sx: scale.x, sy: scale.y,
+                rx: this.node.scale.x, ry: this.node.scale.y, ox: this._spine.node.position.x, oy: this._spine.node.position.y,
+                skin: skin?.PetSkinSpineSkin || 'default', animation: this._spine.getCurrent(0)?.animation?.name || 'daiji', dead: this.Health <= 0 };
+        };
         this.Owner = owner;
         this.Game = ZRSJZ_Game.Instance;
         this.PetName = petName;
