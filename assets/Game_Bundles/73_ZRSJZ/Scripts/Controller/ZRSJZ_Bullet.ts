@@ -6,6 +6,7 @@ import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_Effect } from '../Effect/ZRSJZ_Effect';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Bullet')
@@ -44,7 +45,11 @@ export class ZRSJZ_Bullet extends Component {
         }
     }
 
-    Show(worldPos: Vec3, dirX: number, dirY: number, range: number, harm: number = 0, bulletLevel: number = 1) {
+    Show(worldPos: Vec3, dirX: number, dirY: number, range: number, harm: number = 0, bulletLevel: number = 1, replay = false) {
+        if (!replay && Online.Battle && (this.node.name === 'PlayerBullet' || (this.node.name === 'EnemyBullet' && Online.BattleHost))) {
+            Online.Combat({ kind: this.node.name === 'EnemyBullet' ? 'shot' : 'player_shot', x: worldPos.x, y: worldPos.y,
+                dx: dirX, dy: dirY, range, harm, speed: this.MoveSpeed });
+        }
         // 对象池可能返回刚实例化的激活节点。先停用并设置好位置和状态，避免在旧位置触发首帧碰撞。
         this.node.active = false;
         if (!this._isInit) {
@@ -233,5 +238,4 @@ export class ZRSJZ_Bullet extends Component {
         }
     }
 }
-
 

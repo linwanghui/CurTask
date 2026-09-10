@@ -5,6 +5,7 @@ import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
+import { ZRSJZ_OnlineCombat as Coop } from '../Service/ZRSJZ_OnlineCombat';
 
 const { ccclass, property } = _decorator;
 
@@ -60,8 +61,14 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
             return;
         }
 
+        const game = ZRSJZ_Game.Instance;
         const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/EnemyBullet");
-        bullet.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+        if (!bullet) return;
+        if (!this.isValid || !this.node.activeInHierarchy || this.IsDead || Coop.Stopped
+            || game !== ZRSJZ_Game.Instance || !game?.CurMap?.BulletParent?.isValid) {
+            ZRSJZ_PoolManager.Instance.PutNode(bullet); return;
+        }
+        bullet.parent = game.CurMap.BulletParent;
 
         // Bone.worldX/worldY 是 Spine 节点空间坐标。
         // 再经过 Spine 节点的世界矩阵，得到 Cocos 世界坐标。
@@ -84,6 +91,7 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
 
     Knife(range: number) {
         if (this.IsDead) return;
+        Coop.SendArea(this.node.worldPosition, range, this.AttackDamage);
         ZRSJZ_FriendlyDamageService.DamagePetsInRange(this.node.worldPosition, range, this.AttackDamage);
         if (!this.Target) return;
         if (Vec3.distance(this.node.worldPosition, this.Target.worldPosition) <= range || (this.Target.getComponent(ZRSJZ_Player)?.Other && Vec3.distance(this.node.worldPosition, this.Target.getComponent(ZRSJZ_Player).Other.worldPosition) <= range)) {

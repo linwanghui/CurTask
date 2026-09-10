@@ -1,0 +1,49 @@
+import asyncio
+import json
+import sys
+sys.path.insert(0, 'C:/Users/Administrator/Desktop/SJZonline')
+from server import Lobby
+from websockets.asyncio.server import serve
+from websockets.asyncio.client import connect
+
+async def receive(ws, kind):
+    while True:
+        message = json.loads(await asyncio.wait_for(ws.recv(), 3))
+        if message['type'] == kind:
+            return message
+
+async def send(ws, kind, **data):
+    await ws.send(json.dumps(dict(type=kind, **data)))
+
+async def main():
+    lobby = Lobby()
+    async with serve(lobby.handle, '127.0.0.1', 0) as server:
+        url = 'ws://127.0.0.1:' + str(server.sockets[0].getsockname()[1])
+        for sender, reason in [(0, 'evacuated'), (1, 'evacuated'), (0, 'finished')]:
+            async with connect(url, proxy=None) as host, connect(url, proxy=None) as guest:
+                clients = [host, guest]
+                ids = [(await receive(ws, 'welcome'))['id'] for ws in clients]
+                await send(host, 'create')
+                room = (await receive(host, 'room'))['room']
+                await send(guest, 'join', code=room['code'])
+                for ws in clients:
+                    await receive(ws, 'room')
+                    await send(ws, 'ready', ready=True, map=room['map'])
+                while True:
+                    ready = (await receive(host, 'room'))['room']
+                    if all(m['ready'] for m in ready['members']): break
+                await send(host, 'start')
+                for ws in clients: await receive(ws, 'start')
+                await send(clients[sender], 'finish_battle', reason=reason)
+                for ws in clients:
+                    message = await receive(ws, 'battle_end')
+                    assert message['reason'] == reason
+                    assert message['playerId'] == ids[sender]
+                await clients[sender].close()
+                # 后续 socket 关闭不会再发送没有撤离原因的结束事件。
+                survivor = clients[1-sender]
+                followup = json.loads(await asyncio.wait_for(survivor.recv(), 3))
+                assert followup['type'] == 'room'
+    print('PASS: host evacuation, guest evacuation, ordinary finish, no disconnect override.')
+
+asyncio.run(main())

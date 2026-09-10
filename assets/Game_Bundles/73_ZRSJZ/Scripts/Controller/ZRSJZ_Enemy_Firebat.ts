@@ -4,6 +4,8 @@ import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Skill } from '../Skill/ZRSJZ_Skill';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
+import { ZRSJZ_OnlineCombat as Coop } from '../Service/ZRSJZ_OnlineCombat';
+import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Enemy_Firebat')
@@ -27,7 +29,8 @@ export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
     }
 
     protected update(dt: number): void {
-        if (this.IsPetStunned || ZRSJZ_Game.Instance?.GamePaused) { super.update(dt); return; }
+        if (Coop.Replica || Coop.Stopped) { super.update(dt); return; }
+        if (this.IsPetStunned || (ZRSJZ_Game.Instance?.GamePaused && !Online.Battle)) { super.update(dt); return; }
         if (this._isAttacking && !this.IsDead) {
             this.StopMoving();
             return;
@@ -119,8 +122,14 @@ export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
             return;
         }
 
+        const game = ZRSJZ_Game.Instance;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/FlamethrowerEffect").then((flame: Node) => {
-            flame.parent = ZRSJZ_Game.Instance.CurMap.BulletParent;
+            if (!flame) return;
+            if (!this.isValid || !this.node.activeInHierarchy || this.IsDead || Coop.Stopped
+                || game !== ZRSJZ_Game.Instance || !game?.CurMap?.BulletParent?.isValid) {
+                ZRSJZ_PoolManager.Instance.PutNode(flame); return;
+            }
+            flame.parent = game.CurMap.BulletParent;
             flame.active = true;
             // Bone.worldX/worldY 是 Spine 节点空间坐标。
             // 再经过 Spine 节点的世界矩阵，得到 Cocos 世界坐标。
@@ -132,9 +141,9 @@ export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
                 this.EnemySkeleton.node.worldMatrix,
             );
 
-            flame.getComponent(ZRSJZ_Skill).Show(muzzleWorldPos, this.AttackX, this.AttackY, 20)
+            flame.getComponent(ZRSJZ_Skill).Show(muzzleWorldPos, this.AttackX, this.AttackY, 20);
+            Online.Combat({ kind: 'flame', x: muzzleWorldPos.x, y: muzzleWorldPos.y, dx: this.AttackX, dy: this.AttackY, harm: 20 });
         });
     }
 
 }
-

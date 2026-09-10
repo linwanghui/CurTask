@@ -173,6 +173,13 @@ export class ZRSJZ_Start extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "联机游戏":
+                if (!ZRSJZ_UIManager.ZRSJZ_DLC) {
+                    ZRSJZ_UIManager.Instance.ShowTip("联机资源正在加载，请稍后再试");
+                    break;
+                }
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.联机界面);
+                break;
             case "Switch":
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SWITCH_WEAPON);
                 break;
@@ -344,5 +351,4 @@ export class ZRSJZ_Start extends Component {
     }
 
 }
-
 

@@ -1,0 +1,35 @@
+// 测试生产敌人基类的联机入口；不假装代替 Cocos 物理/画面测试。
+const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+class Vec{constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z});}set(v){Object.assign(this,v);return this;}clone(){return new Vec(this.x,this.y,this.z);}}
+const packets=[],stats={kills:0,drops:0,tasks:0};
+const Online={Battle:true,BattleHost:false,BattleEnded:false,Combat:p=>packets.push(p),CombatStates:new Map()};
+const Coop={get Replica(){return Online.Battle&&!Online.BattleHost;},get Stopped(){return Online.BattleEnded;}};
+const dependencies={ZRSJZ_OnlineService:Online,ZRSJZ_OnlineCombat:Coop,
+ ZRSJZ_Game:{Instance:{RecordKill:()=>stats.kills++}},ZRSJZ_GameData:{Instance:{CurMap:'test'}},
+ ZRSJZ_AudioManager:{Instance:{PlaySound(){}}},ZRSJZ_KillTipPanel:{NotifyKill(){}},
+ ZRSJZ_TaskService:{CompleteTask:()=>stats.tasks++},ZRSJZ_PoolManager:{Instance:{GetNode:()=>Promise.resolve(null)}}};
+const code=ts.transpileModule(fs.readFileSync(path.resolve(__dirname,'../Scripts/Controller/ZRSJZ_EnemyBase.ts'),'utf8'),{compilerOptions:{module:1,target:7,experimentalDecorators:true}}).outputText;
+const exportsObject={};vm.runInNewContext(code,{exports:exportsObject,console,require:n=>n==='cc'?{_decorator:{ccclass:()=>c=>c,property:()=>()=>{}},Component:class{},Vec2:Vec,Vec3:Vec}:dependencies});
+const Enemy=exportsObject.ZRSJZ_EnemyBase;
+function enemy(){const e=new Enemy();e.OnlineID='e1';e.onlineStarted=true;e._health=100;e.node={name:'持枪小兵',worldPosition:new Vec(1,2),scale:new Vec(0.5,0.5,1),setWorldPosition(){},setScale(){}};e.HP={Show(){}};e.Colliders=[];e.ClearNavigation=()=>{};e.StopMoving=()=>{};e.beHitEffect=()=>{};e.OnDeath=()=>stats.drops++;return e;}
+const e=enemy();e.BeHit(20);assert.equal(e.Health,100);assert.equal(packets[0].kind,'hit');
+e.ApplyPetStun(2);e.ApplyPetPull(new Vec(3,4),20);assert.deepEqual(packets.map(p=>p.kind),['hit','stun','pull']);
+e.ApplyOnlineState({x:1,y:2,sx:1,sy:1,hp:0,dead:true});
+e.ApplyOnlineState({x:1,y:2,sx:1,sy:1,hp:0,dead:true});e.Die();e.BeHit(10);
+assert.equal(stats.drops,1);assert.equal(stats.kills,1);assert.equal(stats.tasks,1);
+Online.BattleHost=true;const h=enemy();h.BeHit(25);assert.equal(h.Health,75);h.BeHit(100);assert.equal(h.Health,0);h.BeHit(100);
+assert.equal(stats.drops,2);assert.equal(packets.filter(p=>p.kind==='states').length,1);assert.equal(Online.CombatStates.get('e1').dead,true);
+Online.Battle=false;const local=enemy();local.BeHit(30);assert.equal(local.Health,70);
+local.BeHit(NaN);local.BeHit(-10);assert.equal(local.Health,70);
+console.log('PASS: guest damage forwarding; stun/pull forwarding; idempotent death/drop/task; host damage/death; offline damage; invalid damage.');
+const survivor=enemy();survivor.SelectNextPatrolPoint=()=>{};
+const snapshot={x:4,y:8,sx:1,sy:1,hp:37,dead:false};
+survivor.TakeOverLocally(snapshot);assert.equal(survivor.Health,37);
+survivor.BeHit(10);survivor.TakeOverLocally(snapshot);assert.equal(survivor.Health,27);
+const pending=enemy();pending.onlineStarted=false;pending.SelectNextPatrolPoint=()=>{};
+pending.TakeOverLocally(snapshot);assert.equal(pending.Health,100);
+pending.onlineStarted=true;pending.TakeOverLocally(pending.soloState);assert.equal(pending.Health,37);
+const dropsBefore=stats.drops;const dead=enemy();dead.TakeOverLocally({...snapshot,hp:0,dead:true});dead.TakeOverLocally({...snapshot,hp:0,dead:true});assert.equal(stats.drops,dropsBefore+1);
+const native=enemy();native.OnlineSuppressed=true;native._state=4;native.node.active=false;native.RestoreSuppressedEnemy();assert.equal(native.node.active,true);assert.equal(native.IsDead,false);
+console.log('PASS: solo takeover keeps HP, never reapplies old HP, handles pending start/death exactly once, restores natives only when requested.');

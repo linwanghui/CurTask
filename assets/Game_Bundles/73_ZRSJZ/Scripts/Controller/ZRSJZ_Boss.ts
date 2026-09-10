@@ -1,4 +1,5 @@
 import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
+import { ZRSJZ_OnlineCombat as Coop } from '../Service/ZRSJZ_OnlineCombat';
 import { _decorator, director, Vec3, Node, setPropertyEnumType } from 'cc';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_BossBase } from './ZRSJZ_BossBase';
@@ -71,6 +72,7 @@ export class ZRSJZ_Boss extends ZRSJZ_BossBase {
     }
 
     private _attack(startPos: Vec3, damageRange: number, damage: number) {
+        Coop.SendArea(startPos, damageRange, damage * this.DamageMultiplier);
         // 普攻和技能伤害统一在 OnAttack 中由各自的 Spine 动画事件触发。
         ZRSJZ_FriendlyDamageService.DamageArea(startPos, damageRange, damage * this.DamageMultiplier);
     }

@@ -1,0 +1,22 @@
+import sys
+sys.path.insert(0, 'C:/Users/Administrator/Desktop/SJZonline')
+from server import valid_combat
+
+state = dict(id='e1', name='Boss1', x=0, y=0, sx=1, sy=1, fx=1, fy=1,
+             hp=20, ax=0, ay=0, animation='daiji', dead=False, aim=False, stun=False)
+packet = dict(kind='states', states=[state])
+assert valid_combat(packet, True)
+assert not valid_combat(packet, False)
+assert not valid_combat(dict(kind='states', states=[state]*17), True)
+assert not valid_combat(dict(kind='states', states=[dict(state, hp=float('nan'))]), True)
+assert not valid_combat(dict(kind='states', states=[dict(state, x=float('inf'))]), True)
+assert valid_combat(dict(kind='hit', id='e1', harm=20), False)
+assert not valid_combat(dict(kind='hit', id='e1', harm=20), True)
+assert not valid_combat(dict(kind='hit', id='e1', harm=True), False)
+assert not valid_combat(dict(kind='hit', id='e1', harm=-1), False)
+assert not valid_combat(dict(kind='stun', id='e1', duration=999), False)
+assert not valid_combat(dict(kind='area', x=0, y=0, range=400, damage=20), False)
+assert valid_combat(dict(kind='area', x=0, y=0, range=400, damage=20), True)
+assert not valid_combat(dict(kind='inventory'), True)
+assert not valid_combat(dict(kind={}), True)
+print('PASS: protocol roles, batch bounds, finite numbers, wrong types, no inventory messages.')

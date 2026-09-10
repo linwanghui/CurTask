@@ -542,6 +542,9 @@
       },
       {
         "__id__": 229
+      },
+      {
+        "__id__": 262
       }
     ],
     "_active": true,
@@ -8655,4 +8658,11 @@
     "__type__": "cc.PostSettingsInfo",
     "_toneMappingType": 0
   }
+,
+{"__type__":"cc.Node","_name":"联机游戏","_objFlags":0,"__editorExtras__":{},"_parent":{"__id__":12},"_children":[],"_active":true,"_components":[{"__id__":263},{"__id__":264},{"__id__":266},{"__id__":267}],"_prefab":null,"_lpos":{"__type__":"cc.Vec3","x":-619,"y":266,"z":0},"_lrot":{"__type__":"cc.Quat","x":0,"y":0,"z":0,"w":1},"_lscale":{"__type__":"cc.Vec3","x":1,"y":1,"z":1},"_mobility":0,"_layer":33554432,"_euler":{"__type__":"cc.Vec3","x":0,"y":0,"z":0},"_id":"a857a757-c63d-49bc-9a4b-f5bcc2ee0806"},
+{"__type__":"cc.UITransform","_name":"","_objFlags":0,"__editorExtras__":{},"node":{"__id__":262},"_enabled":true,"__prefab":null,"_contentSize":{"__type__":"cc.Size","width":160,"height":160},"_anchorPoint":{"__type__":"cc.Vec2","x":0.5,"y":0.5},"_id":"15204933-6c50-4ec2-bc8d-9631a51c2ff5"},
+{"__type__":"cc.Sprite","_name":"","_objFlags":0,"__editorExtras__":{},"node":{"__id__":262},"_enabled":true,"__prefab":null,"_customMaterial":null,"_srcBlendFactor":2,"_dstBlendFactor":4,"_color":{"__type__":"cc.Color","r":255,"g":255,"b":255,"a":255},"_spriteFrame":{"__uuid__":"65991a2b-2677-4e22-b722-5b795bf46012@f9941","__expectedType__":"cc.SpriteFrame"},"_type":0,"_fillType":0,"_sizeMode":0,"_fillCenter":{"__type__":"cc.Vec2","x":0,"y":0},"_fillStart":0,"_fillRange":0,"_isTrimmedMode":true,"_useGrayscale":false,"_atlas":null,"_id":"1218991d-9f56-401e-a69c-3ff0b347b8cc"},
+{"__type__":"cc.ClickEvent","target":{"__id__":49},"component":"","_componentId":"1867a6cVShAc5tYQyAo9xF0","handler":"OnButtonClick","customEventData":""},
+{"__type__":"cc.Button","_name":"","_objFlags":0,"__editorExtras__":{},"node":{"__id__":262},"_enabled":true,"__prefab":null,"clickEvents":[{"__id__":265}],"_interactable":true,"_transition":3,"_normalColor":{"__type__":"cc.Color","r":255,"g":255,"b":255,"a":255},"_hoverColor":{"__type__":"cc.Color","r":211,"g":211,"b":211,"a":255},"_pressedColor":{"__type__":"cc.Color","r":255,"g":255,"b":255,"a":255},"_disabledColor":{"__type__":"cc.Color","r":124,"g":124,"b":124,"a":255},"_normalSprite":null,"_hoverSprite":null,"_pressedSprite":null,"_disabledSprite":null,"_duration":0.1,"_zoomScale":1.2,"_target":{"__id__":262},"_id":"15e2687d-727f-4254-9006-a82fecec8d4d"},
+{"__type__":"cc.Widget","_name":"","_objFlags":0,"__editorExtras__":{},"node":{"__id__":262},"_enabled":true,"__prefab":null,"_alignFlags":12,"_target":null,"_left":471,"_right":2073.1279999999997,"_top":694.044,"_bottom":726,"_horizontalCenter":0,"_verticalCenter":0,"_isAbsLeft":true,"_isAbsRight":true,"_isAbsTop":true,"_isAbsBottom":true,"_isAbsHorizontalCenter":true,"_isAbsVerticalCenter":true,"_originalWidth":189,"_originalHeight":0,"_alignMode":2,"_lockFlags":0,"_id":"1d215663-2602-4902-add9-3c942b0b7618"}
 ]

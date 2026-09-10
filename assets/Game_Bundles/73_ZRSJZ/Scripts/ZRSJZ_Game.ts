@@ -20,6 +20,7 @@ import { ZRSJZ_Mailbox } from './Unit/ZRSJZ_Mailbox';
 import { ZRSJZ_GradeService } from './Service/ZRSJZ_GradeService';
 import { ZRSJZ_BoosterShotService } from './Service/ZRSJZ_BoosterShotService';
 import { ZRSJZ_PetService } from './Service/ZRSJZ_PetService';
+import { ZRSJZ_OnlineService } from './Service/ZRSJZ_OnlineService';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ProjectEvent, ProjectEventManager } from 'db://assets/Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
@@ -670,6 +671,7 @@ export class ZRSJZ_Game extends Component {
 
         this._isEvacuating = false;
         this._isGameFinished = true;
+        ZRSJZ_OnlineService.Events.emit('local_evacuated');
         this._battleStarted = false;
         this.GamePaused = true;
         this.SetEvacuationVisible(false);
@@ -1073,6 +1075,7 @@ export class ZRSJZ_Game extends Component {
 
         this.CancelEvacuation();
         this._isGameFinished = true;
+        ZRSJZ_OnlineService.Events.emit('local_evacuated');
         this._battleStarted = false;
         this.GamePaused = true;
         const goodsIDs = this.GetAllGoodsID();

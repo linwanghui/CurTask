@@ -207,6 +207,11 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
      * 不统计仓库和上一局尚未结算的物资，且按实例 ID 去重，避免装备数组与库存重复计价。
      */
     public GetPlayerLoadoutValue(): number {
+        return ZRSJZ_SelectPanel.GetLoadoutValue(ZRSJZ_GameData.Instance.CurModel === "2p" ? [0, 1] : [0]);
+    }
+
+    /** 联机每台设备只带入玩家一的配置，不能计入本地玩家二的装备。 */
+    public static GetLoadoutValue(playerIndexes: number[] = [0]): number {
         const carriedInventories = new Set<ZRSJZ_INVENTORY>([
             ZRSJZ_INVENTORY.卡包,
             ZRSJZ_INVENTORY.弹药,
@@ -216,7 +221,6 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             ZRSJZ_INVENTORY.武器_背包,
             ZRSJZ_INVENTORY.武器_刀,
         ]);
-        const playerIndexes = ZRSJZ_GameData.Instance.CurModel === "2p" ? [0, 1] : [0];
         const playerIndexSet = new Set(playerIndexes);
         const propIDs = new Set<string>();
         for (const playerIndex of playerIndexes) {
