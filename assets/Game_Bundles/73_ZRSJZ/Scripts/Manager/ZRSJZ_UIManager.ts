@@ -1425,6 +1425,7 @@ export class ZRSJZ_UIManager extends Component {
     private async DoFinishGameInventory(isEvacuationSuccess: boolean): Promise<void> {
         const affectedPropIDs = new Set<string>();
         const receivedPropIDs: string[] = [];
+        let receivedFragments = 0;
 
         for (const propID in ZRSJZ_GameData.Instance.PropData) {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
@@ -1452,6 +1453,15 @@ export class ZRSJZ_UIManager extends Component {
                 continue;
             }
 
+            // 仅对本次可保留的碎片兑换，余额和道具删除共同存档，重复结算不会再发放。
+            if (propData.Name === "宠物碎片") {
+                if (Number.isSafeInteger(propData.CurCount) && propData.CurCount > 0) {
+                    receivedFragments += propData.CurCount;
+                }
+                delete ZRSJZ_GameData.Instance.PropData[propID];
+                continue;
+            }
+
             // 保留来源库存，稍后由统一格子逻辑逐件尝试“分类仓库 -> 主库”。
             // Owner 先重置为共享，避免双人模式下玩家2道具被大厅仓库拒收。
             propData.OwnerPlayerIndex = -1;
@@ -1464,6 +1474,12 @@ export class ZRSJZ_UIManager extends Component {
             receivedPropIDs.push(propID);
         }
 
+        if (receivedFragments > 0) {
+            const current = ZRSJZ_GameData.Instance.PetFragments;
+            ZRSJZ_GameData.Instance.PetFragments = (Number.isSafeInteger(current) && current >= 0 ? current : 0) + receivedFragments;
+            ZRSJZ_GameData.SaveData();
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
+        }
         if (receivedPropIDs.length > 0) {
             await this.ReceiveExistingProps(receivedPropIDs);
         }

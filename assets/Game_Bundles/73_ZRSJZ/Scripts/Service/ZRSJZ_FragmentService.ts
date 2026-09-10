@@ -26,14 +26,14 @@ export class ZRSJZ_FragmentService {
     }
 
     /** 每次广告创建独立回调，平台重复通知不会重复发奖；失败/中途关闭不调用。 */
-    public static CreateVideoReward(): () => string {
+    public static CreateVideoReward(count: number = ZRSJZ_FragmentService.RewardCount): () => string {
         let rewarded = false;
         return () => {
             if (rewarded) return '本次奖励已领取';
             rewarded = true;
-            if (this.GetRemaining() <= 0) return '今日免费次数已用完';
+            if (this.GetRemaining() <= 0 && count == ZRSJZ_FragmentService.RewardCount) return '今日免费次数已用完';
             const data = ZRSJZ_GameData.Instance;
-            data.PetFragments = this.GetCount() + this.RewardCount;
+            data.PetFragments = this.GetCount() + count;
             data.PetFragmentClaimCount = this.DailyLimit - this.GetRemaining() + 1;
             ZRSJZ_GameData.SaveData();
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);

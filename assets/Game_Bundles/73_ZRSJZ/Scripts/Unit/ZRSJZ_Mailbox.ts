@@ -144,7 +144,7 @@ export class ZRSJZ_Mailbox extends Component {
         const qualityWeights = [5, 12, 30, 32, 16, 5];
         const available = pools
             .map((props, qualityIndex) => ({
-                props,
+                props: props.filter(name => name !== "宠物碎片" || ZRSJZ_UIManager.ZRSJZ_DLC),
                 weight: Math.max(0, qualityWeights[qualityIndex] ?? 0),
             }))
             .filter(item => item.props.length > 0 && item.weight > 0);
@@ -170,5 +170,4 @@ export class ZRSJZ_Mailbox extends Component {
         }
     }
 }
-
 

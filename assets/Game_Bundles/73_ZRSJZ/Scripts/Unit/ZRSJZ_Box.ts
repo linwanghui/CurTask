@@ -137,6 +137,7 @@ export class ZRSJZ_Box extends Component {
             ...(mapConfig?.ExclusiveRedProps ?? []),
         ]);
         this.LootProps = (lootProps ?? []).filter(propName => {
+            if (propName === "宠物碎片" && !ZRSJZ_UIManager.ZRSJZ_DLC) return false;
             const propConfig = ZRSJZ_PROP_CONFIG.get(propName);
             const valid = !!propConfig;
             if (!valid) {
@@ -340,6 +341,7 @@ export class ZRSJZ_Box extends Component {
         const maxCount = Math.max(minCount, Math.floor(this._boxConfig.MaxPropCount));
         const count = minCount + Math.floor(Math.random() * (maxCount - minCount + 1));
         const availableQualities = this._mapProp
+            .map(props => props.filter(name => name !== "宠物碎片" || ZRSJZ_UIManager.ZRSJZ_DLC))
             .map((props, index) => ({ props, index }))
             .filter(item => item.props.length > 0);
         if (availableQualities.length === 0) {
@@ -419,6 +421,7 @@ export class ZRSJZ_Box extends Component {
             .filter(prop => {
                 const qualityIndex = ZRSJZ_LOOT_QUALITY_ORDER.indexOf(prop.Quality);
                 return prop.PropType === propType
+                    && (prop.Name !== "宠物碎片" || ZRSJZ_UIManager.ZRSJZ_DLC)
                     && qualityIndex >= 0
                     && qualityIndex <= 3;
             });

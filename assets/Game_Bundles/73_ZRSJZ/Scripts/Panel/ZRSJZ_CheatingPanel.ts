@@ -7,6 +7,7 @@ import { ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Consta
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
+import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_CheatingPanel')
@@ -80,6 +81,9 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
                 break;
             case "金币加1000W":
                 ZRSJZ_AccountService.ChangeGold(10000000);
+                break;
+            case "宠物碎片加100":
+                ZRSJZ_FragmentService.CreateVideoReward(100)();
                 break;
             case "添加道具":
                 if (!ZRSJZ_PROP_CONFIG.has(this.PropName.string)) {

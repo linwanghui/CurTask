@@ -133,6 +133,7 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["手雷", { Name: "手雷", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 11000, MaxCount: 1 }],
     ["鱼子酱", { Name: "鱼子酱", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 13000, MaxCount: 1 }],
     //1x1 --  紫
+    ["宠物碎片", { Name: "宠物碎片", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 0, MaxCount: 1 }],
     ["柠檬茶", { Name: "柠檬茶", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 220000, MaxCount: 1 }],
     ["古玩钱币", { Name: "古玩钱币", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 29000, MaxCount: 1 }],
     ["镜子", { Name: "镜子", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 29000, MaxCount: 1 }],
@@ -324,6 +325,7 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
 
 // 道具描述：结合道具名称及图标外观，用于详情、商店和仓库界面展示。
 export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
+    ["宠物碎片", "用于解锁宠物和宠物皮肤。结算时保留下来的碎片直接计入宠物碎片余额，不进入仓库。"],
     ["核桃", "掌间文玩核桃，棱角已被岁月磨圆，转动的每一声轻响，都藏着时光的回音。"],
     ["剪刀", "裁缝铺的老剪刀，双刃交错间，剪断过愁绪，也裁出过生活崭新的形状。"],
     ["手套", "沾着机油的芬芳，掌心的破洞处，漏出了守护的暖光。"],
@@ -2165,26 +2167,26 @@ export interface ZRSJZ_PetGeneConfig {
 // 当前提供20级默认数值；消耗与增幅均在此逐级调整。新宠物0级，学习Lv1后升为1级。
 // 旧存档保留已有宠物等级，对应等级及之前的基因视为已学习，不重复扣费。
 export const ZRSJZ_PET_GENE_CONFIG: readonly Readonly<ZRSJZ_PetGeneConfig>[] = [
-    { Level: 1, Type: "生命值", CostProp: "核桃", CostCount: 2, Value: 20 },
-    { Level: 2, Type: "防御", CostProp: "核桃", CostCount: 2, Value: 2 },
-    { Level: 3, Type: "攻击", CostProp: "核桃", CostCount: 2, Value: 3 },
-    { Level: 4, Type: "攻速", CostProp: "核桃", CostCount: 2, Value: 0.05 },
-    { Level: 5, Type: "技能", CostProp: "核桃", CostCount: 3, Value: 1 },
-    { Level: 6, Type: "生命值", CostProp: "核桃", CostCount: 3, Value: 30 },
-    { Level: 7, Type: "防御", CostProp: "核桃", CostCount: 3, Value: 3 },
-    { Level: 8, Type: "攻击", CostProp: "核桃", CostCount: 3, Value: 4 },
-    { Level: 9, Type: "攻速", CostProp: "核桃", CostCount: 3, Value: 0.05 },
-    { Level: 10, Type: "背包", CostProp: "核桃", CostCount: 4, Value: 1 },
-    { Level: 11, Type: "生命值", CostProp: "核桃", CostCount: 4, Value: 40 },
-    { Level: 12, Type: "防御", CostProp: "核桃", CostCount: 4, Value: 4 },
-    { Level: 13, Type: "攻击", CostProp: "核桃", CostCount: 4, Value: 5 },
-    { Level: 14, Type: "攻速", CostProp: "核桃", CostCount: 4, Value: 0.05 },
-    { Level: 15, Type: "技能", CostProp: "核桃", CostCount: 5, Value: 1 },
-    { Level: 16, Type: "生命值", CostProp: "核桃", CostCount: 5, Value: 50 },
-    { Level: 17, Type: "防御", CostProp: "核桃", CostCount: 5, Value: 5 },
-    { Level: 18, Type: "攻击", CostProp: "核桃", CostCount: 5, Value: 6 },
-    { Level: 19, Type: "攻速", CostProp: "核桃", CostCount: 5, Value: 0.05 },
-    { Level: 20, Type: "背包", CostProp: "核桃", CostCount: 6, Value: 1 },
+    { Level: 1, Type: "生命值", CostProp: "宠物碎片", CostCount: 2, Value: 20 },
+    { Level: 2, Type: "防御", CostProp: "宠物碎片", CostCount: 2, Value: 2 },
+    { Level: 3, Type: "攻击", CostProp: "宠物碎片", CostCount: 2, Value: 3 },
+    { Level: 4, Type: "攻速", CostProp: "宠物碎片", CostCount: 2, Value: 0.05 },
+    { Level: 5, Type: "技能", CostProp: "宠物碎片", CostCount: 3, Value: 1 },
+    { Level: 6, Type: "生命值", CostProp: "宠物碎片", CostCount: 3, Value: 30 },
+    { Level: 7, Type: "防御", CostProp: "宠物碎片", CostCount: 3, Value: 3 },
+    { Level: 8, Type: "攻击", CostProp: "宠物碎片", CostCount: 3, Value: 4 },
+    { Level: 9, Type: "攻速", CostProp: "宠物碎片", CostCount: 3, Value: 0.05 },
+    { Level: 10, Type: "背包", CostProp: "宠物碎片", CostCount: 4, Value: 1 },
+    { Level: 11, Type: "生命值", CostProp: "宠物碎片", CostCount: 4, Value: 40 },
+    { Level: 12, Type: "防御", CostProp: "宠物碎片", CostCount: 4, Value: 4 },
+    { Level: 13, Type: "攻击", CostProp: "宠物碎片", CostCount: 4, Value: 5 },
+    { Level: 14, Type: "攻速", CostProp: "宠物碎片", CostCount: 4, Value: 0.05 },
+    { Level: 15, Type: "技能", CostProp: "宠物碎片", CostCount: 5, Value: 1 },
+    { Level: 16, Type: "生命值", CostProp: "宠物碎片", CostCount: 5, Value: 50 },
+    { Level: 17, Type: "防御", CostProp: "宠物碎片", CostCount: 5, Value: 5 },
+    { Level: 18, Type: "攻击", CostProp: "宠物碎片", CostCount: 5, Value: 6 },
+    { Level: 19, Type: "攻速", CostProp: "宠物碎片", CostCount: 5, Value: 0.05 },
+    { Level: 20, Type: "背包", CostProp: "宠物碎片", CostCount: 6, Value: 1 },
 ];
 
 export interface ZRSJZ_PetSkinConfig {

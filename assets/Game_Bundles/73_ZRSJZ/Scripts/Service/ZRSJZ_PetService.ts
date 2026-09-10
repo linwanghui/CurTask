@@ -22,6 +22,7 @@ export class ZRSJZ_PetService {
 
     public static GetGeneCostOwned(gene: Readonly<ZRSJZ_PetGeneConfig>): number {
         return gene.CostProp === "金币" ? ZRSJZ_GameData.Instance.Gold
+            : gene.CostProp === "宠物碎片" ? ZRSJZ_FragmentService.GetCount()
             : ZRSJZ_InventoryService.GetPropCountByName(gene.CostProp);
     }
 
@@ -109,12 +110,13 @@ export class ZRSJZ_PetService {
         // ConsumeProp会通知库存并存档，先写等级，让同一次库存存档包含学习结果。
         data.PetData[petName].Level = level;
         if (gene.CostProp === "金币") data.Gold -= gene.CostCount;
+        else if (gene.CostProp === "宠物碎片") data.PetFragments = ZRSJZ_FragmentService.GetCount() - gene.CostCount;
         else if (gene.CostCount > 0 && !ZRSJZ_InventoryService.ConsumeProp(gene.CostProp, gene.CostCount)) {
             data.PetData[petName].Level = previousLevel;
             return `${gene.CostProp}不足`;
         }
         ZRSJZ_GameData.SaveData();
-        if (gene.CostProp === "金币") ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
+        if (gene.CostProp === "金币" || gene.CostProp === "宠物碎片") ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_PET_GENE_CHANGE, petName);
         return "";
     }
