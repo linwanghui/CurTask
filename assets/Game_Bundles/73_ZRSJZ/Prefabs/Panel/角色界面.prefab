@@ -6569,7 +6569,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": -10,
+      "width": 10,
       "height": 192
     },
     "_anchorPoint": {
@@ -6640,7 +6640,7 @@
     },
     "_startAxis": 0,
     "_paddingLeft": 40,
-    "_paddingRight": 0,
+    "_paddingRight": 20,
     "_paddingTop": 0,
     "_paddingBottom": 0,
     "_spacingX": 50,
@@ -6650,7 +6650,7 @@
     "_constraint": 0,
     "_constraintNum": 2,
     "_affectedByScale": true,
-    "_isAlign": false,
+    "_isAlign": true,
     "_id": ""
   },
   {

@@ -10,6 +10,7 @@ import { ZRSJZ_PetService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_PetSer
 import { ZRSJZ_PetItem } from '../ZRSJZ_PetItem';
 import { ZRSJZ_Tools } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Tools';
 import Banner from 'db://assets/Scripts/Banner';
+import { ZRSJZ_FragmentService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_FragmentService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_PetPanel')
@@ -35,6 +36,12 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
     private _skillIconRequest = 0;
 
     protected onLoad(): void {
+        const fragments = find("Panel/免费获取宠物碎片", this.node);
+        if (fragments) {
+            const button = fragments.getComponent(Button) ?? fragments.addComponent(Button);
+            button.clickEvents = [];
+            fragments.on(Button.EventType.CLICK, this.OpenFragments, this);
+        }
         this.SetupSkillUI();
         this.CloseSkillInfo();
     }
@@ -45,10 +52,14 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
         this._eventNode = ZRSJZ_UIManager.Instance?.node ?? null;
         this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_PET_GENE_CHANGE, this.Refresh, this);
         this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_PET_SKIN_CHANGE, this.Refresh, this);
+        this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshFragments, this);
+        this.RefreshFragments();
+        this.schedule(this.RefreshFragments, 1);
         this.RefreshSpine();
     }
 
     protected onDisable(): void {
+        this.unschedule(this.RefreshFragments);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_PLAYER_CHANGE, this.OnPetPlayerChange, this);
         ++this._skillIconRequest;
         if (isValid(this.node, true)) this.node.off(Node.EventType.TOUCH_START, this.OnPanelTouch, this, true);
@@ -56,6 +67,7 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
         if (isValid(this._eventNode, true)) {
             this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_PET_GENE_CHANGE, this.Refresh, this);
             this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_PET_SKIN_CHANGE, this.Refresh, this);
+            this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshFragments, this);
         }
         this._eventNode = null;
     }
@@ -91,6 +103,7 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
             }
             node.setParent(content);
             item.Init(petName, name => {
+                if (this._selectedPet === name) return;
                 ZRSJZ_AudioManager.Instance.PlaySound("点击");
                 this._selectedPet = name;
                 this.CloseSkillInfo();
@@ -104,6 +117,21 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
     private SetLabel(path: string, text: string): void {
         const label = find(path, this.node)?.getComponent(Label);
         if (label) label.string = text;
+    }
+
+    private RefreshFragments(): void {
+        this.SetLabel("Panel/宠物碎片/Num", String(ZRSJZ_FragmentService.GetCount()));
+        this.SetLabel("Panel/免费获取宠物碎片/剩余次数", `剩余次数：${ZRSJZ_FragmentService.GetRemaining()}`);
+    }
+
+    private OpenFragments(): void {
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
+        this.RefreshFragments();
+        if (ZRSJZ_FragmentService.GetRemaining() <= 0) {
+            ZRSJZ_UIManager.Instance.ShowTip("今日免费次数已用完");
+            return;
+        }
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.宠物碎片弹窗);
     }
 
     private SetActive(path: string, active: boolean): void {
@@ -133,9 +161,12 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
         this.SetActive("Panel/PetDesc/出战", owned && !deployed);
         this.SetActive("Panel/PetDesc/已出战", deployed);
         this.SetActive("Panel/PetDesc/解锁", !owned);
-        this.SetLabel("Panel/PetDesc/解锁/Layout/UnlockLabel", ZRSJZ_PetService.GetUnlockLabel(this._selectedPet));
-        // 原预制体放的是金币图标，其他条件通过文字完整展示。
-        this.SetActive("Panel/PetDesc/解锁/Layout/UnlockIcon", config.PetUnlock === "金币解锁");
+        const unlockWithFragments = config.PetUnlock === "宠物碎片解锁";
+        this.SetLabel("Panel/PetDesc/解锁/Layout/UnlockLabel", unlockWithFragments
+            ? String(config.PetUnlockValue ?? 0) : ZRSJZ_PetService.GetUnlockLabel(this._selectedPet));
+        // 复用预制体上配置的宠物碎片图标。
+        this.SetActive("Panel/PetDesc/解锁/Layout/UnlockIcon", unlockWithFragments);
+        find("Panel/PetDesc/解锁/Layout", this.node)?.getComponent(Layout)?.updateLayout();
         const skills = find("Panel/PetSkill", this.node);
         skills?.children.forEach((skill, index) => {
             const name = config.PetSkills[index];

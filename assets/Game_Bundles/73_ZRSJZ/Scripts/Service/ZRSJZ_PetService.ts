@@ -1,6 +1,7 @@
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_PET_SKILL_EFFECT_CONFIG, ZRSJZ_PetBattleSkillConfig, ZRSJZ_PET_CONFIG, ZRSJZ_PET_GENE_CONFIG, ZRSJZ_PET_SKIN_CONFIG, ZRSJZ_PET_SKILL_CONFIG, ZRSJZ_PROP_CONFIG, ZRSJZ_PetGeneConfig, ZRSJZ_PetPlayerBonus } from "../ZRSJZ_Constant";
 import { ZRSJZ_InventoryService } from "./ZRSJZ_InventoryService";
+import { ZRSJZ_FragmentService } from './ZRSJZ_FragmentService';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
 
 export class ZRSJZ_PetService {
@@ -52,7 +53,6 @@ export class ZRSJZ_PetService {
 
     public static GetSkillUnlockText(petName: string, index: number): string {
         if (this.IsSkillUnlocked(petName, index)) return "已解锁";
-        if (!this.CheckPet(petName)) return "购买宠物后解锁";
         const skill = this.GetSkill(petName, index);
         if (!skill) return "技能未配置";
         return skill.Unlock === "视频" ? "观看视频永久解锁"
@@ -275,6 +275,9 @@ export class ZRSJZ_PetService {
             if (resource === "金币") {
                 if (data.Gold < count) return "金币不足";
                 data.Gold -= count;
+            } else if (resource === "宠物碎片") {
+                if (ZRSJZ_FragmentService.GetCount() < count) return "宠物碎片不足";
+                data.PetFragments = ZRSJZ_FragmentService.GetCount() - count;
             } else {
                 if (!ZRSJZ_PROP_CONFIG.has(resource)) return "皮肤解锁道具配置不存在";
                 if (!ZRSJZ_InventoryService.ConsumeProp(resource, count)) return `${resource}不足`;
@@ -282,7 +285,7 @@ export class ZRSJZ_PetService {
         }
         data.PetData[petName].Skins.push(skinName);
         ZRSJZ_GameData.SaveData();
-        if (resource === "金币") ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
+        if (resource === "金币" || resource === "宠物碎片") ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
         return "";
     }
 
@@ -291,6 +294,7 @@ export class ZRSJZ_PetService {
         if (!config) return "无法解锁";
         if (config.PetUnlock === "金币解锁") return `${config.PetUnlockValue ?? 0}金币解锁`;
         if (config.PetUnlock === "等级解锁") return `${config.PetUnlockValue ?? 0}级解锁`;
+        if (config.PetUnlock === "宠物碎片解锁") return `${config.PetUnlockValue ?? 0}宠物碎片解锁`;
         return config.PetUnlock || "免费解锁";
     }
 
@@ -301,7 +305,13 @@ export class ZRSJZ_PetService {
         if (!config || !data) return "宠物配置不存在";
         if (this.CheckPet(petName)) return "";
         let cost = 0;
+        let fragmentCost = 0;
         switch (config.PetUnlock) {
+            case "宠物碎片解锁":
+                fragmentCost = config.PetUnlockValue;
+                if (!Number.isSafeInteger(fragmentCost) || fragmentCost <= 0) return "宠物解锁条件配置不完整";
+                if (ZRSJZ_FragmentService.GetCount() < fragmentCost) return "宠物碎片不足";
+                break;
             case "视频解锁":
                 if (!videoRewarded) return "请完整观看视频后解锁";
                 break;
@@ -323,8 +333,9 @@ export class ZRSJZ_PetService {
         }
         // 扣费与宠物写入同一次存档，重复回调不会重复扣费或重置等级。
         data.Gold -= cost;
+        if (fragmentCost > 0) data.PetFragments = ZRSJZ_FragmentService.GetCount() - fragmentCost;
         this.AddPet(petName);
-        if (cost > 0) ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
+        if (cost > 0 || fragmentCost > 0) ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
         return "";
     }
 }

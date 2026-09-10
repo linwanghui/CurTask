@@ -16,6 +16,8 @@ export class ZRSJZ_PetSkinPanel extends ZRSJZ_Panel {
     GoldSF: SpriteFrame = null;
     @property(SpriteFrame)
     VideoSF: SpriteFrame = null;
+    @property(SpriteFrame)
+    FragmentSF: SpriteFrame = null;
 
     SkinsContent: Node = null;
     UseBtn: Node = null;
@@ -97,6 +99,7 @@ export class ZRSJZ_PetSkinPanel extends ZRSJZ_Panel {
         try {
             const frame = resource === "金币" ? this.GoldSF
                 : resource === "视频" ? this.VideoSF
+                    : resource === "宠物碎片" ? this.FragmentSF
                     : await ZRSJZ_UIManager.Instance.GetPropUI(resource);
             if (!this.isValid || request !== this._iconRequest || !frame) return;
             this.UnlockIcon.sizeMode = Sprite.SizeMode.CUSTOM;

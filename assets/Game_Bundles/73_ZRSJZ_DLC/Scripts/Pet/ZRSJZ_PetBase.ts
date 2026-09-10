@@ -31,6 +31,7 @@ export abstract class ZRSJZ_PetBase extends Component {
     private _enemies: ZRSJZ_EnemyBase[] = [];
     private _searchRemaining = 0;
     private _reviveRemaining = 0;
+    private _deathStarted = false;
     private _animation = '';
     private _animationRemaining = 0;
     private _cast: { index: number; skill: Readonly<ZRSJZ_PetBattleSkillConfig>; track: sp.spine.TrackEntry;
@@ -99,7 +100,7 @@ export abstract class ZRSJZ_PetBase extends Component {
         return isValid(this.Game, true) && ZRSJZ_Game.Instance === this.Game
             && !this.Game.GamePaused && !this.Game.IsGameFinished
             && isValid(this.Owner, true)
-            && ((this.Owner.node.activeInHierarchy && !this.Owner.IsDead) || !!this._cast || this._effects.length > 0);
+            && this.Owner.node.activeInHierarchy && !this.Owner.IsDead;
     }
 
     protected update(dt: number): void {
@@ -109,6 +110,11 @@ export abstract class ZRSJZ_PetBase extends Component {
             if (this._debugRemaining <= 0) { this.PrintSkillDiagnostics(); this._debugRemaining = 3; }
         }
         if (this._body) this._body.linearVelocity = Vec2.ZERO;
+        // 死亡界面会暂停战斗，随主人死亡和关闭碰撞必须先于暂停判断处理。
+        if (isValid(this.Owner, true) && this.Owner.IsDead && this.Health > 0) this.Die();
+        if (this._deathStarted) {
+            this.getComponents(Collider2D).forEach(c => { if (c.enabled) c.enabled = false; });
+        }
         const running = this.CanRun();
         if (this._spine) this._spine.paused = !running;
         for (const effect of this._effects) {
@@ -133,6 +139,7 @@ export abstract class ZRSJZ_PetBase extends Component {
             this._reviveRemaining -= dt;
             if (this._reviveRemaining <= 0) {
                 this.Health = this.Stats.HP;
+                this._deathStarted = false;
                 this._hp?.Show(this.Health);
                 if (this._spine) this._spine.node.active = true;
                 this.getComponents(Collider2D).forEach(c => c.enabled = true);
@@ -180,7 +187,7 @@ export abstract class ZRSJZ_PetBase extends Component {
             }
             return;
         }
-        if (!ownerAvailable) return; // 主人死亡时只完成已有施法与效果，不开启新一轮技能。
+        if (!ownerAvailable) return;
         // 先释放已就绪主动技，普通攻击不会抢占每次可用的动画轨道。
         for (const index of this.GetSkillPriority()) {
             const skill = this._skills[index];
@@ -376,12 +383,20 @@ export abstract class ZRSJZ_PetBase extends Component {
         this.Health = Math.max(0, this.Health - Math.max(1, Math.round(damage - this.Stats.Defense)));
         this._hp?.Show(this.Health);
         if (this.Health <= 0) {
-            this.ResetCast();
-            this._reviveRemaining = ZRSJZ_PET_BATTLE_CONFIG.ReviveSeconds;
-            this.ClearEffects();
-            this.Owner.ClearPetShield(this);
-            if (this._spine) this._spine.node.active = false;
+            this.Die();
         } else if (!this.IsSuperArmor) this.PlayAnimation('shouji', false);
+    }
+
+    private Die(): void {
+        if (this._deathStarted) return;
+        this._deathStarted = true;
+        this.Health = 0;
+        this._hp?.Show(0);
+        this.ResetCast();
+        this.ClearEffects();
+        if (isValid(this.Owner, true)) this.Owner.ClearPetShield(this);
+        this._reviveRemaining = ZRSJZ_PET_BATTLE_CONFIG.ReviveSeconds;
+        if (this._spine) this._spine.node.active = false;
     }
 
     protected HealSelf(amount: number): void {

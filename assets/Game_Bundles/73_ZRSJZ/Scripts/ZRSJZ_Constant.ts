@@ -49,6 +49,7 @@ export enum ZRSJZ_PANEL {
     盲盒界面 = "73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面",
     锻造界面 = "73_ZRSJZ_DLC/Prefabs/Panel/锻造界面",
     宠物界面 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物界面",
+    宠物碎片弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物碎片弹窗",
     宠物皮肤弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物皮肤弹窗",
     宠物基因弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物基因弹窗",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -2229,7 +2230,7 @@ export const ZRSJZ_PET_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkinCo
         PetSkinSpineSkin: "pifu_shenyuan",
         PetSkinQuality: "传说",
         PetSkinAddition: "攻击+10",
-        PetSkinUnlock: "视频x免费获取",
+        PetSkinUnlock: "宠物碎片x50",
     }],
     ["小蜜蜂", {
         PetSkinName: "小蜜蜂",
@@ -2247,7 +2248,7 @@ export const ZRSJZ_PET_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkinCo
         PetSkinSwarmSkin: "pifu_yinghua",
         PetSkinQuality: "史诗",
         PetSkinAddition: "生命值+50",
-        PetSkinUnlock: "金币x1000000",
+        PetSkinUnlock: "视频x免费获取",
     }],
 ])
 
@@ -2277,7 +2278,8 @@ export const ZRSJZ_PET_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetConfig>> = 
             1: 30, 2: 3, 3: 2, 4: 0.03, 6: 45, 7: 4, 8: 3, 9: 0.03,
             10: 1, 11: 60, 12: 6, 13: 3, 14: 0.03, 16: 80, 17: 8, 18: 4, 19: 0.03, 20: 1
         },
-        PetUnlock: "视频解锁",
+        PetUnlock: "宠物碎片解锁",
+        PetUnlockValue: 30,
         PetHarmony: 8,
         PetHP: 200,
         PetArmor: 5,

@@ -15,7 +15,7 @@ import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 6;//当前版本
+    public static readonly Versions = 7;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -179,4 +179,8 @@ export class ZRSJZ_GameData {
     public CurPet: string = "";//玩家1出战宠物，兼容旧存档
     public Player2Pet: string = "";//玩家2独立选择；等级、基因仍共用PetData
     public CurPetSkin: string = "";
+    //#region 版本6之后新增
+    public PetFragments: number = 0;//宠物碎片数量
+    public PetFragmentClaimDate: string = "";//免费碎片领取日期
+    public PetFragmentClaimCount: number = 0;//当天免费碎片已领取次数
 }

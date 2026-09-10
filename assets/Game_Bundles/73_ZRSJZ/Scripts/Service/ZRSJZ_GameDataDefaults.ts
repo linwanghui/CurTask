@@ -137,6 +137,11 @@ export class ZRSJZ_GameDataDefaults {
             { Key: "CurPet", DefaultVaule: "" },
             { Key: "Player2Pet", DefaultVaule: "" },
             { Key: "CurPetSkin", DefaultVaule: "" },
+        ]],
+        [6, [
+            { Key: "PetFragments", DefaultVaule: 0 },
+            { Key: "PetFragmentClaimDate", DefaultVaule: "" },
+            { Key: "PetFragmentClaimCount", DefaultVaule: 0 },
         ]]
     ])
 }

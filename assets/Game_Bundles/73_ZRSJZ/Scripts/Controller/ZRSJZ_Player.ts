@@ -966,6 +966,7 @@ export class ZRSJZ_Player extends Component {
         if (this.CurHP <= 0) {
             this.CurHP = 0;
             this.HP?.Show(0);
+            this.RefreshBulletProgress();
             if (!game.IsTutorial) {
                 this.CancelGunAttackState();
                 this.CancelKnifeAttackState();
@@ -1081,8 +1082,8 @@ export class ZRSJZ_Player extends Component {
 
     /** 玩家身上的 Bullet 填充只表示真实弹匣占比，不表示换弹耗时。 */
     private RefreshBulletProgress(): void {
+        if (this._bulletProgressNode) this._bulletProgressNode.active = !this.IsDead;
         if (!this._bulletProgressSprite) return;
-        if (this._bulletProgressNode) this._bulletProgressNode.active = true;
         const capacity = this.MagazineCapacity;
         this._bulletProgressSprite.fillRange = capacity > 0
             ? Math.min(1, Math.max(0, this.MagazineAmmoCount / capacity))
