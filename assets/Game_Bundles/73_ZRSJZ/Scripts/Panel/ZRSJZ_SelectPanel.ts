@@ -7,6 +7,7 @@ import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_TaskAward } from '../UI/ZRSJZ_TaskAward';
+import { ZRSJZ_LevelProgressService } from '../Service/ZRSJZ_LevelProgressService';
 const { ccclass, property } = _decorator;
 
 export interface ZRSJZ_LevelEntryResult {
@@ -34,6 +35,11 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
     protected onLoad(): void {
         this.BindSelectEvents();
         this.RestoreSelection();
+        this.RefreshSelection();
+    }
+
+    public Show(...args: any[]): void {
+        super.Show(...args);
         this.RefreshSelection();
     }
 
@@ -107,6 +113,11 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             const mapNode = find(`Panel/${mapName}`, this.node);
             const checked = mapNode?.getChildByName("Checked");
             if (checked) checked.active = mapName === this._selectedMapName;
+            const isLocked = !!ZRSJZ_LevelProgressService.GetLockReason(`${mapName}_${this._selectedActionName}`);
+            const lock = mapNode?.getChildByName("Lock");
+            if (lock) lock.active = isLocked;
+            const checkedLock = checked?.getChildByName("锁");
+            if (checkedLock) checkedLock.active = mapName === this._selectedMapName && isLocked;
             if (mapName === this._selectedMapName && this.MapSFs[index]) {
                 const mapSprite = find("Panel/Desc/Map", this.node)?.getComponent(Sprite);
                 if (mapSprite) mapSprite.spriteFrame = this.MapSFs[index];
@@ -257,6 +268,10 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
         }
 
         const requiredValue = Math.max(0, config.RequiredLoadoutValue || 0);
+        const lockReason = ZRSJZ_LevelProgressService.GetLockReason(mapKey);
+        if (lockReason) {
+            return { CanEnter: false, CurrentValue: currentValue, RequiredValue: requiredValue, Reason: lockReason };
+        }
         if (currentValue < requiredValue) {
             return {
                 CanEnter: false,
@@ -275,7 +290,12 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             ZRSJZ_UIManager.Instance.ShowTip("该关卡暂未开放");
             return;
         }
-        if (ZRSJZ_UIManager.ZRSJZ_DLC) {
+        const lockReason = ZRSJZ_LevelProgressService.GetLockReason(mapKey);
+        if (lockReason) {
+            ZRSJZ_UIManager.Instance.ShowTip(lockReason);
+            return;
+        }
+        if (ZRSJZ_UIManager.ZRSJZ_DLC && this._selectedMapName === "五号小镇") {
             ZRSJZ_UIManager.Instance.ShowPanel(
                 ZRSJZ_PANEL.助战礼包弹窗,
                 mapKey,

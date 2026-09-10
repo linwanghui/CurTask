@@ -13,7 +13,7 @@ export class GameManager extends Component {
 
     //规范统一，需要添加的游戏固定以 游戏名缩写_PathData脚本作为链接文本配置，方便打包查询修改(因为可能路径文本内容需要更改)
     //可以参考SJZXD_PathData的配置
-    static PathShow: boolean = false;//路径显示(一般用于抖音无广链接)
+    static PathShow: boolean = true;//路径显示(一般用于抖音无广链接)
 
     //**是否显示所有的游戏 */
     static ShowAllGame: boolean = false;

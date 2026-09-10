@@ -517,9 +517,19 @@ export class ZRSJZ_Player extends Component {
     }
 
     //#region 移动
+    private ResetMovement(): void {
+        this._moveX = 0;
+        this._moveY = 0;
+        this._moveRadius = 0;
+        if (this.RigidBody) this.RigidBody.linearVelocity = v2(0, 0);
+    }
+
     Move(x: number, y: number, radius: number, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        if (this._isStop) return;
+        if (this._isStop || this.IsDead || (x === 0 && y === 0)) {
+            this.ResetMovement();
+            return;
+        }
         this._moveX = x;
         this._moveY = y;
         this._moveRadius = 1;
@@ -840,6 +850,8 @@ export class ZRSJZ_Player extends Component {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         this.CurHP = this.MaxHP;
         this._isStop = false;
+        this.ResetMovement();
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESET_MOVEMENT, this.PlayerIndex);
         this.HP.Show(this.CurHP);
         this.CurSpeed = this.MaxSpeed;
         const resurgenceRequestGame = ZRSJZ_Game.Instance;
@@ -971,9 +983,10 @@ export class ZRSJZ_Player extends Component {
                 this.CancelGunAttackState();
                 this.CancelKnifeAttackState();
                 this._isStop = true;
+                this.ResetMovement();
                 ZRSJZ_Game.Instance.OnPlayerDied(this.PlayerIndex);
                 ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex,);
-                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_MOVE, 0, 0, 0, this.PlayerIndex,);
+                ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESET_MOVEMENT, this.PlayerIndex);
                 ZRSJZ_UIManager.Instance.PrepareForDeath(this.PlayerIndex);
                 if (
                     ZRSJZ_GameData.Instance.CurModel == "2p"

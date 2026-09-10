@@ -14,6 +14,7 @@ export class ZRSJZ_GameDataDefaults {
     public static Initialize(data: ZRSJZ_GameData): void {
         data.Gold = 100000;
         data.CurMap = "新手村";
+        data.BossExtractionCompleted = {};
         data.Grade = 1;
         data.CurExp = 0;
         data.PendingExperience = 0;
@@ -142,6 +143,9 @@ export class ZRSJZ_GameDataDefaults {
             { Key: "PetFragments", DefaultVaule: 0 },
             { Key: "PetFragmentClaimDate", DefaultVaule: "" },
             { Key: "PetFragmentClaimCount", DefaultVaule: 0 },
+        ]],
+        [7, [
+            { Key: "BossExtractionCompleted", DefaultVaule: {} },
         ]]
     ])
 }

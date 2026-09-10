@@ -185,6 +185,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         if (this.IsDead) return;
         this.CancelActiveAttack();
         super.Die();
+        ZRSJZ_Game.Instance?.RecordBossDefeated();
         ZRSJZ_TaskService.CompleteTask(`打败[${ZRSJZ_GameData.Instance.CurMap}]Boss`, 1);
         ZRSJZ_TaskService.RecordBoss(ZRSJZ_GameData.Instance.CurMap);
     }
