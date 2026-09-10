@@ -6,6 +6,7 @@ import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
+import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_CheatingPanel')
@@ -71,6 +72,12 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             case "无限火力":
                 ZRSJZ_Game.Instance.UnlimitedFirepower = true;
                 break;
+            case "超级高爆":
+                ZRSJZ_BoosterShotService.SuperHighDropEnabled = !ZRSJZ_BoosterShotService.SuperHighDropEnabled;
+                ZRSJZ_UIManager.Instance.ShowTip(ZRSJZ_BoosterShotService.SuperHighDropEnabled
+                    ? "超级高爆已开启：红色物资爆率提升至50倍"
+                    : "超级高爆已关闭");
+                break;
             case "金币加1000W":
                 ZRSJZ_AccountService.ChangeGold(10000000);
                 break;
@@ -90,5 +97,3 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
         }
     }
 }
-
-

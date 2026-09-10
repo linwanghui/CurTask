@@ -1,5 +1,6 @@
 import { ZRSJZ_BoxroomService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_BoxroomService";
 import { ZRSJZ_InventoryService } from "../../../73_ZRSJZ/Scripts/Service/ZRSJZ_InventoryService";
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_EventManager";
 import {
     _decorator,
     Button,
@@ -83,8 +84,40 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
         }
     }
 
+    protected onEnable(): void {
+        this.RefreshCategoryTips();
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshCategoryTips, this);
+    }
+
+    protected onDisable(): void {
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshCategoryTips, this);
+    }
+
+    private RefreshCategoryTips(): void {
+        const leftBar = this.node.getChildByName("Panel")?.getChildByName("左侧栏");
+        if (!leftBar) return;
+
+        // 按配置汇总，尚未打开、尚未生成道具节点的分类也能显示红点。
+        const upgradeableCategories = new Set<ZRSJZ_BoxroomCategory>();
+        for (const config of this.GetCollectionProps()) {
+            const category = GetBoxroomCategory(config.Name);
+            if (upgradeableCategories.has(category)) continue;
+            const level = ZRSJZ_BoxroomService.GetBoxroomPropLevel(config.Name);
+            const cost = ZRSJZ_BOXROOM_LEVEL_COST[level];
+            if (level < 3 && cost > 0
+                && ZRSJZ_InventoryService.GetPropCountByName(config.Name) >= cost) {
+                upgradeableCategories.add(category);
+            }
+        }
+        for (const category of ZRSJZ_BOXROOM_CATEGORIES) {
+            const tip = leftBar.getChildByName(category)?.getChildByName("红点");
+            if (tip) tip.active = upgradeableCategories.has(category);
+        }
+    }
+
     public Show(...args: any[]): void {
         super.Show(...args);
+        this.RefreshCategoryTips();
         this.SyncAttributeBonus();
         this.RefreshTotalBonus();
         this.SelectCategory(this._curCategory);
@@ -335,6 +368,7 @@ export class ZRSJZ_BoxroomPanel extends ZRSJZ_Panel {
 
         ZRSJZ_InventoryService.ConsumeProp(this._selectedPropName, cost);
         ZRSJZ_BoxroomService.SetBoxroomPropLevel(this._selectedPropName, level + 1);
+        this.RefreshCategoryTips();
         this.SyncAttributeBonus();
         this.RefreshTotalBonus();
         this._categoryCache.forEach(view => {

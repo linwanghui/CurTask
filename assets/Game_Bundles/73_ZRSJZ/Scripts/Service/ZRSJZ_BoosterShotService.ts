@@ -3,6 +3,9 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager
 import { ZRSJZ_BOOSTER_SHOT_CONFIG } from "../ZRSJZ_Constant";
 
 export class ZRSJZ_BoosterShotService {
+    /** 调试开关：跨对局保留，重启游戏恢复关闭，不写入玩家存档。 */
+    public static SuperHighDropEnabled: boolean = false;
+
     public static AddBoosterShot(boosterShot: string): boolean {
         if (!ZRSJZ_BOOSTER_SHOT_CONFIG.has(boosterShot)) return false;
         const data = ZRSJZ_GameData.Instance;
@@ -50,10 +53,11 @@ export class ZRSJZ_BoosterShotService {
         return this.GetBoosterValue(type) * 0.01;
     }
 
-    /** 爆率针将原本的红色概率乘以 1.5，并把结果限制在 0~1。 */
+    /** 红色概率叠加爆率针和超级高爆，最高为 100%。 */
     public static GetBoostedRedProbability(baseProbability: number): number {
         const probability = Math.max(0, Math.min(1, Number(baseProbability) || 0));
-        return Math.min(1, probability * (1 + this.GetBooster("爆率针")));
+        const cheatMultiplier = this.SuperHighDropEnabled ? 50 : 1;
+        return Math.min(1, probability * (1 + this.GetBooster("爆率针")) * cheatMultiplier);
     }
 
     /**
@@ -62,7 +66,8 @@ export class ZRSJZ_BoosterShotService {
      */
     public static ApplyRedProbabilityToWeights(weights: readonly number[], redIndex: number): number[] {
         const result = weights.map(weight => Math.max(0, Number(weight) || 0));
-        if (redIndex < 0 || redIndex >= result.length || this.GetBooster("爆率针") <= 0) return result;
+        if (redIndex < 0 || redIndex >= result.length
+            || (!this.SuperHighDropEnabled && this.GetBooster("爆率针") <= 0)) return result;
 
         const totalWeight = result.reduce((sum, weight) => sum + weight, 0);
         const redWeight = result[redIndex];
@@ -70,9 +75,10 @@ export class ZRSJZ_BoosterShotService {
         if (totalWeight <= 0 || redWeight <= 0 || nonRedWeight <= 0) return result;
 
         const boostedProbability = this.GetBoostedRedProbability(redWeight / totalWeight);
-        result[redIndex] = boostedProbability >= 1
-            ? Number.MAX_SAFE_INTEGER
-            : nonRedWeight * boostedProbability / (1 - boostedProbability);
+        if (boostedProbability >= 1) {
+            return result.map((_, index) => index === redIndex ? 1 : 0);
+        }
+        result[redIndex] = nonRedWeight * boostedProbability / (1 - boostedProbability);
         return result;
     }
 
@@ -87,4 +93,3 @@ export class ZRSJZ_BoosterShotService {
     }
 
 }
-

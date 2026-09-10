@@ -67,7 +67,9 @@ export class ZRSJZ_TaskAward extends Component {
         this.Name.string = propName;
         this.Count.string = count.toString();
         if (propName.startsWith('仓库_') && propName.endsWith('扩容')) {
-            this.Name.string = propName.replace('仓库_', '').replace('扩容', '仓库');
+            this.Name.string = propName === '仓库_全部扩容'
+                ? '主库'
+                : propName.replace('仓库_', '').replace('扩容', '仓库');
             this.Count.string = `+${count}行`;
             this.Icon.spriteFrame = this.WarehouseSF;
             this.Bottom.spriteFrame = this.BottomSF;

@@ -72,6 +72,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     protected onEnable(): void {
+        input.on(Input.EventType.KEY_DOWN, this.OnKeyDown, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SPECIAL_OPERATION, this.ShowSpecialOperation, this);
@@ -80,6 +81,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     protected onDisable(): void {
+        input.off(Input.EventType.KEY_DOWN, this.OnKeyDown, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SPECIAL_OPERATION, this.ShowSpecialOperation, this);
@@ -308,6 +310,13 @@ export class ZRSJZ_Joystick_Attack extends Component {
         }
     }
 
+    private OnKeyDown(event: EventKeyboard): void {
+        // 与 WASD 一致，键盘只控制玩家一；复用按钮的冷却与角色状态判断。
+        if (event.keyCode !== KeyCode.SPACE || this.PlayerIndex !== 0
+            || ZRSJZ_UIManager.Dragging || !this._slideSprite?.node.parent?.activeInHierarchy) return;
+        this.Slide();
+    }
+
     //滑铲
     Slide() {
         if (this._slideCD > 0 || !ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex)?.IsSlide) return;
@@ -437,5 +446,3 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     }
 }
-
-
