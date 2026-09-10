@@ -72,6 +72,11 @@ export class ZRSJZ_TaskAward extends Component {
             this.Icon.spriteFrame = this.WarehouseSF;
             this.Bottom.spriteFrame = this.BottomSF;
             ZRSJZ_Tools.ScaleNodeToFit(this.Icon.node, 110, 110);
+        } else if (propName === '安全箱扩容') {
+            this.Count.string = '3×3';
+            this.Icon.spriteFrame = this.WarehouseSF;
+            this.Bottom.spriteFrame = this.BottomSF;
+            ZRSJZ_Tools.ScaleNodeToFit(this.Icon.node, 110, 110);
         } else if (propName == "钞票") {
             this.Icon.spriteFrame = this.GoldSF;
             this.Bottom.spriteFrame = this.BottomSF;
@@ -141,4 +146,3 @@ export class ZRSJZ_TaskAward extends Component {
     }
 
 }
-

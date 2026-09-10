@@ -73,6 +73,8 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
         let exp = 0;
         const propAwards: { PropName: string, Count: number }[] = [];
         awards.forEach(award => {
+            // 主线服务已在领奖时永久解锁；弹窗仅展示，不当成道具重复发放。
+            if (award.TaskAwardName === '安全箱扩容') return;
             if (award.TaskAwardName == "钞票") {
                 ZRSJZ_AccountService.ChangeGold(award.TaskAwardCount);
                 ZRSJZ_UIManager.Instance.ShowCurrencyEffect();
@@ -97,5 +99,4 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
     }
 
 }
-
 

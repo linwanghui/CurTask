@@ -47,6 +47,11 @@ export class ZRSJZ_GameDataDefaults {
                 if (savedData[item.Key] === undefined) data[item.Key] = item.DefaultVaule;
             });
             if (data.Versions === 4) this.InitializeTaskLines(data);
+            // 版本5→6：已领取最终主线奖励的老玩家补齐安全箱容量，不重复累加。
+            if (data.Versions === 5 && data.MainTaskComplete?.includes('北境终局')) {
+                data.InventoryRow ??= {};
+                data.InventoryRow[ZRSJZ_INVENTORY.保险箱] = Math.max(3, data.InventoryRow[ZRSJZ_INVENTORY.保险箱] ?? 2);
+            }
             data.Versions++;
         }
 

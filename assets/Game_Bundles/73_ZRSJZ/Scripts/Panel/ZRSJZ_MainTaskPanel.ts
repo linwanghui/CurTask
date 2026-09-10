@@ -96,6 +96,10 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
             const completed = tasks.filter(task => ZRSJZ_TaskService.GetTaskState(task) === 3).length;
             const name = id === 'main' ? '禁区征途 · 主线' : ZRSJZ_SIDE_TASK_LINES.find(line => line.ID === id).Name;
             header.getChildByName('Name').getComponent(Label).string = `${name}  ${completed}/${tasks.length}`;
+            if (id === 'main') {
+                header.getChildByName('Name').getComponent(Label).string += ZRSJZ_GameData.Instance.MainTaskComplete.includes('北境终局')
+                    ? '\n安全箱3×3 · 已解锁' : '\n通关奖励：安全箱3×3';
+            }
             header.getChildByName('红点').active = tasks.some(task => ZRSJZ_TaskService.ShouldShowTaskReminder(task));
             // 已完成和已开放的任务常驻列表，后续任务在上一关领奖后出现。
             const visible = expanded ? tasks.filter(task => ZRSJZ_TaskService.GetTaskState(task) !== -1) : [];

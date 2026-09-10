@@ -1,5 +1,5 @@
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
-import { ZRSJZ_MAIN_TASK_CONFIG } from "../ZRSJZ_Constant";
+import { ZRSJZ_MAIN_TASK_CONFIG, ZRSJZ_INVENTORY } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_GradeService } from "./ZRSJZ_GradeService";
 import { ZRSJZ_SIDE_TASK_CONFIG, ZRSJZ_SIDE_TASK_LINES, ZRSJZ_TaskObjective } from '../ZRSJZ_TaskLines';
@@ -39,6 +39,10 @@ export class ZRSJZ_TaskService {
         const taskName = data.CurMainTask.TaskName;
         this.GetTaskExperienceAward(taskName);
         data.MainTaskComplete.push(taskName);
+        if (taskName === '北境终局') {
+            const currentRows = ZRSJZ_InventoryService.GetInventoryRow(ZRSJZ_INVENTORY.保险箱, 2);
+            if (currentRows < 3) ZRSJZ_InventoryService.AddInventoryRow(ZRSJZ_INVENTORY.保险箱, 3 - currentRows);
+        }
         const curIndex: number = Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys()).indexOf(taskName);
         if (curIndex + 1 < Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys()).length) {
             data.NewMainTask = Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys())[curIndex + 1];
