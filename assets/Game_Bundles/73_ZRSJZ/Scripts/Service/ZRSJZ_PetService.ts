@@ -1,5 +1,5 @@
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
-import { ZRSJZ_PET_CONFIG, ZRSJZ_PET_GENE_CONFIG, ZRSJZ_PET_SKIN_CONFIG, ZRSJZ_PET_SKILL_CONFIG, ZRSJZ_PROP_CONFIG, ZRSJZ_PetGeneConfig, ZRSJZ_PetPlayerBonus } from "../ZRSJZ_Constant";
+import { ZRSJZ_PET_SKILL_EFFECT_CONFIG, ZRSJZ_PetBattleSkillConfig, ZRSJZ_PET_CONFIG, ZRSJZ_PET_GENE_CONFIG, ZRSJZ_PET_SKIN_CONFIG, ZRSJZ_PET_SKILL_CONFIG, ZRSJZ_PROP_CONFIG, ZRSJZ_PetGeneConfig, ZRSJZ_PetPlayerBonus } from "../ZRSJZ_Constant";
 import { ZRSJZ_InventoryService } from "./ZRSJZ_InventoryService";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
 
@@ -32,6 +32,12 @@ export class ZRSJZ_PetService {
 
     public static GetSkill(petName: string, index: number) {
         return ZRSJZ_PET_SKILL_CONFIG.get(ZRSJZ_PET_CONFIG.get(petName)?.PetSkills[index]);
+    }
+
+    /** 战斗端合并专属参数；UI仍只读取公共技能表。 */
+    public static GetBattleSkill(petName: string, index: number): Readonly<ZRSJZ_PetBattleSkillConfig> {
+        const skill = this.GetSkill(petName, index);
+        return skill ? { ...ZRSJZ_PET_SKILL_EFFECT_CONFIG.get(skill.Name), ...skill } : null;
     }
 
     public static IsSkillUnlocked(petName: string, index: number): boolean {
@@ -69,7 +75,7 @@ export class ZRSJZ_PetService {
         const bonus = { Attack: 0, MaxHP: 0, DamageReduction: 0 };
         if (!this.CheckPet(petName)) return bonus;
         for (let index = 0; index < 4; index++) {
-            const skill = this.GetSkill(petName, index);
+            const skill = this.GetBattleSkill(petName, index);
             if (skill?.Kind !== "被动" || !this.IsSkillUnlocked(petName, index) || !skill.PlayerBonus) continue;
             bonus.Attack += skill.PlayerBonus.Attack;
             bonus.MaxHP += skill.PlayerBonus.MaxHP;
@@ -114,7 +120,7 @@ export class ZRSJZ_PetService {
     }
 
     /** 基础属性 + 已学基因 + 当前穿戴皮肤；每次重新汇总，不修改配置或存档属性。 */
-    public static GetPetStats(petName: string) {
+    public static GetPetStats(petName: string, playerIndex: number = 0) {
         const config = ZRSJZ_PET_CONFIG.get(petName);
         const result = { Attack: config?.PetHarmony ?? 0, HP: config?.PetHP ?? 0,
             Defense: config?.PetArmor ?? 0, Backpack: config?.PetBackpack ?? 0,
@@ -131,7 +137,7 @@ export class ZRSJZ_PetService {
                 case "背包": result.Backpack += gene.Value; break;
             }
         }
-        const skinBonus = this.GetPetSkinBonus(petName);
+        const skinBonus = this.GetPetSkinBonus(petName, playerIndex);
         result.Attack += skinBonus.Attack;
         result.HP += skinBonus.HP;
         result.Defense += skinBonus.Defense;
@@ -142,9 +148,9 @@ export class ZRSJZ_PetService {
     }
 
     /** 仅当前已拥有且穿戴的皮肤生效，使用与皮肤界面一致的PetSkinAddition配置。 */
-    public static GetPetSkinBonus(petName: string) {
+    public static GetPetSkinBonus(petName: string, playerIndex: number = 0) {
         const bonus = { Attack: 0, HP: 0, Defense: 0, Backpack: 0, AttackSpeedMultiplier: 0 };
-        const addition = ZRSJZ_PET_SKIN_CONFIG.get(this.GetCurrentSkin(petName))?.PetSkinAddition ?? "";
+        const addition = ZRSJZ_PET_SKIN_CONFIG.get(this.GetCurrentSkin(petName, playerIndex))?.PetSkinAddition ?? "";
         for (const entry of addition.split(/[,，、;；\n]+/)) {
             const match = entry.trim().match(/^(攻击|生命值|防御|背包|攻速)\s*[+＋]\s*(\d+(?:\.\d+)?)\s*([%％]?)$/);
             if (!match) continue;
@@ -186,9 +192,20 @@ export class ZRSJZ_PetService {
         return this.CheckPet(petName) && ZRSJZ_GameData.Instance.PetData[petName].Skins.includes(skinName);
     }
 
-    public static SetBattlePet(petName: string): boolean {
+    public static GetBattlePet(playerIndex: number = 0): string {
+        const data = ZRSJZ_GameData.Instance;
+        const name = playerIndex === 1 ? data?.Player2Pet : data?.CurPet;
+        return name && this.CheckPet(name) && ZRSJZ_PET_CONFIG.has(name) ? name : "";
+    }
+
+    public static SetBattlePet(petName: string, playerIndex: number = 0): boolean {
         if (!ZRSJZ_PET_CONFIG.has(petName) || !this.CheckPet(petName)) return false;
         const data = ZRSJZ_GameData.Instance;
+        if (playerIndex === 1) {
+            data.Player2Pet = petName;
+            ZRSJZ_GameData.SaveData();
+            return true;
+        }
         if (data.CurPet === petName) return true;
         if (this.CheckPet(data.CurPet)) {
             data.PetData[data.CurPet].CurrentSkin = this.GetCurrentSkin(data.CurPet);
@@ -201,22 +218,35 @@ export class ZRSJZ_PetService {
         return true;
     }
 
-    public static GetCurrentSkin(petName: string): string {
+    public static GetCurrentSkin(petName: string, playerIndex: number = 0): string {
         if (!this.CheckPet(petName)) return "";
         const data = ZRSJZ_GameData.Instance;
-        const saved = data.PetData[petName].CurrentSkin
-            || (data.CurPet === petName ? data.CurPetSkin : "");
+        const pet = data.PetData[petName];
         const skins = ZRSJZ_PET_CONFIG.get(petName)?.PetSkins ?? [];
-        if (skins.includes(saved) && this.CheckPetSkin(petName, saved)) return saved;
-        return skins.find(skin => this.CheckPetSkin(petName, skin)) ?? "";
+        const valid = (name: string) => skins.includes(name) && this.CheckPetSkin(petName, name);
+        const fallback = skins.find(skin => this.CheckPetSkin(petName, skin)) ?? "";
+        if (!Array.isArray(pet.PlayerSkins)) {
+            // 一次性迁移两名玩家，之后修改玩家1不会改变玩家2的默认值。
+            const legacy = pet.CurrentSkin || (data.CurPet === petName ? data.CurPetSkin : "");
+            const initial = valid(legacy) ? legacy : fallback;
+            pet.PlayerSkins = [initial, initial];
+            ZRSJZ_GameData.SaveData();
+        }
+        const saved = pet.PlayerSkins[playerIndex === 1 ? 1 : 0];
+        return valid(saved) ? saved : fallback;
     }
 
-    public static UseSkin(petName: string, skinName: string): boolean {
+    public static UseSkin(petName: string, skinName: string, playerIndex: number = 0): boolean {
         if (!ZRSJZ_PET_CONFIG.get(petName)?.PetSkins.includes(skinName)
             || !this.CheckPetSkin(petName, skinName)) return false;
+        this.GetCurrentSkin(petName, playerIndex);
         const data = ZRSJZ_GameData.Instance;
-        data.PetData[petName].CurrentSkin = skinName;
-        if (data.CurPet === petName) data.CurPetSkin = skinName;
+        const index = playerIndex === 1 ? 1 : 0;
+        data.PetData[petName].PlayerSkins[index] = skinName;
+        if (index === 0) {
+            data.PetData[petName].CurrentSkin = skinName;
+            if (data.CurPet === petName) data.CurPetSkin = skinName;
+        }
         ZRSJZ_GameData.SaveData();
         ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_PET_SKIN_CHANGE, petName);
         return true;

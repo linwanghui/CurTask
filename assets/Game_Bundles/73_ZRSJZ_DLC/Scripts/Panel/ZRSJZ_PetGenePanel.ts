@@ -61,8 +61,10 @@ export class ZRSJZ_PetGenePanel extends ZRSJZ_Panel {
     }
 
     private GetFrame(type: ZRSJZ_PetGeneType): SpriteFrame {
-        return { "生命值": this.HPSF, "防御": this.DefenseSF, "攻击": this.AttackSF,
-            "攻速": this.AttackSpeedSF, "技能": this.SkillSF, "背包": this.BackpackSF }[type];
+        return {
+            "生命值": this.HPSF, "防御": this.DefenseSF, "攻击": this.AttackSF,
+            "攻速": this.AttackSpeedSF, "技能": this.SkillSF, "背包": this.BackpackSF
+        }[type];
     }
 
     /** 供MCP在预制体编辑模式预览，不读写玩家存档。 */
@@ -73,7 +75,7 @@ export class ZRSJZ_PetGenePanel extends ZRSJZ_Panel {
         this._selectedLevel = Number(selectedLevel) || Math.min(learned + 1, ZRSJZ_PET_GENE_CONFIG.length);
         this.RenderTree(learned);
         const gene = ZRSJZ_PET_GENE_CONFIG.find(item => item.Level === this._selectedLevel) ?? ZRSJZ_PET_GENE_CONFIG[0];
-        this.SetLabel("效果", ZRSJZ_PetService.GetGeneEffectText("龙宝宝", gene));
+        this.SetLabel("效果", ZRSJZ_PetService.GetGeneEffectText("星核幼龙", gene));
         this.SetLabel("Tip", "学习消耗：" + gene.CostProp);
         this.SetLabel("消耗道具数量", materialCount + "/" + gene.CostCount);
         const count = find("Panel/消耗道具数量", this.node)?.getComponent(Label);

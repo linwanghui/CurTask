@@ -33,10 +33,10 @@ export class ZRSJZ_PetItem extends Component {
         this.Refresh("");
     }
 
-    Refresh(selectedPet: string): void {
+    Refresh(selectedPet: string, playerIndex: number = 0): void {
         const owned = ZRSJZ_PetService.CheckPet(this._petName);
         this.node.getChildByName("Grade").getComponent(Label).string = `lv.${ZRSJZ_PetService.GetPetGrade(this._petName)}`;
-        this.node.getChildByName("BattleState").active = owned && ZRSJZ_GameData.Instance.CurPet === this._petName;
+        this.node.getChildByName("BattleState").active = owned && ZRSJZ_PetService.GetBattlePet(playerIndex) === this._petName;
         this.node.getChildByName("LockState").active = !owned;
         this.Check(selectedPet);
     }

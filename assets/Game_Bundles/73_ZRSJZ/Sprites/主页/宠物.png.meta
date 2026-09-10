@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "f7f75bb2-53c0-4009-876d-f3907be382bf",
+  "uuid": "32a8a59c-2487-4137-be06-3058ce34c8cb",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "f7f75bb2-53c0-4009-876d-f3907be382bf@6c48a",
-      "displayName": "龙宝宝",
+      "uuid": "32a8a59c-2487-4137-be06-3058ce34c8cb@6c48a",
+      "displayName": "宠物",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "f7f75bb2-53c0-4009-876d-f3907be382bf",
+        "imageUuidOrDatabaseUri": "32a8a59c-2487-4137-be06-3058ce34c8cb",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "f7f75bb2-53c0-4009-876d-f3907be382bf@f9941",
-      "displayName": "龙宝宝",
+      "uuid": "32a8a59c-2487-4137-be06-3058ce34c8cb@f9941",
+      "displayName": "宠物",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 275,
-        "height": 211,
-        "rawWidth": 275,
-        "rawHeight": 211,
+        "width": 160,
+        "height": 160,
+        "rawWidth": 160,
+        "rawHeight": 160,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -137.5,
-            -105.5,
+            -80,
+            -80,
             0,
-            137.5,
-            -105.5,
+            80,
+            -80,
             0,
-            -137.5,
-            105.5,
+            -80,
+            80,
             0,
-            137.5,
-            105.5,
+            80,
+            80,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            211,
-            275,
-            211,
+            160,
+            160,
+            160,
             0,
             0,
-            275,
+            160,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -137.5,
-            -105.5,
+            -80,
+            -80,
             0
           ],
           "maxPos": [
-            137.5,
-            105.5,
+            80,
+            80,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "f7f75bb2-53c0-4009-876d-f3907be382bf@6c48a",
+        "imageUuidOrDatabaseUri": "32a8a59c-2487-4137-be06-3058ce34c8cb@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "f7f75bb2-53c0-4009-876d-f3907be382bf@6c48a"
+    "redirect": "32a8a59c-2487-4137-be06-3058ce34c8cb@6c48a"
   }
 }

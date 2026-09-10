@@ -748,6 +748,7 @@ export enum ZRSJZ_INVENTORY {
     武器_背包 = "武器_背包",
     武器_刀 = "武器_刀",
     背包 = "背包",
+    宠物背包 = "宠物背包",
     物资 = "物资",
 }
 
@@ -765,6 +766,7 @@ export const ZRSJZ_INVENTORY_CONFIG: Map<ZRSJZ_INVENTORY, { Row: number, Col: nu
     [ZRSJZ_INVENTORY.武器_防弹衣, { Row: 1, Col: 1, IsDilatation: false }],
     [ZRSJZ_INVENTORY.武器_背包, { Row: 1, Col: 1, IsDilatation: false }],
     [ZRSJZ_INVENTORY.武器_刀, { Row: 1, Col: 1, IsDilatation: false }],
+    [ZRSJZ_INVENTORY.宠物背包, { Row: 2, Col: 2, IsDilatation: false }],
     [ZRSJZ_INVENTORY.背包, { Row: 2, Col: 4, IsDilatation: false }],
     [ZRSJZ_INVENTORY.物资, { Row: 4, Col: 4, IsDilatation: true }],
 ])
@@ -2187,6 +2189,7 @@ export const ZRSJZ_PET_GENE_CONFIG: readonly Readonly<ZRSJZ_PetGeneConfig>[] = [
 export interface ZRSJZ_PetSkinConfig {
     PetSkinSpineName?: string;// SkeletonDatas中对应资源的名称；未配置时使用宠物名称
     PetSkinSpineSkin?: string;// Spine内部皮肤名，必须与导出的skins名称一致
+    PetSkinSwarmSkin?: string;//蜂群部署召唤物皮肤名；未填则使用PetSkinSpineSkin
     PetSkinName: string;//宠物皮肤名称
     PetSkinQuality: string;//宠物品质
     // 当前穿戴时计入宠物总属性。支持攻击/生命值/防御/背包固定值、攻速百分比；多项用逗号或换行分隔。
@@ -2212,17 +2215,17 @@ export interface ZRSJZ_PetConfig {
 
 
 export const ZRSJZ_PET_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkinConfig>> = new Map([
-    ["龙宝宝", {
-        PetSkinName: "龙宝宝",
-        PetSkinSpineName: "龙宝宝",
+    ["星核幼龙", {
+        PetSkinName: "星核幼龙",
+        PetSkinSpineName: "星核幼龙",
         PetSkinSpineSkin: "pifu",
         PetSkinQuality: "普通",
         PetSkinAddition: "",
         PetSkinUnlock: "",
     }],
-    ["星核幼龙", {
-        PetSkinName: "星核幼龙",
-        PetSkinSpineName: "龙宝宝",
+    ["深渊魔龙", {
+        PetSkinName: "深渊魔龙",
+        PetSkinSpineName: "星核幼龙",
         PetSkinSpineSkin: "pifu_shenyuan",
         PetSkinQuality: "传说",
         PetSkinAddition: "攻击+10",
@@ -2231,15 +2234,17 @@ export const ZRSJZ_PET_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkinCo
     ["小蜜蜂", {
         PetSkinName: "小蜜蜂",
         PetSkinSpineName: "小蜜蜂",
-        PetSkinSpineSkin: "default",
+        PetSkinSpineSkin: "pifu",
         PetSkinQuality: "普通",
         PetSkinAddition: "",
         PetSkinUnlock: "",
     }],
-    ["蜜蜂侠客", {
-        PetSkinName: "蜜蜂侠客",
+    ["樱羽灵蜂", {
+        // 保留旧存档键，显示名称使用新名称，避免已购买皮肤丢失。
+        PetSkinName: "樱羽灵蜂",
         PetSkinSpineName: "小蜜蜂",
-        PetSkinSpineSkin: "default",//当前蜜蜂资源仅有default，新增皮肤后在此替换
+        PetSkinSpineSkin: "pifu_yinghua",
+        PetSkinSwarmSkin: "pifu_yinghua",
         PetSkinQuality: "史诗",
         PetSkinAddition: "生命值+50",
         PetSkinUnlock: "金币x1000000",
@@ -2247,9 +2252,9 @@ export const ZRSJZ_PET_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkinCo
 ])
 
 export const ZRSJZ_PET_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetConfig>> = new Map([
-    ["龙宝宝", {
-        PetName: "龙宝宝",
-        PetSkins: ["龙宝宝", "星核幼龙"],
+    ["星核幼龙", {
+        PetName: "星核幼龙",
+        PetSkins: ["星核幼龙", "深渊魔龙"],
         PetSkills: ["虚能魔弹", "龙之鼓舞", "星陨", "星爆"],
         // 攻击/攻速成长优先。键是基因等级，攻速0.08表示增加8%。
         PetGeneValues: {
@@ -2260,12 +2265,12 @@ export const ZRSJZ_PET_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetConfig>> = 
         PetHarmony: 10,
         PetHP: 100,
         PetArmor: 5,
-        PetBackpack: 1,
+        PetBackpack: 2,
         PetDesc: "擅长攻击与攻速成长，为玩家提供攻击加成。",
     }],
     ["小蜜蜂", {
         PetName: "小蜜蜂",
-        PetSkins: ["小蜜蜂", "蜜蜂侠客"],
+        PetSkins: ["小蜜蜂", "樱羽灵蜂"],
         PetSkills: ["纳米修复", "蜂巢装甲", "晶能屏障", "蜂群部署"],
         // 生存/携行成长优先，第10、20级每次增加2格背包。
         PetGeneValues: {
@@ -2276,7 +2281,7 @@ export const ZRSJZ_PET_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetConfig>> = 
         PetHarmony: 8,
         PetHP: 200,
         PetArmor: 5,
-        PetBackpack: 1,
+        PetBackpack: 2,
         PetDesc: "擅长生命、防御与背包成长，为玩家提供生存加成。",
     }],
 ])
@@ -2294,57 +2299,150 @@ export interface ZRSJZ_PetSkillConfig {
     GeneLevel?: number;
     Description: string;
     Animation?: string;
+    ReleaseEvent?: string;//Spine释放事件；未填时使用Animation（gongji/jineng）
+}
+
+/** 具体战斗数值，与UI公共技能信息分开维护。 */
+export interface ZRSJZ_PetSkillEffectConfig {
+    ProjectileBone?: string;//发射点骨骼名，使用动画当前姿态的位置
+    ProjectileLifetime?: number;
+    ImpactDuration?: number;
+    ImpactEvent?: string;
+    ImpactRadius?: number;//星陨单次落地伤害半径
+    MeteorLifetime?: number;//单颗星陨从下落到消失的时间
+    EffectDuration?: number;
     Cooldown?: number;//秒
     DamageMultiplier?: number;//每次伤害相对宠物攻击力的倍率
     HitCount?: number;
     Range?: number;//游戏单位
     Duration?: number;//秒
     HealPlayerMaxHPRate?: number;//治疗玩家最大生命的比例
-    ShieldPlayerMaxHPRate?: number;//护盾为玩家最大生命的比例
+    ShieldCharges?: number;//每片抵挡一次攻击，屏障数量
     PlayerBonus?: Readonly<ZRSJZ_PetPlayerBonus>;
+    TickInterval?: number;//持续技能的每次生效间隔（秒）
+    PullSpeed?: number;//黑洞每秒拉扯距离
+    StunDuration?: number;//蜂群麻痹时间（秒）
+    ProjectileSpeed?: number;//魔弹每秒飞行距离
 }
 
+/** 宠物通用战斗参数；具体预制体按宠物配置名在Prefabs/Unit/Pet下加载。 */
+export const ZRSJZ_PET_BATTLE_CONFIG = {
+    FollowDistance: 150, FollowSpeed: 750, TeleportDistance: 1600,
+    ReviveSeconds: -1, // -1：宠物死亡后本局不再复活；非负数：等待对应秒数复活
+    SearchInterval: 0.2,
+    TrailSampleDistance: 24, FollowStartDistance: 45, FollowStopDistance: 18,
+    FollowResponse: 8, HoverHeight: 7, HoverFrequency: 2.4,
+};
+
+export const ZRSJZ_PET_HEAL_CONFIG = {
+    Duration: 0.8, TickInterval: 0.3,
+    FloatTextHeight: 420,//回血数字本地起始高度
+};
+
+/** 蜂群召唤物的独立配置；不与宠物技能的解锁、冷却和动画参数混用。 */
+export const ZRSJZ_PET_SWARM_CONFIG = {
+    Count: 3,//同时召唤数量
+    MoveSpeed: 850,//飞行速度
+    Lifetime: 10,//未附身时最长存在秒数
+    AttachDistance: 35,//附身距离
+    Duration: 3,//附身持续秒数
+    TickInterval: 1,//附身生效间隔
+    HitCount: 3,//每次附身最多生效次数
+    DamageMultiplier: 1.2,//对敌伤害相对宠物攻击力倍率
+    HealPlayerMaxHPRate: 0.2,//每次恢复玩家最大生命比例
+    StunDuration: 3,//对敌麻痹秒数
+};
+
 // 每只宠物固定四个槽位：普攻、玩家属性被动、主动、视频主动。
-// 普攻/主动的动画及效果参数供宠物战斗执行器读取；被动由Player属性计算读取。
+// 公共技能表只放名称、分类、解锁、描述和宠物施法动画；专属数值见下方独立配置。
 export const ZRSJZ_PET_SKILL_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkillConfig>> = new Map([
     ["虚能魔弹", {
-        Name: "虚能魔弹", Kind: "普通攻击", Unlock: "购买", Animation: "gongji",
-        Cooldown: 1.2, DamageMultiplier: 1, HitCount: 1, Range: 400,
+        Name: "虚能魔弹",
+        Kind: "普通攻击",
+        Unlock: "购买",
+        Animation: "gongji",
         Description: "发射魔弹攻击敌人，造成100%宠物攻击力伤害，基础间隔1.2秒。"
     }],
     ["龙之鼓舞", {
-        Name: "龙之鼓舞", Kind: "被动", Unlock: "基因", GeneLevel: 5,
-        PlayerBonus: { Attack: 10, MaxHP: 0, DamageReduction: 0 },
+        Name: "龙之鼓舞",
+        Kind: "被动",
+        Unlock: "基因",
+        GeneLevel: 5,
         Description: "宠物出战时，玩家枪械和近战每次伤害增加10点。"
     }],
     ["星陨", {
-        Name: "星陨", Kind: "主动", Unlock: "基因", GeneLevel: 15, Animation: "jineng",
-        Cooldown: 12, DamageMultiplier: 1.5, HitCount: 1, Range: 300, Duration: 3,
-        Description: "召唤虚空中的陨石，持续对范围内敌人造成150%宠物攻击力伤害，冷却12秒。"
+        Name: "星陨",
+        Kind: "主动",
+        Unlock: "基因",
+        GeneLevel: 15,
+        Animation: "jineng",
+        Description: "在5秒内随机落下10颗星陨，每颗落地对附近敌人造成150%宠物攻击力伤害，冷却12秒。"
     }],
     ["星爆", {
-        Name: "星爆", Kind: "主动", Unlock: "视频", Animation: "jineng",
-        Cooldown: 25, DamageMultiplier: 2.5, HitCount: 3, Range: 450, Duration: 2,
-        Description: "召唤黑洞，持续拉扯敌人，最后造成250%宠物攻击力爆炸伤害，冷却25秒。"
+        Name: "星爆",
+        Kind: "主动",
+        Unlock: "视频",
+        Animation: "jineng",
+        Description: "召唤黑洞拉扯敌人2秒，最后造成3次250%宠物攻击力爆炸伤害，冷却25秒。"
     }],
     ["纳米修复", {
-        Name: "纳米修复", Kind: "普通攻击", Unlock: "购买", Animation: "gongji",
-        Cooldown: 0.8, DamageMultiplier: 2, HitCount: 1, Range: 350,
-        Description: "发动纳米修复，给玩家和自己恢复80%宠物攻击力的血量，基础间隔2秒。"
+        Name: "纳米修复",
+        Kind: "普通攻击",
+        Unlock: "购买",
+        Animation: "gongji",
+        Description: "发动纳米修复，给玩家分多次缓慢恢复共100%宠物攻击力的血量，并为自己恢复等量血量，基础间隔3秒。"
     }],
     ["蜂巢装甲", {
-        Name: "蜂巢装甲", Kind: "被动", Unlock: "基因", GeneLevel: 5,
-        PlayerBonus: { Attack: 0, MaxHP: 50, DamageReduction: 0.05 },
+        Name: "蜂巢装甲",
+        Kind: "被动",
+        Unlock: "基因",
+        GeneLevel: 5,
         Description: "宠物出战时，玩家最大生命增加50点，额外减伤5%。"
     }],
     ["晶能屏障", {
-        Name: "晶能屏障", Kind: "主动", Unlock: "基因", GeneLevel: 15, Animation: "jineng",
-        Cooldown: 30, Duration: 6, ShieldPlayerMaxHPRate: 0.2,
-        Description: "为玩家提供两片能抵挡2次攻击的护盾，持续6秒，冷却30秒。"
+        Name: "晶能屏障",
+        Kind: "主动",
+        Unlock: "基因",
+        GeneLevel: 15,
+        Animation: "jineng",
+        Description: "在玩家左右生成两片晶能屏障，每片抵挡一次攻击，最多持续20秒，冷却30秒。"
     }],
     ["蜂群部署", {
-        Name: "蜂群部署", Kind: "主动", Unlock: "视频", Animation: "jineng",
-        Cooldown: 25, DamageMultiplier: 1.2, HitCount: 3, Range: 400, HealPlayerMaxHPRate: 0.2,
-        Description: "释放蜂群，蜂群附身到玩家身上可以给玩家每秒恢复100%宠物攻击力血量，附身到敌人身上会麻痹敌人，冷却25秒。"
+        Name: "蜂群部署",
+        Kind: "主动",
+        Unlock: "视频",
+        Animation: "jineng",
+        Description: "召唤3只蜂群，飞向范围内不同目标并附身3秒。附身玩家时每秒施加一次缓慢治疗，每次共恢复最大生命20%的血量；附身敌人时造成3次120%宠物攻击力伤害并麻痹3秒，冷却25秒。"
     }],
 ]);
+
+
+/** 虚能魔弹：飞行、命中和爆炸表现。 */
+export const ZRSJZ_PET_BOLT_CONFIG: Readonly<ZRSJZ_PetSkillEffectConfig> = { ProjectileBone: "球", Cooldown: 1.2, DamageMultiplier: 1, HitCount: 1, Range: 800, ProjectileSpeed: 900, ProjectileLifetime: 2, ImpactDuration: 0.25 };
+/** 龙之鼓舞：玩家属性加成。 */
+export const ZRSJZ_PET_DRAGON_PASSIVE_CONFIG: Readonly<ZRSJZ_PetSkillEffectConfig> = { PlayerBonus: { Attack: 10, MaxHP: 0, DamageReduction: 0 } };
+/** 星陨：周期与Spine落地事件。 */
+export const ZRSJZ_PET_METEOR_CONFIG: Readonly<ZRSJZ_PetSkillEffectConfig> = { Cooldown: 12, DamageMultiplier: 1.5, HitCount: 1, Range: 800, Duration: 5, TickInterval: 0.5, ImpactEvent: "hit", ImpactRadius: 400, MeteorLifetime: 1.2 };
+/** 星爆：拉扯、爆炸和特效保留时间。 */
+export const ZRSJZ_PET_NOVA_CONFIG: Readonly<ZRSJZ_PetSkillEffectConfig> = { Cooldown: 25, DamageMultiplier: 2.5, HitCount: 3, Range: 800, Duration: 2, PullSpeed: 220, EffectDuration: 3.6 };
+/** 纳米修复：治疗量与范围。 */
+export const ZRSJZ_PET_REPAIR_CONFIG: Readonly<ZRSJZ_PetSkillEffectConfig> = { Cooldown: 3, DamageMultiplier: 1, HitCount: 1, Range: 350 };
+/** 蜂巢装甲：玩家属性加成。 */
+export const ZRSJZ_PET_BEE_PASSIVE_CONFIG: Readonly<ZRSJZ_PetSkillEffectConfig> = { PlayerBonus: { Attack: 0, MaxHP: 50, DamageReduction: 0.05 } };
+/** 晶能屏障：范围、持续时间和抵挡次数。 */
+export const ZRSJZ_PET_SHIELD_CONFIG: Readonly<ZRSJZ_PetSkillEffectConfig> = { Cooldown: 30, Duration: 20, Range: 2000, ShieldCharges: 2 };
+/** 蜂群部署：施法条件；召唤物参数在ZRSJZ_PET_SWARM_CONFIG。 */
+export const ZRSJZ_PET_DEPLOY_CONFIG: Readonly<ZRSJZ_PetSkillEffectConfig> = { Cooldown: 25, Range: 800 };
+
+export const ZRSJZ_PET_SKILL_EFFECT_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkillEffectConfig>> = new Map([
+    ["虚能魔弹", ZRSJZ_PET_BOLT_CONFIG],
+    ["龙之鼓舞", ZRSJZ_PET_DRAGON_PASSIVE_CONFIG],
+    ["星陨", ZRSJZ_PET_METEOR_CONFIG],
+    ["星爆", ZRSJZ_PET_NOVA_CONFIG],
+    ["纳米修复", ZRSJZ_PET_REPAIR_CONFIG],
+    ["蜂巢装甲", ZRSJZ_PET_BEE_PASSIVE_CONFIG],
+    ["晶能屏障", ZRSJZ_PET_SHIELD_CONFIG],
+    ["蜂群部署", ZRSJZ_PET_DEPLOY_CONFIG]
+]);
+
+export type ZRSJZ_PetBattleSkillConfig = ZRSJZ_PetSkillConfig & ZRSJZ_PetSkillEffectConfig;

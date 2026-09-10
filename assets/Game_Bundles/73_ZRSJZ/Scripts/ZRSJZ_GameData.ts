@@ -175,7 +175,8 @@ export class ZRSJZ_GameData {
     public MailID: number = 0;
     //#region 版本3之后新增
     /** Level为已学习的基因数量，新宠物从0级开始；旧等级存档继续有效。 */
-    public PetData: { [PetName: string]: { Skins: string[], Level: number, CurrentSkin?: string, VideoSkillUnlocked?: boolean } } = {};
-    public CurPet: string = "";
+    public PetData: { [PetName: string]: { Skins: string[], Level: number, CurrentSkin?: string, PlayerSkins?: string[],  VideoSkillUnlocked?: boolean } } = {};
+    public CurPet: string = "";//玩家1出战宠物，兼容旧存档
+    public Player2Pet: string = "";//玩家2独立选择；等级、基因仍共用PetData
     public CurPetSkin: string = "";
 }

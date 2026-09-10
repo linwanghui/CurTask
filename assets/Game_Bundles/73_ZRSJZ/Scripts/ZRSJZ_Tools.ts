@@ -1,6 +1,7 @@
 import { Prefab, SpriteFrame, UITransform, Node, AudioClip, Texture2D } from "cc";
 import { BundleManager } from "db://assets/Scripts/Framework/Managers/BundleManager";
 import { ZRSJZ_INVENTORY } from "./ZRSJZ_Constant";
+import { ZRSJZ_UIManager } from "./Manager/ZRSJZ_UIManager";
 
 export class ZRSJZ_Tools {
 
@@ -31,6 +32,9 @@ export class ZRSJZ_Tools {
     }
 
     public static LoadSpriteByBundle(bundle: string, path: string): Promise<SpriteFrame> {
+        if (bundle === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) {
+            return Promise.reject(new Error('DLC未就绪，不能加载DLC图片：' + path));
+        }
         return new Promise((resolve, reject) => {
             BundleManager.GetBundle(bundle).load(path + "/spriteFrame", SpriteFrame, (err: any, sprites: SpriteFrame) => {
                 if (err) {
@@ -44,6 +48,9 @@ export class ZRSJZ_Tools {
     }
 
     public static LoadAudioClips(bundlePath: string, resPath: string): Promise<AudioClip[]> {
+        if (bundlePath === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) {
+            return Promise.reject(new Error('DLC未就绪，不能加载DLC音频：' + resPath));
+        }
         return new Promise((resolve, reject) => {
             BundleManager.GetBundle(bundlePath).loadDir(resPath, AudioClip, (err: any, sprites: AudioClip[]) => {
                 if (err) {

@@ -1,11 +1,11 @@
 {
 "skeleton": {
-	"hash": "BNGRyTakcrl+4sGe9FH6K0cMOsw",
+	"hash": "CC4LOsPVYk2qX4obiKRAxHMy+Pc",
 	"spine": "3.8.75",
-	"x": -137.87,
-	"y": -3.68,
-	"width": 275.05,
-	"height": 163.67,
+	"x": -148.91,
+	"y": -4.96,
+	"width": 288.05,
+	"height": 169.57,
 	"images": "./images/",
 	"audio": "D:/2026/2d/三角洲（卡通真人版）/动画/宠物/小蜜蜂/大招/小机械蜂"
 },
@@ -30,6 +30,15 @@
 	{
 		"name": "default",
 		"attachments": {
+			"表情": {
+				"表情-治疗": { "x": 0.36, "y": 3.93, "rotation": -86.19, "width": 68, "height": 44 },
+				"表情-麻痹": { "x": 1.99, "y": 2.03, "rotation": -86.19, "width": 64, "height": 45 }
+			}
+		}
+	},
+	{
+		"name": "pifu",
+		"attachments": {
 			"翅膀-右": {
 				"翅膀-右": { "x": 49.83, "y": -2.38, "rotation": -146.38, "width": 92, "height": 123 },
 				"翅膀-右1": { "x": 47.11, "y": -1.26, "rotation": -146.38, "width": 98, "height": 145 }
@@ -44,13 +53,36 @@
 				"触角-右": { "x": 21.96, "y": 0.99, "rotation": -120.26, "width": 38, "height": 53 }
 			},
 			"表情": {
-				"表情": { "x": 1.22, "y": 5.99, "rotation": -86.19, "width": 72, "height": 40 },
-				"表情-治疗": { "x": 0.36, "y": 3.93, "rotation": -86.19, "width": 68, "height": 44 },
-				"表情-麻痹": { "x": 1.99, "y": 2.03, "rotation": -86.19, "width": 64, "height": 45 }
+				"表情": { "x": 1.22, "y": 5.99, "rotation": -86.19, "width": 72, "height": 40 }
 			},
 			"翅膀-左": {
 				"翅膀-左": { "x": 41.87, "y": -1.09, "rotation": -14.51, "width": 90, "height": 86 },
 				"翅膀-左1": { "x": 44.33, "y": -0.98, "rotation": -14.51, "width": 94, "height": 108 }
+			}
+		}
+	},
+	{
+		"name": "pifu_yinghua",
+		"attachments": {
+			"翅膀-右": {
+				"翅膀-右": { "name": "樱花_翅膀-右", "x": 49.83, "y": -2.38, "rotation": -146.38, "width": 114, "height": 125 },
+				"翅膀-右1": { "name": "樱花_翅膀-右1", "x": 47.11, "y": -1.26, "rotation": -146.38, "width": 121, "height": 149 }
+			},
+			"触角-左": {
+				"触角-左": { "name": "樱花_触角-左", "x": 19.36, "y": -1.55, "rotation": -108.63, "width": 36, "height": 61 }
+			},
+			"身体": {
+				"身体": { "name": "樱花_身体", "x": 29.8, "y": 7.51, "rotation": -86.19, "width": 146, "height": 126 }
+			},
+			"触角-右": {
+				"触角-右": { "name": "樱花_触角-右", "x": 21.96, "y": 0.99, "rotation": -120.26, "width": 42, "height": 62 }
+			},
+			"表情": {
+				"表情": { "name": "樱花_表情", "x": 1.22, "y": 5.99, "rotation": -86.19, "width": 70, "height": 38 }
+			},
+			"翅膀-左": {
+				"翅膀-左": { "name": "樱花_翅膀-左", "x": 41.87, "y": -1.09, "rotation": -14.51, "width": 94, "height": 85 },
+				"翅膀-左1": { "name": "樱花_翅膀-左1", "x": 44.33, "y": -0.98, "rotation": -14.51, "width": 101, "height": 108 }
 			}
 		}
 	}
@@ -101,6 +133,16 @@
 	},
 	"mabi": {
 		"slots": {
+			"翅膀-左": {
+				"attachment": [
+					{ "name": "翅膀-左1" }
+				]
+			},
+			"翅膀-右": {
+				"attachment": [
+					{ "name": "翅膀-右1" }
+				]
+			},
 			"表情": {
 				"attachment": [
 					{ "name": "表情-麻痹" }
@@ -151,14 +193,14 @@
 	},
 	"yidong": {
 		"slots": {
-			"翅膀-右": {
-				"attachment": [
-					{ "name": "翅膀-右1" }
-				]
-			},
 			"翅膀-左": {
 				"attachment": [
 					{ "name": "翅膀-左1" }
+				]
+			},
+			"翅膀-右": {
+				"attachment": [
+					{ "name": "翅膀-右1" }
 				]
 			}
 		},
@@ -205,6 +247,16 @@
 	},
 	"zhiliao": {
 		"slots": {
+			"翅膀-左": {
+				"attachment": [
+					{ "name": "翅膀-左1" }
+				]
+			},
+			"翅膀-右": {
+				"attachment": [
+					{ "name": "翅膀-右1" }
+				]
+			},
 			"表情": {
 				"attachment": [
 					{ "name": "表情-治疗" }

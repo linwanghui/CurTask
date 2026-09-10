@@ -59,6 +59,32 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
     private _state: ZRSJZ_ENEMY_STATE = ZRSJZ_ENEMY_STATE.PATROL;
     private _health: number = 0;
+    private _petStunRemaining = 0;
+    private readonly _petStunSources = new Map<object, number>();
+    public get IsPetStunned(): boolean { return this._petStunRemaining > 0 || this._petStunSources.size > 0; }
+
+    public ApplyPetStun(duration: number, source?: object): void {
+        if (this.IsDead || duration <= 0) return;
+        if (source) this._petStunSources.set(source, Math.max(this._petStunSources.get(source) ?? 0, duration));
+        else this._petStunRemaining = Math.max(this._petStunRemaining, duration);
+        this.StopMoving();
+        if (this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = true;
+    }
+
+    public ApplyPetPull(center: Vec3, distance: number): void {
+        if (this.IsDead || distance <= 0 || !this.HasDirectPath(center)) return;
+        const pos = this.node.worldPosition.clone();
+        const length = Vec3.distance(pos, center);
+        if (length > 1) {
+            Vec3.lerp(pos, pos, center, Math.min(1, distance / length));
+            this.node.setWorldPosition(pos);
+            this.ClearNavigation();
+        }
+    }
+    public ClearPetStun(source: object): void {
+        this._petStunSources.delete(source);
+        if (!this.IsPetStunned && this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = false;
+    }
     private _patrolCenter: Vec3 = new Vec3();
     private _patrolTarget: Vec3 = new Vec3();
     private _worldPosition: Vec3 = new Vec3();
@@ -134,6 +160,16 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             return;
         }
 
+        if (this.IsPetStunned) {
+            this._petStunRemaining = Math.max(0, this._petStunRemaining - dt);
+            for (const [source, remaining] of this._petStunSources) {
+                if (remaining <= dt) this._petStunSources.delete(source);
+                else this._petStunSources.set(source, remaining - dt);
+            }
+            this.StopMoving();
+            if (this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = this.IsPetStunned;
+            return;
+        }
         this._attackCooldown = Math.max(0, this._attackCooldown - dt);
         this._pathRepathRemaining = Math.max(0, this._pathRepathRemaining - dt);
         this.RefreshTarget(dt);
@@ -174,6 +210,9 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected onDisable(): void {
+        this._petStunRemaining = 0;
+        this._petStunSources.clear();
+        if (this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = false;
         this.ClearNavigation();
         this.StopMoving();
         if (this.EnemySkeleton) {
@@ -370,6 +409,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
     /** 子类可拦截 Spine 动画事件；默认将事件交给普通攻击处理。 */
     protected OnAnimationEvent(eventName: string): void {
+        if (this.IsDead || this.IsPetStunned || ZRSJZ_Game.Instance?.GamePaused || ZRSJZ_Game.Instance?.IsGameFinished) return;
         this.OnAttack(eventName);
     }
 

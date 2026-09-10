@@ -1,3 +1,4 @@
+import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
 import { _decorator, director, Node, Vec3 } from 'cc';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
@@ -82,8 +83,10 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
     }
 
     Knife(range: number) {
-        if (!this.Target || this.IsDead) return;
-        if (Vec3.distance(this.node.worldPosition, this.Target.worldPosition) <= range || Vec3.distance(this.node.worldPosition, this.Target?.getComponent(ZRSJZ_Player)?.Other.worldPosition) <= range) {
+        if (this.IsDead) return;
+        ZRSJZ_FriendlyDamageService.DamagePetsInRange(this.node.worldPosition, range, this.AttackDamage);
+        if (!this.Target) return;
+        if (Vec3.distance(this.node.worldPosition, this.Target.worldPosition) <= range || (this.Target.getComponent(ZRSJZ_Player)?.Other && Vec3.distance(this.node.worldPosition, this.Target.getComponent(ZRSJZ_Player).Other.worldPosition) <= range)) {
             this.Target.getComponent(ZRSJZ_Player)?.BeHit(this.AttackDamage);
         }
     }

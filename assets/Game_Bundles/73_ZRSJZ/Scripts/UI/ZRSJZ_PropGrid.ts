@@ -255,6 +255,7 @@ export class ZRSJZ_PropGrid extends Component {
     private SupportsAutoRotation(inventory: ZRSJZ_INVENTORY): boolean {
         return String(inventory).startsWith("仓库_")
             || inventory === ZRSJZ_INVENTORY.保险箱
+            || inventory === ZRSJZ_INVENTORY.宠物背包
             || inventory === ZRSJZ_INVENTORY.背包
             || inventory === ZRSJZ_INVENTORY.物资;
     }
@@ -564,7 +565,7 @@ export class ZRSJZ_PropGrid extends Component {
             ZRSJZ_INVENTORY.仓库_物品,
         ].includes(this._inventory);
         if (
-            (this._inventory !== ZRSJZ_INVENTORY.背包 && !isWarehouseInventory)
+            (this._inventory !== ZRSJZ_INVENTORY.背包 && this._inventory !== ZRSJZ_INVENTORY.宠物背包 && !isWarehouseInventory)
             || !this.PropData
         ) return false;
         return [

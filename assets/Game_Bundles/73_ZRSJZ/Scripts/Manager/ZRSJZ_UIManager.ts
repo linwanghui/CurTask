@@ -7,6 +7,7 @@ import { ZRSJZ_INVENTORY, ZRSJZ_MAIL_TYPE, ZRSJZ_MailPropAward, ZRSJZ_PANEL, ZRS
 import { ZRSJZ_InventoryAmmo } from '../UI/ZRSJZ_InventoryAmmo';
 import { ZRSJZ_PoolManager } from './ZRSJZ_PoolManager';
 import { ZRSJZ_CurrencyEffect } from '../Effect/ZRSJZ_CurrencyEffect';
+import { ZRSJZ_InventoryPetBackpack } from '../UI/ZRSJZ_InventoryPetBackpack';
 import { ZRSJZ_InventoryBackpack } from '../UI/ZRSJZ_InventoryBackpack';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
@@ -349,6 +350,9 @@ export class ZRSJZ_UIManager extends Component {
                 if (ZRSJZ_INVENTORY[key] === ZRSJZ_INVENTORY.弹药) {
                     inventory.getComponent(ZRSJZ_Inventory)?.destroy();
                     inventoryComponent = inventory.addComponent(ZRSJZ_InventoryAmmo);
+                } else if (ZRSJZ_INVENTORY[key] === ZRSJZ_INVENTORY.宠物背包) {
+                    inventory.getComponent(ZRSJZ_Inventory).destroy();
+                    inventoryComponent = inventory.addComponent(ZRSJZ_InventoryPetBackpack);
                 } else if (ZRSJZ_INVENTORY[key] === ZRSJZ_INVENTORY.背包) {
                     inventory.getComponent(ZRSJZ_Inventory)?.destroy();
                     inventoryComponent = inventory.addComponent(ZRSJZ_InventoryBackpack);
@@ -411,6 +415,7 @@ export class ZRSJZ_UIManager extends Component {
     //展示面板
     public ShowPanel(panel: string, ...args: any[]) {
         if (!this.IsAvailable()) return;
+        if (panel.split('/')[0] === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) return;
         const panelName = panel.split('/').pop() || panel;
 
         // 结算界面拥有最高优先级：显示前立即关闭其余弹窗，并终止未完成的异步弹窗请求。
@@ -467,6 +472,7 @@ export class ZRSJZ_UIManager extends Component {
     /** 在指定玩家的 UICanvas/.../PlayerX/Panel 下显示一份独立弹窗。 */
     public ShowPlayerPanel(panel: string, playerIndex: number, ...args: any[]): void {
         if (!this.IsAvailable()) return;
+        if (panel.split('/')[0] === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) return;
         const normalizedIndex = playerIndex === 1 ? 1 : 0;
         // 只有局内双人模式才使用玩家独立弹窗。仓库等局外界面即使已经
         // 选择了 2p，也仍然使用全局 Panel，否则打开和关闭会落入两套缓存。
@@ -1330,7 +1336,7 @@ export class ZRSJZ_UIManager extends Component {
         if (sourceInventory === ZRSJZ_INVENTORY.物资) {
             targetInventory = ZRSJZ_INVENTORY.背包;
             organizeBeforePlacement = true;
-        } else if (sourceInventory === ZRSJZ_INVENTORY.背包 || isWarehouseSource) {
+        } else if (sourceInventory === ZRSJZ_INVENTORY.背包 || sourceInventory === ZRSJZ_INVENTORY.宠物背包 || isWarehouseSource) {
             switch (propData.PropType) {
                 case "枪":
                     targetInventory = ZRSJZ_INVENTORY.武器_枪;
@@ -1430,7 +1436,8 @@ export class ZRSJZ_UIManager extends Component {
             }
 
             if (
-                propData.CurInventory !== ZRSJZ_INVENTORY.背包
+                propData.CurInventory !== ZRSJZ_INVENTORY.宠物背包
+                && propData.CurInventory !== ZRSJZ_INVENTORY.背包
                 && propData.CurInventory !== ZRSJZ_INVENTORY.保险箱
             ) {
                 continue;
@@ -1438,7 +1445,7 @@ export class ZRSJZ_UIManager extends Component {
 
             affectedPropIDs.add(propID);
             if (
-                propData.CurInventory === ZRSJZ_INVENTORY.背包
+                (propData.CurInventory === ZRSJZ_INVENTORY.背包 || propData.CurInventory === ZRSJZ_INVENTORY.宠物背包)
                 && !isEvacuationSuccess
             ) {
                 delete ZRSJZ_GameData.Instance.PropData[propID];
@@ -1568,6 +1575,7 @@ export class ZRSJZ_UIManager extends Component {
         }
 
         const battleInventories = new Set<ZRSJZ_INVENTORY>([
+            ZRSJZ_INVENTORY.宠物背包,
             ZRSJZ_INVENTORY.背包,
             ZRSJZ_INVENTORY.保险箱,
             ZRSJZ_INVENTORY.物资,

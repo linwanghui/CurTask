@@ -19,6 +19,7 @@ import { ZRSJZ_Door } from './Unit/ZRSJZ_Door';
 import { ZRSJZ_Mailbox } from './Unit/ZRSJZ_Mailbox';
 import { ZRSJZ_GradeService } from './Service/ZRSJZ_GradeService';
 import { ZRSJZ_BoosterShotService } from './Service/ZRSJZ_BoosterShotService';
+import { ZRSJZ_PetService } from './Service/ZRSJZ_PetService';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ProjectEvent, ProjectEventManager } from 'db://assets/Scripts/Framework/Managers/ProjectEventManager';
 const { ccclass, property } = _decorator;
@@ -719,6 +720,10 @@ export class ZRSJZ_Game extends Component {
         }
 
         const bundle = mapConfig.MapName === "新手村" || mapConfig.MapName === "城镇" ? "73_ZRSJZ" : "73_ZRSJZ_DLC";
+        if (bundle === "73_ZRSJZ_DLC" && !ZRSJZ_UIManager.ZRSJZ_DLC) {
+            console.warn('[ZRSJZ_Game] DLC未就绪，不能加载DLC地图');
+            return;
+        }
 
         BundleManager.GetBundle(bundle).load("Prefabs/Map/" + mapConfig.MapName, Prefab, (err: any, prefab: Prefab) => {
             if (!this.IsCurrentBattle()) return;
@@ -888,7 +893,13 @@ export class ZRSJZ_Game extends Component {
             this._player = this.CurPlayer.node;
             this.SetupBattleCameras();
             this.RefreshMiniMap();
+            for (const player of this.Players) {
+                const petName = ZRSJZ_PetService.GetBattlePet(player.PlayerIndex);
+                const slots = ZRSJZ_UIManager.ZRSJZ_DLC && !this.IsTutorial && petName ? ZRSJZ_PetService.GetPetStats(petName, player.PlayerIndex).Backpack : 0;
+                ZRSJZ_InventoryService.SetPetBackpackSlots(player.PlayerIndex, slots);
+            }
             this.LoadUI();
+            void this.LoadBattlePets();
             ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
             ZRSJZ_AudioManager.Instance.PlayMusic("战斗BGM");
         }).catch(error => console.error("[ZRSJZ_Game] 玩家预制体加载失败", error))
@@ -912,6 +923,30 @@ export class ZRSJZ_Game extends Component {
                 .repeatForever()
                 .start();
             checked.active = false;
+        }
+    }
+
+    /** 预制体挂具体子类；新增宠物无需在主战斗脚本增加宠物名称分支。 */
+    private async LoadBattlePets(): Promise<void> {
+        if (!ZRSJZ_UIManager.ZRSJZ_DLC || this.IsTutorial) return;
+        for (const owner of this.Players) {
+            const petName = ZRSJZ_PetService.GetBattlePet(owner.PlayerIndex);
+            if (!petName) continue;
+            try {
+                const prefab = await new Promise<Prefab>((resolve, reject) => {
+                    BundleManager.GetBundle('73_ZRSJZ_DLC').load('Prefabs/Unit/Pet/' + petName, Prefab,
+                        (error, asset) => error ? reject(error) : resolve(asset));
+                });
+                if (!this.IsCurrentBattle() || this.IsGameFinished || !this.CurMap?.Unit?.isValid || !ZRSJZ_UIManager.ZRSJZ_DLC) return;
+                if (!owner?.isValid) continue;
+                const node = instantiate(prefab);
+                node.active = false;
+                node.setParent(this.CurMap.Unit);
+                const pet = node.getComponent('ZRSJZ_PetBase') as Component & { Init(owner: ZRSJZ_Player, name: string): void };
+                if (!pet) { node.destroy(); console.error('[ZRSJZ_Game] 宠物缺少子类组件', petName); continue; }
+                node.active = true;
+                pet.Init(owner, petName);
+            } catch (error) { console.error('[ZRSJZ_Game] 宠物加载失败', petName, error); }
         }
     }
 
@@ -2252,6 +2287,7 @@ export class ZRSJZ_Game extends Component {
     //#region 战利品ID（背包跟保险箱）
     GetAllGoodsID(): string[] {
         const goodsInventories = new Set<ZRSJZ_INVENTORY>([
+            ZRSJZ_INVENTORY.宠物背包,
             ZRSJZ_INVENTORY.背包,
             ZRSJZ_INVENTORY.保险箱,
         ]);

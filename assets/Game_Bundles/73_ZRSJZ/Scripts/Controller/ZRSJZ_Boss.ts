@@ -1,3 +1,4 @@
+import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
 import { _decorator, director, Vec3, Node, setPropertyEnumType } from 'cc';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_BossBase } from './ZRSJZ_BossBase';
@@ -71,12 +72,6 @@ export class ZRSJZ_Boss extends ZRSJZ_BossBase {
 
     private _attack(startPos: Vec3, damageRange: number, damage: number) {
         // 普攻和技能伤害统一在 OnAttack 中由各自的 Spine 动画事件触发。
-        const players = director.getScene()?.getComponentsInChildren(ZRSJZ_Player) ?? [];
-        for (const player of players) {
-            if (!player.node.activeInHierarchy) continue;
-            if (Vec3.distance(startPos, player.node.worldPosition) <= damageRange || Vec3.distance(startPos, player.Other.worldPosition) <= damageRange) {
-                player.BeHit(damage * this.DamageMultiplier);
-            }
-        }
+        ZRSJZ_FriendlyDamageService.DamageArea(startPos, damageRange, damage * this.DamageMultiplier);
     }
 }

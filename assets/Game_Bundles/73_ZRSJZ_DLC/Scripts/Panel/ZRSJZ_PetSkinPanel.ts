@@ -24,6 +24,7 @@ export class ZRSJZ_PetSkinPanel extends ZRSJZ_Panel {
     UnlockIcon: Sprite = null;
     UnlockLabel: Label = null;
     private _petName: string = "";
+    private _petPlayerIndex = 0;
     private _selectedSkin: string = "";
     private _iconRequest: number = 0;
     private readonly _items: ZRSJZ_PetSkinItem[] = [];
@@ -37,11 +38,12 @@ export class ZRSJZ_PetSkinPanel extends ZRSJZ_Panel {
         this.UnlockLabel = find("Panel/解锁/Layout/UnlockLabel", this.node).getComponent(Label);
     }
 
-    Show(petName: string): void {
+    Show(petName: string, playerIndex: number = 0): void {
+        this._petPlayerIndex = playerIndex === 1 ? 1 : 0;
         super.Show();
         // UIManager 缓存弹窗；每次打开使用传入宠物重新生成，避免残留上只宠物的列表。
         this._petName = petName;
-        this._selectedSkin = ZRSJZ_PetService.GetCurrentSkin(petName);
+        this._selectedSkin = ZRSJZ_PetService.GetCurrentSkin(petName, this._petPlayerIndex);
         for (const item of this._items) {
             item.node.removeFromParent();
             item.node.destroy();
@@ -77,7 +79,7 @@ export class ZRSJZ_PetSkinPanel extends ZRSJZ_Panel {
             && !!ZRSJZ_PET_CONFIG.get(this._petName)?.PetSkins.includes(this._selectedSkin)
             && ZRSJZ_PET_SKIN_CONFIG.has(this._selectedSkin);
         const owned = valid && ZRSJZ_PetService.CheckPetSkin(this._petName, this._selectedSkin);
-        const used = owned && ZRSJZ_PetService.GetCurrentSkin(this._petName) === this._selectedSkin;
+        const used = owned && ZRSJZ_PetService.GetCurrentSkin(this._petName, this._petPlayerIndex) === this._selectedSkin;
         this.UseBtn.active = owned && !used;
         this.UsedBtn.active = used;
         this.UnlockBtn.active = valid && !owned;
@@ -133,7 +135,7 @@ export class ZRSJZ_PetSkinPanel extends ZRSJZ_Panel {
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.宠物皮肤弹窗);
                 break;
             case "使用":
-                ZRSJZ_PetService.UseSkin(this._petName, this._selectedSkin);
+                ZRSJZ_PetService.UseSkin(this._petName, this._selectedSkin, this._petPlayerIndex);
                 this.Refresh();
                 break;
             case "解锁":

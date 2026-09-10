@@ -1,6 +1,8 @@
 import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
-import { _decorator, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3 } from 'cc';
+import { _decorator, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3, instantiate, Prefab, sp, isValid } from 'cc';
+import { ZRSJZ_PetService } from './Service/ZRSJZ_PetService';
+import { ZRSJZ_PET_SKIN_CONFIG } from './ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_MAIL_TYPE, ZRSJZ_PANEL } from './ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
@@ -20,6 +22,64 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
 export class ZRSJZ_Start extends Component {
+    private _petPreviewKey = '';
+    private _petPreviewVersion = 0;
+    private _petPreviewTimer = 0;
+    private _petPreviews: Node[] = [];
+
+    protected update(dt: number): void {
+        this._petPreviewTimer += dt;
+        if (this._petPreviewTimer < 0.3) return;
+        this._petPreviewTimer = 0;
+        if (!ZRSJZ_GameData.Instance) return;
+        const pets = [0, 1].map(index => ZRSJZ_PetService.GetBattlePet(index));
+        const key = JSON.stringify([ZRSJZ_UIManager.ZRSJZ_DLC, ...pets,
+            ...pets.map((name, index) => ZRSJZ_PetService.GetCurrentSkin(name, index))]);
+        if (key === this._petPreviewKey) return;
+        this._petPreviewKey = key;
+        const version = ++this._petPreviewVersion;
+        for (const node of this._petPreviews) if (isValid(node, true)) node.destroy();
+        this._petPreviews = [];
+        if (!ZRSJZ_UIManager.ZRSJZ_DLC) return;
+        pets.forEach((pet, index) => {
+            if (pet) void this.ShowPetPreview(pet, index, version).catch(error => {
+                console.warn('[大厅宠物] 加载失败', pet, error);
+                if (version === this._petPreviewVersion) this._petPreviewKey = '';
+            });
+        });
+    }
+
+    private async ShowPetPreview(petName: string, playerIndex: number, version: number): Promise<void> {
+        const player = playerIndex === 1 ? this.Player2 : this.Player2?.parent?.getChildByName('Player1');
+        const holder = player?.getChildByName('宠物');
+        if (!holder || !ZRSJZ_UIManager.ZRSJZ_DLC) return;
+        const prefab = await new Promise<Prefab>((resolve, reject) => {
+            BundleManager.GetBundle('73_ZRSJZ_DLC').load(`Prefabs/Unit/Pet/${petName}`, Prefab,
+                (error, asset) => error ? reject(error) : resolve(asset));
+        });
+        if (!isValid(this, true) || !isValid(holder, true) || version !== this._petPreviewVersion
+            || !ZRSJZ_UIManager.ZRSJZ_DLC || !this.node.activeInHierarchy) return;
+        // 大厅只复制外观，避免启动战斗跟随、碰撞或技能脚本。
+        const source = instantiate(prefab);
+        source.active = false;
+        const skeleton = source.getComponentInChildren(sp.Skeleton);
+        if (!skeleton) { source.destroy(); return; }
+        const visual = instantiate(skeleton.node);
+        source.destroy();
+        visual.setParent(holder);
+        visual.setPosition(0, 0, 0);
+        const spine = visual.getComponent(sp.Skeleton);
+        const skin = ZRSJZ_PET_SKIN_CONFIG.get(ZRSJZ_PetService.GetCurrentSkin(petName, playerIndex));
+        const skinName = skin?.PetSkinSpineSkin ?? 'default';
+        const data = spine.skeletonData?.getRuntimeData();
+        if (data) {
+            spine.setSkin(data.findSkin(skinName) ? skinName : 'default');
+            spine.setSlotsToSetupPose();
+            if (data.findAnimation('daiji')) spine.setAnimation(0, 'daiji', true);
+        }
+        visual.active = true;
+        this._petPreviews.push(visual);
+    }
 
     @property(Node)
     SignBtn: Node = null;
@@ -99,6 +159,10 @@ export class ZRSJZ_Start extends Component {
     }
 
     protected onDisable(): void {
+        this._petPreviewVersion++;
+        this._petPreviewKey = '';
+        for (const node of this._petPreviews) if (isValid(node, true)) node.destroy();
+        this._petPreviews = [];
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MODEL_SWITCH, this.ModelSwitch, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW, this.RefreshMainTaskTip, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, this.RefreshMainTaskTip, this);

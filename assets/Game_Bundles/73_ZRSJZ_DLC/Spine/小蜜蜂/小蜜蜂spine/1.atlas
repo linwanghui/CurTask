@@ -1,117 +1,222 @@
 
 1.png
-size: 213,378
+size: 181,908
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 yy
   rotate: false
-  xy: 2, 343
+  xy: 2, 873
   size: 140, 33
   orig: 140, 33
   offset: 0, 0
   index: -1
 手-右
-  rotate: false
-  xy: 107, 76
+  rotate: true
+  xy: 128, 421
   size: 54, 49
   orig: 54, 49
   offset: 0, 0
   index: -1
 手-左
-  rotate: false
-  xy: 163, 79
+  rotate: true
+  xy: 132, 646
   size: 48, 46
   orig: 48, 46
   offset: 0, 0
   index: -1
+樱花_手右
+  rotate: true
+  xy: 107, 211
+  size: 53, 54
+  orig: 53, 54
+  offset: 0, 0
+  index: -1
+樱花_手左
+  rotate: false
+  xy: 132, 696
+  size: 47, 51
+  orig: 47, 51
+  offset: 0, 0
+  index: -1
+樱花_翅膀右
+  rotate: true
+  xy: 2, 333
+  size: 101, 103
+  orig: 101, 103
+  offset: 0, 0
+  index: -1
+樱花_翅膀右1
+  rotate: true
+  xy: 2, 648
+  size: 110, 128
+  orig: 110, 129
+  offset: 0, 0
+  index: -1
+樱花_翅膀左
+  rotate: true
+  xy: 98, 59
+  size: 84, 73
+  orig: 84, 73
+  offset: 0, 0
+  index: -1
+樱花_翅膀左1
+  rotate: false
+  xy: 2, 238
+  size: 103, 93
+  orig: 104, 94
+  offset: 1, 1
+  index: -1
+樱花_脚右
+  rotate: true
+  xy: 132, 577
+  size: 32, 45
+  orig: 32, 45
+  offset: 0, 0
+  index: -1
+樱花_脚左
+  rotate: false
+  xy: 139, 14
+  size: 30, 43
+  orig: 30, 43
+  offset: 0, 0
+  index: -1
+樱花_表情
+  rotate: true
+  xy: 137, 801
+  size: 52, 36
+  orig: 52, 36
+  offset: 0, 0
+  index: -1
+樱花_表情-受击
+  rotate: true
+  xy: 132, 515
+  size: 60, 43
+  orig: 60, 45
+  offset: 0, 1
+  index: -1
+樱花_表情1
+  rotate: false
+  xy: 107, 175
+  size: 54, 34
+  orig: 54, 34
+  offset: 0, 0
+  index: -1
+樱花_表情2
+  rotate: true
+  xy: 137, 749
+  size: 50, 36
+  orig: 50, 36
+  offset: 0, 0
+  index: -1
+樱花_触角右
+  rotate: false
+  xy: 58, 9
+  size: 34, 52
+  orig: 34, 52
+  offset: 0, 0
+  index: -1
+樱花_触角左
+  rotate: true
+  xy: 107, 145
+  size: 28, 54
+  orig: 28, 54
+  offset: 0, 0
+  index: -1
+樱花_身体
+  rotate: false
+  xy: 2, 760
+  size: 133, 111
+  orig: 133, 111
+  offset: 0, 0
+  index: -1
 翅膀-右
   rotate: true
-  xy: 2, 40
+  xy: 2, 147
   size: 89, 103
   orig: 89, 103
   offset: 0, 0
   index: -1
 翅膀-左
   rotate: true
-  xy: 144, 300
+  xy: 107, 343
   size: 76, 61
   orig: 76, 63
   offset: 0, 1
   index: -1
 翅膀1-右
   rotate: true
-  xy: 2, 243
+  xy: 2, 548
   size: 98, 128
   orig: 98, 128
   offset: 0, 0
   index: -1
 翅膀1-左
-  rotate: true
-  xy: 128, 127
+  rotate: false
+  xy: 2, 63
   size: 94, 82
   orig: 94, 82
   offset: 0, 0
   index: -1
 腿-右
   rotate: true
-  xy: 162, 8
+  xy: 94, 23
   size: 34, 43
   orig: 35, 44
   offset: 1, 1
   index: -1
 腿-左
   rotate: true
-  xy: 163, 44
+  xy: 132, 611
   size: 33, 46
   orig: 33, 46
   offset: 0, 0
   index: -1
 表情
-  rotate: false
-  xy: 2, 3
+  rotate: true
+  xy: 144, 855
   size: 51, 35
   orig: 53, 37
   offset: 1, 1
   index: -1
 表情-受击
   rotate: false
-  xy: 132, 255
+  xy: 107, 298
   size: 60, 43
   orig: 60, 45
   offset: 0, 1
   index: -1
 表情1
   rotate: false
-  xy: 107, 15
+  xy: 2, 2
   size: 53, 33
   orig: 55, 35
   offset: 1, 1
   index: -1
 表情2
   rotate: false
-  xy: 55, 2
+  xy: 128, 477
   size: 50, 36
   orig: 50, 36
   offset: 0, 0
   index: -1
 触角-右
   rotate: true
-  xy: 132, 223
+  xy: 107, 266
   size: 30, 59
   orig: 30, 59
   offset: 0, 0
   index: -1
 触角-左
   rotate: true
-  xy: 107, 50
+  xy: 2, 37
   size: 24, 54
   orig: 24, 54
   offset: 0, 0
   index: -1
 身体
   rotate: false
-  xy: 2, 131
+  xy: 2, 436
   size: 124, 110
   orig: 124, 110
   offset: 0, 0

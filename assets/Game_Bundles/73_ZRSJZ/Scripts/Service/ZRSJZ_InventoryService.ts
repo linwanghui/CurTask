@@ -44,6 +44,15 @@ export class ZRSJZ_InventoryService {
     private static _activePlayerIndex: number = 0;
     /** 单局扩容状态；只存在内存中，玩家1和玩家2互不影响。 */
     private static _backpackExpanded: boolean[] = [false, false];
+    private static _petBackpackSlots: number[] = [0, 0];
+
+    public static SetPetBackpackSlots(playerIndex: number, slots: number): void {
+        this._petBackpackSlots[playerIndex === 1 ? 1 : 0] = Number.isFinite(slots) ? Math.max(0, Math.floor(slots)) : 0;
+    }
+
+    public static GetPetBackpackSlots(playerIndex: number): number {
+        return this._petBackpackSlots[playerIndex === 1 ? 1 : 0];
+    }
 
     public static SetActivePlayerIndex(playerIndex: number): void {
         this._activePlayerIndex = playerIndex === 1 ? 1 : 0;
@@ -84,10 +93,12 @@ export class ZRSJZ_InventoryService {
     /** 开始或离开对局时清空本局扩容。 */
     public static ResetBackpackExpansion(): void {
         this._backpackExpanded = [false, false];
+        this._petBackpackSlots = [0, 0];
     }
 
     public static IsPlayerInventory(inventory: ZRSJZ_INVENTORY): boolean {
-        return inventory === ZRSJZ_INVENTORY.背包
+        return inventory === ZRSJZ_INVENTORY.宠物背包
+            || inventory === ZRSJZ_INVENTORY.背包
             || inventory === ZRSJZ_INVENTORY.保险箱
             || inventory === ZRSJZ_INVENTORY.卡包
             || inventory === ZRSJZ_INVENTORY.弹药
@@ -457,7 +468,7 @@ export class ZRSJZ_InventoryService {
         const data = ZRSJZ_GameData.Instance;
         for (const propID in data.PropData) {
             const inventory = data.PropData[propID].CurInventory;
-            if (inventory === ZRSJZ_INVENTORY.背包 || inventory === ZRSJZ_INVENTORY.物资) {
+            if (inventory === ZRSJZ_INVENTORY.背包 || inventory === ZRSJZ_INVENTORY.宠物背包 || inventory === ZRSJZ_INVENTORY.物资) {
                 delete data.PropData[propID];
             }
         }

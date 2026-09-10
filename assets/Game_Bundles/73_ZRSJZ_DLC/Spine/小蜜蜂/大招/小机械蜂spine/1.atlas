@@ -1,76 +1,132 @@
 
 1.png
-size: 278,288
+size: 307,142
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
+樱花_翅膀-右
+  rotate: false
+  xy: 79, 6
+  size: 57, 63
+  orig: 57, 63
+  offset: 0, 0
+  index: -1
+樱花_翅膀-右1
+  rotate: true
+  xy: 2, 4
+  size: 61, 75
+  orig: 61, 75
+  offset: 0, 0
+  index: -1
+樱花_翅膀-左
+  rotate: true
+  xy: 262, 93
+  size: 47, 43
+  orig: 47, 43
+  offset: 0, 0
+  index: -1
+樱花_翅膀-左1
+  rotate: false
+  xy: 186, 15
+  size: 51, 54
+  orig: 51, 54
+  offset: 0, 0
+  index: -1
+樱花_表情
+  rotate: false
+  xy: 229, 72
+  size: 35, 19
+  orig: 35, 19
+  offset: 0, 0
+  index: -1
+樱花_触角-右
+  rotate: true
+  xy: 239, 2
+  size: 21, 31
+  orig: 21, 31
+  offset: 0, 0
+  index: -1
+樱花_触角-左
+  rotate: true
+  xy: 167, 71
+  size: 18, 31
+  orig: 18, 31
+  offset: 0, 0
+  index: -1
+樱花_身体
+  rotate: true
+  xy: 2, 67
+  size: 73, 63
+  orig: 73, 63
+  offset: 0, 0
+  index: -1
 翅膀-右
   rotate: false
-  xy: 100, 165
-  size: 90, 121
-  orig: 92, 123
-  offset: 1, 1
+  xy: 138, 7
+  size: 46, 62
+  orig: 46, 62
+  offset: 0, 0
   index: -1
 翅膀-右1
-  rotate: false
-  xy: 2, 141
-  size: 96, 145
-  orig: 98, 145
-  offset: 1, 0
+  rotate: true
+  xy: 131, 91
+  size: 49, 73
+  orig: 49, 73
+  offset: 0, 0
   index: -1
 翅膀-左
   rotate: true
-  xy: 192, 198
-  size: 88, 84
-  orig: 90, 86
-  offset: 1, 1
+  xy: 239, 25
+  size: 45, 43
+  orig: 45, 43
+  offset: 0, 0
   index: -1
 翅膀-左1
-  rotate: false
-  xy: 126, 56
-  size: 92, 107
-  orig: 94, 108
-  offset: 1, 1
+  rotate: true
+  xy: 206, 93
+  size: 47, 54
+  orig: 47, 54
+  offset: 0, 0
   index: -1
 表情
-  rotate: true
-  xy: 220, 128
-  size: 68, 37
-  orig: 72, 40
-  offset: 2, 2
+  rotate: false
+  xy: 131, 71
+  size: 34, 18
+  orig: 36, 20
+  offset: 1, 1
   index: -1
 表情-治疗
-  rotate: true
-  xy: 220, 62
-  size: 64, 40
-  orig: 68, 44
-  offset: 2, 2
+  rotate: false
+  xy: 272, 3
+  size: 32, 20
+  orig: 34, 22
+  offset: 1, 1
   index: -1
 表情-麻痹
-  rotate: false
-  xy: 199, 12
-  size: 61, 42
-  orig: 64, 45
-  offset: 1, 2
+  rotate: true
+  xy: 284, 40
+  size: 30, 21
+  orig: 32, 23
+  offset: 1, 1
   index: -1
 触角-右
-  rotate: false
-  xy: 161, 3
-  size: 36, 51
-  orig: 38, 53
-  offset: 1, 1
+  rotate: true
+  xy: 266, 72
+  size: 19, 27
+  orig: 19, 27
+  offset: 0, 0
   index: -1
 触角-左
-  rotate: false
-  xy: 126, 2
-  size: 33, 52
-  orig: 35, 54
-  offset: 1, 1
+  rotate: true
+  xy: 200, 71
+  size: 18, 27
+  orig: 18, 27
+  offset: 0, 0
   index: -1
 身体
   rotate: true
-  xy: 2, 3
-  size: 136, 122
-  orig: 138, 124
-  offset: 1, 1
+  xy: 67, 71
+  size: 69, 62
+  orig: 69, 62
+  offset: 0, 0
   index: -1

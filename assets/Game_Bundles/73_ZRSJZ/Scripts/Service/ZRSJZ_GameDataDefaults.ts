@@ -130,6 +130,7 @@ export class ZRSJZ_GameDataDefaults {
         [3, [
             { Key: "PetData", DefaultVaule: {} },
             { Key: "CurPet", DefaultVaule: "" },
+            { Key: "Player2Pet", DefaultVaule: "" },
             { Key: "CurPetSkin", DefaultVaule: "" },
         ]]
     ])

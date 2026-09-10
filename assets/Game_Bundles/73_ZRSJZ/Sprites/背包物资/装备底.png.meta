@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "b90355a0-93e6-4c5e-ba53-d43a7b32807e",
+  "uuid": "f083c313-50b7-46b8-aae4-e47bdcdab547",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "b90355a0-93e6-4c5e-ba53-d43a7b32807e@6c48a",
-      "displayName": "星核幼龙",
+      "uuid": "f083c313-50b7-46b8-aae4-e47bdcdab547@6c48a",
+      "displayName": "装备底",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "b90355a0-93e6-4c5e-ba53-d43a7b32807e",
+        "imageUuidOrDatabaseUri": "f083c313-50b7-46b8-aae4-e47bdcdab547",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "b90355a0-93e6-4c5e-ba53-d43a7b32807e@f9941",
-      "displayName": "星核幼龙",
+      "uuid": "f083c313-50b7-46b8-aae4-e47bdcdab547@f9941",
+      "displayName": "装备底",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 275,
-        "height": 211,
-        "rawWidth": 275,
-        "rawHeight": 211,
+        "width": 306,
+        "height": 508,
+        "rawWidth": 306,
+        "rawHeight": 508,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -137.5,
-            -105.5,
+            -153,
+            -254,
             0,
-            137.5,
-            -105.5,
+            153,
+            -254,
             0,
-            -137.5,
-            105.5,
+            -153,
+            254,
             0,
-            137.5,
-            105.5,
+            153,
+            254,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            211,
-            275,
-            211,
+            508,
+            306,
+            508,
             0,
             0,
-            275,
+            306,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -137.5,
-            -105.5,
+            -153,
+            -254,
             0
           ],
           "maxPos": [
-            137.5,
-            105.5,
+            153,
+            254,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "b90355a0-93e6-4c5e-ba53-d43a7b32807e@6c48a",
+        "imageUuidOrDatabaseUri": "f083c313-50b7-46b8-aae4-e47bdcdab547@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "b90355a0-93e6-4c5e-ba53-d43a7b32807e@6c48a"
+    "redirect": "f083c313-50b7-46b8-aae4-e47bdcdab547@6c48a"
   }
 }

@@ -24,6 +24,7 @@ export class ZRSJZ_Inventory extends Component {
     /** 子类销毁临时库存前需要等待本轮异步格子刷新结束。 */
     protected _isShowingPropItem: boolean = false;
     private _isAutoOrganizing: boolean = false;
+    private _initialization: Promise<void> = Promise.resolve();
     IsVisible: boolean = true;
 
     protected onEnable(): void {
@@ -37,10 +38,20 @@ export class ZRSJZ_Inventory extends Component {
         this.IsVisible = false;
     }
 
-    async Init(
+    Init(
         inventoryType: ZRSJZ_INVENTORY,
         playerIndex: number = ZRSJZ_InventoryService.GetActivePlayerIndex(),
-    ) {
+    ): Promise<void> {
+        // 启动初始化和进入对局重建可能重叠，必须依次完成，避免 await 后 Grids 已被清空。
+        const task = this._initialization.then(async () => {
+            while (this._isShowingPropItem) await new Promise<void>(resolve => setTimeout(resolve, 0));
+            await this.InitializeInventory(inventoryType, playerIndex);
+        });
+        this._initialization = task.catch(() => {});
+        return task;
+    }
+
+    private async InitializeInventory(inventoryType: ZRSJZ_INVENTORY, playerIndex: number): Promise<void> {
         this.PlayerViewIndex = playerIndex === 1 ? 1 : 0;
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
@@ -56,24 +67,28 @@ export class ZRSJZ_Inventory extends Component {
         this.InventoryType = inventoryType;
         this.InventoryConfig = this.GetInventoryConfig(inventoryType);
         for (let i = 0; i < this.InventoryConfig.Row; i++) {
-            const row = [];
-            for (let j = 0; j < this.InventoryConfig.Col; j++) {
-                row.push("");
-            }
-            this.Grids.push(row);
+            this.Grids.push(this.GetEmptyRow(this.GetRowColumnCount(i)));
         }
 
         this._newAddPropID = [];
 
         const gridIndex = inventoryType == ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;
+        const invalidSavedIDs = new Set<string>();
 
         for (let key in ZRSJZ_GameData.Instance.PropData) {
             const propData = ZRSJZ_GameData.Instance.PropData[key];
             if (this.BelongsToInventory(propData, inventoryType)) {
-                if (propData.GridData[gridIndex].GridX == -1) {
+                const grid = propData.GridData[gridIndex];
+                const size = this.GetPlacedSize(propData, gridIndex);
+                if (grid.GridX == -1) {
+                    this._newAddPropID.push(propData.InstanceID);
+                } else if (!this.InventoryConfig.IsDilatation
+                    && !this.CanPlace(grid.GridX, grid.GridY, size.width, size.height)) {
+                    // 宠物容量拆分或背包容量变化后，先保留有效位置，再重排旧的越界/重叠物品。
+                    invalidSavedIDs.add(propData.InstanceID);
+                    ZRSJZ_InventoryService.ChangePropGridPos(propData.InstanceID, gridIndex, -1, -1);
                     this._newAddPropID.push(propData.InstanceID);
                 } else {
-                    const size = this.GetPlacedSize(propData, gridIndex);
                     await this.OccupyGrid(propData.InstanceID, propData.GridData[gridIndex].GridX, propData.GridData[gridIndex].GridY, size.width, size.height)
                 }
             }
@@ -83,7 +98,14 @@ export class ZRSJZ_Inventory extends Component {
         for (let index = 0; index < this._newAddPropID.length; index++) {
             const propData = ZRSJZ_GameData.Instance.PropData[this._newAddPropID[index]];
             const placement = this.FindEmptyGridForProp(propData);
-            if (!placement) continue;
+            if (!placement) {
+                // 仅恢复旧坏坐标：容量确实放不下时归仓，避免隐藏物品或重新扩大普通背包。
+                if (invalidSavedIDs.has(propData.InstanceID)) {
+                    ZRSJZ_InventoryService.MovePropToInventory(propData.InstanceID, ZRSJZ_INVENTORY.仓库_全部, 0, -1, -1, false);
+                    console.warn(`[库存恢复] ${propData.Name} 的旧坐标超出容量且无法重排，已放回仓库`);
+                }
+                continue;
+            }
             ZRSJZ_InventoryService.ChangePropGridPos(propData.InstanceID, gridIndex, placement.x, placement.y, placement.isRotate);
             await this.OccupyGrid(propData.InstanceID, placement.x, placement.y, placement.width, placement.height)
         }
@@ -104,7 +126,7 @@ export class ZRSJZ_Inventory extends Component {
         this.IsInitialized = true;
 
         if (this.node.active) {
-            this.ShowPropItem();
+            await this.ShowPropItem();
         }
     }
 
@@ -352,6 +374,7 @@ export class ZRSJZ_Inventory extends Component {
     private SupportsAutoRotation(): boolean {
         return String(this.InventoryType).startsWith("仓库_")
             || this.InventoryType === ZRSJZ_INVENTORY.保险箱
+            || this.InventoryType === ZRSJZ_INVENTORY.宠物背包
             || this.InventoryType === ZRSJZ_INVENTORY.背包
             || this.InventoryType === ZRSJZ_INVENTORY.物资;
     }
@@ -499,6 +522,7 @@ export class ZRSJZ_Inventory extends Component {
 
     //判断能不能放
     CanPlace(x: number, y: number, width: number, height: number, normalID: string = "跳过"): boolean {
+        if (![x, y, width, height].every(Number.isInteger) || x < 0 || y < 0 || width <= 0 || height <= 0) return false;
         for (let row = y; row < y + height; row++) {
             if (!this.Grids[row]) return false;
 
@@ -562,10 +586,7 @@ export class ZRSJZ_Inventory extends Component {
                 return propB.Width * propB.Height - propA.Width * propA.Height;
             });
         const originalGrids = this.Grids;
-        this.Grids = Array.from(
-            { length: originalGrids.length },
-            () => this.GetEmptyRow(),
-        );
+        this.Grids = originalGrids.map(row => this.GetEmptyRow(row.length));
 
         const placements = new Map<string, {
             x: number,
@@ -641,10 +662,7 @@ export class ZRSJZ_Inventory extends Component {
             if (b === incomingID) return 1;
             return 0;
         });
-        const workingGrids = Array.from(
-            { length: this.Grids.length },
-            () => this.GetEmptyRow(),
-        );
+        const workingGrids = this.Grids.map(row => this.GetEmptyRow(row.length));
         const placements = new Map<string, {
             x: number,
             y: number,
@@ -829,9 +847,12 @@ export class ZRSJZ_Inventory extends Component {
     }
 
     //获取空的一行
-    GetEmptyRow(): string[] {
+    /** 背包附加格可形成不满一行的末行，其他库存保持矩形。 */
+    protected GetRowColumnCount(_row: number): number { return this.InventoryConfig.Col; }
+
+    GetEmptyRow(columns: number = this.InventoryConfig.Col): string[] {
         let row: string[] = [];
-        for (let i = 0; i < this.InventoryConfig.Col; i++) {
+        for (let i = 0; i < columns; i++) {
             row.push("")
         }
         return row;

@@ -27,6 +27,7 @@ export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
     }
 
     protected update(dt: number): void {
+        if (this.IsPetStunned || ZRSJZ_Game.Instance?.GamePaused) { super.update(dt); return; }
         if (this._isAttacking && !this.IsDead) {
             this.StopMoving();
             return;
@@ -136,5 +137,4 @@ export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
     }
 
 }
-
 

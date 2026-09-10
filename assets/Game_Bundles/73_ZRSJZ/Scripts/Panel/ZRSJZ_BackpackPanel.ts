@@ -1,3 +1,4 @@
+import { ZRSJZ_PetBackpackView } from '../UI/ZRSJZ_PetBackpackView';
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, EventTouch, find, Label, Layout, Node, ScrollView, Sprite, SpriteFrame, Widget } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
@@ -27,11 +28,23 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
     private _inventoryShowVersion: number = 0;
     private _freeExpansion: Node = null;
 
+    private _petBackpackView: ZRSJZ_PetBackpackView = null;
+    private _petBackpackRefreshTime = 0;
+
+    protected lateUpdate(dt: number): void {
+        this._petBackpackRefreshTime -= dt;
+        if (this._petBackpackRefreshTime > 0) return;
+        this._petBackpackRefreshTime = 0.2;
+        this._petBackpackView?.Refresh(this._playerIndex);
+    }
+
     protected onLoad(): void {
+        this._petBackpackView = new ZRSJZ_PetBackpackView(this.node);
         this.Prepare = find("Panel/备战", this.node).getComponent(ZRSJZ_Prepare);
         this.BackpackContent = find("Panel/背包/View/Content", this.node);
         this.ScrollView = find("Panel/背包", this.node).getComponent(ScrollView);
-        this._totalValue = find("Panel/武器装备/背包总价值/Count", this.node).getComponent(Label);
+        this._totalValue = (find("Panel/背包总价值/Count", this.node)
+            ?? find("Panel/武器装备/背包总价值/Count", this.node))?.getComponent(Label);
         this._discardArea = find("Panel/丢弃范围", this.node);
         this._discardSprite = find("Panel/丢弃范围", this.node).getComponent(Sprite);
         this.ResolveFreeExpansion();
@@ -39,6 +52,7 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
 
 
     protected onEnable(): void {
+        this._petBackpackView?.Refresh(this._playerIndex);
         this.Prepare.Show(true, this._playerIndex, true);
         this.ShowBackpack();
         this.RefreshTotalValue();
@@ -49,6 +63,7 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
     }
 
     protected onDisable(): void {
+        this._petBackpackView?.Hide();
         this._inventoryShowVersion++;
         if (this._discardArea) this._discardArea.active = false;
         ZRSJZ_UIManager.Instance.UnregisterDiscardArea(this._discardArea, this._playerIndex);
@@ -115,10 +130,11 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
 
     private RefreshTotalValue() {
         const totalValue = ZRSJZ_InventoryService.GetInventoryTotalValue([
+            ZRSJZ_INVENTORY.宠物背包,
             ZRSJZ_INVENTORY.背包,
             ZRSJZ_INVENTORY.保险箱,
         ], this._playerIndex);
-        this._totalValue.string = `${totalValue}`;
+        if (this._totalValue) this._totalValue.string = `${totalValue}`;
     }
 
     ShowBackpack() {

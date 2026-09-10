@@ -1,3 +1,4 @@
+import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
 import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, v2, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_TIER } from '../ZRSJZ_Constant';
@@ -90,7 +91,7 @@ export class ZRSJZ_Bullet extends Component {
     }
 
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
-        contract.disabled = true;
+        if (contract) contract.disabled = true;
         if (this._isRemove) return;
 
         // console.error(otherCollider.node.name);
@@ -101,9 +102,9 @@ export class ZRSJZ_Bullet extends Component {
             this.scheduleOnce(() => {
                 this.Recycle();
             });
-        } else if (otherCollider.group === ZRSJZ_TIER.玩家 && otherCollider.node.getComponent(ZRSJZ_Player)) {
+        } else if (otherCollider.group === ZRSJZ_TIER.玩家 && ZRSJZ_FriendlyDamageService.DamageNode(otherCollider.node, this._harm)) {
             this._isRemove = true;
-            otherCollider.node.getComponent(ZRSJZ_Player).BeHit(this._harm);
+
             this.CreateEffect2();
             this.scheduleOnce(() => {
                 this.Recycle();
@@ -117,6 +118,7 @@ export class ZRSJZ_Bullet extends Component {
                 this.Recycle();
             });
             // this.Recycle();
+
         }
     }
 

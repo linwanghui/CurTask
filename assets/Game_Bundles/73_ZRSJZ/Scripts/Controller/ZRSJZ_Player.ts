@@ -2,9 +2,9 @@ import { ZRSJZ_BoxroomService } from "../Service/ZRSJZ_BoxroomService";
 import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
 import { ZRSJZ_PetService } from "../Service/ZRSJZ_PetService";
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
-import { _decorator, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, Sprite, tween, Tween, v2, v3, Vec2, Vec3 } from 'cc';
+import { _decorator, isValid, Label, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, Sprite, tween, Tween, v2, v3, Vec2, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
+import { ZRSJZ_PET_HEAL_CONFIG, ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -79,6 +79,86 @@ export class ZRSJZ_Player extends Component {
     /** 激光施法期间允许移动，但禁止射击、滑铲、换弹、切换武器和再次施法。 */
     private _isLaserCasting: boolean = false;
     private _shielding: boolean = false;
+    private readonly _petShields = new Map<object, { charges: number; remaining: number }>();
+    private readonly _petHeals: { total: number; elapsed: number; delivered: number }[] = [];
+    private readonly _healNumbers: { node: Node; elapsed: number; origin: Vec3 }[] = [];
+    private _healEffectVersion = 0;
+
+    public ApplyPetShield(source: object, charges: number, duration: number): void {
+        if (this.IsDead || !Number.isFinite(charges) || charges < 1 || !Number.isFinite(duration) || duration <= 0) return;
+        this._petShields.set(source, { charges: Math.floor(charges), remaining: duration });
+    }
+    public ClearPetShield(source: object): void { this._petShields.delete(source); }
+    public HasPetShield(source: object): boolean { return this.GetPetShieldCount(source) > 0; }
+    public GetPetShieldCount(source: object): number { return this._petShields.get(source)?.charges ?? 0; }
+
+    public HealFromPet(amount: number): void {
+        const game = ZRSJZ_Game.Instance;
+        if (!game || game.GamePaused || game.IsGameFinished || this.IsDead || !Number.isFinite(amount) || amount <= 0) return;
+        this._petHeals.push({ total: Math.round(amount), elapsed: 0, delivered: 0 });
+    }
+    private async ShowPetHealNumber(amount: number): Promise<void> {
+        const game = ZRSJZ_Game.Instance;
+        const version = this._healEffectVersion;
+        const origin = this.node.worldPosition.clone().add3f(0, ZRSJZ_PET_HEAL_CONFIG.FloatTextHeight, 0);
+        // 对象池通过ZRSJZ_Tools从73_ZRSJZ主包动态加载，不访问DLC资源。
+        try {
+            const node = await ZRSJZ_PoolManager.Instance.GetNode('Prefabs/Effect/血量恢复');
+            if (!node) return;
+            const parent = game?.CurMap?.BulletParent;
+            if (!this.CanUseAsyncResult(game) || version !== this._healEffectVersion || this.IsDead
+                || game.IsGameFinished || !isValid(parent, true)) {
+                this.RecycleAsyncNode(node);
+                return;
+            }
+            node.parent = parent;
+            node.active = true;
+            const setLayer = (child: Node) => { child.layer = parent.layer; child.children.forEach(setLayer); };
+            setLayer(node);
+            node.setWorldPosition(origin);
+            const label = node.getChildByName('Num')?.getComponent(Label);
+            if (label) label.string = '+' + amount;
+            this._healNumbers.push({ node, elapsed: 0, origin });
+        } catch (error) { console.warn('[宠物治疗] 血量恢复预制体加载失败', error); }
+    }
+    private ClearPetHealing(): void {
+        this._healEffectVersion++;
+        this._petHeals.length = 0;
+        for (const effect of this._healNumbers) this.RecycleAsyncNode(effect.node);
+        this._healNumbers.length = 0;
+    }
+    private UpdatePetHealing(dt: number): void {
+        const game = ZRSJZ_Game.Instance;
+        if (!game || game.IsGameFinished || this.IsDead) { this.ClearPetHealing(); return; }
+        if (game.GamePaused) return;
+        const duration = Math.max(0.1, ZRSJZ_PET_HEAL_CONFIG.Duration);
+        const steps = Math.max(1, Math.round(duration / Math.max(0.05, ZRSJZ_PET_HEAL_CONFIG.TickInterval)));
+        let amount = 0;
+        for (let i = this._petHeals.length - 1; i >= 0; i--) {
+            const heal = this._petHeals[i];
+            heal.elapsed = Math.min(duration, heal.elapsed + dt);
+            // 累计取整保证多次恢复的总量不丢失。
+            const step = heal.elapsed >= duration ? steps : Math.floor(heal.elapsed / duration * steps + 1e-8);
+            const delivered = Math.round(heal.total * step / steps);
+            amount += delivered - heal.delivered;
+            heal.delivered = delivered;
+            if (heal.elapsed >= duration) this._petHeals.splice(i, 1);
+        }
+        const actual = Math.max(0, Math.min(amount, this.MaxHP - this.CurHP));
+        if (actual > 0) {
+            this.CurHP += actual;
+            this.HP?.Show(this.CurHP);
+            void this.ShowPetHealNumber(actual);
+        }
+        for (let i = this._healNumbers.length - 1; i >= 0; i--) {
+            const effect = this._healNumbers[i];
+            effect.elapsed += dt;
+            if (!isValid(effect.node) || effect.elapsed >= 0.7) {
+                this.RecycleAsyncNode(effect.node);
+                this._healNumbers.splice(i, 1);
+            } else effect.node.setWorldPosition(effect.origin.x, effect.origin.y + effect.elapsed * 100, effect.origin.z);
+        }
+    }
     private _knifeCount: number = 0;
 
     /** 异步资源返回时，确认请求仍属于当前战斗且玩家节点没有被销毁/停用。 */
@@ -214,6 +294,8 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected onDisable(): void {
+        this.ClearPetHealing();
+        this._petShields.clear();
         this.CancelGunAttackState();
         this._lastValidMuzzleOffset = null;
         ZRSJZ_Game.Instance?.CancelEvacuation(this.PlayerIndex);
@@ -230,6 +312,14 @@ export class ZRSJZ_Player extends Component {
 
     protected update(dt: number): void {
         this.RefreshBulletProgress();
+        this.UpdatePetHealing(dt);
+        if (this.IsDead || ZRSJZ_Game.Instance.IsGameFinished) this._petShields.clear();
+        if (!ZRSJZ_Game.Instance.GamePaused) {
+            for (const [source, shield] of this._petShields) {
+                shield.remaining -= dt;
+                if (shield.remaining <= 0) this._petShields.delete(source);
+            }
+        }
         if (ZRSJZ_Game.Instance.GamePaused || this._isStop) {
             this.RigidBody.linearVelocity = v2(0, 0);
             return;
@@ -282,7 +372,7 @@ export class ZRSJZ_Player extends Component {
         this.MaxHP = (this.InitHP + ZRSJZ_FacilityService.GetResearchMaxHPBonus())
             * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("生命") : 0))
             + ZRSJZ_BoosterShotService.GetBoosterValue("生命针")
-            + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus().MaxHP : 0);
+            + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).MaxHP : 0);
         this.CurHP = this.MaxHP;
         this.HP.Init(this.MaxHP);
         this.HP.Show(this.CurHP);
@@ -498,7 +588,7 @@ export class ZRSJZ_Player extends Component {
         const harmShot: number = ZRSJZ_BoosterShotService.GetBooster("攻击针");
         const bulletLevel = this.GetBulletLevel(ammoName);
         const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + totalGunDamageRate + harmShot)
-            + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus().Attack : 0));
+            + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).Attack : 0));
 
         const showBullet = (targetBullet: Node, dirX: number, dirY: number): Vec3 | null => {
             try {
@@ -625,7 +715,7 @@ export class ZRSJZ_Player extends Component {
             damage * (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() +
                 (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0) +
                 ZRSJZ_BoosterShotService.GetBooster("攻击针")
-            ) + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus().Attack : 0)
+            ) + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).Attack : 0)
         );
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         enemys = enemys.filter(enemy => !enemy.IsDead);
@@ -856,10 +946,18 @@ export class ZRSJZ_Player extends Component {
         const damageMultiplier = this._shielding
             ? 0.1
             : 1 - this.GetEquippedDamageReductionRate() - ZRSJZ_BoosterShotService.GetBooster("防御针")
-                - (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus().DamageReduction : 0);
-        const madeHarm = incomingHarm > 0
+                - (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).DamageReduction : 0);
+        let madeHarm = incomingHarm > 0
             ? Math.max(1, Math.round(damageMultiplier * incomingHarm))
             : 0;
+        if (incomingHarm > 0) {
+            for (const [source, shield] of this._petShields) {
+                if (shield.remaining <= 0 || shield.charges <= 0) { this._petShields.delete(source); continue; }
+                shield.charges--;
+                if (shield.charges <= 0) this._petShields.delete(source);
+                return; // 一次攻击只消耗一片屏障，完全抵挡此次伤害。
+            }
+        }
         // 等待 3 秒或离开再进入才能恢复撤离；连续受击重新计算等待时间。
         if (madeHarm > 0) game.InterruptEvacuationByHit(this.PlayerIndex);
         this.CurHP -= madeHarm;
@@ -867,6 +965,7 @@ export class ZRSJZ_Player extends Component {
         if (game.IsTutorial) this.CurHP = Math.max(1, this.CurHP);
         if (this.CurHP <= 0) {
             this.CurHP = 0;
+            this.HP?.Show(0);
             if (!game.IsTutorial) {
                 this.CancelGunAttackState();
                 this.CancelKnifeAttackState();

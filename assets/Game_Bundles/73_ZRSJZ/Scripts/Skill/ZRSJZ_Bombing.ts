@@ -1,3 +1,4 @@
+import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
 import { _decorator, Component, director, Node, sp, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
@@ -13,15 +14,6 @@ export class ZRSJZ_Bombing extends ZRSJZ_Bomb {
         this.SkillRange = 400;
     }
     Attack() {
-        let players = director.getScene()?.getComponentsInChildren(ZRSJZ_Player) ?? [];
-        players = players.filter(player => !player.IsDead);
-        players.forEach(player => {
-            if (Vec3.distance(this.node.worldPosition, player.node.worldPosition) < this.SkillRange || Vec3.distance(this.node.worldPosition, player.Other.worldPosition) < this.SkillRange) {
-                player.BeHit(this.SkillDamage);
-            }
-        })
+        ZRSJZ_FriendlyDamageService.DamageArea(this.node.worldPosition, this.SkillRange, this.SkillDamage);
     }
-
 }
-
-

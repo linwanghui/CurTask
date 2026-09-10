@@ -9,6 +9,7 @@ const { ccclass } = _decorator;
 export class ZRSJZ_InventoryBackpack extends ZRSJZ_Inventory {
     private static readonly DEFAULT_ROW = 2;
     private static readonly COL = 4;
+    private _slotCount = 0;
 
     // 背包可以存放任意类型的道具。
     IsAdaptive(_id: string): boolean {
@@ -18,11 +19,16 @@ export class ZRSJZ_InventoryBackpack extends ZRSJZ_Inventory {
     protected GetInventoryConfig(
         _inventoryType: ZRSJZ_INVENTORY,
     ): { Row: number, Col: number, IsDilatation: boolean } {
+        this._slotCount = this.GetCurrentBackpackRow() * ZRSJZ_InventoryBackpack.COL;
         return {
-            Row: this.GetCurrentBackpackRow(),
+            Row: Math.ceil(this._slotCount / ZRSJZ_InventoryBackpack.COL),
             Col: ZRSJZ_InventoryBackpack.COL,
             IsDilatation: false,
         };
+    }
+
+    protected GetRowColumnCount(row: number): number {
+        return Math.max(0, Math.min(ZRSJZ_InventoryBackpack.COL, this._slotCount - row * ZRSJZ_InventoryBackpack.COL));
     }
 
     /** 领取扩容后重建当前玩家的格子，已有道具位置保持不变。 */
