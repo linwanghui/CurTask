@@ -66,8 +66,9 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
         const button = closeButton.getComponent(Button) ?? closeButton.addComponent(Button);
         button.target = closeButton;
         button.transition = Button.Transition.SCALE;
-        button.zoomScale = 0.9;
+        button.zoomScale = 1.2;
         closeButton.on(Node.EventType.TOUCH_END, this.ClosePanel, this);
+        find('Mask', this.node).on(Node.EventType.TOUCH_END, this.ClosePanel, this);
     }
 
     private BindSignItems(): void {

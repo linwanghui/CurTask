@@ -11,6 +11,7 @@ export class ZRSJZ_BoosterShotPanel extends ZRSJZ_Panel {
     OnButtonClick(event: EventTouch) {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Mask":
             case "关闭":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.增强针弹窗);
                 break;

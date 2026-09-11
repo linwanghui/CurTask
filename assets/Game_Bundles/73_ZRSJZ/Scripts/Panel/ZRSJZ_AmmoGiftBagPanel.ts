@@ -48,6 +48,7 @@ export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Mask":
             case "关闭":
                 this.Close();
                 break;

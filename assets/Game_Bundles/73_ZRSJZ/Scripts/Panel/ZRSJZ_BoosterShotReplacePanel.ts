@@ -54,6 +54,7 @@ export class ZRSJZ_BoosterShotReplacePanel extends ZRSJZ_Panel {
             case "替换":
                 this.ConfirmReplace();
                 break;
+            case "Mask":
             case "关闭":
                 this.ClosePanel();
                 break;

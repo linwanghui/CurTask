@@ -263,7 +263,7 @@
     "node": {
       "__id__": 2
     },
-    "_enabled": false,
+    "_enabled": true,
     "__prefab": {
       "__id__": 12
     },
@@ -4030,14 +4030,14 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "tip",
+    "_name": "Tip",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 15
     },
     "_children": [],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 166
@@ -4055,7 +4055,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -477.695,
+      "y": -475.699,
       "z": 0
     },
     "_lrot": {
@@ -4095,8 +4095,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 244,
-      "height": 54.4
+      "width": 311.8249816894531,
+      "height": 79.6
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -4107,7 +4107,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "bdBTHbnmdHqpPyPumxleZ6"
+    "fileId": "03TG31VRJFT73uDxxDmNDK"
   },
   {
     "__type__": "cc.Label",
@@ -4131,13 +4131,13 @@
       "b": 255,
       "a": 255
     },
-    "_string": "点击空白区域关闭",
+    "_string": "点击空白区域关闭...",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 30,
-    "_fontSize": 30,
+    "_actualFontSize": 35,
+    "_fontSize": 35,
     "_fontFamily": "Arial",
-    "_lineHeight": 40,
+    "_lineHeight": 60,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": {
@@ -4149,7 +4149,7 @@
     "_isItalic": false,
     "_isBold": false,
     "_isUnderline": false,
-    "_underlineHeight": 2,
+    "_underlineHeight": 5,
     "_cacheMode": 0,
     "_enableOutline": true,
     "_outlineColor": {
@@ -4178,7 +4178,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "e48gnvv7lDE6kqKP6YH+eP"
+    "fileId": "c9bQtO7FJJVYkeWzy94JXo"
   },
   {
     "__type__": "cc.Widget",
@@ -4193,13 +4193,11 @@
       "__id__": 171
     },
     "_alignFlags": 20,
-    "_target": {
-      "__id__": 1
-    },
+    "_target": null,
     "_left": 0,
     "_right": 0,
     "_top": 0,
-    "_bottom": 35.10500000000002,
+    "_bottom": 24.50099999999999,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -4216,7 +4214,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "baVw8HyblAMLd8vqpfaf+q"
+    "fileId": "70Q3C7eXtPY4zxz4Kj8b9B"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -4226,7 +4224,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "b9iafDUipNsJMJxbJflQNn",
+    "fileId": "b4GWd9jnFH6azbim049YN+",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null

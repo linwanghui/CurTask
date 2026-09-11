@@ -196,6 +196,7 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
     OnButtonClick(event: EventTouch): void {
         ZRSJZ_AudioManager.Instance.PlaySound('点击');
         switch (event.getCurrentTarget().name) {
+            case "Mask":
             case '关闭': ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.主线任务界面); break;
             case '领取任务': ZRSJZ_TaskService.GetNewTask(this._selected); break;
             case '前往': {

@@ -29,12 +29,14 @@ export class ZRSJZ_DeathPanel extends ZRSJZ_Panel {
             && !requestGame.IsGameFinished;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Mask2":
             case "关闭":
                 ZRSJZ_UIManager.Instance.HidePlayerPanel(this.PanelName, this.PlayerIndex);
                 if (ZRSJZ_Game.Instance.Players.every(player => player.IsDead)) {
                     ZRSJZ_Game.Instance.FinishGameByDeath();
                 }
                 break;
+            case "Mask":
             case "关闭双人模式复活弹窗":
                 ZRSJZ_UIManager.Instance.HidePlayerPanel(
                     this.PanelName,

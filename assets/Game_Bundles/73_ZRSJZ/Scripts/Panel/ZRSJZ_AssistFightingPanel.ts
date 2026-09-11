@@ -59,6 +59,7 @@ export class ZRSJZ_AssistFightingPanel extends ZRSJZ_Panel {
     OnButtonClick(event: EventTouch): void {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Mask":
             case "关闭":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.助战礼包弹窗);
                 this.startGame();
