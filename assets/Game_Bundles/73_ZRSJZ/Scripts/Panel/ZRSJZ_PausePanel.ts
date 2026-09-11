@@ -12,6 +12,9 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_PausePanel extends ZRSJZ_Panel {
 
     protected update(): void {
+        const leave = this.node.getChildByName('Panel')?.getChildByName('不再等待');
+        if (leave) leave.active = Online.Battle && Online.PeerWaiting
+            && !Online.LocalHolds.has('ad') && !Online.LocalHolds.has('background');
         const label = this.node.getChildByName('Panel')?.getChildByName('联机等待提示')?.getComponent(Label);
         if (label) {
             label.node.active = true;
@@ -26,6 +29,11 @@ export class ZRSJZ_PausePanel extends ZRSJZ_Panel {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case '不再等待':
+                if (Online.Battle && Online.PeerWaiting && !Online.LocalHolds.has('ad') && !Online.LocalHolds.has('background')) {
+                    Online.Events.emit('leave_wait');
+                }
+                break;
             case "继续游戏":
             case "Mask":
                 if (Online.Battle) {

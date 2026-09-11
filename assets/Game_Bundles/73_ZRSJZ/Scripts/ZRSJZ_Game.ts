@@ -5,7 +5,7 @@ import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Effect_CB } from './Effect/ZRSJZ_Effect_CB';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
-import { GetSpecialOperationConfig, ZRSJZ_BOMB_PLOT_SPAWN_CONFIG, ZRSJZ_INVENTORY, ZRSJZ_MainTaskAwardConfig, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_SPECIAL_OPERATION_CONFIG, ZRSJZ_SpecialOperationConfig, ZRSJZ_SpecialOperationTaskType } from './ZRSJZ_Constant';
+import { GetSpecialOperationConfig, ZRSJZ_BOMB_PLOT_SPAWN_CONFIG, ZRSJZ_INVENTORY, ZRSJZ_MainTaskAwardConfig, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_SPECIAL_OPERATION_CONFIG, ZRSJZ_SpecialOperationConfig, ZRSJZ_SpecialOperationTaskType, ZRSJZ_SKIN_CONFIG } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_EnemyBase } from './Controller/ZRSJZ_EnemyBase';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
@@ -107,6 +107,27 @@ export class ZRSJZ_Game extends Component {
     private _miniMapIcon: Sprite = null;
     private _miniMapPlayer2Point: Node = null;
     private _miniMapPlayer2Icon: Sprite = null;
+    private _onlineMapIconRequests = new WeakMap<Sprite, { skin: string; retryAt: number }>();
+
+    /** 两处地图共用真实队友皮肤，不读取本地双人模式的玩家二配置。 */
+    public RefreshOnlineMapIcon(icon: Sprite): void {
+        if (!icon?.node?.isValid || !ZRSJZ_OnlineService.Battle) return;
+        const skin = ZRSJZ_OnlineService.PeerPose?.skin;
+        let name = '';
+        ZRSJZ_SKIN_CONFIG.forEach((config, key) => { if (config.Skin === skin) name = key; });
+        if (!name) { icon.spriteFrame = null; this._onlineMapIconRequests.delete(icon); return; }
+        const previous = this._onlineMapIconRequests.get(icon);
+        if (previous?.skin === skin && Date.now() < previous.retryAt) return;
+        const request = { skin, retryAt: Number.POSITIVE_INFINITY };
+        this._onlineMapIconRequests.set(icon, request);
+        icon.spriteFrame = null;
+        ZRSJZ_UIManager.Instance.GetHeroUI(name).then(frame => {
+            if (this.IsCurrentBattle() && icon.node?.isValid && ZRSJZ_OnlineService.Battle
+                && ZRSJZ_OnlineService.PeerPose?.skin === skin && this._onlineMapIconRequests.get(icon) === request) {
+                icon.spriteFrame = frame;
+            }
+        }).catch(() => { request.retryAt = Date.now() + 3000; });
+    }
     private _miniMapTaskPoint: Node = null;
     private readonly _miniMapTaskMarkers: ZRSJZ_MiniMapTaskMarker[] = [];
     private readonly _specialOperationTaskPoints: ZRSJZ_SpecialOperationsTaskIcon[] = [];
@@ -1455,7 +1476,7 @@ export class ZRSJZ_Game extends Component {
                 })
                 .catch(() => undefined);
         }
-        if (this._miniMapPlayer2Icon && isConfiguredTwoPlayer) {
+        if (this._miniMapPlayer2Icon && isConfiguredTwoPlayer && !ZRSJZ_OnlineService.Battle) {
             ZRSJZ_UIManager.Instance.GetHeroUI(
                 ZRSJZ_GameData.Instance.CurSkin[1]
                 ?? ZRSJZ_GameData.Instance.CurSkin[0],
@@ -1740,6 +1761,7 @@ export class ZRSJZ_Game extends Component {
             );
             this._miniMapPlayer2Point.active = onlinePeer ? !onlinePeer.dead : !this._playersGivenUpResurrection.has(1);
             if (onlinePeer && this._miniMapPlayer2Icon) this._miniMapPlayer2Icon.color = new Color(80, 230, 255, 255);
+            if (onlinePeer) this.RefreshOnlineMapIcon(this._miniMapPlayer2Icon);
         } else if (this._miniMapPlayer2Point) this._miniMapPlayer2Point.active = false;
 
         const paracargoPosition = this.GetParacargoTargetWorldPosition();

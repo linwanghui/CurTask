@@ -1,0 +1,25 @@
+// Production map presentation logic; no game windows or saves.
+const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const online={Battle:true,PeerPose:{skin:'js/m1',x:123,y:456,dead:false}};
+const requests=[];
+const deps={ZRSJZ_OnlineService:online,ZRSJZ_Panel:class{},ZRSJZ_SKIN_CONFIG:new Map([['泠汐',{Skin:'js/m1'}],['星栗',{Skin:'js/w2'}]]),ZRSJZ_UIManager:{Instance:{GetHeroUI:name=>new Promise(resolve=>requests.push({name,resolve}))}}};
+function load(file){const exports={};const code=ts.transpileModule(fs.readFileSync(path.resolve(__dirname,'../'+file),'utf8'),{compilerOptions:{module:1,target:7,experimentalDecorators:true}}).outputText;vm.runInNewContext(code,{exports,console,Date,require:n=>n==='cc'?{_decorator:{ccclass:()=>c=>c,property:()=>()=>{}},Component:class{},Vec3:class{}}:deps});return exports;}
+async function main(){
+ const Game=load('Scripts/ZRSJZ_Game.ts').ZRSJZ_Game,g=Object.create(Game.prototype);
+ g._onlineMapIconRequests=new WeakMap();g.IsCurrentBattle=()=>true;
+ const icon={node:{isValid:true},spriteFrame:'wrong-local-avatar'};
+ g.RefreshOnlineMapIcon(icon);g.RefreshOnlineMapIcon(icon);assert.equal(requests.length,1);assert.equal(requests[0].name,'泠汐');assert.equal(icon.spriteFrame,null);
+ online.PeerPose.skin='js/w2';g.RefreshOnlineMapIcon(icon);assert.equal(requests[1].name,'星栗');requests[0].resolve('old');await Promise.resolve();assert.equal(icon.spriteFrame,null);
+ requests[1].resolve('correct');await Promise.resolve();assert.equal(icon.spriteFrame,'correct');
+ g.GetPlayer=()=>null;g.IsTwoPlayerMode=()=>false;deps.ZRSJZ_Game={Instance:g};
+ const Panel=load('Scripts/Panel/ZRSJZ_MapPanel.ts').ZRSJZ_MapPanel,p=Object.create(Panel.prototype);
+ p.Player2Point={active:false};p.Player2Icon={node:{isValid:true}};
+ p.SetPointPosition=(node,x,y)=>{node.active=true;node.xy=[x,y];};
+ p.RefreshPlayerPoints();assert.equal(p.Player2Point.active,true);assert.deepEqual(p.Player2Point.xy,[123,456]);assert.equal(requests[2].name,'星栗');
+ online.PeerPose.x=789;p.RefreshPlayerPoints();assert.deepEqual(p.Player2Point.xy,[789,456]);
+ online.PeerPose=null;p.RefreshPlayerPoints();assert.equal(p.Player2Point.active,false);
+ online.Battle=false;p.RefreshPlayerPoints();assert.equal(p.Player2Point.active,false);
+ console.log('PASS: peer avatar from remote skin, cached requests, stale image rejected, popup shows/moves peer in online (not local 2p), missing/disconnected peer hidden.');
+}
+main().catch(e=>{console.error(e);process.exitCode=1;});

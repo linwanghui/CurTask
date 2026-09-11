@@ -4,6 +4,7 @@ import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_MapPanel')
@@ -228,6 +229,14 @@ export class ZRSJZ_MapPanel extends ZRSJZ_Panel {
             this.CurPoint.active = false;
         }
 
+        if (Online.Battle) {
+            const peer = Online.PeerPose;
+            if (peer && !peer.dead) {
+                this.SetPointPosition(this.Player2Point, peer.x, peer.y);
+                game?.RefreshOnlineMapIcon(this.Player2Icon);
+            } else if (this.Player2Point) this.Player2Point.active = false;
+            return;
+        }
         if (!game?.IsTwoPlayerMode()) {
             if (this.Player2Point) this.Player2Point.active = false;
             return;
