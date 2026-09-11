@@ -158,6 +158,18 @@ export class ZRSJZ_Skeleton extends Component {
         }
     }
 
+    /** 只同步实际可见的衣装附件，不传库存 ID 或装备数值。空字符串表示脱下。 */
+    public GetOnlineOutfit(): { [slot: string]: string } {
+        const slots = ['t', 'j', 'b'];
+        for (const name of ZRSJZ_SKIN_CONFIG.get(this.SkinName)?.Headset ?? []) {
+            const slot = this.FindAttachmentSlotName(name);
+            if (slot && !slots.includes(slot)) slots.push(slot);
+        }
+        const result: { [slot: string]: string } = {};
+        for (const name of slots) result[name] = this.Skeleton?.findSlot(name)?.getAttachment()?.name || '';
+        return result;
+    }
+
     async ShowEquipment(equipmentName: string, isEquipment: boolean = true): Promise<void> {
         if (!equipmentName || !this.Skeleton?._skeleton) return;
 

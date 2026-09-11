@@ -20,9 +20,17 @@ async function main(){
   await until(()=>a.Map==='极北之地_绝密行动'&&b.Map===a.Map);
   a.Send('ready',{ready:true,map:a.Map});b.Send('ready',{ready:true,map:b.Map});
   await until(()=>a.Room.members.every(m=>m.ready));a.Send('start');await until(()=>a.Battle&&b.Battle);
-  const pose={x:88,y:92,sx:-1,sy:1,skin:'default',animation:'daiji_q',weapon:'AKM',weaponSkin:'AKM',mx:123,my:-48,aim:true,attack:'gongji',attackSerial:3,attackTime:0.12,attackSpeed:1.5,attackLoop:false};a.Send('pose',{pose});
+  assert.equal(a.BreakWallAvailable,b.BreakWallAvailable);
+  const pose={x:88,y:92,sx:-1,sy:1,skin:'default',animation:'daiji_q',weapon:'AKM',weaponSkin:'AKM',mx:123,my:-48,aim:true,attack:'gongji',attackSerial:3,attackTime:0.12,attackSpeed:1.5,attackLoop:false,outfit:{t:'头盔',j:'护甲',b:'背包',headset:''}};a.Send('pose',{pose});
   await until(()=>b.PeerPose);assert.deepStrictEqual(JSON.parse(JSON.stringify(b.PeerPose)),pose);
   assert.equal(a.BattleHost,true);assert.equal(b.BattleHost,false);
+  b.Send('operation',{packet:{kind:'accept',point:'高价值目标|10|20',x:10,y:20}});
+  await until(()=>a.OperationInbox.length===1);assert.equal(a.OperationInbox.shift().kind,'accept');assert.equal(b.OperationInbox.length,0);
+  const task={kind:'state',run:1,point:'高价值目标|10|20',x:10,y:20,target:'e1',elapsed:0,state:'进行中'};
+  a.Send('operation',{packet:task});await until(()=>b.OperationInbox.length===1);assert.equal(b.OperationInbox.shift().run,1);
+  b.Send('operation',{packet:task});await sleep(100);assert.equal(a.OperationInbox.length,0);
+  b.Send('operation',{packet:{kind:'boxes',run:1}});await until(()=>a.OperationInbox.length===1);assert.equal(a.OperationInbox.shift().kind,'boxes');
+  a.Send('operation',{packet:{...task,state:'已完成'}});await until(()=>b.OperationInbox.length===1);assert.equal(b.OperationInbox.shift().state,'已完成');
   const doorsA=[],doorsB=[];
   a.Events.on('door',p=>doorsA.push(p));b.Events.on('door',p=>doorsB.push(p));
   a.Send('door_claim',{id:'shared-key-door',mode:'key'});b.Send('door_claim',{id:'shared-key-door',mode:'key'});
@@ -57,7 +65,7 @@ async function main(){
   b.Combat({kind:'states',states:[state]});await sleep(100);assert.equal(a.CombatStates.size,0);
   a.Disconnect();await until(()=>b.Room.members.length===1);assert.equal(b.PeerPose,null);
   assert.equal(b.BattleEnded,true);
-  console.log('PASS: production TS clients: weapon/aim/attack pose, simultaneous key claim, shared key/ad doors, failed payment release, lobby/maps/readiness, enemy snapshots, hits, shots, pets, disconnect termination.');
+  console.log('PASS: production TS clients: outfit/weapon/aim/attack pose, shared operation routing/host authority/box progress, consistent break-wall availability, simultaneous key claim, shared doors, lobby, combat, disconnect.');
  }finally{a.Disconnect();b.Disconnect();proc.kill();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

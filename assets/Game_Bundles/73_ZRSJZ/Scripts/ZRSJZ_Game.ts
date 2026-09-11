@@ -127,6 +127,14 @@ export class ZRSJZ_Game extends Component {
     private _acceptedSpecialOperationMapKey: string = "";
     private _specialOperationStartTime: number = 0;
     private _specialOperationState: "未领取" | "进行中" | "已完成" | "已失败" = "未领取";
+    private _onlineOperationRun = 0;
+    private _onlineOperationPoint = '';
+    private _onlineOperationTarget = '';
+    private _onlineOperationApplying = false;
+    private _onlineOperationPeerBoxesDone = false;
+    private _onlineOperationLocalBoxesDone = false;
+    private _onlineOperationSyncTime = 0;
+    private _onlineOperationCenter: Vec3 = null;
     private _specialOperationTaskType: ZRSJZ_SpecialOperationTaskType = "待定";
     private _specialOperationPlayerIndex: number = 0;
     private _specialOperationObjectiveCompleted: boolean = false;
@@ -429,6 +437,7 @@ export class ZRSJZ_Game extends Component {
 
     protected update(deltaTime: number): void {
         ZRSJZ_GradeService.UpdateOnlineTime(deltaTime);
+        this.SyncOnlineSpecialOperation(deltaTime);
         if (this._battleStarted && !this.GamePaused && Number.isFinite(deltaTime) && deltaTime > 0) {
             const battleTimeBeforeTimeout = this._timeLimitSeconds > 0
                 ? Math.max(0, this._timeLimitSeconds - this._elapsedGameTime)
@@ -1477,7 +1486,7 @@ export class ZRSJZ_Game extends Component {
             this._breakWallAvailabilityRolled = true;
             const breakWallPoints = taskPoints.filter(point => point.TaskName === "破壁行动");
             this._breakWallAvailableThisBattle = breakWallPoints.length > 0
-                && Math.random() < 0.3;
+                && (ZRSJZ_OnlineService.Battle ? ZRSJZ_OnlineService.BreakWallAvailable : Math.random() < 0.3);
             if (!this._breakWallAvailableThisBattle) {
                 for (const taskPoint of breakWallPoints) taskPoint.Deactivate();
             }
@@ -1925,6 +1934,83 @@ export class ZRSJZ_Game extends Component {
         }
     }
 
+    private OnlineTaskPointID(point: ZRSJZ_SpecialOperationsTaskIcon): string {
+        const p = point.node.worldPosition;
+        return `${point.TaskName}|${Math.round(p.x)}|${Math.round(p.y)}`;
+    }
+
+    /** 房主统一接取/结算，队友只应用状态；队友尚未载入地图时消息保留在队列中。 */
+    private SyncOnlineSpecialOperation(dt: number): void {
+        const online = ZRSJZ_OnlineService;
+        if (!this._battleStarted || !this.CurMap?.Unit?.isValid || this._isGameFinished) return;
+        while (online.OperationInbox.length) {
+            const packet = online.OperationInbox.shift();
+            if (packet.kind === 'accept' && online.Battle && online.BattleHost) {
+                const point = this.CurMap.node.getComponentsInChildren(ZRSJZ_SpecialOperationsTaskIcon)
+                    .find(item => this.OnlineTaskPointID(item) === packet.point);
+                if (!point) continue;
+                this._onlineOperationApplying = true;
+                this._onlineOperationCenter = new Vec3(packet.x, packet.y, 0);
+                try { this.AcceptSpecialOperation(ZRSJZ_GameData.Instance.CurMap, point, 0); }
+                finally { this._onlineOperationApplying = false; this._onlineOperationCenter = null; }
+            } else if (packet.kind === 'boxes' && online.BattleHost && packet.run === this._onlineOperationRun) {
+                this._onlineOperationPeerBoxesDone = true;
+            } else if (packet.kind === 'fail' && online.BattleHost && packet.run === this._onlineOperationRun) {
+                this.FailSpecialOperation('队友的特别行动条件未满足，行动失败');
+            } else if (packet.kind === 'state' && !online.BattleHost && packet.run >= this._onlineOperationRun) {
+                const point = this.CurMap.node.getComponentsInChildren(ZRSJZ_SpecialOperationsTaskIcon)
+                    .find(item => this.OnlineTaskPointID(item) === packet.point);
+                if (!point) continue;
+                this._onlineOperationApplying = true;
+                try {
+                    if (packet.run > this._onlineOperationRun) {
+                        // 完整快照可跨过载入期间的接取/完成消息；每个 run 只发奖一次。
+                        if (this._specialOperationState === '进行中') this.FailSpecialOperation('特别行动已切换');
+                        this._onlineOperationRun = packet.run;
+                        this._onlineOperationCenter = new Vec3(packet.x, packet.y, 0);
+                        this.AcceptSpecialOperation(ZRSJZ_GameData.Instance.CurMap, point, 0);
+                    }
+                    this._onlineOperationTarget = packet.target || this._onlineOperationTarget;
+                    this._specialOperationStartTime = this._elapsedGameTime - packet.elapsed;
+                    if (packet.state === '已完成' && this._specialOperationState === '进行中') {
+                        const config = GetSpecialOperationConfig(this._acceptedSpecialOperationMapKey, this._specialOperationTaskType);
+                        if (config) this.CompleteSpecialOperation(config);
+                    } else if (packet.state === '已失败') this.FailSpecialOperation('特别行动失败');
+                } finally { this._onlineOperationApplying = false; this._onlineOperationCenter = null; }
+            }
+        }
+        if (this._specialOperationState === '进行中' && this._specialOperationTaskType === '高价值目标') {
+            if (online.BattleHost && this._specialOperationTargetEnemy?.isValid) {
+                this._onlineOperationTarget = this._specialOperationTargetEnemy.getComponent(ZRSJZ_EnemyBase)?.OnlineID || this._onlineOperationTarget;
+            } else if (this._onlineOperationTarget) {
+                const enemy = ZRSJZ_EnemyBase.OnlineEnemies.get(this._onlineOperationTarget);
+                if (enemy?.isValid) {
+                    this._specialOperationTargetEnemy = enemy.node;
+                    enemy.SetTaskTargetMarker(!enemy.IsDead);
+                    if (!online.Battle && enemy.IsDead) this._specialOperationObjectiveCompleted = true;
+                }
+            }
+        }
+        if (this.IsBreakWallOperationInProgress() && this._onlineOperationLocalBoxesDone
+            && (!online.Battle || (online.BattleHost && this._onlineOperationPeerBoxesDone))) {
+            this._specialOperationObjectiveCompleted = true;
+        }
+        this._onlineOperationSyncTime += Math.max(0, dt || 0);
+        if (online.Battle && online.BattleHost && this._onlineOperationRun > 0 && this._onlineOperationSyncTime >= 0.25) {
+            this._onlineOperationSyncTime = 0;
+            this.PublishOnlineSpecialOperation();
+        }
+    }
+
+    private PublishOnlineSpecialOperation(): void {
+        if (!ZRSJZ_OnlineService.Battle || !ZRSJZ_OnlineService.BattleHost || this._onlineOperationRun <= 0) return;
+        const center = this._specialOperationBombCenter;
+        ZRSJZ_OnlineService.Send('operation', { packet: { kind: 'state', run: this._onlineOperationRun,
+            point: this._onlineOperationPoint, state: this._specialOperationState,
+            elapsed: Math.max(0, this._elapsedGameTime - this._specialOperationStartTime),
+            target: this._onlineOperationTarget, x: center.x, y: center.y } });
+    }
+
     /** 同一时刻只允许执行一个特别行动；完成或失败后可以接取剩余任务点。 */
     AcceptSpecialOperation(
         mapKey: string,
@@ -1939,7 +2025,18 @@ export class ZRSJZ_Game extends Component {
         const config = GetSpecialOperationConfig(mapKey, taskType);
         if (mapKey !== ZRSJZ_GameData.Instance.CurMap || !config) return false;
         if (config.TaskType === "待定") return false;
-        if (!sourceTaskPoint?.IsAvailable) return false;
+        if (!sourceTaskPoint || (!sourceTaskPoint.IsAvailable && !(this._onlineOperationApplying && !ZRSJZ_OnlineService.BattleHost))) return false;
+        if (ZRSJZ_OnlineService.Battle && !this._onlineOperationApplying) {
+            if (!ZRSJZ_OnlineService.Connected || ZRSJZ_OnlineService.BattleEnded) return false;
+            const position = this.GetPlayer(playerIndex)?.node?.worldPosition ?? sourceTaskPoint.node.worldPosition;
+            ZRSJZ_OnlineService.Send('operation', { packet: { kind: 'accept', point: this.OnlineTaskPointID(sourceTaskPoint), x: position.x, y: position.y } });
+            return true;
+        }
+        if (ZRSJZ_OnlineService.BattleHost) this._onlineOperationRun++;
+        this._onlineOperationPoint = this.OnlineTaskPointID(sourceTaskPoint);
+        this._onlineOperationTarget = '';
+        this._onlineOperationLocalBoxesDone = false;
+        this._onlineOperationPeerBoxesDone = false;
         const taskWorldPosition = sourceTaskPoint.node.worldPosition.clone();
         const configuredTargetPrefab = sourceTaskPoint.HighValueTarget;
         const configuredTargetPoint = sourceTaskPoint.HighValueTargetPoint;
@@ -1960,19 +2057,21 @@ export class ZRSJZ_Game extends Component {
         this.SetSpecialOperationCountdownVisible(true);
         this.RefreshSpecialOperationCountdown();
         if (config.TaskType === "高价值目标") {
-            void this.SpawnSpecialOperationTarget(
+            if (!ZRSJZ_OnlineService.Battle || ZRSJZ_OnlineService.BattleHost) void this.SpawnSpecialOperationTarget(
                 configuredTargetPrefab,
                 targetWorldPosition,
                 hasConfiguredTargetPoint,
                 setupVersion,
             );
         } else if (config.TaskType === "坚守轰炸区") {
-            const playerPosition = this.GetPlayer(this._specialOperationPlayerIndex)
+            const playerPosition = this._onlineOperationCenter ?? this.GetPlayer(this._specialOperationPlayerIndex)
                 ?.node?.worldPosition?.clone() ?? taskWorldPosition;
+            this._specialOperationBombCenter.set(playerPosition);
             void this.StartHoldBombPlot(config, playerPosition, setupVersion);
         } else if (config.TaskType === "破壁行动") {
             this.StartBreakWallOperation();
         }
+        this.PublishOnlineSpecialOperation();
         return true;
     }
 
@@ -2003,7 +2102,11 @@ export class ZRSJZ_Game extends Component {
             0,
         );
         if (openedCount >= this._breakWallTotalBoxCount && this._breakWallTotalBoxCount > 0) {
-            this._specialOperationObjectiveCompleted = true;
+            this._onlineOperationLocalBoxesDone = true;
+            if (ZRSJZ_OnlineService.Battle) {
+                if (!ZRSJZ_OnlineService.BattleHost) ZRSJZ_OnlineService.Send('operation', { packet: { kind: 'boxes', run: this._onlineOperationRun } });
+                void ZRSJZ_UIManager.Instance.ShowTip('你的邮箱已全部开启，等待队友完成');
+            } else this._specialOperationObjectiveCompleted = true;
         }
     }
 
@@ -2014,6 +2117,10 @@ export class ZRSJZ_Game extends Component {
     /** 领取后按局内有效时间计时；完成时发放钞票，并逐项独立判定概率物资。 */
     private UpdateSpecialOperation(): void {
         if (this._specialOperationState !== "进行中") return;
+        if (ZRSJZ_OnlineService.Battle && !ZRSJZ_OnlineService.BattleHost) {
+            this.RefreshSpecialOperationCountdown();
+            return;
+        }
         const config = GetSpecialOperationConfig(
             this._acceptedSpecialOperationMapKey,
             this._specialOperationTaskType,
@@ -2025,6 +2132,12 @@ export class ZRSJZ_Game extends Component {
         }
 
         if (config.TaskType === "坚守轰炸区" && this._specialOperationBombRadius > 0) {
+            const peer = ZRSJZ_OnlineService.Battle ? ZRSJZ_OnlineService.PeerPose : null;
+            if (peer && (Math.pow(peer.x - this._specialOperationBombCenter.x, 2) + Math.pow(peer.y - this._specialOperationBombCenter.y, 2)
+                > this._specialOperationBombRadius * this._specialOperationBombRadius)) {
+                this.FailSpecialOperation('队友已离开轰炸区，特别行动失败');
+                return;
+            }
             const player = this.GetPlayer(this._specialOperationPlayerIndex)?.node;
             if (player?.isValid) {
                 const dx = player.worldPosition.x - this._specialOperationBombCenter.x;
@@ -2053,7 +2166,10 @@ export class ZRSJZ_Game extends Component {
     }
 
     private CompleteSpecialOperation(config: Readonly<ZRSJZ_SpecialOperationConfig>): void {
+        if (this._specialOperationState !== '进行中') return;
+        this._onlineOperationTarget = this._specialOperationTargetEnemy?.getComponent(ZRSJZ_EnemyBase)?.OnlineID || this._onlineOperationTarget;
         this._specialOperationState = "已完成";
+        this.PublishOnlineSpecialOperation();
         this._specialOperationTargetEnemy = null;
         this.SetSpecialOperationCountdownVisible(false);
         if (config.TaskType === "坚守轰炸区" && this._specialOperationBombPlot?.node?.isValid) {
@@ -2258,7 +2374,12 @@ export class ZRSJZ_Game extends Component {
 
     private FailSpecialOperation(tip: string): void {
         if (this._specialOperationState !== "进行中") return;
+        if (ZRSJZ_OnlineService.Battle && !ZRSJZ_OnlineService.BattleHost && !this._onlineOperationApplying) {
+            ZRSJZ_OnlineService.Send('operation', { packet: { kind: 'fail', run: this._onlineOperationRun } });
+            return;
+        }
         this._specialOperationState = "已失败";
+        this.PublishOnlineSpecialOperation();
         ++this._specialOperationSetupVersion;
         this.SetSpecialOperationCountdownVisible(false);
         this.CleanupFailedSpecialOperationObjective();

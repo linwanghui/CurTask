@@ -1,0 +1,13 @@
+const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const online={PeerPose:{skin:'default',outfit:{t:'helmet',j:'armor',b:'bag',ear:''}}};
+const deps={ZRSJZ_OnlineService:online,ZRSJZ_WEAPONRY_TYPE:new Map([['gun',['AKM']]])};
+const code=ts.transpileModule(fs.readFileSync(path.resolve(__dirname,'../Scripts/Controller/ZRSJZ_OnlineBattle.ts'),'utf8'),{compilerOptions:{module:1,target:7,experimentalDecorators:true}}).outputText;
+const out={};vm.runInNewContext(code,{exports:out,console,require:n=>n==='cc'?{_decorator:{ccclass:()=>c=>c},Component:class{}}:deps});
+const attachments={t:{helmet:{}},j:{armor:{}},b:{bag:{}},ear:{headset:{}}},visible={gun:'AKM',dao:'knife'};
+const bridge=Object.create(out.ZRSJZ_OnlineBattle.prototype);bridge.outfitSlots=[];
+bridge.skeleton={_skeleton:{},skeletonData:{skeletonJson:{skins:[{name:'default',attachments}]}},findSlot:name=>({setAttachment:v=>visible[name]=v}),setAttachment(slot,name){assert(attachments[slot]?.[name]);visible[slot]=name;}};
+bridge.ApplyPeerOutfit();assert.equal(visible.t,'helmet');assert.equal(visible.b,'bag');assert.equal(visible.ear,null);
+online.PeerPose.outfit={t:'',j:'',b:'',ear:'headset'};bridge.ApplyPeerOutfit();assert.equal(visible.t,null);assert.equal(visible.j,null);assert.equal(visible.b,null);assert.equal(visible.ear,'headset');assert.equal(visible.gun,'AKM');
+online.PeerPose.outfit={t:'missing',gun:'malformed',dao:'malformed'};bridge.ApplyPeerOutfit();assert.equal(visible.t,null);assert.equal(visible.gun,'AKM');assert.equal(visible.dao,'knife');
+console.log('PASS: equip/unequip helmet/armor/bag, restore headset, leave gun/knife intact, reject missing attachments before native API.');

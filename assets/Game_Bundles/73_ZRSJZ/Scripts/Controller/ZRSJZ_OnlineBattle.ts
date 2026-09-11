@@ -40,10 +40,12 @@ export class ZRSJZ_OnlineBattle extends Component {
     private restoreNative = false;
     private weaponKey = '';
     private attackSerial = -1;
+    private outfitKey = '';
+    private outfitSlots: string[] = [];
 
     protected onLoad(): void {
         this.online = Online.Battle;
-        if (!this.online) { Online.OpenDoors.clear(); return; }
+        if (!this.online) { Online.OpenDoors.clear(); Online.OperationInbox = []; return; }
         Online.Events.on('peer_left', this.OnPeerLeft, this);
         Online.Events.on('battle_end', this.OnBattleEnd, this);
         Online.Events.on('combat', this.OnCombat, this);
@@ -94,6 +96,7 @@ export class ZRSJZ_OnlineBattle extends Component {
                 animation: local.Skeleton.getCurrent(0)?.animation?.name || 'daiji_q',
                 dead: player.IsDead || game.IsGameFinished,
                 weapon: local.WeaponryName || '', weaponSkin: local.WeaponryName ? ZRSJZ_AccountService.GetWeaponSkin(local.WeaponryName) : '',
+                outfit: local.GetOnlineOutfit(),
                 mx: local.Skeleton.findBone('mz')?.x || 0, my: local.Skeleton.findBone('mz')?.y || 0,
                 aim: local.HasDirection && !local.IsKnife,
                 attack: local.Skeleton.getCurrent(1)?.animation?.name || '', attackSerial: local.OnlineAttackSerial,
@@ -117,18 +120,41 @@ export class ZRSJZ_OnlineBattle extends Component {
         if (data?.findSkin(pose.skin) && this.skin !== pose.skin) {
             this.skeleton.setSkin(pose.skin); this.skin = pose.skin;
             this.weaponKey = '';
+            this.outfitKey = '';
         }
         if (data?.findAnimation(pose.animation) && this.skeleton.getCurrent(0)?.animation?.name !== pose.animation) {
             this.skeleton.setAnimation(0, pose.animation, true);
         }
         this.UpdatePet(dt);
         void this.ApplyPeerWeapon();
+        this.ApplyPeerOutfit();
         if (!pose.attack) { if (this.skeleton.getCurrent(1)) this.skeleton.clearTrack(1); }
         else if (data?.findAnimation(pose.attack) && (this.attackSerial !== pose.attackSerial || this.skeleton.getCurrent(1)?.animation?.name !== pose.attack)) {
             const entry = this.skeleton.setAnimation(1, pose.attack, !!pose.attackLoop);
             entry.trackTime = pose.attackTime || 0; entry.timeScale = pose.attackSpeed || 1;
             this.attackSerial = pose.attackSerial;
         }
+    }
+    private ApplyPeerOutfit(): void {
+        const pose = Online.PeerPose, skeleton = this.skeleton;
+        if (!pose?.outfit || !skeleton?._skeleton) return;
+        const key = JSON.stringify([pose.skin, pose.outfit]);
+        if (key === this.outfitKey) return;
+        let json: any = skeleton.skeletonData?.skeletonJson;
+        if (typeof json === 'string') { try { json = JSON.parse(json); } catch { return; } }
+        const skins = json?.skins;
+        const attachments = Array.isArray(skins) ? skins.filter(s => s.name === pose.skin || s.name === 'default').map(s => s.attachments)
+            : [skins?.[pose.skin]?.attachments ?? skins?.[pose.skin], skins?.default?.attachments ?? skins?.default];
+        for (const slot of this.outfitSlots) skeleton.findSlot(slot)?.setAttachment(null);
+        this.outfitSlots = [];
+        for (const slot of Object.keys(pose.outfit)) {
+            if (slot === 'dao' || ZRSJZ_WEAPONRY_TYPE.has(slot) || !skeleton.findSlot(slot)) continue;
+            this.outfitSlots.push(slot);
+            skeleton.findSlot(slot).setAttachment(null);
+            const name = pose.outfit[slot];
+            if (name && attachments.some(s => s?.[slot]?.[name])) skeleton.setAttachment(slot, name);
+        }
+        this.outfitKey = key;
     }
     private ApplyPeerAim(): void {
         const pose = Online.PeerPose;
