@@ -1,6 +1,7 @@
+import { ZRSJZ_MainReminderService } from './Service/ZRSJZ_MainReminderService';
 import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
-import { _decorator, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3, instantiate, Prefab, sp, isValid } from 'cc';
+import { _decorator, Button, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3, instantiate, Prefab, sp, isValid } from 'cc';
 import { ZRSJZ_PetService } from './Service/ZRSJZ_PetService';
 import { ZRSJZ_PET_SKIN_CONFIG } from './ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
@@ -76,6 +77,7 @@ export class ZRSJZ_Start extends Component {
             this.ModelSwitch();
             this.RefreshMainTaskTip();
             this.RefreshMailTip();
+            this.RefreshMainReminders();
             // 对局经验只在回到大厅、等级 UI 已注册事件后统一发放。
             ZRSJZ_GradeService.ClaimPendingExperience();
 
@@ -98,9 +100,18 @@ export class ZRSJZ_Start extends Component {
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, this.RefreshMainTaskTip, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_CHANGE, this.RefreshMailTip, this);
         this.RefreshMailTip();
+        this.schedule(this.RefreshMainReminders, 1);
     }
 
     protected onDisable(): void {
+        this.unschedule(this.RefreshMainReminders);
+        for (const tip of this._mainReminderNodes.values()) {
+            if (isValid(tip, true)) {
+                Tween.stopAllByTarget(tip);
+                tip.active = false;
+                tip.setScale(1, 1, 1);
+            }
+        }
         this._petPreviewVersion++;
         this._petPreviewKey = '';
         for (const node of this._petPreviews) if (isValid(node, true)) node.destroy();
@@ -274,6 +285,40 @@ export class ZRSJZ_Start extends Component {
 
     ModelSwitch() {
         this.Player2.active = ZRSJZ_GameData.Instance.CurModel == "2p";
+    }
+
+    private _mainReminderNodes = new Map<string, Node>();
+
+    private RefreshMainReminders(): void {
+        if (!ZRSJZ_UIManager.ZRSJZ_UI || !isValid(this.UIPanel, true)) return;
+        if (this._mainReminderNodes.size === 0) {
+            const names = new Set(['收藏室', '强化', '宠物', '锻造台']);
+            // 只匹配主页按钮，避免把同名宠物展示节点作为入口。
+            for (const button of this.UIPanel.getComponentsInChildren(Button)) {
+                const target = button.node;
+                if (!names.has(target.name)) continue;
+                // 使用场景中配置好的节点，位置由编辑器维护。
+                const tip = target.getChildByName('红点');
+                if (!tip) continue;
+                tip.active = false;
+                this._mainReminderNodes.set(target.name, tip);
+            }
+        }
+        const reminders = ZRSJZ_MainReminderService.GetReminders(ZRSJZ_UIManager.ZRSJZ_DLC);
+        for (const [name, tip] of this._mainReminderNodes) {
+            if (!isValid(tip, true)) continue;
+            const visible = reminders[name] === true;
+            if (tip.active === visible) continue;
+            Tween.stopAllByTarget(tip);
+            tip.setScale(1, 1, 1);
+            tip.active = visible;
+            if (visible) {
+                tween(tip)
+                    .to(0.3, { scale: v3(1.5, 1.5, 1) })
+                    .to(0.3, { scale: v3(1, 1, 1) })
+                    .union().repeatForever().start();
+            }
+        }
     }
 
     private RefreshMainTaskTip(): void {

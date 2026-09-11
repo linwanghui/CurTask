@@ -41,6 +41,7 @@ export class ZRSJZ_PetGenePanel extends ZRSJZ_Panel {
         this._eventNode = ZRSJZ_UIManager.Instance?.node ?? null;
         this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.Refresh, this);
         this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.Refresh, this);
+        this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_PET_GENE_CHANGE, this.Refresh, this);
     }
 
     protected onDisable(): void {
@@ -49,6 +50,7 @@ export class ZRSJZ_PetGenePanel extends ZRSJZ_Panel {
         if (isValid(this._eventNode, true)) {
             this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.Refresh, this);
             this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.Refresh, this);
+            this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_PET_GENE_CHANGE, this.Refresh, this);
         }
         this._eventNode = null;
     }
@@ -241,8 +243,15 @@ export class ZRSJZ_PetGenePanel extends ZRSJZ_Panel {
     }
 
     private RenderTree(learned: number): void {
+        const reminderLevel = !EDITOR && ZRSJZ_PetService.GetGeneLearnError(this._petName, learned + 1) === ""
+            ? learned + 1 : 0;
         for (const [level, node] of this._nodes) {
-            for (const sprite of node.getComponentsInChildren(Sprite)) sprite.grayscale = level > learned;
+            const tip = node.getChildByName("红点");
+            for (const sprite of node.getComponentsInChildren(Sprite)) {
+                sprite.grayscale = sprite.node === tip ? false : level > learned;
+            }
+            // 编辑器保留红点可见以便调整；运行时只显示材料充足的下一等级。
+            if (tip && !EDITOR) tip.active = level === reminderLevel;
         }
         const selector = this._tree?.getChildByName("选中");
         const selected = this._nodes.get(this._selectedLevel);

@@ -300,6 +300,21 @@ export class ZRSJZ_PetService {
         return config.PetUnlock || "免费解锁";
     }
 
+    /** 可直接购买/领取的宠物提醒；视频解锁不作为已满足购买条件。 */
+    public static CanUnlockPet(petName: string): boolean {
+        const config = ZRSJZ_PET_CONFIG.get(petName);
+        if (!config || this.CheckPet(petName)) return false;
+        const data = ZRSJZ_GameData.Instance;
+        const value = config.PetUnlockValue;
+        switch (config.PetUnlock) {
+            case "": case "免费解锁": return true;
+            case "金币解锁": return Number.isInteger(value) && value > 0 && data.Gold >= value;
+            case "等级解锁": return Number.isInteger(value) && value > 0 && data.Grade >= value;
+            case "宠物碎片解锁": return Number.isSafeInteger(value) && value > 0 && ZRSJZ_FragmentService.GetCount() >= value;
+            default: return false;
+        }
+    }
+
     /** 视频奖励只能由广告成功回调传入；条件不足和未知配置均不发放宠物。 */
     public static TryUnlockPet(petName: string, videoRewarded: boolean = false): string {
         const config = ZRSJZ_PET_CONFIG.get(petName);
