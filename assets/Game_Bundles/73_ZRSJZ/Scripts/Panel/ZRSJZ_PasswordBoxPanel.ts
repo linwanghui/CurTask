@@ -1,17 +1,4 @@
-import {
-    _decorator,
-    Button,
-    Color,
-    EventTouch,
-    find,
-    Label,
-    Layout,
-    Node,
-    Sprite,
-    tween,
-    Tween,
-    v3,
-} from 'cc';
+import { _decorator, Button, Color, EventTouch, find, Label, Layout, Node, Sprite, tween, Tween, v3, } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -58,6 +45,7 @@ export class ZRSJZ_PasswordBoxPanel extends ZRSJZ_Panel {
     protected onLoad(): void {
         this.InitView();
         find("Panel/关闭", this.node)?.on(Node.EventType.TOUCH_END, this.Close, this);
+        find("Mask", this.node)?.on(Node.EventType.TOUCH_END, this.Close, this);
     }
 
     protected onDisable(): void {

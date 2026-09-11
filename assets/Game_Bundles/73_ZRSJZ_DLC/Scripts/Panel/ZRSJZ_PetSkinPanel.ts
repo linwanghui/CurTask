@@ -100,7 +100,7 @@ export class ZRSJZ_PetSkinPanel extends ZRSJZ_Panel {
             const frame = resource === "金币" ? this.GoldSF
                 : resource === "视频" ? this.VideoSF
                     : resource === "宠物碎片" ? this.FragmentSF
-                    : await ZRSJZ_UIManager.Instance.GetPropUI(resource);
+                        : await ZRSJZ_UIManager.Instance.GetPropUI(resource);
             if (!this.isValid || request !== this._iconRequest || !frame) return;
             this.UnlockIcon.sizeMode = Sprite.SizeMode.CUSTOM;
             this.UnlockIcon.spriteFrame = frame;
@@ -134,6 +134,7 @@ export class ZRSJZ_PetSkinPanel extends ZRSJZ_Panel {
     public OnButtonClick(event: EventTouch): void {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Mask":
             case "关闭":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.宠物皮肤弹窗);
                 break;

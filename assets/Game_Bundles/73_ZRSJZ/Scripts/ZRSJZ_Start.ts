@@ -292,7 +292,7 @@ export class ZRSJZ_Start extends Component {
     private RefreshMainReminders(): void {
         if (!ZRSJZ_UIManager.ZRSJZ_UI || !isValid(this.UIPanel, true)) return;
         if (this._mainReminderNodes.size === 0) {
-            const names = new Set(['收藏室', '强化', '宠物', '锻造台']);
+            const names = new Set(['宠物']);
             // 只匹配主页按钮，避免把同名宠物展示节点作为入口。
             for (const button of this.UIPanel.getComponentsInChildren(Button)) {
                 const target = button.node;

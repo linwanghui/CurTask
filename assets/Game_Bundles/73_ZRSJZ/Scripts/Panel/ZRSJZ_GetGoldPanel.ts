@@ -18,6 +18,7 @@ export class ZRSJZ_GetGoldPanel extends ZRSJZ_Panel {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Mask":
             case "关闭":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.获取金币弹窗);
                 break;

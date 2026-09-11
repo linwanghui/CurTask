@@ -122,6 +122,7 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
     public OnButtonClick(event: EventTouch) {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Mask":
             case "关闭":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.等级弹窗);
                 break;

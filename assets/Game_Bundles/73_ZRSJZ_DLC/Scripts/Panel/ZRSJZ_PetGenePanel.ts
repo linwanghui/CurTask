@@ -344,7 +344,7 @@ export class ZRSJZ_PetGenePanel extends ZRSJZ_Panel {
     public OnButtonClick(event: Button | Event): void {
         const node = event instanceof Button ? event.node : event.target as Node;
         ZRSJZ_AudioManager.Instance?.PlaySound("点击");
-        if (node.name === "关闭") { ZRSJZ_UIManager.Instance?.HidePanel(ZRSJZ_PANEL.宠物基因弹窗); return; }
+        if (node.name === "关闭" || node.name === "Mask") { ZRSJZ_UIManager.Instance?.HidePanel(ZRSJZ_PANEL.宠物基因弹窗); return; }
         if (/^Lv\d+$/.test(node.name)) { this._selectedLevel = Number(node.name.slice(2)); this.Refresh(); return; }
         if (node.name !== "学习" || this._learning) return;
         this._learning = true;

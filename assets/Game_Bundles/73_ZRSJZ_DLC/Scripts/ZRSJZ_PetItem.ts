@@ -39,15 +39,6 @@ export class ZRSJZ_PetItem extends Component {
         this.node.getChildByName("BattleState").active = owned && ZRSJZ_PetService.GetBattlePet(playerIndex) === this._petName;
         this.node.getChildByName("LockState").active = !owned;
         this.Check(selectedPet);
-        this.RefreshReminder();
-    }
-
-    public RefreshReminder(): void {
-        const tip = this.node.getChildByName("红点");
-        if (!tip) return;
-        const nextLevel = ZRSJZ_PetService.GetPetGrade(this._petName) + 1;
-        tip.active = ZRSJZ_PetService.CanUnlockPet(this._petName)
-            || ZRSJZ_PetService.GetGeneLearnError(this._petName, nextLevel) === "";
     }
 
     Click(): void {

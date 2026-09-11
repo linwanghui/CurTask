@@ -98,6 +98,7 @@ export class ZRSJZ_SpecialOperationsPanel extends ZRSJZ_Panel {
     OnButtonClick(event: EventTouch) {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "Mask":
             case "关闭":
                 this.ClosePanel();
                 break;
