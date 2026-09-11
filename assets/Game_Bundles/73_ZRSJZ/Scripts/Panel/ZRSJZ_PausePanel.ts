@@ -1,4 +1,5 @@
-import { _decorator, EventTouch } from 'cc';
+import { _decorator, EventTouch, Label } from 'cc';
+import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -10,6 +11,15 @@ const { ccclass, property } = _decorator;
 @ccclass('ZRSJZ_PausePanel')
 export class ZRSJZ_PausePanel extends ZRSJZ_Panel {
 
+    protected update(): void {
+        const label = this.node.getChildByName('Panel')?.getChildByName('联机等待提示')?.getComponent(Label);
+        if (label) {
+            label.node.active = true;
+            const ad = Object.values(Online.Holds).some(reasons => reasons.includes('ad') || reasons.includes('background'));
+            label.string = !Online.Battle ? '点击空白区域关闭...' : ad ? '等待另一个玩家重连' : Online.PeerWaiting ? '队友已暂停，等待队友继续游戏' : '已同步暂停，点击继续游戏恢复';
+        }
+    }
+
     public OnButtonClick(event: EventTouch): void {
         const requestGame = ZRSJZ_Game.Instance;
         if (!requestGame || requestGame.IsGameFinished) return;
@@ -18,6 +28,14 @@ export class ZRSJZ_PausePanel extends ZRSJZ_Panel {
         switch (event.getCurrentTarget().name) {
             case "继续游戏":
             case "Mask":
+                if (Online.Battle) {
+                    Online.SetHold('pause', false);
+                    ZRSJZ_Game.Instance.GamePaused = false;
+                    if (Online.PeerWaiting || Online.LocalHolds.has('ad') || Online.LocalHolds.has('background')) {
+                        void ZRSJZ_UIManager.Instance.ShowTip('请等待队友恢复连接或结束暂停');
+                        return;
+                    }
+                }
                 ZRSJZ_Game.Instance.GamePaused = false;
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.暂停界面);
                 break;
@@ -34,5 +52,3 @@ export class ZRSJZ_PausePanel extends ZRSJZ_Panel {
 
 
 }
-
-

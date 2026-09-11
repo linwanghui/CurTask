@@ -8,7 +8,7 @@ export class ZRSJZ_OnlineCombat {
     public static Applying = false;
     public static SuppressNative = false;
     public static get Replica(): boolean { return Online.Battle && !Online.BattleHost; }
-    public static get Stopped(): boolean { return Online.Battle && Online.BattleEnded; }
+    public static get Stopped(): boolean { return Online.Battle && (Online.BattleEnded || Online.Paused); }
     public static SendArea(origin: Vec3, range: number, damage: number): void {
         if (Online.BattleHost && !this.Applying) Online.Combat({ kind: 'area', x: origin.x, y: origin.y, range, damage });
     }

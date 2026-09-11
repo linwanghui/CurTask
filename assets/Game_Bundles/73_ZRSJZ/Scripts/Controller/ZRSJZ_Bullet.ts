@@ -128,6 +128,7 @@ export class ZRSJZ_Bullet extends Component {
     }
 
     protected update(dt: number): void {
+        if (Online.Paused) return;
         if (!this._isFlying) {
             this.Recycle();
             return;
@@ -238,4 +239,3 @@ export class ZRSJZ_Bullet extends Component {
         }
     }
 }
-

@@ -93,7 +93,9 @@ export class ZRSJZ_Game extends Component {
     readonly Players: ZRSJZ_Player[] = [];
     readonly Cameras: ZRSJZ_GameCamera[] = [];
 
-    GamePaused: boolean = false;
+    private _localGamePaused = false;
+    get GamePaused(): boolean { return this._localGamePaused || ZRSJZ_OnlineService.Paused; }
+    set GamePaused(value: boolean) { this._localGamePaused = value; }
     UnlimitedFirepower: boolean = false;
     Drug: number[][] = [[0, 0, 3], [0, 0, 3]];//两名玩家各自的高级/中级/低级药品
 
@@ -128,6 +130,7 @@ export class ZRSJZ_Game extends Component {
     private _specialOperationStartTime: number = 0;
     private _specialOperationState: "未领取" | "进行中" | "已完成" | "已失败" = "未领取";
     private _onlineOperationRun = 0;
+    private _onlineTaskPointCache = new Map<string, ZRSJZ_SpecialOperationsTaskIcon>();
     private _onlineOperationPoint = '';
     private _onlineOperationTarget = '';
     private _onlineOperationApplying = false;
@@ -1379,6 +1382,7 @@ export class ZRSJZ_Game extends Component {
                 this.OpenMapPanel();
                 break;
             case "设置":
+                ZRSJZ_OnlineService.SetHold('pause', true);
                 this.GamePaused = true;
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.暂停界面);
                 break;
@@ -1401,7 +1405,7 @@ export class ZRSJZ_Game extends Component {
     private InitMiniMap(): void {
         const mapConfig = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap);
         const miniMapMask = find("UICanvas/小地图/Mask");
-        const isConfiguredTwoPlayer = ZRSJZ_GameData.Instance.CurModel === "2p" && !this.IsTutorial;
+        const isConfiguredTwoPlayer = (ZRSJZ_GameData.Instance.CurModel === "2p" || ZRSJZ_OnlineService.Battle) && !this.IsTutorial;
         if (!mapConfig || !miniMapMask) {
             console.warn(`[ZRSJZ_Game] 无法初始化小地图: ${ZRSJZ_GameData.Instance.CurMap}`);
             return;
@@ -1417,6 +1421,11 @@ export class ZRSJZ_Game extends Component {
         this._miniMapPoint = this._miniMapMapRoot.getChildByName("我的位置");
         this._miniMapIcon = this._miniMapPoint?.getChildByName("Icon")?.getComponent(Sprite) ?? null;
         this._miniMapPlayer2Point = this._miniMapMapRoot.getChildByName("玩家2");
+        if (!this._miniMapPlayer2Point && this._miniMapPoint) {
+            this._miniMapPlayer2Point = instantiate(this._miniMapPoint);
+            this._miniMapPlayer2Point.name = '玩家2';
+            this._miniMapPlayer2Point.parent = this._miniMapMapRoot;
+        }
         this._miniMapPlayer2Icon = this._miniMapPlayer2Point
             ?.getChildByName("Icon")
             ?.getComponent(Sprite) ?? null;
@@ -1482,6 +1491,7 @@ export class ZRSJZ_Game extends Component {
 
         const taskPoints = this.CurMap.node.getComponentsInChildren(ZRSJZ_SpecialOperationsTaskIcon)
             .filter(point => point?.node?.isValid);
+        for (const point of taskPoints) this._onlineTaskPointCache.set(point.OnlineID, point);
         if (!this._breakWallAvailabilityRolled) {
             this._breakWallAvailabilityRolled = true;
             const breakWallPoints = taskPoints.filter(point => point.TaskName === "破壁行动");
@@ -1693,7 +1703,8 @@ export class ZRSJZ_Game extends Component {
                 (marker.MapPosition.y - this._miniMapDisplayCenterPosition.y) * mapScale.y,
                 marker.Node.position.z,
             );
-            marker.Node.active = marker.TaskPoint?.IsAvailable ?? false;
+            marker.Node.active = (marker.TaskPoint?.IsAvailable ?? false)
+                && !ZRSJZ_OnlineService.CompletedTaskPoints.has(marker.TaskPoint?.OnlineID);
         }
 
         const player1 = this.GetPlayer(0)?.node;
@@ -1713,10 +1724,11 @@ export class ZRSJZ_Game extends Component {
             this._miniMapPoint.active = !this._playersGivenUpResurrection.has(0);
         }
         const player2 = this.GetPlayer(1)?.node;
-        if (this._miniMapPlayer2Point && player2?.isValid && this.IsTwoPlayerMode()) {
+        const onlinePeer = ZRSJZ_OnlineService.Battle ? ZRSJZ_OnlineService.PeerPose : null;
+        if (this._miniMapPlayer2Point && (onlinePeer || (player2?.isValid && this.IsTwoPlayerMode()))) {
             this.UpdateMiniMapPlayerPoint(
                 this._miniMapPlayer2Point,
-                player2.worldPosition,
+                onlinePeer ? new Vec3(onlinePeer.x, onlinePeer.y, 0) : player2.worldPosition,
                 worldBounds,
                 mapSize.width,
                 mapSize.height,
@@ -1726,8 +1738,9 @@ export class ZRSJZ_Game extends Component {
                 this._miniMapDisplayCenterPosition,
                 this._miniMapPlayer2Position,
             );
-            this._miniMapPlayer2Point.active = !this._playersGivenUpResurrection.has(1);
-        }
+            this._miniMapPlayer2Point.active = onlinePeer ? !onlinePeer.dead : !this._playersGivenUpResurrection.has(1);
+            if (onlinePeer && this._miniMapPlayer2Icon) this._miniMapPlayer2Icon.color = new Color(80, 230, 255, 255);
+        } else if (this._miniMapPlayer2Point) this._miniMapPlayer2Point.active = false;
 
         const paracargoPosition = this.GetParacargoTargetWorldPosition();
         this.RefreshMiniMapImportantPoint(
@@ -1935,8 +1948,14 @@ export class ZRSJZ_Game extends Component {
     }
 
     private OnlineTaskPointID(point: ZRSJZ_SpecialOperationsTaskIcon): string {
-        const p = point.node.worldPosition;
-        return `${point.TaskName}|${Math.round(p.x)}|${Math.round(p.y)}`;
+        return point.OnlineID;
+    }
+    private FindOnlineTaskPoint(id: string): ZRSJZ_SpecialOperationsTaskIcon {
+        this._onlineTaskPointCache ??= new Map();
+        for (const item of this.CurMap.node.getComponentsInChildren(ZRSJZ_SpecialOperationsTaskIcon)) {
+            this._onlineTaskPointCache.set(item.OnlineID, item);
+        }
+        return this._onlineTaskPointCache.get(id);
     }
 
     /** 房主统一接取/结算，队友只应用状态；队友尚未载入地图时消息保留在队列中。 */
@@ -1946,8 +1965,7 @@ export class ZRSJZ_Game extends Component {
         while (online.OperationInbox.length) {
             const packet = online.OperationInbox.shift();
             if (packet.kind === 'accept' && online.Battle && online.BattleHost) {
-                const point = this.CurMap.node.getComponentsInChildren(ZRSJZ_SpecialOperationsTaskIcon)
-                    .find(item => this.OnlineTaskPointID(item) === packet.point);
+                const point = this.FindOnlineTaskPoint(packet.point);
                 if (!point) continue;
                 this._onlineOperationApplying = true;
                 this._onlineOperationCenter = new Vec3(packet.x, packet.y, 0);
@@ -1958,17 +1976,19 @@ export class ZRSJZ_Game extends Component {
             } else if (packet.kind === 'fail' && online.BattleHost && packet.run === this._onlineOperationRun) {
                 this.FailSpecialOperation('队友的特别行动条件未满足，行动失败');
             } else if (packet.kind === 'state' && !online.BattleHost && packet.run >= this._onlineOperationRun) {
-                const point = this.CurMap.node.getComponentsInChildren(ZRSJZ_SpecialOperationsTaskIcon)
-                    .find(item => this.OnlineTaskPointID(item) === packet.point);
+                const point = this.FindOnlineTaskPoint(packet.point);
                 if (!point) continue;
                 this._onlineOperationApplying = true;
                 try {
                     if (packet.run > this._onlineOperationRun) {
                         // 完整快照可跨过载入期间的接取/完成消息；每个 run 只发奖一次。
                         if (this._specialOperationState === '进行中') this.FailSpecialOperation('特别行动已切换');
-                        this._onlineOperationRun = packet.run;
                         this._onlineOperationCenter = new Vec3(packet.x, packet.y, 0);
-                        this.AcceptSpecialOperation(ZRSJZ_GameData.Instance.CurMap, point, 0);
+                        if (!this.AcceptSpecialOperation(ZRSJZ_GameData.Instance.CurMap, point, 0)) {
+                            console.warn('[联机任务] 接取快照失败，将等待下一次同步', packet.point, packet.run);
+                            continue;
+                        }
+                        this._onlineOperationRun = packet.run;
                     }
                     this._onlineOperationTarget = packet.target || this._onlineOperationTarget;
                     this._specialOperationStartTime = this._elapsedGameTime - packet.elapsed;
@@ -1976,6 +1996,7 @@ export class ZRSJZ_Game extends Component {
                         const config = GetSpecialOperationConfig(this._acceptedSpecialOperationMapKey, this._specialOperationTaskType);
                         if (config) this.CompleteSpecialOperation(config);
                     } else if (packet.state === '已失败') this.FailSpecialOperation('特别行动失败');
+                    if (packet.state !== '进行中') this.HideSpecialOperationPoint(point, 0);
                 } finally { this._onlineOperationApplying = false; this._onlineOperationCenter = null; }
             }
         }
@@ -2004,6 +2025,7 @@ export class ZRSJZ_Game extends Component {
 
     private PublishOnlineSpecialOperation(): void {
         if (!ZRSJZ_OnlineService.Battle || !ZRSJZ_OnlineService.BattleHost || this._onlineOperationRun <= 0) return;
+        if (this._specialOperationState !== '进行中') ZRSJZ_OnlineService.CompletedTaskPoints.add(this._onlineOperationPoint);
         const center = this._specialOperationBombCenter;
         ZRSJZ_OnlineService.Send('operation', { packet: { kind: 'state', run: this._onlineOperationRun,
             point: this._onlineOperationPoint, state: this._specialOperationState,

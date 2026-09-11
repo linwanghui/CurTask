@@ -44,6 +44,7 @@ export class ZRSJZ_Door extends Component {
     }
 
     protected onLoad(): void {
+        this.doorID = Online.SceneObjectKey(this.node, 'door');
         this.Spine = this.getComponent(sp.Skeleton);
         this.Sensor = this.getComponent(Collider2D);
         this.Collider = this.node.getChildByName("Collider");
@@ -52,7 +53,6 @@ export class ZRSJZ_Door extends Component {
 
     protected start(): void {
         this.Spine.setSkin(this.Skin);
-        this.doorID = `${this.Skin}|${this.RoomCard}|${Math.round(this.node.worldPosition.x)}|${Math.round(this.node.worldPosition.y)}`;
         if (!this.IsInsuranceDoor && Online.OpenDoors.has(this.doorID)) this.OpenInternal();
     }
     protected onDestroy(): void { Online.Events.off('door', this.OnOnlineDoor, this); }
@@ -122,6 +122,9 @@ export class ZRSJZ_Door extends Component {
     private OpenInternal(): void {
         if (this._isOpened) return;
         this._isOpened = true;
+        // 通行状态立即生效，不依赖暂停/后台时可能不执行的 Spine 动画回调。
+        this.Sensor.enabled = false;
+        this.Collider.active = false;
         ZRSJZ_AudioManager.Instance.PlaySound("开门");
         this.Spine.setAnimation(0, this.Skin, false);
         this.Spine.setCompleteListener(() => {
@@ -132,4 +135,3 @@ export class ZRSJZ_Door extends Component {
 
 
 }
-
