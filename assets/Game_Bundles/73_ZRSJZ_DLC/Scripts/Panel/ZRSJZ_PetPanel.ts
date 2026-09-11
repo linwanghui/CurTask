@@ -53,6 +53,7 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
         this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_PET_GENE_CHANGE, this.Refresh, this);
         this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_PET_SKIN_CHANGE, this.Refresh, this);
         this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshFragments, this);
+        this._eventNode?.on(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshReminders, this);
         this.RefreshFragments();
         this.schedule(this.RefreshFragments, 1);
         this.RefreshSpine();
@@ -68,6 +69,7 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
             this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_PET_GENE_CHANGE, this.Refresh, this);
             this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_PET_SKIN_CHANGE, this.Refresh, this);
             this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshFragments, this);
+            this._eventNode.off(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshReminders, this);
         }
         this._eventNode = null;
     }
@@ -120,6 +122,7 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
     }
 
     private RefreshFragments(): void {
+        this.RefreshReminders();
         this.SetLabel("Panel/宠物碎片/Num", String(ZRSJZ_FragmentService.GetCount()));
         this.SetLabel("Panel/免费获取宠物碎片/剩余次数", `剩余次数：${ZRSJZ_FragmentService.GetRemaining()}`);
     }
@@ -140,6 +143,7 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
     }
 
     private Refresh(): void {
+        this.RefreshReminders();
         const iconRequest = ++this._skillIconRequest;
         this.RefreshSpine();
         const config = ZRSJZ_PET_CONFIG.get(this._selectedPet);
@@ -178,6 +182,13 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
             if (lock) lock.active = !owned || !stats.Skills.includes(name);
         });
         if (this._selectedSkill >= 0) this.ShowSkillInfo(this._selectedSkill);
+    }
+
+    private RefreshReminders(): void {
+        this._items.forEach(item => item.RefreshReminder());
+        this.SetActive("Panel/PetDesc/解锁/红点", ZRSJZ_PetService.CanUnlockPet(this._selectedPet));
+        const nextLevel = ZRSJZ_PetService.GetPetGrade(this._selectedPet) + 1;
+        this.SetActive("Panel/基因/红点", ZRSJZ_PetService.GetGeneLearnError(this._selectedPet, nextLevel) === "");
     }
 
     private async RefreshSkillIcon(icon: Sprite, index: number, request: number): Promise<void> {

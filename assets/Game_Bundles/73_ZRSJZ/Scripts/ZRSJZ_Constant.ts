@@ -2275,7 +2275,7 @@ export const ZRSJZ_PET_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetSkinCo
         PetSkinSwarmSkin: "pifu_yinghua",
         PetSkinQuality: "史诗",
         PetSkinAddition: "生命值+50",
-        PetSkinUnlock: "视频x免费获取",
+        PetSkinUnlock: "宠物碎片x20",
     }],
 ])
 
@@ -2289,7 +2289,8 @@ export const ZRSJZ_PET_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetConfig>> = 
             1: 15, 2: 1, 3: 5, 4: 0.08, 6: 20, 7: 2, 8: 7, 9: 0.08,
             11: 25, 12: 2, 13: 9, 14: 0.08, 16: 30, 17: 3, 18: 12, 19: 0.08
         },
-        PetUnlock: "视频解锁",
+        PetUnlock: "宠物碎片解锁",
+        PetUnlockValue: 20,
         PetHarmony: 10,
         PetHP: 100,
         PetArmor: 5,
@@ -2306,7 +2307,7 @@ export const ZRSJZ_PET_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_PetConfig>> = 
             10: 1, 11: 60, 12: 6, 13: 3, 14: 0.03, 16: 80, 17: 8, 18: 4, 19: 0.03, 20: 1
         },
         PetUnlock: "宠物碎片解锁",
-        PetUnlockValue: 30,
+        PetUnlockValue: 50,
         PetHarmony: 8,
         PetHP: 200,
         PetArmor: 5,
