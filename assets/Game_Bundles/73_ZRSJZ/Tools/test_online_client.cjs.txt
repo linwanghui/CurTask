@@ -20,9 +20,28 @@ async function main(){
   await until(()=>a.Map==='极北之地_绝密行动'&&b.Map===a.Map);
   a.Send('ready',{ready:true,map:a.Map});b.Send('ready',{ready:true,map:b.Map});
   await until(()=>a.Room.members.every(m=>m.ready));a.Send('start');await until(()=>a.Battle&&b.Battle);
-  const pose={x:88,y:92,sx:-1,sy:1,skin:'default',animation:'daiji_q'};a.Send('pose',{pose});
-  await until(()=>b.PeerPose);assert.equal(JSON.stringify(b.PeerPose),JSON.stringify(pose));
+  const pose={x:88,y:92,sx:-1,sy:1,skin:'default',animation:'daiji_q',weapon:'AKM',weaponSkin:'AKM',mx:123,my:-48,aim:true,attack:'gongji',attackSerial:3,attackTime:0.12,attackSpeed:1.5,attackLoop:false};a.Send('pose',{pose});
+  await until(()=>b.PeerPose);assert.deepStrictEqual(JSON.parse(JSON.stringify(b.PeerPose)),pose);
   assert.equal(a.BattleHost,true);assert.equal(b.BattleHost,false);
+  const doorsA=[],doorsB=[];
+  a.Events.on('door',p=>doorsA.push(p));b.Events.on('door',p=>doorsB.push(p));
+  a.Send('door_claim',{id:'shared-key-door',mode:'key'});b.Send('door_claim',{id:'shared-key-door',mode:'key'});
+  await until(()=>doorsA.length&&doorsB.length);
+  const grants=[...doorsA,...doorsB].filter(p=>p.token);assert.equal(grants.length,1);
+  assert.equal([...doorsA,...doorsB].filter(p=>p.busy).length,1);
+  const winner=doorsA[0].token?a:b;
+  winner.Send('door_commit',{id:'shared-key-door',token:grants[0].token,success:true});
+  await until(()=>a.OpenDoors.has('shared-key-door')&&b.OpenDoors.has('shared-key-door'));
+  const previous=doorsB.length;b.Send('door_claim',{id:'shared-key-door',mode:'key'});
+  await until(()=>doorsB.length>previous);assert.equal(doorsB.at(-1).open,true);assert.equal(doorsB.at(-1).token,undefined);
+  a.Send('door_claim',{id:'ad-door',mode:'ad'});await until(()=>doorsA.some(p=>p.id==='ad-door'&&p.token));
+  a.Send('door_commit',{id:'ad-door',token:doorsA.find(p=>p.id==='ad-door').token,success:true});
+  await until(()=>b.OpenDoors.has('ad-door'));
+  a.Send('door_claim',{id:'failed-key-door',mode:'key'});await until(()=>doorsA.some(p=>p.id==='failed-key-door'&&p.token));
+  a.Send('door_commit',{id:'failed-key-door',token:doorsA.find(p=>p.id==='failed-key-door').token,success:false});
+  await until(()=>doorsA.some(p=>p.id==='failed-key-door'&&p.cancelled));
+  b.Send('door_claim',{id:'failed-key-door',mode:'key'});await until(()=>doorsB.some(p=>p.id==='failed-key-door'&&p.token));
+  assert.equal(a.OpenDoors.has('failed-key-door'),false);
   const state={id:'e1',name:'Boss1',x:12,y:23,sx:0.5,sy:0.5,fx:1,fy:1,hp:20,ax:0,ay:0,aim:false,stun:false,dead:false,animation:'daiji'};
   a.Combat({kind:'states',states:[state]});await until(()=>b.CombatStates.get('e1'));
   assert.equal(b.CombatStates.get('e1').hp,20);
@@ -38,7 +57,7 @@ async function main(){
   b.Combat({kind:'states',states:[state]});await sleep(100);assert.equal(a.CombatStates.size,0);
   a.Disconnect();await until(()=>b.Room.members.length===1);assert.equal(b.PeerPose,null);
   assert.equal(b.BattleEnded,true);
-  console.log('PASS: production TS clients: lobby/maps/readiness, host roles, movement, enemy/death snapshots, hits, shots, pets, authority rejection, disconnect termination.');
+  console.log('PASS: production TS clients: weapon/aim/attack pose, simultaneous key claim, shared key/ad doors, failed payment release, lobby/maps/readiness, enemy snapshots, hits, shots, pets, disconnect termination.');
  }finally{a.Disconnect();b.Disconnect();proc.kill();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

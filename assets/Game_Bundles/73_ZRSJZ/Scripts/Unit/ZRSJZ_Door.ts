@@ -3,6 +3,7 @@ import { _decorator, Collider2D, Component, Node, sp } from 'cc';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from "../Manager/ZRSJZ_AudioManager";
+import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Door')
@@ -19,6 +20,11 @@ export class ZRSJZ_Door extends Component {
     Collider: Node = null;
     private _isOpened: boolean = false;
     private _lastBlockedTipTime: number = 0;
+    private pending = false;
+    private pendingPlayer = 0;
+    private pendingMode = '';
+    private paidTokens = new Set<string>();
+    private doorID = '';
 
     /** 接触保险门时提示；短暂冷却避免碰撞抖动或双人同时接触刷屏。 */
     public ShowMissingOperationTip(): void {
@@ -41,10 +47,43 @@ export class ZRSJZ_Door extends Component {
         this.Spine = this.getComponent(sp.Skeleton);
         this.Sensor = this.getComponent(Collider2D);
         this.Collider = this.node.getChildByName("Collider");
+        Online.Events.on('door', this.OnOnlineDoor, this);
     }
 
     protected start(): void {
         this.Spine.setSkin(this.Skin);
+        this.doorID = `${this.Skin}|${this.RoomCard}|${Math.round(this.node.worldPosition.x)}|${Math.round(this.node.worldPosition.y)}`;
+        if (!this.IsInsuranceDoor && Online.OpenDoors.has(this.doorID)) this.OpenInternal();
+    }
+    protected onDestroy(): void { Online.Events.off('door', this.OnOnlineDoor, this); }
+    private RequestOnlineOpen(mode: string, playerIndex = 0): boolean {
+        if (!Online.Connected || Online.BattleEnded) { ZRSJZ_UIManager.Instance.ShowTip('连接恢复为单机后请重试开门'); return false; }
+        if (Online.OpenDoors.has(this.doorID)) { this.OpenInternal(); return true; }
+        if (this.pending) return false;
+        this.pending = true; this.pendingMode = mode; this.pendingPlayer = playerIndex;
+        Online.Send('door_claim', { id: this.doorID, mode });
+        return true;
+    }
+    private OnOnlineDoor(message: any): void {
+        if (!this.isValid || message.id !== this.doorID || this.IsInsuranceDoor) return;
+        if (message.open) { this.pending = false; this.OpenInternal(); return; }
+        if (message.busy || message.cancelled) {
+            this.pending = false;
+            if (message.busy) ZRSJZ_UIManager.Instance.ShowTip('队友正在解锁，请稍后重试');
+            return;
+        }
+        if (!message.token || !this.pending || !Online.Battle) return;
+        if (this.paidTokens.has(message.token)) { Online.Send('door_commit', { id: this.doorID, token: message.token, success: true }); return; }
+        const success = this.pendingMode !== 'key' || ZRSJZ_InventoryService.ConsumeEquippedRoomCard(this.RoomCard, this.pendingPlayer);
+        if (success) {
+            this.paidTokens.add(message.token);
+            // 已扣费后即使提交时断线，本机也保留开门成果。
+            Online.OpenDoors.add(this.doorID);
+            this.OpenInternal();
+            if (this.pendingMode === 'key') ZRSJZ_UIManager.Instance.ShowTip(`已使用${this.RoomCard}`);
+        } else ZRSJZ_UIManager.Instance.ShowTip(`${this.RoomCard}已失效`);
+        Online.Send('door_commit', { id: this.doorID, token: message.token, success });
+        this.pending = false;
     }
 
     public TryOpenWithRoomCard(playerIndex: number = 0): boolean {
@@ -53,6 +92,8 @@ export class ZRSJZ_Door extends Component {
             ZRSJZ_UIManager.Instance.ShowTip(`需要在卡包中装备${this.RoomCard}`);
             return false;
         }
+        if (Online.Battle) return this.RequestOnlineOpen('key', playerIndex);
+        this.pending = false;
         if (!ZRSJZ_InventoryService.ConsumeEquippedRoomCard(this.RoomCard, playerIndex)) {
             ZRSJZ_UIManager.Instance.ShowTip(`${this.RoomCard}已失效`);
             return false;
@@ -64,7 +105,11 @@ export class ZRSJZ_Door extends Component {
     }
 
     public Open() {
+        if (!this.isValid) return;
         if (this.IsInsuranceDoor) return;
+        if (this._isOpened) return;
+        if (Online.Battle) { this.RequestOnlineOpen('ad'); return; }
+        this.pending = false;
         this.OpenInternal();
     }
 
@@ -87,5 +132,4 @@ export class ZRSJZ_Door extends Component {
 
 
 }
-
 
