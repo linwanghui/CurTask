@@ -3,7 +3,7 @@ import { _decorator, AudioClip, AudioSource, Camera, Canvas, Component, director
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
-import { ZRSJZ_INVENTORY, ZRSJZ_MAIL_TYPE, ZRSJZ_MailPropAward, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_INVENTORY, ZRSJZ_MAIL_TYPE, ZRSJZ_MailPropAward, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_PROP_QUALITY } from '../ZRSJZ_Constant';
 import { ZRSJZ_InventoryAmmo } from '../UI/ZRSJZ_InventoryAmmo';
 import { ZRSJZ_PoolManager } from './ZRSJZ_PoolManager';
 import { ZRSJZ_CurrencyEffect } from '../Effect/ZRSJZ_CurrencyEffect';
@@ -1356,6 +1356,9 @@ export class ZRSJZ_UIManager extends Component {
     ): Promise<boolean> {
         const propData = ZRSJZ_GameData.Instance.PropData[propID];
         if (!propData) return false;
+        if (sourceInventory === ZRSJZ_INVENTORY.物资 && ZRSJZ_UIManager.IsBattle) {
+            return this.QuickLootProp(propID, playerIndex === 1 ? 1 : 0);
+        }
 
         let targetInventory: ZRSJZ_INVENTORY = null;
         let organizeBeforePlacement = false;
@@ -1434,6 +1437,79 @@ export class ZRSJZ_UIManager extends Component {
             );
         }
         return success;
+    }
+
+    private readonly _quickLootPlayers = new Set<number>();
+    private readonly _quickLootPropIDs = new Set<string>();
+
+    /** 箱内双击：装备/弹药/卡包优先，其次金/红品质进保险箱，最后尝试背包。 */
+    private async QuickLootProp(propID: string, playerIndex: number): Promise<boolean> {
+        if (this._quickLootPlayers.has(playerIndex) || this._quickLootPropIDs.has(propID)) return false;
+        const prop = ZRSJZ_GameData.Instance.PropData[propID];
+        const sourceBoxID = prop?.SourceBoxID;
+        const canMove = () => this.IsAvailable() && ZRSJZ_UIManager.IsBattle
+            && ZRSJZ_GameData.Instance.PropData[propID] === prop
+            && prop?.CurInventory === ZRSJZ_INVENTORY.物资
+            && prop.SourceBoxID === sourceBoxID && !prop.IsSearchLocked && !prop.IsRewardVideoLocked
+            && (prop.OwnerPlayerIndex !== 0 && prop.OwnerPlayerIndex !== 1 || prop.OwnerPlayerIndex === playerIndex);
+        if (!canMove()) return false;
+        this._quickLootPlayers.add(playerIndex);
+        this._quickLootPropIDs.add(propID);
+        try {
+            const getTarget = async (type: ZRSJZ_INVENTORY): Promise<ZRSJZ_Inventory> => {
+                const node = await this.GetInventory(type, playerIndex, true);
+                const inventory = node?.getComponent(ZRSJZ_Inventory);
+                return canMove() && inventory?.IsInitialized && inventory.PlayerViewIndex === playerIndex
+                    ? inventory : null;
+            };
+            const equipmentTypes: Record<string, ZRSJZ_INVENTORY> = {
+                枪: ZRSJZ_INVENTORY.武器_枪,
+                头盔: ZRSJZ_INVENTORY.武器_头盔,
+                防弹衣: ZRSJZ_INVENTORY.武器_防弹衣,
+                背包: ZRSJZ_INVENTORY.武器_背包,
+                刀: ZRSJZ_INVENTORY.武器_刀,
+            };
+            const equipmentType = equipmentTypes[prop.PropType];
+            if (equipmentType) {
+                const equipment = await getTarget(equipmentType);
+                if (equipment) {
+                    const slot = ZRSJZ_Tools.GetWeaponryIndexByInventory(equipmentType);
+                    const equippedID = ZRSJZ_InventoryService.GetWeaponryIDs(playerIndex)[slot];
+                    const equipped = ZRSJZ_GameData.Instance.PropData[equippedID];
+                    // 比较单件价值，相等时保留当前装备；交换仍遵守双方占格和类型规则。
+                    if ((!equipped || prop.UnitPrice > equipped.UnitPrice)
+                        && await equipment.TryReceiveProp(ZRSJZ_INVENTORY.物资, propID)) return true;
+                }
+            }
+            if (!canMove()) return false;
+            const dedicatedType = prop.PropType === "弹药" ? ZRSJZ_INVENTORY.弹药
+                : (prop.PropType === "房卡" || prop.PropType === "门禁卡") ? ZRSJZ_INVENTORY.卡包 : null;
+            if (dedicatedType) {
+                const dedicated = await getTarget(dedicatedType);
+                if (dedicated) {
+                    await dedicated.TryReceiveProp(ZRSJZ_INVENTORY.物资, propID);
+                    // 弹药接口在只补满部分堆叠时也返回 true；必须继续收纳箱内剩余弹药。
+                    const remaining = ZRSJZ_GameData.Instance.PropData[propID];
+                    if (!remaining || remaining.CurInventory === dedicatedType) return true;
+                }
+            }
+            if (!canMove()) return false;
+            const quality = ZRSJZ_PROP_CONFIG.get(prop.Name)?.Quality;
+            if (quality === ZRSJZ_PROP_QUALITY.金色 || quality === ZRSJZ_PROP_QUALITY.红色) {
+                const safe = await getTarget(ZRSJZ_INVENTORY.保险箱);
+                if (safe && await safe.TryReceiveProp(ZRSJZ_INVENTORY.物资, propID, true)) return true;
+            }
+            if (!canMove()) return false;
+            const backpack = await getTarget(ZRSJZ_INVENTORY.背包);
+            if (!backpack) return false;
+            const enoughCells = backpack.HasEnoughEmptyGridCount(propID);
+            if (await backpack.TryReceiveProp(ZRSJZ_INVENTORY.物资, propID, true)) return true;
+            this.ShowTip(enoughCells ? "道具无法存放" : "背包空间不足");
+            return false;
+        } finally {
+            this._quickLootPlayers.delete(playerIndex);
+            this._quickLootPropIDs.delete(propID);
+        }
     }
 
     /**
