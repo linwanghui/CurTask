@@ -1,4 +1,4 @@
-import { EventTarget } from 'cc';
+import { EventTarget, Node } from 'cc';
 import { ZRSJZ_MAP_CONFIG } from '../ZRSJZ_Constant';
 
 export interface ZRSJZ_OnlineMember { id: string; name: string; ready: boolean; }
@@ -23,6 +23,30 @@ export class ZRSJZ_OnlineService {
     public static OpenDoors = new Set<string>();
     public static BreakWallAvailable = false;
     public static OperationInbox: any[] = [];
+    public static CompletedTaskPoints = new Set<string>();
+    public static Holds: { [id: string]: string[] } = {};
+    public static LocalHolds = new Set<string>();
+    public static PeerPoseAt = 0;
+    public static HoldReady = false;
+    public static get PeerWaiting(): boolean { return Object.keys(this.Holds).some(id => id !== this.SelfID && this.Holds[id].length > 0); }
+    public static get Paused(): boolean { return this.Battle && (this.LocalHolds.size > 0 || Object.values(this.Holds).some(a => a.length > 0)); }
+    public static SetHold(reason: string, active: boolean): void {
+        if (!this.Battle || this.BattleEnded) return;
+        if (active) this.LocalHolds.add(reason); else this.LocalHolds.delete(reason);
+        this.Send('hold', { reason, active });
+        this.Events.emit('hold');
+    }
+    /** 固定于场景加载时，不使用世界坐标、排序索引或运行时 UUID。 */
+    public static SceneObjectKey(node: Node, kind: string): string {
+        let path = kind;
+        for (let item = node; item && !item.getComponent('ZRSJZ_Map'); item = item.parent) {
+            const p = item.position;
+            path += `/${item.name}:${Math.round(p.x * 10)},${Math.round(p.y * 10)}`;
+        }
+        let hash = 2166136261;
+        for (let i = 0; i < path.length; i++) hash = Math.imul(hash ^ path.charCodeAt(i), 16777619);
+        return kind + ':' + (hash >>> 0).toString(16);
+    }
     public static CombatStates = new Map<string, any>();
     public static Status = '未连接服务器';
     private static socket: WebSocket = null;
@@ -54,7 +78,7 @@ export class ZRSJZ_OnlineService {
         this.lastMessage = Date.now();
         this.timer = setInterval(() => {
             if (this.socket !== ws) return;
-            if (Date.now() - this.lastMessage > 15000) { this.Disconnect(); this.SetStatus('连接超时，请检查地址、端口和防火墙'); return; }
+            if (Date.now() - this.lastMessage > (this.LocalHolds.has('ad') || this.LocalHolds.has('background') ? 180000 : 15000)) { this.Disconnect(); this.SetStatus('连接超时，请检查地址、端口和防火墙'); return; }
             if (this.Connected) this.Send('ping');
         }, 3000);
         ws.onopen = () => {
@@ -69,7 +93,7 @@ export class ZRSJZ_OnlineService {
             let message: any;
             try { message = JSON.parse(event.data); } catch { return; }
             if (message.type === 'welcome') {
-                if (message.version !== 5) { this.Disconnect(); this.SetStatus('服务器需要更新到版本5，请替换server.py并重启'); return; }
+                if (message.version !== 6) { this.Disconnect(); this.SetStatus('服务器需要更新到版本6，请替换server.py并重启'); return; }
                 this.SelfID = message.id;
                 this.SetStatus('已连接，可创建或加入房间');
             } else if (message.type === 'room') {
@@ -86,11 +110,19 @@ export class ZRSJZ_OnlineService {
                 this.CombatStates.clear();
                 this.OpenDoors.clear();
                 this.OperationInbox = [];
+                this.CompletedTaskPoints.clear();
+                this.Holds = {}; this.LocalHolds.clear(); this.PeerPoseAt = Date.now();
                 this.BreakWallAvailable = message.breakWall === true;
                 this.PeerPose = null;
                 this.Events.emit('start');
             } else if (message.type === 'pose') {
                 this.PeerPose = message.pose;
+                this.PeerPoseAt = Date.now();
+            } else if (message.type === 'hold') {
+                this.Holds = message.holds || {};
+                this.HoldReady = message.ready === true;
+                this.Events.emit('hold');
+                if (!this.HoldReady) this.Send('hold_ready', { revision: message.revision });
             } else if (message.type === 'combat' && this.Battle && !this.BattleEnded) {
                 const packet = message.packet;
                 if (!packet || typeof packet !== 'object') return;
@@ -99,6 +131,7 @@ export class ZRSJZ_OnlineService {
                 }
                 this.Events.emit('combat', packet);
             } else if (message.type === 'operation' && this.Battle && !this.BattleEnded) {
+                if (message.packet?.kind === 'state' && message.packet.state !== '进行中') this.CompletedTaskPoints.add(message.packet.point);
                 if (message.packet && this.OperationInbox.length < 256) this.OperationInbox.push(message.packet);
             } else if (message.type === 'door') {
                 if (message.open) this.OpenDoors.add(message.id);

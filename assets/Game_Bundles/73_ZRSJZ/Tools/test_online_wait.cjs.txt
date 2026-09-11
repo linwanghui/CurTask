@@ -1,0 +1,21 @@
+// Production pause/ad adapter; SDK and engine are stubs, no real ads or windows.
+const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+class Events{constructor(){this.list=[];}on(k,f,t){this.list.push([k,f,t]);}off(k,f){this.list=this.list.filter(x=>x[0]!==k||x[1]!==f);}emit(k){for(const [key,f,t] of [...this.list])if(key===k)f.call(t);}}
+let adCalls=0,rewardCallback,closeCallback,rewards=0,panels=0;
+const online={Battle:true,BattleEnded:false,SelfID:'a',Holds:{},LocalHolds:new Set(),HoldReady:false,Events:new Events(),SetHold(reason,active){active?this.LocalHolds.add(reason):this.LocalHolds.delete(reason);this.Events.emit('hold');},get Paused(){return this.Battle&&(this.LocalHolds.size>0||Object.values(this.Holds).some(a=>a.length));}};
+const sdk={onClose:f=>closeCallback=f,onError(){},offClose(){},offError(){}};
+const banner={Instance:{rewardedVideoAd:sdk,ShowVideoAd(callback){adCalls++;rewardCallback=callback;}}};
+const physics={instance:{enable:true}},spine={isValid:true,paused:false};
+const deps={default:banner,ZRSJZ_OnlineService:online,ZRSJZ_PANEL:{暂停界面:'pause'},ZRSJZ_Game:{Instance:{CurMap:{node:{getComponentsInChildren:()=>[spine]}}}},ZRSJZ_UIManager:{Instance:{ShowPanel(){panels++;},HidePanel(){panels--;},ShowTip(){}}}};
+const code=ts.transpileModule(fs.readFileSync(path.resolve(__dirname,'../Scripts/Controller/ZRSJZ_OnlineBattle.ts'),'utf8'),{compilerOptions:{module:1,target:7,experimentalDecorators:true}}).outputText;
+let timer=0;const timers=new Map(),out={};vm.runInNewContext(code,{exports:out,console,setTimeout:f=>{timers.set(++timer,f);return timer;},clearTimeout:id=>timers.delete(id),require:n=>n==='cc'?{_decorator:{ccclass:()=>c=>c},Component:class{},Vec3:class{},PhysicsSystem2D:physics,sp:{Skeleton:class{}}}:deps});
+const bridge=new out.ZRSJZ_OnlineBattle();bridge.isValid=true;bridge.InstallAdWait();
+banner.Instance.ShowVideoAd(()=>rewards++);assert.equal(adCalls,0);assert(online.LocalHolds.has('ad'));
+online.Holds={a:['ad']};online.Events.emit('hold');assert.equal(adCalls,0);
+online.HoldReady=true;online.Events.emit('hold');assert.equal(adCalls,1);
+bridge.OnHold();assert.equal(physics.instance.enable,false);assert.equal(spine.paused,true);
+rewardCallback();rewardCallback();assert.equal(rewards,1);assert(!online.LocalHolds.has('ad'));
+online.Holds={};bridge.OnHold();assert.equal(physics.instance.enable,true);assert.equal(spine.paused,false);
+online.HoldReady=false;banner.Instance.ShowVideoAd(()=>rewards++);online.Holds={a:['ad']};online.HoldReady=true;online.Events.emit('hold');closeCallback();assert.equal(rewards,1);assert(!online.LocalHolds.has('ad'));
+console.log('PASS: do not launch before both-party acknowledgement, pause physics/Spine, restore pause ownership, success once, cancelled ad releases wait without reward.');

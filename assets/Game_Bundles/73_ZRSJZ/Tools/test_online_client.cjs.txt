@@ -13,6 +13,10 @@ async function main(){
  const proc=cp.spawn(serverRoot+'/.venv/Scripts/python.exe',['-u',serverRoot+'/server.py','--host','127.0.0.1','--port',String(port)],{windowsHide:true,stdio:['ignore','pipe','pipe']});
  let ready=false;proc.stdout.on('data',()=>ready=true);proc.stderr.on('data',()=>{});
  const a=client(),b=client();
+ const mapRoot={getComponent:()=>true};
+ const item=(worldX)=>({name:'门',position:{x:10,y:20},worldPosition:{x:worldX,y:500},parent:mapRoot,getComponent:()=>null});
+ assert.equal(a.SceneObjectKey(item(100),'door'),b.SceneObjectKey(item(9000),'door'));
+ const other=item(100);other.position.x=30;assert.notEqual(a.SceneObjectKey(item(100),'door'),a.SceneObjectKey(other,'door'));
  try{
   await until(()=>ready);a.Connect('ws://127.0.0.1:'+port);b.Connect('ws://127.0.0.1:'+port);
   await until(()=>a.SelfID&&b.SelfID);a.Create();await until(()=>a.Room);b.Join(a.Room.code);
@@ -31,6 +35,16 @@ async function main(){
   b.Send('operation',{packet:task});await sleep(100);assert.equal(a.OperationInbox.length,0);
   b.Send('operation',{packet:{kind:'boxes',run:1}});await until(()=>a.OperationInbox.length===1);assert.equal(a.OperationInbox.shift().kind,'boxes');
   a.Send('operation',{packet:{...task,state:'已完成'}});await until(()=>b.OperationInbox.length===1);assert.equal(b.OperationInbox.shift().state,'已完成');
+  a.SetHold('pause',true);await until(()=>a.Paused&&b.Paused&&a.HoldReady&&b.HoldReady);
+  assert.equal(b.PeerWaiting,true);
+  b.SetHold('pause',true);await until(()=>a.Holds[b.SelfID]?.includes('pause'));
+  a.SetHold('pause',false);await until(()=>!b.Holds[a.SelfID]?.includes('pause'));assert.equal(a.Paused,true);
+  b.SetHold('pause',false);await until(()=>!a.Paused&&!b.Paused);
+  b.SetHold('ad',true);await until(()=>a.Paused&&b.HoldReady);
+  let pausedHit=false;a.Events.on('combat',p=>{if(p.kind==='hit'&&p.id==='paused-target')pausedHit=true;});
+  b.Combat({kind:'hit',id:'paused-target',harm:99});await sleep(150);assert.equal(pausedHit,false);
+  b.SetHold('ad',false);await until(()=>!a.Paused&&!b.Paused);
+  b.Send('sync');await until(()=>b.OperationInbox.length);assert.equal(b.OperationInbox.shift().state,'已完成');assert(b.CompletedTaskPoints.has(task.point));
   const doorsA=[],doorsB=[];
   a.Events.on('door',p=>doorsA.push(p));b.Events.on('door',p=>doorsB.push(p));
   a.Send('door_claim',{id:'shared-key-door',mode:'key'});b.Send('door_claim',{id:'shared-key-door',mode:'key'});
@@ -50,6 +64,7 @@ async function main(){
   await until(()=>doorsA.some(p=>p.id==='failed-key-door'&&p.cancelled));
   b.Send('door_claim',{id:'failed-key-door',mode:'key'});await until(()=>doorsB.some(p=>p.id==='failed-key-door'&&p.token));
   assert.equal(a.OpenDoors.has('failed-key-door'),false);
+  b.OpenDoors.clear();b.Send('sync');await until(()=>b.OpenDoors.has('shared-key-door')&&b.OpenDoors.has('ad-door'));
   const state={id:'e1',name:'Boss1',x:12,y:23,sx:0.5,sy:0.5,fx:1,fy:1,hp:20,ax:0,ay:0,aim:false,stun:false,dead:false,animation:'daiji'};
   a.Combat({kind:'states',states:[state]});await until(()=>b.CombatStates.get('e1'));
   assert.equal(b.CombatStates.get('e1').hp,20);

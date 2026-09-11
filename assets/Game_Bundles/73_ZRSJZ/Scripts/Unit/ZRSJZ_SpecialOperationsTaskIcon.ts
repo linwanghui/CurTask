@@ -1,5 +1,6 @@
 import { _decorator, CircleCollider2D, Component, Node, Prefab, RigidBody2D } from 'cc';
 import { ZRSJZ_SpecialOperationTaskType } from '../ZRSJZ_Constant';
+import { ZRSJZ_OnlineService } from '../Service/ZRSJZ_OnlineService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_SpecialOperationsTaskIcon')
@@ -25,9 +26,12 @@ export class ZRSJZ_SpecialOperationsTaskIcon extends Component {
     HighValueTargetPoint: Node = null;
 
     private _checked: Node = null;
+    private _onlineID = '';
+    public get OnlineID(): string { return this._onlineID ||= ZRSJZ_OnlineService.SceneObjectKey(this.node, 'task'); }
     private readonly _checkingPlayers = new Set<number>();
 
     protected onLoad(): void {
+        void this.OnlineID;
         this._checked = this.node.getChildByName("Checked");
         if (this._checked) this._checked.active = false;
         const rigidBody = this.getComponent(RigidBody2D);

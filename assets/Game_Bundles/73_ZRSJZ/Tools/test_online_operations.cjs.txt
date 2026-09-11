@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('ass
 const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
 class Vec{constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z});}clone(){return new Vec(this.x,this.y,this.z);}set(v){Object.assign(this,v);}}
 let awards=0,spawns=0;const sent=[];
-const online={Battle:true,BattleHost:true,Connected:true,BattleEnded:false,OperationInbox:[],Send:(type,p)=>sent.push(p.packet)};
+const online={Battle:true,BattleHost:true,Connected:true,BattleEnded:false,OperationInbox:[],CompletedTaskPoints:new Set(),Send:(type,p)=>sent.push(p.packet)};
 const config=type=>({TaskType:type||'高价值目标',TimeLimitSeconds:300,GoldReward:100,PropAwards:[]});
 const enemies=new Map();
 const deps={ZRSJZ_OnlineService:online,ZRSJZ_GameData:{Instance:{CurMap:'map',PropData:{}}},ZRSJZ_EnemyBase:{OnlineEnemies:enemies},ZRSJZ_SPECIAL_OPERATION_CONFIG:new Map([['map',config()]]),GetSpecialOperationConfig:(_,type)=>config(type),ZRSJZ_PANEL:{获取奖励弹窗:'reward'},ZRSJZ_UIManager:{Instance:{ShowPanel(){awards++;},ShowTip(){}}},ZRSJZ_TaskService:{RecordKills(){}},ZRSJZ_InventoryService:{GetWeaponryIDs:()=>[]}};
@@ -11,7 +11,7 @@ const code=ts.transpileModule(fs.readFileSync(path.resolve(__dirname,'../Scripts
 const out={};vm.runInNewContext(code,{exports:out,console,require:n=>n==='cc'?{_decorator:{ccclass:()=>c=>c,property:()=>()=>{}},Component:class{},Vec3:Vec}:deps});
 const Game=out.ZRSJZ_Game;
 function game(type='高价值目标'){
- const g=Object.create(Game.prototype),point={TaskName:type,IsAvailable:true,node:{worldPosition:new Vec(10,20)},ResolveTaskType:()=>type};
+ const g=Object.create(Game.prototype),point={OnlineID:'task:'+type,TaskName:type,IsAvailable:true,node:{worldPosition:new Vec(10,20)},ResolveTaskType:()=>type};
  Object.assign(g,{_battleStarted:true,_isGameFinished:false,_specialOperationState:'未领取',_elapsedGameTime:10,_specialOperationSetupVersion:0,_onlineOperationRun:0,_onlineOperationSyncTime:0,_specialOperationBombCenter:new Vec(),_specialOperationBombRadius:0,_killCount:0,Players:[],CurMap:{Unit:{isValid:true},node:{getComponentsInChildren:()=>[point]}}});
  for(const method of ['CancelEvacuation','PlayTaskStateAnimation','SetSpecialOperationCountdownVisible','RefreshSpecialOperationCountdown','CleanupFailedSpecialOperationObjective'])g[method]=()=>{};
  g.HideSpecialOperationPoint=p=>p.IsAvailable=false;
@@ -31,3 +31,10 @@ online.OperationInbox.push({kind:'boxes',run:99});wall.SyncOnlineSpecialOperatio
 online.OperationInbox.push({kind:'boxes',run:wall._onlineOperationRun});wall.SyncOnlineSpecialOperation(.3);wall.UpdateSpecialOperation();assert.equal(wall.GetSpecialOperationState(),'已完成');assert.equal(awards,3);
 const {g:solo,point:sp}=game('破壁行动');online.OperationInbox.push({kind:'accept',point:solo.OnlineTaskPointID(sp),x:10,y:20});solo.SyncOnlineSpecialOperation(.3);solo._breakWallMailboxes[0].OpenedBoxCount=9;solo.NotifyBreakWallBoxOpened(solo._breakWallMailboxes[0]);online.Battle=false;online.BattleHost=false;solo.SyncOnlineSpecialOperation(.3);solo.UpdateSpecialOperation();assert.equal(solo.GetSpecialOperationState(),'已完成');
 console.log('PASS: shared accept, one host spawn, either-player target kill via host, guest completion, duplicate award protection, both box requirements, stale progress rejected, solo continuation.');
+// A temporarily unavailable target must not advance the applied run and lose the reward forever.
+online.Battle=true;online.BattleHost=false;const {g:retry}=game();const original=retry.AcceptSpecialOperation;retry.AcceptSpecialOperation=()=>false;
+online.OperationInbox.push(start);retry.SyncOnlineSpecialOperation(.3);assert.equal(retry._onlineOperationRun,0);
+retry.AcceptSpecialOperation=original;online.OperationInbox.push(completed);retry.SyncOnlineSpecialOperation(.3);const count=awards;
+online.OperationInbox.push(completed);retry.SyncOnlineSpecialOperation(.3);assert.equal(awards,count);assert.equal(retry._specialOperationState,'已完成');
+assert.equal(retry.FindOnlineTaskPoint(completed.point).IsAvailable,false);
+console.log('PASS: replay after failed apply, terminal task point hidden, no duplicate award on replay.');

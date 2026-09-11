@@ -1,10 +1,11 @@
-import { _decorator, Component, instantiate, Node, Prefab, sp, Vec3, Label, director, Director } from 'cc';
+import { _decorator, Component, instantiate, Node, Prefab, sp, Vec3, Label, director, Director, game, Game, PhysicsSystem2D } from 'cc';
+import Banner from 'db://assets/Scripts/Banner';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
+import { ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_AccountService } from '../Service/ZRSJZ_AccountService';
 import { ZRSJZ_OnlineCombat as Coop } from '../Service/ZRSJZ_OnlineCombat';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
@@ -22,6 +23,7 @@ export class ZRSJZ_OnlineBattle extends Component {
     private peer: Node = null;
     private skeleton: sp.Skeleton = null;
     private elapsed = 0;
+    private stateReplayElapsed = 0;
     private initialized = false;
     private positioned = false;
     private skin = '';
@@ -42,10 +44,86 @@ export class ZRSJZ_OnlineBattle extends Component {
     private attackSerial = -1;
     private outfitKey = '';
     private outfitSlots: string[] = [];
+    private originalAd: Function = null;
+    private wrappedAd: any = null;
+    private adCleanup: (() => void) = null;
+    private waitingPanel = false;
+    private physicsBeforeWait: boolean = null;
+    private waitingSpines = new Map<sp.Skeleton, boolean>();
+
+    private OnHold(): void {
+        if (Online.Paused && !this.solo) {
+            if (this.physicsBeforeWait === null) this.physicsBeforeWait = PhysicsSystem2D.instance.enable;
+            PhysicsSystem2D.instance.enable = false;
+            for (const spine of ZRSJZ_Game.Instance?.CurMap?.node?.getComponentsInChildren(sp.Skeleton) ?? []) {
+                if (!this.waitingSpines.has(spine)) this.waitingSpines.set(spine, spine.paused);
+                spine.paused = true;
+            }
+            this.waitingPanel = true;
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.暂停界面);
+        } else {
+            if (this.physicsBeforeWait !== null) PhysicsSystem2D.instance.enable = this.physicsBeforeWait;
+            this.physicsBeforeWait = null;
+            this.RestoreWaitingSpines();
+            if (this.waitingPanel && !ZRSJZ_Game.Instance?.IsGameFinished
+                && (Online.Battle || !ZRSJZ_Game.Instance?.GamePaused)) ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.暂停界面);
+            this.waitingPanel = false;
+        }
+    }
+    private RestoreWaitingSpines(): void {
+        for (const [spine, wasPaused] of this.waitingSpines ?? []) if (spine.isValid) spine.paused = wasPaused;
+        this.waitingSpines?.clear();
+    }
+    private OnAppHide(): void { Online.SetHold('background', true); }
+    private OnAppShow(): void {
+        Online.SetHold('background', false);
+        // 部分广告 SDK 取消/失败不调用奖励回调，返回前台也必须释放等待。
+        const cleanup = this.adCleanup;
+        if (cleanup) setTimeout(() => { if (this.adCleanup === cleanup) cleanup(); }, 500);
+    }
+    private InstallAdWait(): void {
+        if (!Banner.Instance) return;
+        this.originalAd = Banner.Instance.ShowVideoAd;
+        this.wrappedAd = (callback: Function, args?: any) => {
+            if (!Online.Battle || this.solo) return this.originalAd.call(Banner.Instance, callback, args);
+            if (this.adCleanup) return;
+            let launched = false, closed = false, rewarded = false, sdk: any = null;
+            const cleanup = () => {
+                if (closed) return; closed = true;
+                clearTimeout(timeout); clearTimeout(watchdog);
+                Online.Events.off('hold', launch, this);
+                sdk?.offClose?.(cleanup); sdk?.offError?.(cleanup);
+                this.adCleanup = null;
+                Online.SetHold('ad', false);
+            };
+            const launch = () => {
+                if (launched || closed || !Online.HoldReady || !Online.Holds[Online.SelfID]?.includes('ad')) return;
+                launched = true; clearTimeout(timeout);
+                try {
+                    this.originalAd.call(Banner.Instance, (...rewardArgs: any[]) => {
+                        if (rewarded) return; rewarded = true;
+                        cleanup(); if (this.isValid) callback?.(...rewardArgs);
+                    }, args);
+                    sdk = (Banner.Instance as any).rewardedVideoAd;
+                    if (!closed) { sdk?.onClose?.(cleanup); sdk?.onError?.(cleanup); }
+                } catch (error) { cleanup(); console.warn('[联机广告]', error); }
+            };
+            const timeout = setTimeout(() => { if (!launched) { cleanup(); ZRSJZ_UIManager.Instance.ShowTip('队伍暂停确认超时，请重试'); } }, 5000);
+            const watchdog = setTimeout(() => { cleanup(); Online.Disconnect(); }, 180000);
+            this.adCleanup = cleanup;
+            Online.Events.on('hold', launch, this);
+            Online.SetHold('ad', true);
+        };
+        Banner.Instance.ShowVideoAd = this.wrappedAd;
+    }
 
     protected onLoad(): void {
         this.online = Online.Battle;
-        if (!this.online) { Online.OpenDoors.clear(); Online.OperationInbox = []; return; }
+        if (!this.online) { Online.OpenDoors.clear(); Online.CompletedTaskPoints.clear(); Online.OperationInbox = []; Online.Holds = {}; Online.LocalHolds.clear(); return; }
+        Online.Events.on('hold', this.OnHold, this);
+        game.on(Game.EVENT_HIDE, this.OnAppHide, this);
+        game.on(Game.EVENT_SHOW, this.OnAppShow, this);
+        this.InstallAdWait();
         Online.Events.on('peer_left', this.OnPeerLeft, this);
         Online.Events.on('battle_end', this.OnBattleEnd, this);
         Online.Events.on('combat', this.OnCombat, this);
@@ -72,6 +150,8 @@ export class ZRSJZ_OnlineBattle extends Component {
         if (!player?.node?.isValid || !game.CurMap?.Unit?.isValid) return;
         if (this.solo) { this.ContinueSolo(); return; }
         if (Online.BattleEnded) return;
+        this.stateReplayElapsed += dt;
+        if (this.stateReplayElapsed >= 5) { this.stateReplayElapsed = 0; Online.Send('sync'); }
         if (Online.BattleHost && game.IsGameFinished && !this.endedSent) {
             this.endedSent = true;
             this.SyncEnemies();
@@ -79,6 +159,7 @@ export class ZRSJZ_OnlineBattle extends Component {
         }
         if (!this.initialized) {
             this.initialized = true;
+            Online.Send('sync');
             // 两端固定同一出生点，客机偏移少量距离便于辨认。
             const point = game.CurMap.PlayerPoints[0];
             if (point) player.node.setWorldPosition(point.worldPosition.x + (Online.IsHost ? 0 : 100), point.worldPosition.y, point.worldPosition.z);
@@ -339,6 +420,8 @@ export class ZRSJZ_OnlineBattle extends Component {
         Online.Battle = false;
         Online.BattleHost = false;
         Online.Disconnect();
+        this.adCleanup?.();
+        this.OnHold();
         this.peer?.destroy(); this.peer = null;
         this.pet?.destroy(); this.pet = null;
         this.petState = null;
@@ -371,6 +454,13 @@ export class ZRSJZ_OnlineBattle extends Component {
     }
     protected onDestroy(): void {
         if (!this.online) return;
+        this.adCleanup?.();
+        if (Banner.Instance?.ShowVideoAd === this.wrappedAd) Banner.Instance.ShowVideoAd = this.originalAd as any;
+        game.off(Game.EVENT_HIDE, this.OnAppHide, this);
+        game.off(Game.EVENT_SHOW, this.OnAppShow, this);
+        Online.Events.off('hold', this.OnHold, this);
+        if (this.physicsBeforeWait !== null) PhysicsSystem2D.instance.enable = this.physicsBeforeWait;
+        this.RestoreWaitingSpines();
         Online.Events.off('peer_left', this.OnPeerLeft, this);
         Online.Events.off('combat', this.OnCombat, this);
         Online.Events.off('battle_end', this.OnBattleEnd, this);
