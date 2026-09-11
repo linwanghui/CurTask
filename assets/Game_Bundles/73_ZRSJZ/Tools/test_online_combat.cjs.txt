@@ -12,6 +12,8 @@ const dependencies={ZRSJZ_OnlineService:Online,ZRSJZ_OnlineCombat:Coop,
 const code=ts.transpileModule(fs.readFileSync(path.resolve(__dirname,'../Scripts/Controller/ZRSJZ_EnemyBase.ts'),'utf8'),{compilerOptions:{module:1,target:7,experimentalDecorators:true}}).outputText;
 const exportsObject={};vm.runInNewContext(code,{exports:exportsObject,console,require:n=>n==='cc'?{_decorator:{ccclass:()=>c=>c,property:()=>()=>{}},Component:class{},Vec2:Vec,Vec3:Vec}:dependencies});
 const Enemy=exportsObject.ZRSJZ_EnemyBase;
+// Task-marker rendering requires Cocos nodes and is outside this combat-only test.
+Enemy.prototype.SetTaskTargetMarker=function(){};
 function enemy(){const e=new Enemy();e.OnlineID='e1';e.onlineStarted=true;e._health=100;e.node={name:'持枪小兵',worldPosition:new Vec(1,2),scale:new Vec(0.5,0.5,1),setWorldPosition(){},setScale(){}};e.HP={Show(){}};e.Colliders=[];e.ClearNavigation=()=>{};e.StopMoving=()=>{};e.beHitEffect=()=>{};e.OnDeath=()=>stats.drops++;return e;}
 const e=enemy();e.BeHit(20);assert.equal(e.Health,100);assert.equal(packets[0].kind,'hit');
 e.ApplyPetStun(2);e.ApplyPetPull(new Vec(3,4),20);assert.deepEqual(packets.map(p=>p.kind),['hit','stun','pull']);

@@ -1,10 +1,11 @@
-import { _decorator, Component, instantiate, Node, Prefab, sp, Vec3, Label } from 'cc';
+import { _decorator, Component, instantiate, Node, Prefab, sp, Vec3, Label, director, Director } from 'cc';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_SKIN_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
+import { ZRSJZ_AccountService } from '../Service/ZRSJZ_AccountService';
 import { ZRSJZ_OnlineCombat as Coop } from '../Service/ZRSJZ_OnlineCombat';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
@@ -37,14 +38,17 @@ export class ZRSJZ_OnlineBattle extends Component {
     private solo = false;
     private soloStates = new Map<string, any>();
     private restoreNative = false;
+    private weaponKey = '';
+    private attackSerial = -1;
 
     protected onLoad(): void {
         this.online = Online.Battle;
-        if (!this.online) return;
+        if (!this.online) { Online.OpenDoors.clear(); return; }
         Online.Events.on('peer_left', this.OnPeerLeft, this);
         Online.Events.on('battle_end', this.OnBattleEnd, this);
         Online.Events.on('combat', this.OnCombat, this);
         Online.Events.on('local_evacuated', this.OnLocalEvacuated, this);
+        director.on(Director.EVENT_BEFORE_DRAW, this.ApplyPeerAim, this);
         if (Online.BattleEnded) { this.OnBattleEnd(Online.EndReason); return; }
         BundleManager.GetBundle('73_ZRSJZ_DLC').load('Prefabs/Unit/OnlinePet', Prefab, (error, prefab) => {
             if (this.isValid && !error) this.petTemplate = prefab;
@@ -89,6 +93,12 @@ export class ZRSJZ_OnlineBattle extends Component {
                 skin: ZRSJZ_SKIN_CONFIG.get(local.SkinName)?.Skin || 'default',
                 animation: local.Skeleton.getCurrent(0)?.animation?.name || 'daiji_q',
                 dead: player.IsDead || game.IsGameFinished,
+                weapon: local.WeaponryName || '', weaponSkin: local.WeaponryName ? ZRSJZ_AccountService.GetWeaponSkin(local.WeaponryName) : '',
+                mx: local.Skeleton.findBone('mz')?.x || 0, my: local.Skeleton.findBone('mz')?.y || 0,
+                aim: local.HasDirection && !local.IsKnife,
+                attack: local.Skeleton.getCurrent(1)?.animation?.name || '', attackSerial: local.OnlineAttackSerial,
+                attackTime: local.Skeleton.getCurrent(1)?.trackTime || 0, attackSpeed: local.Skeleton.getCurrent(1)?.timeScale || 1,
+                attackLoop: local.Skeleton.getCurrent(1)?.loop || false,
             } });
             const pet = Coop.PetPose?.();
             Online.Combat({ kind: 'pet', pet: pet || null });
@@ -106,11 +116,55 @@ export class ZRSJZ_OnlineBattle extends Component {
         const data = this.skeleton.skeletonData?.getRuntimeData();
         if (data?.findSkin(pose.skin) && this.skin !== pose.skin) {
             this.skeleton.setSkin(pose.skin); this.skin = pose.skin;
+            this.weaponKey = '';
         }
         if (data?.findAnimation(pose.animation) && this.skeleton.getCurrent(0)?.animation?.name !== pose.animation) {
             this.skeleton.setAnimation(0, pose.animation, true);
         }
         this.UpdatePet(dt);
+        void this.ApplyPeerWeapon();
+        if (!pose.attack) { if (this.skeleton.getCurrent(1)) this.skeleton.clearTrack(1); }
+        else if (data?.findAnimation(pose.attack) && (this.attackSerial !== pose.attackSerial || this.skeleton.getCurrent(1)?.animation?.name !== pose.attack)) {
+            const entry = this.skeleton.setAnimation(1, pose.attack, !!pose.attackLoop);
+            entry.trackTime = pose.attackTime || 0; entry.timeScale = pose.attackSpeed || 1;
+            this.attackSerial = pose.attackSerial;
+        }
+    }
+    private ApplyPeerAim(): void {
+        const pose = Online.PeerPose;
+        if (this.solo || !this.peer?.activeInHierarchy || !pose?.aim || !this.skeleton?._skeleton) return;
+        const bone = this.skeleton.findBone('mz');
+        if (bone && Number.isFinite(pose.mx) && Number.isFinite(pose.my)) {
+            bone.x = pose.mx; bone.y = pose.my;
+            this.skeleton._skeleton.updateWorldTransform();
+        }
+    }
+    private async ApplyPeerWeapon(): Promise<void> {
+        const pose = Online.PeerPose, skeleton = this.skeleton;
+        if (!pose || !skeleton?._skeleton) return;
+        const key = JSON.stringify([pose.skin, pose.weapon, pose.weaponSkin]);
+        if (this.weaponKey === key) return;
+        this.weaponKey = key;
+        ZRSJZ_WEAPONRY_TYPE.forEach((_names, slot) => skeleton.findSlot(slot)?.setAttachment(null));
+        skeleton.findSlot('dao')?.setAttachment(null);
+        if (!pose.weapon) return;
+        let gun = '';
+        ZRSJZ_WEAPONRY_TYPE.forEach((names, slot) => { if (names.includes(pose.weapon)) gun = slot; });
+        if (gun && skeleton.findSlot(gun)) {
+            skeleton.setAttachment(gun, gun);
+            try {
+                const texture = await ZRSJZ_UIManager.Instance.GetWeaponryUI(pose.weaponSkin || pose.weapon);
+                if (this.isValid && !this.solo && this.skeleton === skeleton && this.weaponKey === key && texture) skeleton.setSlotTexture(gun, texture, true);
+            } catch (error) { if (this.weaponKey === key) this.weaponKey = ''; console.warn('[联机] 武器贴图加载失败', error); }
+        } else {
+            // 使用 JSON 检查附件，避免 JSB 查询不存在的附件时崩溃。
+            let json: any = skeleton.skeletonData?.skeletonJson;
+            if (typeof json === 'string') { try { json = JSON.parse(json); } catch { return; } }
+            const skins = json?.skins;
+            const attachments = Array.isArray(skins) ? skins.filter(s => s.name === pose.skin || s.name === 'default').map(s => s.attachments)
+                : [skins?.[pose.skin], skins?.default];
+            if (attachments.some(s => s?.dao?.[pose.weapon]) && skeleton.findSlot('dao')) skeleton.setAttachment('dao', pose.weapon);
+        }
     }
     private SyncEnemies(): void {
         if (Online.BattleHost) {
@@ -295,6 +349,7 @@ export class ZRSJZ_OnlineBattle extends Component {
         Online.Events.off('combat', this.OnCombat, this);
         Online.Events.off('battle_end', this.OnBattleEnd, this);
         Online.Events.off('local_evacuated', this.OnLocalEvacuated, this);
+        director.off(Director.EVENT_BEFORE_DRAW, this.ApplyPeerAim, this);
         this.peer?.destroy();
         this.pet?.destroy();
         Coop.Peer = null;

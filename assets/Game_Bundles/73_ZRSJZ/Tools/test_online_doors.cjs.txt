@@ -1,0 +1,19 @@
+// Production door component with engine/inventory stubs; no asset or save mutations.
+const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const sent=[];let charges=0,canPay=true;
+const Online={Battle:true,Connected:true,BattleEnded:false,OpenDoors:new Set(),Send:(kind,p)=>sent.push({kind,...p})};
+const deps={ZRSJZ_OnlineService:Online,ZRSJZ_InventoryService:{HasEquippedRoomCard:()=>true,ConsumeEquippedRoomCard:()=>{if(canPay)charges++;return canPay;}},ZRSJZ_UIManager:{Instance:{ShowTip(){}}},ZRSJZ_AudioManager:{Instance:{PlaySound(){}}}};
+const code=ts.transpileModule(fs.readFileSync(path.resolve(__dirname,'../Scripts/Unit/ZRSJZ_Door.ts'),'utf8'),{compilerOptions:{module:1,target:7,experimentalDecorators:true}}).outputText;
+const out={};vm.runInNewContext(code,{exports:out,require:n=>n==='cc'?{_decorator:{ccclass:()=>c=>c,property:()=>()=>{}},Component:class{}}:deps});
+function door(id){const d=new out.ZRSJZ_Door();d.isValid=true;d.doorID=id;d.Spine={setAnimation(){},setCompleteListener(fn){fn();}};d.Sensor={enabled:true};d.Collider={active:true};return d;}
+const d=door('a');assert(d.TryOpenWithRoomCard());assert.equal(charges,0);
+d.OnOnlineDoor({id:'a',token:'one'});assert.equal(charges,1);assert.equal(d.Collider.active,false);
+d.OnOnlineDoor({id:'a',token:'one'});assert.equal(charges,1);assert.equal(d.TryOpenWithRoomCard(),false);
+const peer=door('a');peer.OnOnlineDoor({id:'a',open:true});assert.equal(charges,1);assert.equal(peer.CanOpenManually,false);
+const busy=door('b');busy.TryOpenWithRoomCard();busy.OnOnlineDoor({id:'b',busy:true});assert.equal(charges,1);assert.equal(busy.CanOpenManually,true);
+canPay=false;busy.TryOpenWithRoomCard();busy.OnOnlineDoor({id:'b',token:'two'});assert.equal(sent.at(-1).success,false);assert.equal(busy.CanOpenManually,true);
+const ad=door('ad');ad.Open();ad.OnOnlineDoor({id:'ad',token:'ad-token'});assert.equal(charges,1);assert.equal(ad.CanOpenManually,false);
+const insurance=door('insurance');insurance.Skin='保险门';insurance.OnOnlineDoor({id:'insurance',open:true});assert.equal(insurance.Collider.active,true);
+Online.Battle=false;canPay=true;const solo=door('solo');assert(solo.TryOpenWithRoomCard());assert.equal(charges,2);assert.equal(solo.CanOpenManually,false);
+console.log('PASS: no debit before grant, duplicate grant safe, remote/ad free, busy and failed payment safe, insurance unchanged, offline key unlock.');

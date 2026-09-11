@@ -3,7 +3,9 @@ import { ZRSJZ_MAP_CONFIG } from '../ZRSJZ_Constant';
 
 export interface ZRSJZ_OnlineMember { id: string; name: string; ready: boolean; }
 export interface ZRSJZ_OnlineRoom { code: string; host: string; phase: string; map: string; members: ZRSJZ_OnlineMember[]; }
-export interface ZRSJZ_OnlinePose { x: number; y: number; sx: number; sy: number; skin: string; animation: string; dead?: boolean; }
+export interface ZRSJZ_OnlinePose { x: number; y: number; sx: number; sy: number; skin: string; animation: string; dead?: boolean;
+    weapon?: string; weaponSkin?: string; mx?: number; my?: number; aim?: boolean;
+    attack?: string; attackSerial?: number; attackTime?: number; attackSpeed?: number; attackLoop?: boolean; }
 
 /** 只传房间与局内表现数据，不上传仓库、道具、任务或存档。 */
 export class ZRSJZ_OnlineService {
@@ -17,6 +19,7 @@ export class ZRSJZ_OnlineService {
     public static BattleHost = false;
     public static BattleEnded = false;
     public static EndReason = 'disconnected';
+    public static OpenDoors = new Set<string>();
     public static CombatStates = new Map<string, any>();
     public static Status = '未连接服务器';
     private static socket: WebSocket = null;
@@ -63,7 +66,7 @@ export class ZRSJZ_OnlineService {
             let message: any;
             try { message = JSON.parse(event.data); } catch { return; }
             if (message.type === 'welcome') {
-                if (message.version !== 3) { this.Disconnect(); this.SetStatus('服务器需要更新到版本3，请替换server.py并重启'); return; }
+                if (message.version !== 4) { this.Disconnect(); this.SetStatus('服务器需要更新到版本4，请替换server.py并重启'); return; }
                 this.SelfID = message.id;
                 this.SetStatus('已连接，可创建或加入房间');
             } else if (message.type === 'room') {
@@ -78,6 +81,7 @@ export class ZRSJZ_OnlineService {
                 this.BattleEnded = false;
                 this.EndReason = 'disconnected';
                 this.CombatStates.clear();
+                this.OpenDoors.clear();
                 this.PeerPose = null;
                 this.Events.emit('start');
             } else if (message.type === 'pose') {
@@ -89,6 +93,9 @@ export class ZRSJZ_OnlineService {
                     for (const state of packet.states) this.CombatStates.set(state.id, state);
                 }
                 this.Events.emit('combat', packet);
+            } else if (message.type === 'door') {
+                if (message.open) this.OpenDoors.add(message.id);
+                this.Events.emit('door', message);
             } else if (message.type === 'battle_end') {
                 this.BattleEnded = true;
                 this.EndReason = message.reason === 'evacuated' ? 'evacuated' : message.reason === 'finished' ? 'finished' : 'disconnected';

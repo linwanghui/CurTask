@@ -22,6 +22,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     HasDirection: boolean = true;
     Facing: number = 1;
     IsKnife: boolean = false;
+    public OnlineAttackSerial = 0;
 
     private _mzBone: sp.spine.Bone = null;
     private _baseScale = new Vec3();
@@ -90,6 +91,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     /** Track 1：枪械或刀的攻击动画，不会替换 Track 0 的移动状态。 */
     PlayAttackAni(aniName: string, loop: boolean = false, cb: Function = null): any {
         if (!this.Skeleton) return null;
+        this.OnlineAttackSerial++;
         const entry = this.Skeleton.setAnimation(1, aniName, loop);
         this.SetTrackCompleteCallback(1, cb);
         return entry;
