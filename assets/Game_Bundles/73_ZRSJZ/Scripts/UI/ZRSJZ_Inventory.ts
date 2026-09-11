@@ -57,7 +57,9 @@ export class ZRSJZ_Inventory extends Component {
         const movable = (propID: string, from: ZRSJZ_Inventory, to: ZRSJZ_Inventory): boolean => {
             const prop = data[propID];
             return !!prop && !prop.IsSearchLocked && !prop.IsRewardVideoLocked && to.IsAdaptive(propID)
-                && from.InventoryType !== ZRSJZ_INVENTORY.武器_刀
+                // 禁止单独卸下刀，但允许新刀换入后把旧刀回填来源位置。
+                && (from.InventoryType !== ZRSJZ_INVENTORY.武器_刀
+                    || (propID !== id && this.InventoryType === ZRSJZ_INVENTORY.武器_刀 && incoming.PropType === '刀'))
                 && !(ZRSJZ_UIManager.IsBattle && from.InventoryType === ZRSJZ_INVENTORY.武器_背包)
                 && !(ZRSJZ_UIManager.IsBattle && (prop.OwnerPlayerIndex === 0 || prop.OwnerPlayerIndex === 1)
                     && prop.OwnerPlayerIndex !== to.PlayerViewIndex);
@@ -113,10 +115,15 @@ export class ZRSJZ_Inventory extends Component {
                 [returnWidth, returnHeight] = [returnHeight, returnWidth];
             }
             if (rotated && !source.SupportsAutoRotation()) return null;
-            if (offsetX + returnWidth > origin.width || offsetY + returnHeight > origin.height) return null;
-            const returned = { inventory: source, id: targetID, gridX: origin.x + offsetX, gridY: origin.y + offsetY,
-                width: returnWidth, height: returnHeight, isRotate: !!rotated };
-            if (!source.CanPlaceForSwap(returned, ignored, plan)) return null;
+            const orientations = [{ width: returnWidth, height: returnHeight, isRotate: !!rotated }];
+            if (source.SupportsAutoRotation() && returnWidth !== returnHeight) {
+                orientations.push({ width: returnHeight, height: returnWidth, isRotate: !rotated });
+            }
+            const returned = orientations.map(orientation => ({
+                inventory: source, id: targetID, gridX: origin.x + offsetX, gridY: origin.y + offsetY, ...orientation,
+            })).find(candidate => offsetX + candidate.width <= origin.width && offsetY + candidate.height <= origin.height
+                && source.CanPlaceForSwap(candidate, ignored, plan));
+            if (!returned) return null;
             plan.push(returned);
         }
         return plan;

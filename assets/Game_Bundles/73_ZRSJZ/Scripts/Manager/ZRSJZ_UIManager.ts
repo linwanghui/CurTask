@@ -1,5 +1,5 @@
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
-import { _decorator, AudioClip, AudioSource, Camera, Canvas, Component, director, EventKeyboard, find, input, Input, instantiate, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
+import { _decorator, AudioClip, AudioSource, Camera, Canvas, Component, director, Director, EventKeyboard, find, input, Input, instantiate, isValid, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_Inventory } from '../UI/ZRSJZ_Inventory';
@@ -45,6 +45,29 @@ export class ZRSJZ_UIManager extends Component {
 
     private static _instance: ZRSJZ_UIManager = null;
     private static _lifecycleVersion: number = 0;
+    private static _exitEventScene: Node = null;
+    private static readonly _bindExitEvent = (): void => {
+        ZRSJZ_UIManager.UnbindExitScene();
+        const scene = director.getScene();
+        if (!isValid(scene, true)) return;
+        ZRSJZ_UIManager._exitEventScene = scene;
+        scene.once('退出游戏', ZRSJZ_UIManager.Recycle, ZRSJZ_UIManager);
+    };
+
+    private static UnbindExitScene(): void {
+        const scene = ZRSJZ_UIManager._exitEventScene;
+        ZRSJZ_UIManager._exitEventScene = null;
+        // 引用非空不代表节点有效：场景销毁后，其内部事件处理器已被清空。
+        // 待销毁或已销毁的场景会自行清理监听，不能再调用 Node.off。
+        if (isValid(scene, true)) {
+            scene.off('退出游戏', ZRSJZ_UIManager.Recycle, ZRSJZ_UIManager);
+        }
+    }
+
+    private static RemoveExitEvents(): void {
+        director.off(Director.EVENT_AFTER_SCENE_LAUNCH, ZRSJZ_UIManager._bindExitEvent);
+        ZRSJZ_UIManager.UnbindExitScene();
+    }
     private static readonly _onDebugKeyDown = (event: EventKeyboard): void => {
         if (event.keyCode === KeyCode.KEY_P) {
             ZRSJZ_UIManager.Instance?.ShowPanel(ZRSJZ_PANEL.作弊界面);
@@ -117,6 +140,7 @@ export class ZRSJZ_UIManager extends Component {
      */
     public static Recycle(): void {
         const instance = ZRSJZ_UIManager._instance;
+        ZRSJZ_UIManager.RemoveExitEvents();
         input.off(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
         ZRSJZ_UIManager._lifecycleVersion++;
         if (!instance) {
@@ -125,6 +149,8 @@ export class ZRSJZ_UIManager extends Component {
         }
 
         instance._isRecycling = true;
+        // destroy 延迟到帧末处理，先立即隐藏常驻UI，避免覆盖返回后的主页。
+        if (instance.node?.isValid) instance.node.active = false;
         instance.CleanupBeforeRecycle();
         ZRSJZ_UIManager._instance = null;
         ZRSJZ_UIManager.ResetStaticState();
@@ -142,6 +168,7 @@ export class ZRSJZ_UIManager extends Component {
 
     protected onDestroy(): void {
         if (ZRSJZ_UIManager._instance !== this) return;
+        ZRSJZ_UIManager.RemoveExitEvents();
         input.off(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
         ZRSJZ_UIManager._lifecycleVersion++;
         this._isRecycling = true;
@@ -408,7 +435,10 @@ export class ZRSJZ_UIManager extends Component {
     public static InitEvent() {
         input.off(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
         input.on(Input.EventType.KEY_DOWN, ZRSJZ_UIManager._onDebugKeyDown);
-        director.getScene().once("退出游戏", this.Recycle, this);
+        // UI是常驻节点，退出事件必须跟随教程、大厅、战斗等场景重新绑定。
+        ZRSJZ_UIManager.RemoveExitEvents();
+        director.on(Director.EVENT_AFTER_SCENE_LAUNCH, ZRSJZ_UIManager._bindExitEvent);
+        ZRSJZ_UIManager._bindExitEvent();
     }
 
     //#region UI展示

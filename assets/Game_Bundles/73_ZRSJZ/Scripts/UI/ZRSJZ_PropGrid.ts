@@ -240,6 +240,12 @@ export class ZRSJZ_PropGrid extends Component {
 
     /** 交换时复用现有节点与贴图，只更新库存归属、位置和朝向。 */
     public Relocate(inventory: ZRSJZ_INVENTORY, gridX: number, gridY: number, isRotate: boolean): void {
+        this._touchID = -1;
+        this._isMove = false;
+        this._dragAxis = 0;
+        this.unschedule(this.ShowPendingPropPanel);
+        this._lastTapTime = 0;
+        this._pendingTapPropID = '';
         this._inventory = inventory;
         this._gridX = gridX;
         this._gridY = gridY;
@@ -248,6 +254,10 @@ export class ZRSJZ_PropGrid extends Component {
         this.Check.active = false;
         this.Checked.active = false;
         this.ApplyOrientation(this.SupportsAutoRotation(inventory) && isRotate, this.PropData.Width, this.PropData.Height);
+        // 活跃节点直接换父级时，主动使触摸分发排序失效，并重新绑定父链遮罩。
+        // 否则从装备栏移回 ScrollView 的道具可能排在仓库捕获节点之后，点击被吞掉。
+        this.node.pauseSystemEvents(false);
+        this.node.resumeSystemEvents(false);
     }
 
     private ApplyOrientation(isRotate: boolean, originalWidth: number, originalHeight: number): void {

@@ -858,7 +858,7 @@ export interface ZRSJZ_SkinConfig {
 
 export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> = new Map([
     ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.蓝色, UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0000_前刘海_蓝狼"], EntranceAnis: ["cc_ll"] }],
-    ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "金币", UnlockPrice: 100000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
+    ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "金币", UnlockPrice: 4000000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
     ["泠汐", { Name: "泠汐", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
     ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
     ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [], EntranceAnis: ["cc_w"] }],

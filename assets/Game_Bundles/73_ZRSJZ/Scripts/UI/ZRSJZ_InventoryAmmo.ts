@@ -97,7 +97,7 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
 
         const targetID = this.Grids[gridY]?.[gridX];
         const canDrop = !targetID || targetID === id
-            || ZRSJZ_GameData.Instance.PropData[targetID]?.Name === propData.Name
+            || this.CanMergeAmmo(id, targetID)
             || !!this.GetSwapPlan(id, gridX, gridY, 1, 1, false);
         if (!isConfirm) {
             ZRSJZ_EventManager.EmitPersist(
@@ -194,12 +194,20 @@ export class ZRSJZ_InventoryAmmo extends ZRSJZ_Inventory {
         const targetData = ZRSJZ_GameData.Instance.PropData[targetID];
         if (!incomingData || !targetData) return;
 
-        if (incomingData.Name === targetData.Name) {
+        if (this.CanMergeAmmo(incomingID, targetID)) {
             await this.MergeAmmo(incomingID, targetID, sourceIndex);
             return;
         }
 
         await this.CommitSwap(this.GetSwapPlan(incomingID, gridX, gridY, 1, 1, false));
+    }
+
+    private CanMergeAmmo(incomingID: string, targetID: string): boolean {
+        const incoming = ZRSJZ_GameData.Instance.PropData[incomingID];
+        const target = ZRSJZ_GameData.Instance.PropData[targetID];
+        if (!incoming || !target || incomingID === targetID || incoming.Name !== target.Name) return false;
+        const maxCount = ZRSJZ_PROP_CONFIG.get(target.Name)?.MaxCount ?? target.MaxCount;
+        return incoming.CurCount > 0 && target.CurCount < maxCount;
     }
 
     private async MergeAmmo(incomingID: string, targetID: string, sourceIndex: number) {

@@ -6,6 +6,9 @@ import { ZRSJZ_InventoryService } from "./ZRSJZ_InventoryService";
 
 /** 账号、签到、角色与皮肤相关业务。存档字段本身仍由 ZRSJZ_GameData 持有。 */
 export class ZRSJZ_AccountService {
+    /** 签到测试开关：true 时忽略每日限制，可当天按顺序领完七天；正式发布保持 false。 */
+    public static DebugIgnoreSignInDate: boolean = false;
+
     public static GetSignInClaimedCount(): number {
         return Math.max(0, Math.min(7, Math.floor(ZRSJZ_GameData.Instance.SignInClaimedCount ?? 0)));
     }
@@ -16,7 +19,8 @@ export class ZRSJZ_AccountService {
 
     public static CanClaimSignInReward(): boolean {
         const data = ZRSJZ_GameData.Instance;
-        return !this.IsSignInCompleted() && data.SignInLastClaimDate !== this.GetLocalDateKey();
+        return !this.IsSignInCompleted()
+            && (this.DebugIgnoreSignInDate || data.SignInLastClaimDate !== this.GetLocalDateKey());
     }
 
     /** 领取下一天签到奖励，成功时返回 0～6 的奖励索引。 */
@@ -106,3 +110,4 @@ export class ZRSJZ_AccountService {
         return `${now.getFullYear()}-${`${now.getMonth() + 1}`.padStart(2, "0")}-${`${now.getDate()}`.padStart(2, "0")}`;
     }
 }
+
