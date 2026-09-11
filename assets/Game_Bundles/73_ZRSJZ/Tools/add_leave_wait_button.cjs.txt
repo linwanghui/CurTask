@@ -1,0 +1,22 @@
+// One-time mechanical prefab edit; creates an editor-visible text button from existing nodes.
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),assert=require('assert');
+const file=path.resolve(__dirname,'../Prefabs/Panel/暂停界面.prefab');
+const a=JSON.parse(fs.readFileSync(file,'utf8'));
+if(!a.some(o=>o.__type__==='cc.Node'&&o._name==='不再等待')){
+ const ids=[30,31,32,33,34,35,73,74,75],base=a.length,map=new Map(ids.map((id,i)=>[id,base+i]));
+ const copied=ids.map(id=>JSON.parse(JSON.stringify(a[id])));
+ function remap(o){if(!o||typeof o!=='object')return;if('__id__'in o&&map.has(o.__id__))o.__id__=map.get(o.__id__);if(o.fileId)o.fileId=crypto.randomUUID();Object.values(o).forEach(remap);}
+ copied.forEach(remap);
+ const [node,transform,,label,,,button]=copied;
+ node._name='不再等待';node._active=false;node._lpos.x=0;node._lpos.y=-365;
+ node._components.push({__id__:map.get(73)});
+ transform._contentSize.width=630;transform._contentSize.height=80;
+ label._string='不再等待，离开房间\n（返回单人模式）';label._fontSize=30;label._actualFontSize=30;label._lineHeight=38;
+ label._overflow=2;label._enableWrapText=true;label._isUnderline=true;label._underlineHeight=2;
+ label._color={__type__:'cc.Color',r:100,g:225,b:255,a:255};label._enableOutline=true;label._outlineWidth=2;
+ button.node={__id__:base};button._target={__id__:base};button._transition=0;
+ a[15]._children.push({__id__:base});a.push(...copied);
+ function validate(o){if(!o||typeof o!=='object')return;if('__id__'in o)assert(a[o.__id__]);Object.values(o).forEach(validate);}
+ a.forEach(validate);fs.writeFileSync(file,JSON.stringify(a,null,2)+'\n');
+}
+console.log('PASS: static leave-wait label/button added; prefab references valid.');

@@ -22,3 +22,15 @@ game.IsGameFinished=false;Online.Battle=true;Online.BattleHost=false;
 const evac=new Battle();evac.OnBattleEnd('evacuated');assert(lastTip.startsWith('队友已撤离'));assert(!lastTip.includes('连接中断'));
 evac.OnPeerLeft();assert(lastTip.startsWith('队友已撤离'));
 console.log('PASS: evacuation tip preserved after subsequent disconnect notification.');
+// Voluntary escape from teammate pause must use the same takeover, not settle/reload the map.
+const sent=[];Online.Send=type=>sent.push(type);Online.LocalHolds=new Set();Online.PeerWaiting=true;
+Online.Battle=true;Online.BattleHost=false;Online.CombatStates.clear();game.GamePaused=true;
+const waitingGuest=new Battle();waitingGuest.LeaveWaitingRoom();assert.equal(Online.Battle,false);assert.equal(game.GamePaused,false);assert.equal(sent.at(-1),'leave');assert(lastTip.startsWith('已离开房间'));
+const tipCount=tips;waitingGuest.LeaveWaitingRoom();assert.equal(tips,tipCount);
+Online.Battle=true;Online.BattleHost=true;game.GamePaused=true;
+const waitingHost=new Battle();let snapshots=0;waitingHost.SyncEnemies=()=>snapshots++;
+waitingHost.LeaveWaitingRoom();assert.equal(snapshots,1);assert.equal(Online.Battle,false);assert.equal(game.GamePaused,false);
+Online.Battle=true;Online.BattleHost=false;Online.LocalHolds.add('ad');
+const blocked=new Battle();blocked.LeaveWaitingRoom();assert.equal(Online.Battle,true);Online.LocalHolds.clear();
+game.CurPlayer={IsDead:true};game.GamePaused=true;blocked.LeaveWaitingRoom();assert.equal(Online.Battle,false);assert.equal(game.GamePaused,true);
+console.log('PASS: guest/host leave-wait continues solo, sends leave, no repeat action, local ad guarded, death pause preserved.');

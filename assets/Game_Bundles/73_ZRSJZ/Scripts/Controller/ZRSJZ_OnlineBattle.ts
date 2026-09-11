@@ -121,6 +121,7 @@ export class ZRSJZ_OnlineBattle extends Component {
         this.online = Online.Battle;
         if (!this.online) { Online.OpenDoors.clear(); Online.CompletedTaskPoints.clear(); Online.OperationInbox = []; Online.Holds = {}; Online.LocalHolds.clear(); return; }
         Online.Events.on('hold', this.OnHold, this);
+        Online.Events.on('leave_wait', this.LeaveWaitingRoom, this);
         game.on(Game.EVENT_HIDE, this.OnAppHide, this);
         game.on(Game.EVENT_SHOW, this.OnAppShow, this);
         this.InstallAdWait();
@@ -407,6 +408,16 @@ export class ZRSJZ_OnlineBattle extends Component {
         if (Online.BattleHost) this.SyncEnemies();
         Online.Send('finish_battle', { reason: 'evacuated' });
     }
+    private LeaveWaitingRoom(): void {
+        const current = ZRSJZ_Game.Instance;
+        if (this.solo || !Online.Battle || !Online.PeerWaiting || !current || current.IsGameFinished
+            || Online.LocalHolds.has('ad') || Online.LocalHolds.has('background')) return;
+        if (Online.BattleHost) this.SyncEnemies();
+        Online.Send('leave');
+        // 主动退出等待时解除自己的暂停；死亡/复活流程不因此被跳过。
+        if (!current.CurPlayer?.IsDead) current.GamePaused = false;
+        this.OnBattleEnd('local_leave');
+    }
     private OnBattleEnd(reason = 'disconnected'): void {
         if (this.solo) return;
         this.solo = true;
@@ -429,7 +440,7 @@ export class ZRSJZ_OnlineBattle extends Component {
         this.ContinueSolo();
         // 不改变本地暂停/死亡/结算状态，也不重置地图、背包、时间或撤离倒计时。
         if (!ZRSJZ_Game.Instance?.IsGameFinished) {
-            const message = reason === 'evacuated' ? '队友已撤离' : reason === 'finished' ? '队友已结束本局' : '队友已离开或连接中断';
+            const message = reason === 'local_leave' ? '已离开房间' : reason === 'evacuated' ? '队友已撤离' : reason === 'finished' ? '队友已结束本局' : '队友已离开或连接中断';
             ZRSJZ_UIManager.Instance?.ShowTip(message + '，已转为单机，可继续战斗和撤离');
         }
     }
@@ -459,6 +470,7 @@ export class ZRSJZ_OnlineBattle extends Component {
         game.off(Game.EVENT_HIDE, this.OnAppHide, this);
         game.off(Game.EVENT_SHOW, this.OnAppShow, this);
         Online.Events.off('hold', this.OnHold, this);
+        Online.Events.off('leave_wait', this.LeaveWaitingRoom, this);
         if (this.physicsBeforeWait !== null) PhysicsSystem2D.instance.enable = this.physicsBeforeWait;
         this.RestoreWaitingSpines();
         Online.Events.off('peer_left', this.OnPeerLeft, this);
