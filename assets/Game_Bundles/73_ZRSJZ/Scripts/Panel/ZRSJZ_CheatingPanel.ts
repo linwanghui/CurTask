@@ -1,6 +1,7 @@
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, Component, EditBox, EventTouch, Node } from 'cc';
+import { _decorator, Component, EditBox, EventTouch, Node, Label, instantiate, Button } from 'cc';
+import { ZRSJZ_LevelProgressService } from '../Service/ZRSJZ_LevelProgressService';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
@@ -18,6 +19,61 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
 
     @property(EditBox)
     PropCount: EditBox = null;
+    private _matches: string[] = [];
+    private _matchPage = 0;
+    private _matchCount = 1;
+    private _adding = false;
+    private _matchRows: Node[] = [];
+
+    public static FindRelatedProps(query: string): string[] {
+        const chars = Array.from(new Set(Array.from(query.trim().toLowerCase()).filter(c => !/\s/.test(c))));
+        if (!chars.length) return [];
+        return Array.from(ZRSJZ_PROP_CONFIG.keys()).filter(name => chars.some(c => name.toLowerCase().includes(c)));
+    }
+
+    private RenderMatches(): void {
+        const window = this.node.getChildByName('道具候选窗口');
+        if (!window) { void ZRSJZ_UIManager.Instance.ShowTip('道具候选窗口缺失，请更新预制体'); return; }
+        window.active = true;
+        const template = window.getChildByName('候选模板');
+        if (!this._matchRows.length && template) {
+            for (let i = 0; i < 6; i++) {
+                const row = instantiate(template);row.name = `候选_${i}`;row.parent = window;
+                row.setPosition(0, 140 - i * 50, 0);this._matchRows.push(row);
+            }
+        }
+        const pages = Math.max(1, Math.ceil(this._matches.length / 6));
+        this._matchPage = Math.max(0, Math.min(pages - 1, this._matchPage));
+        window.getChildByName('说明').getComponent(Label).string = `相关道具 ${this._matches.length} 个 · 选择后添加 ×${this._matchCount}`;
+        window.getChildByName('页码').getComponent(Label).string = `${this._matchPage + 1} / ${pages}`;
+        for (let i = 0; i < this._matchRows.length; i++) {
+            const name = this._matches[this._matchPage * 6 + i],row = this._matchRows[i];
+            row.active = !!name;
+            row.getChildByName('Text').getComponent(Label).string = name || '';
+        }
+        window.getChildByName('上一页').getComponent(Button).interactable = this._matchPage > 0;
+        window.getChildByName('下一页').getComponent(Button).interactable = this._matchPage + 1 < pages;
+    }
+
+    private async AddSelected(name: string, count: number): Promise<void> {
+        if (this._adding) return;
+        this._adding = true;
+        try {
+            if (await this.AddProp(name, count)) {
+                if (!this.isValid) return;
+                this.PropName.string = name;
+                const window = this.node.getChildByName('道具候选窗口');if (window) window.active = false;
+            }
+        } catch (error) {
+            console.error('[作弊道具] 添加失败', error);
+            if (this.isValid) void ZRSJZ_UIManager.Instance.ShowTip('添加失败，请稍后重试');
+        } finally { this._adding = false; }
+    }
+
+    public Show(...args: any[]): void {
+        super.Show(...args);
+        const window = this.node.getChildByName('道具候选窗口');if (window) window.active = false;
+    }
 
     /**
      * 根据道具名称和数量向综合仓库添加道具。
@@ -54,7 +110,22 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
 
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
-        switch (event.getCurrentTarget().name) {
+        const target = event.getCurrentTarget().name;
+        if (target.startsWith('候选_')) {
+            const name = this._matches[this._matchPage * 6 + Number(target.slice(3))];
+            if (name) void this.AddSelected(name, this._matchCount);
+            return;
+        }
+        switch (target) {
+            case '关闭候选':
+                this.node.getChildByName('道具候选窗口').active = false;
+                break;
+            case '上一页': this._matchPage--;this.RenderMatches();break;
+            case '下一页': this._matchPage++;this.RenderMatches();break;
+            case '一键关卡全开':
+                ZRSJZ_LevelProgressService.UnlockAll();
+                void ZRSJZ_UIManager.Instance.ShowTip('全部关卡已解锁');
+                break;
             case "Mask":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.作弊界面);
                 break;
@@ -85,18 +156,19 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             case "宠物碎片加100":
                 ZRSJZ_FragmentService.CreateVideoReward(100)();
                 break;
-            case "添加道具":
-                if (!ZRSJZ_PROP_CONFIG.has(this.PropName.string)) {
-                    ZRSJZ_UIManager.Instance.ShowTip("道具不存在");
-                } else {
-                    const propCount = parseInt(this.PropCount.string);
-                    if (isNaN(propCount)) {
-                        ZRSJZ_UIManager.Instance.ShowTip("数量无效");
-                    } else {
-                        this.AddProp(this.PropName.string, propCount);
-                    }
+            case "添加道具": {
+                const name = this.PropName.string.trim(), count = Number(this.PropCount.string);
+                if (!name) { void ZRSJZ_UIManager.Instance.ShowTip('请输入道具名称或关键字'); break; }
+                if (!Number.isSafeInteger(count) || count <= 0) { void ZRSJZ_UIManager.Instance.ShowTip('数量必须是正整数'); break; }
+                if (ZRSJZ_PROP_CONFIG.has(name)) void this.AddSelected(name, count);
+                else {
+                    this._matches = ZRSJZ_CheatingPanel.FindRelatedProps(name);
+                    this._matchPage = 0;this._matchCount = count;
+                    if (this._matches.length) this.RenderMatches();
+                    else void ZRSJZ_UIManager.Instance.ShowTip('没有找到包含这些字的道具');
                 }
                 break;
+            }
 
         }
     }
