@@ -1,0 +1,151 @@
+{
+  "skeleton": {
+    "spine": "3.8.75",
+    "x": -80,
+    "y": -80,
+    "width": 160,
+    "height": 160,
+    "images": "./"
+  },
+  "bones": [
+    {
+      "name": "root"
+    },
+    {
+      "name": "halo",
+      "parent": "root"
+    },
+    {
+      "name": "core",
+      "parent": "root"
+    }
+  ],
+  "slots": [
+    {
+      "name": "lamp-body",
+      "bone": "root",
+      "attachment": "lamp-body",
+      "color": "ffffffff",
+      "blend": "normal"
+    },
+    {
+      "name": "halo",
+      "bone": "halo",
+      "attachment": "glow",
+      "color": "ff202040",
+      "blend": "additive"
+    },
+    {
+      "name": "core",
+      "bone": "core",
+      "attachment": "glow",
+      "color": "ff303099",
+      "blend": "additive"
+    }
+  ],
+  "skins": [
+    {
+      "name": "default",
+      "attachments": {
+        "lamp-body": {
+          "lamp-body": {
+            "path": "lamp-body",
+            "width": 38,
+            "height": 38
+          }
+        },
+        "halo": {
+          "glow": {
+            "path": "glow",
+            "width": 140,
+            "height": 180
+          }
+        },
+        "core": {
+          "glow": {
+            "path": "glow",
+            "width": 36,
+            "height": 72
+          }
+        }
+      }
+    }
+  ],
+  "animations": {
+    "off": {
+      "slots": {
+        "halo": { "color": [{ "time": 0, "color": "ff101000" }] },
+        "core": { "color": [{ "time": 0, "color": "ff303000" }] }
+      }
+    },
+    "animation": {
+      "bones": {
+        "halo": {
+          "scale": [
+            {
+              "time": 0,
+              "x": 0.8,
+              "y": 0.8
+            },
+            {
+              "time": 1.14,
+              "x": 1.1,
+              "y": 1.1
+            },
+            {
+              "time": 2.4,
+              "x": 0.8,
+              "y": 0.8
+            }
+          ]
+        }
+      },
+      "slots": {
+        "halo": {
+          "color": [
+            {
+              "time": 0,
+              "color": "ff101012"
+            },
+            {
+              "time": 1.14,
+              "color": "ff24246e",
+              "curve": [
+                0.25,
+                0,
+                0.75,
+                1
+              ]
+            },
+            {
+              "time": 2.4,
+              "color": "ff101012"
+            }
+          ]
+        },
+        "core": {
+          "color": [
+            {
+              "time": 0,
+              "color": "ff303035"
+            },
+            {
+              "time": 1.14,
+              "color": "ff303099",
+              "curve": [
+                0.25,
+                0,
+                0.75,
+                1
+              ]
+            },
+            {
+              "time": 2.4,
+              "color": "ff303035"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

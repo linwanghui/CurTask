@@ -1,0 +1,40 @@
+const fs = require('fs'), path = require('path'), vm = require('vm'), assert = require('assert');
+const ts = require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const root = path.resolve(__dirname, '..');
+const scene = JSON.parse(fs.readFileSync(path.join(root, 'Scenes/ZRSJZ_Start.scene')));
+const config = scene.find(o => o.__type__ === '3d297vlcwdJ8qhqzXP4JYtM');
+const hit = scene[config.lampHitArea.__id__];
+assert.equal(hit._name, '灯泡点击区域');
+assert.equal(hit._parent.__id__, scene[config.lamp.__id__].node.__id__);
+function refs(v) { if (!v || typeof v !== 'object') return; if ('__id__' in v) assert(scene[v.__id__]); Object.values(v).forEach(refs); }
+refs(scene);
+const rig = JSON.parse(fs.readFileSync(path.join(root, 'Spine/主页环境/指示灯_慢闪.json')));
+for (const name of ['halo', 'core']) assert.equal(rig.animations.off.slots[name].color[0].color.slice(-2), '00');
+assert(!rig.animations.off.slots['lamp-body']);
+class Vec { constructor(...v) { this.set(...v); } set(x=0,y=0,z=0,w=0) { Object.assign(this,{x,y,z,w}); } }
+class Sprite {} class UITransform {}
+const cc = { Component: class {}, Sprite, UITransform, Vec3: Vec, Vec4: Vec,
+ Node: { EventType: { TOUCH_END: 'touch-end' } }, sp: { Skeleton: class {} },
+ _decorator: { ccclass: () => c => c, property: () => () => {}, requireComponent: () => c => c } };
+const code = ts.transpileModule(fs.readFileSync(path.join(root,'Scripts/Controller/ZRSJZ_HomeLampLight.ts'),'utf8'),
+ {compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText;
+const sandbox = { exports: {}, require: n => { assert.equal(n,'cc'); return cc; } };
+vm.runInNewContext(code, sandbox);
+const c = new sandbox.exports.ZRSJZ_HomeLampLight(), props = {}, events = new Map(), plays = [];
+const material = { setProperty: (k,v) => props[k] = {...v} };
+const sprite = { customMaterial: {}, getMaterialInstance: () => material, spriteFrame: { uv:[0,1,1,1,0,0,1,0] } };
+const transform = {width:2925,height:1462.5,anchorX:.5,anchorY:.5,convertToNodeSpaceAR:(_,out)=>out.set(-683,293,0)};
+c.getComponent = type => type === Sprite ? sprite : transform;
+c.lamp = {enabledInHierarchy:true,node:{activeInHierarchy:true,worldPosition:{}},findSlot:()=>({color:{a:110/255}}),setAnimation:(...args)=>plays.push(args)};
+c.lampHitArea = {on:(n,f,t)=>events.set(n,()=>f.call(t)),off:n=>events.delete(n)};
+c.onEnable(); c.lateUpdate(); assert.equal(props.lightSettings.x,.5);
+events.get('touch-end')(); assert.equal(plays[0][1],'off'); assert.equal(props.lightSettings.x,0); assert.equal(props.lightSettings.y,0);
+events.get('touch-end')(); assert.equal(plays.length,1);
+c.lateUpdate(); assert.equal(props.lightSettings.x,0); assert.equal(props.lightSettings.y,0);
+c.onDisable(); assert.equal(events.size,0);
+c.onEnable(); assert.equal(plays.length,1);
+c.lateUpdate(); assert.equal(props.lightSettings.x,0);
+events.get('touch-end')(); assert.equal(plays.length,1);
+assert.equal(new sandbox.exports.ZRSJZ_HomeLampLight().extinguished,false);
+assert.equal(scene[config.lamp.__id__].defaultAnimation,'animation');
+console.log('PASS: scene hit area, off pose, repeated clicks, persistent off after re-enable, listener cleanup, new instance defaults.');
