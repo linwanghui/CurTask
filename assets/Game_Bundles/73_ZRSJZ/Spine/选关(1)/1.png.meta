@@ -2,22 +2,22 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "5f2f817e-0f40-4d87-a409-7e34df32cb75",
+  "uuid": "718d0cb1-74b9-4770-9b8e-7920e0d4801e",
   "files": [
-    ".jpg",
-    ".json"
+    ".json",
+    ".png"
   ],
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "5f2f817e-0f40-4d87-a409-7e34df32cb75@6c48a",
-      "displayName": "机密行动背景地图",
+      "uuid": "718d0cb1-74b9-4770-9b8e-7920e0d4801e@6c48a",
+      "displayName": "1",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "5f2f817e-0f40-4d87-a409-7e34df32cb75",
+        "imageUuidOrDatabaseUri": "718d0cb1-74b9-4770-9b8e-7920e0d4801e",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "5f2f817e-0f40-4d87-a409-7e34df32cb75@f9941",
-      "displayName": "机密行动背景地图",
+      "uuid": "718d0cb1-74b9-4770-9b8e-7920e0d4801e@f9941",
+      "displayName": "1",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -43,12 +43,12 @@
         "rotated": false,
         "offsetX": 0,
         "offsetY": 0,
-        "trimX": 0,
-        "trimY": 0,
-        "width": 1456,
-        "height": 819,
-        "rawWidth": 1456,
-        "rawHeight": 819,
+        "trimX": 2,
+        "trimY": 2,
+        "width": 577,
+        "height": 178,
+        "rawWidth": 581,
+        "rawHeight": 182,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -728,
-            -409.5,
+            -288.5,
+            -89,
             0,
-            728,
-            -409.5,
+            288.5,
+            -89,
             0,
-            -728,
-            409.5,
+            -288.5,
+            89,
             0,
-            728,
-            409.5,
+            288.5,
+            89,
             0
           ],
           "indexes": [
@@ -82,38 +82,38 @@
             3
           ],
           "uv": [
-            0,
-            819,
-            1456,
-            819,
-            0,
-            0,
-            1456,
-            0
+            2,
+            180,
+            579,
+            180,
+            2,
+            2,
+            579,
+            2
           ],
           "nuv": [
-            0,
-            0,
-            1,
-            0,
-            0,
-            1,
-            1,
-            1
+            0.0034423407917383822,
+            0.01098901098901099,
+            0.9965576592082617,
+            0.01098901098901099,
+            0.0034423407917383822,
+            0.989010989010989,
+            0.9965576592082617,
+            0.989010989010989
           ],
           "minPos": [
-            -728,
-            -409.5,
+            -288.5,
+            -89,
             0
           ],
           "maxPos": [
-            728,
-            409.5,
+            288.5,
+            89,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "5f2f817e-0f40-4d87-a409-7e34df32cb75@6c48a",
+        "imageUuidOrDatabaseUri": "718d0cb1-74b9-4770-9b8e-7920e0d4801e@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -127,8 +127,8 @@
   },
   "userData": {
     "type": "sprite-frame",
-    "hasAlpha": false,
+    "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "5f2f817e-0f40-4d87-a409-7e34df32cb75@6c48a"
+    "redirect": "718d0cb1-74b9-4770-9b8e-7920e0d4801e@6c48a"
   }
 }
