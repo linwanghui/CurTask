@@ -26,6 +26,9 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
     @property(SpriteFrame)
     MapSFs: SpriteFrame[] = [];
 
+    @property(SpriteFrame)
+    MapTypeSFs: SpriteFrame[] = [];
+
     private readonly _mapNames: string[] = ["五号小镇", "沙漠古迹", "极北之地"];
     private readonly _actionNames: string[] = ["机密行动", "绝密行动"];
     private _selectedMapName: string = "五号小镇";
@@ -112,33 +115,49 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
         this._mapNames.forEach((mapName, index) => {
             const mapNode = find(`Panel/${mapName}`, this.node);
             const checked = mapNode?.getChildByName("Checked");
-            if (checked) checked.active = mapName === this._selectedMapName;
-            const isLocked = !!ZRSJZ_LevelProgressService.GetLockReason(`${mapName}_${this._selectedActionName}`);
+            const mapKey = `${mapName}_${this._selectedActionName}`;
+            const isLocked = !!ZRSJZ_LevelProgressService.GetLockReason(mapKey);
+            if (checked) checked.active = mapName === this._selectedMapName && !isLocked;
             const lock = mapNode?.getChildByName("Lock");
             if (lock) lock.active = isLocked;
             const checkedLock = checked?.getChildByName("锁");
-            if (checkedLock) checkedLock.active = mapName === this._selectedMapName && isLocked;
+            if (checkedLock) checkedLock.active = false;
+            this.SetDifficultyIcon(`Panel/${mapName}/难度`, ZRSJZ_MAP_CONFIG.get(mapKey)?.Difficulty);
             if (mapName === this._selectedMapName && this.MapSFs[index]) {
                 const mapSprite = find("Panel/Desc/Map", this.node)?.getComponent(Sprite);
                 if (mapSprite) mapSprite.spriteFrame = this.MapSFs[index];
             }
         });
 
-        this._actionNames.forEach((actionName, index) => {
+        this._actionNames.forEach(actionName => {
             const actionNode = find(`Panel/${actionName}`, this.node);
             const selected = actionName === this._selectedActionName;
             const checked = actionNode?.getChildByName("Checked");
             if (checked) checked.active = selected;
-            if (actionNode && this.BGSFs.length >= 2) {
-                // const actionSprite = actionNode.getComponent(Sprite);
-                // if (actionSprite) actionSprite.spriteFrame = this.BGSFs[selected ? 1 : 0];
-                find("Mask", this.node).getComponent(Sprite).spriteFrame = this.BGSFs[selected ? 1 : 0];
-            }
         });
+        const background = find("Mask", this.node)?.getComponent(Sprite);
+        const backgroundFrame = this.BGSFs[this._actionNames.indexOf(this._selectedActionName)];
+        if (background && backgroundFrame) background.spriteFrame = backgroundFrame;
 
         const config = this.GetSelectedConfig();
+        const isLocked = !!ZRSJZ_LevelProgressService.GetLockReason(this.GetSelectedMapKey());
+        const lock = find("Panel/Desc/Lock", this.node);
+        if (lock) lock.active = isLocked;
+        const startButton = find("Panel/开始行动", this.node);
+        if (startButton) startButton.active = !!config && !isLocked;
+        const previousLevel = ZRSJZ_LevelProgressService.GetPreviousLevel(this.GetSelectedMapKey());
+        this.SetDifficultyIcon("Panel/Desc/Lock/难度", ZRSJZ_MAP_CONFIG.get(previousLevel)?.Difficulty);
         this.RefreshLevelInfo(config);
         void this.RefreshExclusiveDrops(config);
+    }
+
+    /** MapTypeSFs 依次为简单、普通、困难、专家、炼狱、末日。 */
+    private SetDifficultyIcon(path: string, difficulty: number | undefined): void {
+        const sprite = find(path, this.node)?.getComponent(Sprite);
+        if (!sprite) return;
+        const frame = difficulty ? this.MapTypeSFs[difficulty - 1] : null;
+        sprite.node.active = !!frame;
+        if (frame) sprite.spriteFrame = frame;
     }
 
     private RefreshLevelInfo(config: Readonly<ZRSJZ_MapConfig> | null): void {

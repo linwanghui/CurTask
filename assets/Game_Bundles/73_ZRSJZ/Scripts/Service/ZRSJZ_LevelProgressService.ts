@@ -4,12 +4,17 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 export class ZRSJZ_LevelProgressService {
     private static readonly Levels: readonly string[] = [
         '五号小镇_机密行动',
-        '五号小镇_绝密行动',
         '沙漠古迹_机密行动',
-        '沙漠古迹_绝密行动',
         '极北之地_机密行动',
+        '五号小镇_绝密行动',
+        '沙漠古迹_绝密行动',
         '极北之地_绝密行动',
     ];
+
+    public static GetPreviousLevel(mapKey: string): string | null {
+        const index = this.Levels.indexOf(mapKey);
+        return index > 0 ? this.Levels[index - 1] : null;
+    }
 
     public static GetLockReason(mapKey: string): string {
         const index = this.Levels.indexOf(mapKey);

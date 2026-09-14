@@ -1622,10 +1622,10 @@ function CreateMapModeConfig(
 export const ZRSJZ_MAP_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_MapConfig>> = new Map([
     ["新手村", CreateMapModeConfig("新手村", "新手村", "机密行动", "新手村", 0)],
     ["五号小镇_机密行动", CreateMapModeConfig("五号小镇_机密行动", "五号小镇", "机密行动", "城镇", 0)],
-    ["五号小镇_绝密行动", CreateMapModeConfig("五号小镇_绝密行动", "五号小镇", "绝密行动", "城镇", 1)],
-    ["沙漠古迹_机密行动", CreateMapModeConfig("沙漠古迹_机密行动", "沙漠古迹", "机密行动", "沙漠", 2)],
-    ["沙漠古迹_绝密行动", CreateMapModeConfig("沙漠古迹_绝密行动", "沙漠古迹", "绝密行动", "沙漠", 3)],
-    ["极北之地_机密行动", CreateMapModeConfig("极北之地_机密行动", "极北之地", "机密行动", "雪地", 4)],
+    ["沙漠古迹_机密行动", CreateMapModeConfig("沙漠古迹_机密行动", "沙漠古迹", "机密行动", "沙漠", 1)],
+    ["极北之地_机密行动", CreateMapModeConfig("极北之地_机密行动", "极北之地", "机密行动", "雪地", 2)],
+    ["五号小镇_绝密行动", CreateMapModeConfig("五号小镇_绝密行动", "五号小镇", "绝密行动", "城镇", 3)],
+    ["沙漠古迹_绝密行动", CreateMapModeConfig("沙漠古迹_绝密行动", "沙漠古迹", "绝密行动", "沙漠", 4)],
     ["极北之地_绝密行动", CreateMapModeConfig("极北之地_绝密行动", "极北之地", "绝密行动", "雪地", 5)],
 ]);
 
@@ -1986,7 +1986,7 @@ function CreateSpecialOperationPropAward(
 
 /**
  * 局内任务----特别行动
- * 难度顺序：小镇机密 → 小镇绝密 → 沙漠机密 → 沙漠绝密 → 极北机密 → 极北绝密。
+ * 难度顺序：小镇机密 → 沙漠机密 → 极北机密 → 小镇绝密 → 沙漠绝密 → 极北绝密。
  * 概率物资为逐项独立判定，因此可能不掉落，也可能同时获得多件物资。
  */
 export const ZRSJZ_SPECIAL_OPERATION_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SpecialOperationConfig>> = new Map([

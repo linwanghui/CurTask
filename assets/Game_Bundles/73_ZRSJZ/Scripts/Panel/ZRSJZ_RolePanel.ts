@@ -43,6 +43,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     private _skinQualityFrames: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     private _skillIconMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     private _skinListVersion: number = 0;
+    private _initialized: boolean = false;
     protected onLoad(): void {
         this.Skeleton = find("Panel/Skin", this.node).getComponent(ZRSJZ_Skeleton);
 
@@ -64,11 +65,8 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     protected async start(): Promise<void> {
         await this.InitSkinQualityFrames();
         this.SkillIconSFs.forEach(sf => this._skillIconMap.set(sf.name, sf));
-        // const savedRole = ZRSJZ_GameData.Instance.CurRole[0];
-        // const defaultRole = ZRSJZ_ROLE_CONFIG.has(savedRole)
-        //     ? savedRole
-        //     : Array.from(ZRSJZ_ROLE_CONFIG.keys())[0];
-        // if (defaultRole) this.ShowRoleDesc(defaultRole);
+        this._initialized = true;
+        if (this.node.activeInHierarchy) this.SelectInitialRole();
     }
 
     protected onEnable(): void {
@@ -76,6 +74,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         this._curRoleData = null;
         this.Skeleton.node.active = false;
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.ShowRoleDesc, this);
+        if (this._initialized) this.SelectInitialRole();
     }
 
     protected onDisable(): void {
@@ -119,6 +118,11 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     }
 
     ShowRoleDesc(roleName: string) {
+        // DLC 未就绪时角色 Spine 只有威蓝，外部按钮发来的存档角色也统一回落到威蓝。
+        if (!ZRSJZ_UIManager.ZRSJZ_DLC && roleName !== "威蓝") {
+            roleName = "威蓝";
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_ITEM, roleName);
+        }
         // 当前角色已选中时，不重复生成皮肤列表和刷新角色详情。
         if (this._curRoleData?.Name === roleName) return;
         const roleData = ZRSJZ_ROLE_CONFIG.get(roleName);
@@ -137,6 +141,16 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         this.Skeleton.SetSkin(this._curRoleData.Skin[this._curRoleSkinIndex]);
         this.RoleName.string = this._curRoleData.Skin[this._curRoleSkinIndex];
         this.SkillIcon.spriteFrame = this._skillIconMap.get(this._curRoleData.SkillName) ?? null;
+    }
+
+    private SelectInitialRole(): void {
+        const roleIndex = ZRSJZ_PlayerSwitchButton.CurPlayer == "1p" ? 0 : 1;
+        const savedRole = ZRSJZ_GameData.Instance.CurRole[roleIndex];
+        const roleName = ZRSJZ_UIManager.ZRSJZ_DLC && ZRSJZ_ROLE_CONFIG.has(savedRole)
+            ? savedRole
+            : "威蓝";
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_ITEM, roleName);
+        this.ShowRoleDesc(roleName);
     }
 
     async ShowRoleSkin(skins: string[]): Promise<void> {
