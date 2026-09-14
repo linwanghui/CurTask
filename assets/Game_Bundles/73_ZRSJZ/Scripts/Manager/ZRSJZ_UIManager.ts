@@ -423,7 +423,7 @@ export class ZRSJZ_UIManager extends Component {
                         initCount++;
                         if (initCount === audioRes.length) {
                             //初始化完成
-                            console.error("音频初始化完成");
+                            console.log("音频初始化完成");
                             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT);
                         }
                     }

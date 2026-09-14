@@ -1,0 +1,37 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "a3b14c69-e922-4301-b2d3-612845708c2a",
+  "files": [".json", ".png"],
+  "subMetas": {
+    "6c48a": {
+      "ver": "1.0.22",
+      "importer": "texture",
+      "imported": true,
+      "uuid": "a3b14c69-e922-4301-b2d3-612845708c2a@6c48a",
+      "displayName": "指示灯本体",
+      "id": "6c48a",
+      "name": "texture",
+      "files": [".json"],
+      "subMetas": {},
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "a3b14c69-e922-4301-b2d3-612845708c2a",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      }
+    }
+  },
+  "userData": {
+    "type": "texture",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "a3b14c69-e922-4301-b2d3-612845708c2a@6c48a"
+  }
+}
