@@ -1,0 +1,69 @@
+{
+"skeleton": { "hash": "o3r83hRer8G60Ligj3AnN9o22VA", "spine": "3.8.75", "images": "./images/", "audio": "G:/游戏素材收集/军团战棋/动作/spine/spell/active/steam/fireshellaoe" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "bone", "parent": "root", "x": -1 },
+	{ "name": "feichuan0001", "parent": "bone", "y": -1 }
+],
+"slots": [
+	{ "name": "feichuan0001", "bone": "feichuan0001" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"feichuan0001": {
+				"feichuan0001": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0002": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0003": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0004": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0005": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0006": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0008": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0009": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0010": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0011": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0012": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0014": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0015": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0017": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0019": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0021": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0023": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0027": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 },
+				"feichuan0031": { "x": -9.5, "y": 95.5, "width": 337, "height": 383 }
+			}
+		}
+	}
+],
+"animations": {
+	"eff": {
+		"slots": {
+			"feichuan0001": {
+				"attachment": [
+					{ "name": "feichuan0001" },
+					{ "time": 0.0333, "name": "feichuan0002" },
+					{ "time": 0.0667, "name": "feichuan0003" },
+					{ "time": 0.1, "name": "feichuan0004" },
+					{ "time": 0.1333, "name": "feichuan0005" },
+					{ "time": 0.1667, "name": "feichuan0006" },
+					{ "time": 0.2333, "name": "feichuan0008" },
+					{ "time": 0.2667, "name": "feichuan0009" },
+					{ "time": 0.3, "name": "feichuan0010" },
+					{ "time": 0.3333, "name": "feichuan0011" },
+					{ "time": 0.3667, "name": "feichuan0012" },
+					{ "time": 0.4333, "name": "feichuan0014" },
+					{ "time": 0.4667, "name": "feichuan0015" },
+					{ "time": 0.5333, "name": "feichuan0017" },
+					{ "time": 0.6, "name": "feichuan0019" },
+					{ "time": 0.6667, "name": "feichuan0021" },
+					{ "time": 0.7333, "name": "feichuan0023" },
+					{ "time": 0.8667, "name": "feichuan0027" },
+					{ "time": 1, "name": "feichuan0031" },
+					{ "time": 1.0667, "name": null }
+				]
+			}
+		}
+	}
+}
+}

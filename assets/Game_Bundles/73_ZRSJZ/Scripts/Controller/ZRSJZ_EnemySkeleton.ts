@@ -16,6 +16,10 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
     private _mzBone: sp.spine.Bone = null;
     private _baseScale = new Vec3();
 
+    protected get UsesPlayerDLCAppearance(): boolean {
+        return false;
+    }
+
     protected onLoad(): void {
         super.onLoad();
         this._mzBone = this.Skeleton?.findBone('mz');

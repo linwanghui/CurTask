@@ -825,7 +825,7 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
         RoleDesc: "擅长爆破作战的突击手，能够快速清理聚集的敌人。",
         SkillName: "轰炸",
         SkillDesc: "投放炸弹，对范围内的敌人造成爆炸伤害。",
-        Skin: ["威蓝", "烬猎"],
+        Skin: ["威蓝", "烬猎", "弑岚"],
         SkillPath: "Prefabs/Controller/Bomb",
     }],
     ["泠汐", {
@@ -833,7 +833,7 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
         RoleDesc: "精通能量武器的远程输出角色，适合持续压制敌人。",
         SkillName: "激光",
         SkillDesc: "发射高能激光，对直线范围内的敌人造成伤害。",
-        Skin: ["泠汐", "夜喵"],
+        Skin: ["泠汐", "夜喵", "绯朔"],
         SkillPath: "Prefabs/Controller/Laser",
     }],
     ["灼戈", {
@@ -841,7 +841,7 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
         RoleDesc: "攻守兼备的支援角色，能够提高队伍的生存能力。",
         SkillName: "护盾",
         SkillDesc: "展开能量护盾，在持续时间内抵挡敌人的攻击。",
-        Skin: ["灼戈", "星栗"],
+        Skin: ["灼戈", "星栗", "黯祁"],
         SkillPath: "Prefabs/Controller/Shield",
     }],
 ])
@@ -857,12 +857,27 @@ export interface ZRSJZ_SkinConfig {
 }
 
 export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> = new Map([
-    ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.蓝色, UnlockType: "金币", UnlockPrice: 100, Skin: "js/ll1", Headset: ["ll-_0000_前刘海_蓝狼"], EntranceAnis: ["cc_ll"] }],
-    ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "金币", UnlockPrice: 4000000, Skin: "js/ll2", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
-    ["泠汐", { Name: "泠汐", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m1", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
-    ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/m2", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
-    ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w1", Headset: [], EntranceAnis: ["cc_w"] }],
-    ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "js/w2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+    ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.蓝色, UnlockType: "金币", UnlockPrice: 100, Skin: "角色/蓝狼/ll1", Headset: ["ll-_0000_前刘海_蓝狼"], EntranceAnis: ["cc_ll"] }],
+    ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "金币", UnlockPrice: 4000000, Skin: "角色/蓝狼/ll2", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
+    ["弑岚", { Name: "弑岚", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/蓝狼/ll3", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
+    ["泠汐", { Name: "泠汐", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/麦小温/m1", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
+    ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/麦小温/m2", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
+    ["绯朔", { Name: "绯朔", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/麦小温/m3", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
+    ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/左亚/w1", Headset: [], EntranceAnis: ["cc_w"] }],
+    ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/左亚/w2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+    ["黯祁", { Name: "黯祁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/左亚/w3", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+
+    ["乌鲁鲁", { Name: "乌鲁鲁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/乌鲁鲁/乌鲁", Headset: ["乌鲁__头发"], EntranceAnis: ["cc_w"] }],
+    ["乌鲁鲁", { Name: "乌鲁鲁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/乌鲁鲁/乌鲁2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+    ["乌鲁鲁", { Name: "乌鲁鲁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/乌鲁鲁/乌鲁3", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+
+    ["蜂医", { Name: "蜂医", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/蜂医/蜂医1", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+    ["蜂医", { Name: "蜂医", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/蜂医/蜂医2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+    ["蜂医", { Name: "蜂医", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/蜂医/蜂医3", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+
+    ["露娜", { Name: "露娜", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/露娜/露娜1", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+    ["露娜", { Name: "露娜", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/露娜/露娜2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+    ["露娜", { Name: "露娜", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", UnlockPrice: 1, Skin: "角色/露娜/露娜3", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
 ])
 
 //玩家动画

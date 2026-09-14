@@ -223,9 +223,11 @@ export class ZRSJZ_PlayerMain extends Component {
     }
 
     private GetWeaponType(equipmentName: string): "枪" | "刀" | null {
-        for (const weaponNames of ZRSJZ_WEAPONRY_TYPE.values()) {
-            if (weaponNames.includes(equipmentName)) return "枪";
-        }
+        let isGun = false;
+        ZRSJZ_WEAPONRY_TYPE.forEach(weaponNames => {
+            if (weaponNames.includes(equipmentName)) isGun = true;
+        });
+        if (isGun) return "枪";
         return ZRSJZ_KNIFE.includes(equipmentName) ? "刀" : null;
     }
 

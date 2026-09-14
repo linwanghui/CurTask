@@ -528,13 +528,13 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 426.0799865722656,
-      "height": 757.1500244140625
+      "width": 455.1700134277344,
+      "height": 803.72998046875
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.597610807612119,
-      "y": 0.07649738664905677
+      "x": 0.5913834056173342,
+      "y": 0.07206400106558836
     },
     "_id": ""
   },
@@ -565,10 +565,10 @@
       "a": 255
     },
     "_skeletonData": {
-      "__uuid__": "ce9924e3-94d5-4019-89e9-223d90de3add",
+      "__uuid__": "064d5ac3-c7c6-43cb-975d-c5b5e93ac31e",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "js/ll1",
+    "defaultSkin": "角色/蓝狼/ll3",
     "defaultAnimation": "daiji_q",
     "_premultipliedAlpha": false,
     "_timeScale": 1,
@@ -3617,7 +3617,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 305.5,
+      "y": 334.769,
       "z": 0
     },
     "_lrot": {
@@ -3667,7 +3667,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -400,
-      "y": 30,
+      "y": 2.789,
       "z": 0
     },
     "_lrot": {
@@ -3819,7 +3819,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -400,
-      "y": 30,
+      "y": 2.789,
       "z": 0
     },
     "_lrot": {
@@ -4678,7 +4678,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -200.318,
-      "y": 27.631,
+      "y": 0.42,
       "z": 0
     },
     "_lrot": {
@@ -5534,8 +5534,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -0.6509999999999696,
-      "y": 27.539,
+      "x": -0.651,
+      "y": 0.328,
       "z": 0
     },
     "_lrot": {
@@ -6391,8 +6391,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 198.0005,
-      "y": 27.631,
+      "x": 198.001,
+      "y": 0.42,
       "z": 0
     },
     "_lrot": {
@@ -7249,7 +7249,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 398.584,
-      "y": 27.322,
+      "y": 0.111,
       "z": 0
     },
     "_lrot": {
@@ -8081,7 +8081,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 1002,
-      "height": 152
+      "height": 93.462
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -8152,7 +8152,7 @@
     "_target": null,
     "_left": 0,
     "_right": 0,
-    "_top": 0,
+    "_top": 2.1316282072803006e-14,
     "_bottom": 0,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,

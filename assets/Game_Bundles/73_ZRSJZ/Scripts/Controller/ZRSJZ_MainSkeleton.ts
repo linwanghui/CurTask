@@ -50,6 +50,13 @@ export class ZRSJZ_MainSkeleton extends ZRSJZ_Skeleton {
         this.Skeleton.setCompleteListener(this.OnAnimationComplete);
     }
 
+    protected OnSkeletonDataChanged(): void {
+        this.CacheWeaponHandSlots();
+        this.Skeleton.setCompleteListener(this.OnAnimationComplete);
+        // 加载期间 onEnable 的装备请求可能尚未应用，按大厅当前玩家存档重建。
+        this.Show();
+    }
+
     protected onEnable(): void {
         this.Show();
         // 部分旧 Spine 动画缺少手部隐藏关键帧。大厅仍在绘制前兜底，

@@ -46,6 +46,12 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         this.Skeleton.setCompleteListener(this.OnAnimationComplete);
     }
 
+    protected OnSkeletonDataChanged(): void {
+        this._mzBone = this.Skeleton.findBone('mz');
+        this.QKBone = this.GunType ? this.Skeleton.findBone(this.GunType + '枪口') : null;
+        this.Skeleton.setCompleteListener(this.OnAnimationComplete);
+    }
+
     protected onEnable(): void {
         this.Show();
         director.on(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);

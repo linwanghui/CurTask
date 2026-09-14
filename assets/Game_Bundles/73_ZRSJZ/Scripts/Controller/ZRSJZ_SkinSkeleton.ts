@@ -11,7 +11,8 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
         this.node.active = true;
         super.SetSkin(skinName);
         void this.ShowEquipment("DX9-冲锋枪");
-        this.ShowEntranceAnis([...ZRSJZ_SKIN_CONFIG.get(skinName)?.EntranceAnis]);
+        this.ShowEntranceAnis([...(ZRSJZ_SKIN_CONFIG.get(this.SkinName)?.EntranceAnis ?? [])]
+            .filter(name => !!this.Skeleton?.findAnimation(name)));
     }
 
     async ShowEquipment(equipmentName: string, isEquipment: boolean = true): Promise<void> {

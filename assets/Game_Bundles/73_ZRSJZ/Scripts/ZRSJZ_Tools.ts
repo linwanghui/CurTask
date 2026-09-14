@@ -1,4 +1,4 @@
-import { Prefab, SpriteFrame, UITransform, Node, AudioClip, Texture2D } from "cc";
+import { Prefab, SpriteFrame, UITransform, Node, AudioClip, Texture2D, JsonAsset, sp, assetManager, AssetManager } from "cc";
 import { BundleManager } from "db://assets/Scripts/Framework/Managers/BundleManager";
 import { ZRSJZ_INVENTORY } from "./ZRSJZ_Constant";
 import { ZRSJZ_UIManager } from "./Manager/ZRSJZ_UIManager";
@@ -43,6 +43,46 @@ export class ZRSJZ_Tools {
                     return;
                 }
                 resolve && resolve(sprites);
+            });
+        });
+    }
+
+    public static LoadJsonByBundle(bundle: string, path: string): Promise<JsonAsset> {
+        return new Promise((resolve, reject) => {
+            BundleManager.GetBundle(bundle).load(path + "/json", JsonAsset, (err: any, sprites: JsonAsset) => {
+                if (err) {
+                    reject(err);
+                    console.error(`加载 Bundle: ${bundle} JsonAsset 加载失败 Path: ${path}`);
+                    return;
+                }
+                resolve && resolve(sprites);
+            });
+        });
+    }
+
+    public static LoadSkeletonDataByBundle(bundle: string, path: string): Promise<sp.SkeletonData> {
+        return new Promise((resolve, reject) => {
+            const load = (loadedBundle: AssetManager.Bundle): void => {
+                loadedBundle.load(path, sp.SkeletonData, (err, data) => {
+                    if (err || !data) {
+                        reject(new Error(`加载 SkeletonData 失败 Bundle: ${bundle} Path: ${path}: ${err?.message ?? '资源为空'}`));
+                        return;
+                    }
+                    resolve(data);
+                });
+            };
+            const loadedBundle = BundleManager.BundleMap.get(bundle) ?? assetManager.getBundle(bundle);
+            if (loadedBundle) {
+                load(loadedBundle);
+                return;
+            }
+            assetManager.loadBundle(bundle, (err, loadedBundle) => {
+                if (err || !loadedBundle) {
+                    reject(new Error(`加载 Bundle 失败: ${bundle}: ${err?.message ?? '分包为空'}`));
+                    return;
+                }
+                BundleManager.BundleMap.set(bundle, loadedBundle);
+                load(loadedBundle);
             });
         });
     }
