@@ -2,22 +2,22 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "5f2f817e-0f40-4d87-a409-7e34df32cb75",
+  "uuid": "11dab488-5f9a-4824-94ae-f999238c4c4b",
   "files": [
-    ".jpg",
-    ".json"
+    ".json",
+    ".png"
   ],
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "5f2f817e-0f40-4d87-a409-7e34df32cb75@6c48a",
-      "displayName": "机密行动背景地图",
+      "uuid": "11dab488-5f9a-4824-94ae-f999238c4c4b@6c48a",
+      "displayName": "0dd22c2e12150cffe932768fb922aa5a",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "5f2f817e-0f40-4d87-a409-7e34df32cb75",
+        "imageUuidOrDatabaseUri": "11dab488-5f9a-4824-94ae-f999238c4c4b",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "5f2f817e-0f40-4d87-a409-7e34df32cb75@f9941",
-      "displayName": "机密行动背景地图",
+      "uuid": "11dab488-5f9a-4824-94ae-f999238c4c4b@f9941",
+      "displayName": "0dd22c2e12150cffe932768fb922aa5a",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "5f2f817e-0f40-4d87-a409-7e34df32cb75@6c48a",
+        "imageUuidOrDatabaseUri": "11dab488-5f9a-4824-94ae-f999238c4c4b@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -127,8 +127,8 @@
   },
   "userData": {
     "type": "sprite-frame",
-    "hasAlpha": false,
+    "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "5f2f817e-0f40-4d87-a409-7e34df32cb75@6c48a"
+    "redirect": "11dab488-5f9a-4824-94ae-f999238c4c4b@6c48a"
   }
 }
