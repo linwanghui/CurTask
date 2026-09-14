@@ -29,4 +29,12 @@ export class ZRSJZ_LevelProgressService {
         data.BossExtractionCompleted[mapKey] = true;
         ZRSJZ_GameData.SaveData();
     }
+
+    /** 作弊入口：只写关卡解锁记录，不发放通关或任务奖励。 */
+    public static UnlockAll(): void {
+        const data = ZRSJZ_GameData.Instance;
+        data.BossExtractionCompleted ??= {};
+        for (const key of this.Levels) data.BossExtractionCompleted[key] = true;
+        ZRSJZ_GameData.SaveData();
+    }
 }

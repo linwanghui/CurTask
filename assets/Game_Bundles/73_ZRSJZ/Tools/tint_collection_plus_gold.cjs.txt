@@ -1,0 +1,12 @@
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const file=path.resolve(__dirname,'../../73_ZRSJZ_DLC/Prefabs/收藏道具框.prefab');
+const a=JSON.parse(fs.readFileSync(file,'utf8'));
+const n=a.find(o=>o.__type__==='cc.Node'&&o._name==='三级银辉Plus');assert(n);
+const p=a[n._components.find(r=>a[r.__id__].__type__==='cc.ParticleSystem2D').__id__];
+const before=JSON.parse(JSON.stringify(a));
+p._startColor={__type__:'cc.Color',r:255,g:215,b:100,a:p._startColor.a};
+p._endColor={__type__:'cc.Color',r:255,g:170,b:45,a:p._endColor.a};
+const index=a.indexOf(p);before[index]._startColor=p._startColor;before[index]._endColor=p._endColor;
+assert.deepStrictEqual(a,before);
+fs.writeFileSync(file,JSON.stringify(a,null,2)+'\n');
+console.log('PASS: only tier-3 particle RGB changed to gold; opacity, motion, size, count and tier 2 unchanged.');

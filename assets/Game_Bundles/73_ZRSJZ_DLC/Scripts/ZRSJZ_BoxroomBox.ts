@@ -2,7 +2,7 @@ import { ZRSJZ_BoxroomService } from "../../73_ZRSJZ/Scripts/Service/ZRSJZ_Boxro
 import { ZRSJZ_InventoryService } from "../../73_ZRSJZ/Scripts/Service/ZRSJZ_InventoryService";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../../73_ZRSJZ/Scripts/Manager/ZRSJZ_EventManager";
 import { ZRSJZ_BOXROOM_LEVEL_COST } from './ZRSJZ_BoxroomConstant';
-import { _decorator, Component, isValid, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
+import { _decorator, Component, isValid, Label, Node, Sprite, SpriteFrame, UITransform, ParticleSystem2D, Vec2 } from 'cc';
 import { ZRSJZ_GameData } from '../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
@@ -16,14 +16,17 @@ export class ZRSJZ_BoxroomBox extends Component {
     GridSFs: SpriteFrame[] = [];
 
     private _propName: string = "";
+    private _fxLevel = -1;
     private _clickCallback: (propName: string) => void = null;
 
     protected onEnable(): void {
-        this.RefreshUpgradeTip();
+        this.RefreshLevel();
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshUpgradeTip, this);
     }
 
     protected onDisable(): void {
+        this._fxLevel = -1;
+        for (const name of ['二级银辉', '三级银辉Plus']) this.node.getChildByName(name)?.getComponent(ParticleSystem2D)?.stopSystem();
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE, this.RefreshUpgradeTip, this);
     }
 
@@ -73,6 +76,7 @@ export class ZRSJZ_BoxroomBox extends Component {
     public RefreshLevel(): void {
         this.RefreshUpgradeTip();
         const level = ZRSJZ_BoxroomService.GetBoxroomPropLevel(this._propName);
+        this.RefreshParticles(this._propName ? level : 0);
         const gridSprite = this.getComponent(Sprite);
         if (gridSprite && this.GridSFs.length > 0) {
             // 未收藏时沿用一级铜框，道具图标则继续通过灰度区分未解锁状态。
@@ -88,6 +92,27 @@ export class ZRSJZ_BoxroomBox extends Component {
             const light = levelNode?.getChildByName(index.toString())?.getChildByName("点亮");
             if (light) light.active = index <= level;
         }
+    }
+
+    /** 发射器在预制体中配置，代码仅切换级别和适配物品格尺寸。 */
+    private RefreshParticles(level: number): void {
+        const size = this.getComponent(UITransform)?.contentSize;
+        const width = size?.width || 160, height = size?.height || 160;
+        for (const name of ['二级银辉', '三级银辉Plus']) {
+            const node = this.node.getChildByName(name);
+            const particles = node?.getComponent(ParticleSystem2D);
+            if (!node || !particles) continue;
+            const visible = name === '二级银辉' ? level === 2 : level >= 3;
+            const changed = this._fxLevel !== level || node.active !== visible;
+            node.setPosition(0, -height * 0.08, 0);
+            particles.posVar = new Vec2(Math.max(8, width * 0.34 - 12), Math.max(8, height * 0.22 - 8));
+            node.active = visible;
+            if (changed) {
+                if (visible && this.node.activeInHierarchy) particles.resetSystem();
+                else particles.stopSystem();
+            }
+        }
+        this._fxLevel = level;
     }
 
     private OnClick(): void {
@@ -110,4 +135,3 @@ export class ZRSJZ_BoxroomBox extends Component {
         }
     }
 }
-
