@@ -24,18 +24,37 @@ assert.equal(cfg.ZRSJZ_ENHANCEMENT_NODES.length,60);
 assert.equal(new Set(cfg.ZRSJZ_ENHANCEMENT_NODES.map(n=>n.ID)).size,60);
 assert.equal(new Set(cfg.ZRSJZ_ENHANCEMENT_NODES.map(n=>n.Stat)).size,8);
 for(const n of cfg.ZRSJZ_ENHANCEMENT_NODES){assert(n.Gold>0);for(const m of n.Materials){assert(C.ZRSJZ_PROP_CONFIG.has(m.PropName),m.PropName);assert(m.Count>0);}}
+const tierValues=[];
+for(let tier=0;tier<10;tier++){
+ const node=cfg.ZRSJZ_ENHANCEMENT_NODES.find(n=>!n.Special&&n.Level===tier*5+1);
+ tierValues.push(node.Materials.reduce((sum,m)=>sum+C.ZRSJZ_PROP_CONFIG.get(m.PropName).UnitPrice*m.Count,0));
+}
+const levelValues=cfg.ZRSJZ_ENHANCEMENT_NODES.filter(n=>!n.Special).map(n=>n.Materials.reduce((sum,m)=>sum+C.ZRSJZ_PROP_CONFIG.get(m.PropName).UnitPrice*m.Count,0));
+for(let i=1;i<levelValues.length;i++)assert(levelValues[i]>levelValues[i-1],`level ${i+1} material value must increase`);
+for(let i=1;i<tierValues.length;i++)assert(tierValues[i]>tierValues[i-1],`material tier ${i+1} must be more valuable`);
+for(let tier=0;tier<10;tier++){
+ const names=cfg.ZRSJZ_ENHANCEMENT_NODES.filter(n=>!n.Special&&Math.floor((n.Level-1)/5)===tier).flatMap(n=>n.Materials.map(m=>m.PropName));
+ assert(new Set(names).size>=6,`material tier ${tier+1} must use at least six different props`);
+}
+for(let level=2;level<=50;level++){
+ const previous=cfg.ZRSJZ_ENHANCEMENT_NODES.find(n=>!n.Special&&n.Level===level-1).Materials.map(m=>m.PropName).sort().join('|');
+ const current=cfg.ZRSJZ_ENHANCEMENT_NODES.find(n=>!n.Special&&n.Level===level).Materials.map(m=>m.PropName).sort().join('|');
+ assert.notEqual(current,previous,`levels ${level-1}/${level} must rotate materials`);
+}
 for(const version of [undefined,0,1,2,3,4,5,6,7,8]){
  const old={Versions:version,Gold:98765,FacilityLevel:{靶场:3,研究所:2,健身:4},FiringRangeLevel:5,InventoryRow:{仓库_全部:37},PropData:{},MainTaskComplete:[]};
  const json=JSON.stringify(old),d=read(old);
- assert.equal(d.Versions,9);assert.equal(d.EnhancementLevel,9);assert.deepEqual(d.EnhancementSpecials,['special_5']);
+ assert.equal(d.Versions,10);assert.equal(d.EnhancementLevel,9);assert.deepEqual(d.EnhancementSpecials,['special_5']);
  assert.equal(d.Gold,old.Gold);assert.deepEqual(d.InventoryRow,old.InventoryRow);assert.deepEqual(d.FacilityLevel,old.FacilityLevel);
- assert.equal(storage.get('ZRSJZ_GameData_before_v9'),json);
+ assert.equal(storage.get('ZRSJZ_GameData_before_v10'),json);
  const save=storage.get('ZRSJZ_GameData');Data._instance=null;assert.equal(Data.Instance.EnhancementLevel,9);assert.equal(storage.get('ZRSJZ_GameData'),save);
 }
+const v9=read({Versions:9,EnhancementLevel:17,EnhancementSpecials:['special_5','special_10'],Gold:456,PropData:{}});
+assert.equal(v9.Versions,10);assert.equal(v9.EnhancementLevel,17);assert.deepEqual(v9.EnhancementSpecials,['special_5','special_10']);
 assert.equal(read({Versions:1,FiringRangeLevel:4}).EnhancementLevel,4);
 assert.equal(read({Versions:8,FacilityLevel:{靶场:5,研究所:5,健身:5}}).EnhancementSpecials.length,3);
 assert.equal(read({Versions:8,FacilityLevel:{靶场:-1,研究所:'oops',健身:99}}).EnhancementLevel,5);
-storage.clear();Data._instance=null;assert.equal(Data.Instance.EnhancementLevel,0);assert.equal(Data.Instance.Versions,9);
+storage.clear();Data._instance=null;assert.equal(Data.Instance.EnhancementLevel,0);assert.equal(Data.Instance.Versions,10);
 const fill=n=>{Data.Instance.Gold=1000000000;for(const m of n.Materials)I.AddPropByName(m.PropName,m.Count);};
 const first=U.GetNode('main_1');
 let before=JSON.stringify(Data.Instance);assert(U.Purchase('main_2'));assert.equal(JSON.stringify(Data.Instance),before);
@@ -53,13 +72,32 @@ for(let level=1;level<=50;level++){
 assert.equal(U.GetBonus('换弹速度'),0);assert.equal(U.GetBonus('大红掉落概率'),0);
 for(const node of cfg.ZRSJZ_ENHANCEMENT_NODES.filter(n=>n.Special)){fill(node);assert.equal(U.Purchase(node.ID),'');}
 assert.equal(U.Level,50);assert.equal(Data.Instance.EnhancementSpecials.length,10);
-assert.equal(U.GetBonus('攻击'),100);assert.equal(U.GetBonus('生命'),200);assert.equal(U.GetBonus('防御'),50);
+assert.equal(U.GetBonus('攻击'),20);assert.equal(U.GetBonus('生命'),30);assert.equal(U.GetBonus('防御'),20);
 assert.equal(U.GetBonus('移速'),10);assert.equal(U.GetBonus('技能伤害'),30);assert.equal(U.GetBonus('技能冷却'),10);
 assert.equal(U.GetSkillDamage(100),130);assert.equal(U.GetCooldownDuration(20),18);assert.equal(U.GetReloadDuration(5),4);
-assert.equal(F.GetFiringRangeAttackBonusRate(),0);assert.equal(F.GetResearchMaxHPBonus(),200);assert.equal(F.GetGymMoveSpeedBonusRate(),.1);
-Data.Instance.FacilityLevel={靶场:5,研究所:5,健身:5};assert.equal(F.GetFiringRangeAttackBonusRate(),0);assert.equal(F.GetResearchMaxHPBonus(),200);
+assert.equal(Math.round(100*(1+U.GetBonus('攻击')/100)),120);
+assert.equal(Math.round(100*(1+U.GetBonus('生命')/100)),130);
+assert.equal(Math.round(100*(1-U.GetBonus('防御')/100)),80);
+assert.equal(F.GetFiringRangeAttackBonusRate(),0);assert.equal(F.GetResearchMaxHPBonus(),30);assert.equal(F.GetGymMoveSpeedBonusRate(),.1);
+Data.Instance.FacilityLevel={靶场:5,研究所:5,健身:5};assert.equal(F.GetFiringRangeAttackBonusRate(),0);assert.equal(F.GetResearchMaxHPBonus(),30);
 assert(Math.abs(B.GetBoostedRedProbability(.1)-.11)<1e-9);
 const w=B.ApplyRedProbabilityToWeights([90,10],1);assert(Math.abs(w[1]/(w[0]+w[1])-.11)<1e-9);
 assert.deepEqual(B.ApplyRedProbabilityToWeights([100,0],1),[100,0]);
 Data.SaveData();Data._instance=null;assert.equal(U.Level,50);assert.equal(U.GetBonus('换弹速度'),25);
-console.log('PASS: 60 nodes, 8 stats, save versions 0–8 + unversioned, backup/idempotence, exact resource debit, insufficient resources, sequential + optional milestone unlocks, duplicate purchases, max level, damage/cooldown/reload/drop and retired legacy bonuses.');
+storage.clear();Data._instance=null;Data.Instance.Gold=0;Data.Instance.PropData={};
+assert.equal(U.FreeUpgradeEnabled,false);assert(U.Purchase('main_1'));
+U.FreeUpgradeEnabled=true;
+assert(U.Purchase('main_2'));assert(U.Purchase('special_5'));
+const inventoryBefore=JSON.stringify(Data.Instance.PropData);
+for(let level=1;level<=50;level++){
+ assert.equal(U.Purchase('main_'+level),'');assert(U.Purchase('main_'+level));
+ if(level%5===0){assert.equal(U.Purchase('special_'+level),'');assert(U.Purchase('special_'+level));}
+}
+assert.equal(Data.Instance.Gold,0);assert.equal(JSON.stringify(Data.Instance.PropData),inventoryBefore);
+assert(U.Purchase('main_51'));assert.equal(U.Level,50);
+assert(!storage.get('ZRSJZ_GameData').includes('FreeUpgradeEnabled'));
+cache.delete(path.resolve(root,'Scripts/Service/ZRSJZ_EnhancementService.ts'));
+const restarted=load('Scripts/Service/ZRSJZ_EnhancementService.ts').ZRSJZ_EnhancementService;
+assert.equal(restarted.FreeUpgradeEnabled,false);Data._instance=null;assert.equal(restarted.Level,50);
+Data.Instance.EnhancementLevel=0;assert(restarted.Purchase('main_1'));
+console.log('PASS: existing migration/resource/bonus tests + 60 free upgrades, no resource debit, progression and duplicate guards, session flag resets while earned levels persist.');

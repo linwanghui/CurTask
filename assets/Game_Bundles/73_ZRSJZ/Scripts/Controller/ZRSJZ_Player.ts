@@ -370,8 +370,9 @@ export class ZRSJZ_Player extends Component {
 
 
         //血量初始化
-        this.MaxHP = (this.InitHP + ZRSJZ_FacilityService.GetResearchMaxHPBonus())
-            * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("生命") : 0))
+        this.MaxHP = this.InitHP
+            * (1 + ZRSJZ_FacilityService.GetResearchMaxHPBonus() / 100
+                + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("生命") : 0))
             + ZRSJZ_BoosterShotService.GetBoosterValue("生命针")
             + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).MaxHP : 0);
         this.CurHP = this.MaxHP;
@@ -598,7 +599,8 @@ export class ZRSJZ_Player extends Component {
         const totalGunDamageRate = 1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
         const harmShot: number = ZRSJZ_BoosterShotService.GetBooster("攻击针");
         const bulletLevel = this.GetBulletLevel(ammoName);
-        const finalDamage = Math.round(ZRSJZ_EnhancementService.GetBonus('攻击') + gunDamage * (bulletDamage / 100 + totalGunDamageRate + harmShot)
+        const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + totalGunDamageRate + harmShot
+            + ZRSJZ_EnhancementService.GetBonus('攻击') / 100)
             + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).Attack : 0));
 
         const showBullet = (targetBullet: Node, dirX: number, dirY: number): Vec3 | null => {
@@ -722,10 +724,10 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_AudioManager.Instance.PlaySound("近战攻击");
         const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
 
-        const finalDamage = Math.round(ZRSJZ_EnhancementService.GetBonus('攻击') +
-            damage * (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() +
+        const finalDamage = Math.round(damage * (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() +
                 (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0) +
-                ZRSJZ_BoosterShotService.GetBooster("攻击针")
+                ZRSJZ_BoosterShotService.GetBooster("攻击针") +
+                ZRSJZ_EnhancementService.GetBonus('攻击') / 100
             ) + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).Attack : 0)
         );
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
@@ -959,9 +961,10 @@ export class ZRSJZ_Player extends Component {
         const damageMultiplier = this._shielding
             ? 0.1
             : 1 - this.GetEquippedDamageReductionRate() - ZRSJZ_BoosterShotService.GetBooster("防御针")
+                - ZRSJZ_EnhancementService.GetBonus('防御') / 100
                 - (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).DamageReduction : 0);
         let madeHarm = incomingHarm > 0
-            ? Math.max(1, Math.round(damageMultiplier * incomingHarm - ZRSJZ_EnhancementService.GetBonus('防御')))
+            ? Math.max(1, Math.round(damageMultiplier * incomingHarm))
             : 0;
         if (incomingHarm > 0) {
             for (const [source, shield] of this._petShields) {

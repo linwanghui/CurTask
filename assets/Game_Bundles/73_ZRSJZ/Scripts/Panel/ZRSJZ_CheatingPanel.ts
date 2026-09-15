@@ -9,6 +9,7 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
 import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
+import { ZRSJZ_EnhancementService } from '../Service/ZRSJZ_EnhancementService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_CheatingPanel')
@@ -117,6 +118,10 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             return;
         }
         switch (target) {
+            case '免费强化':
+                ZRSJZ_EnhancementService.FreeUpgradeEnabled = true;
+                void ZRSJZ_UIManager.Instance.ShowTip('本次游戏已开启免费强化：免材料、免金币');
+                break;
             case '关闭候选':
                 this.node.getChildByName('道具候选窗口').active = false;
                 break;
