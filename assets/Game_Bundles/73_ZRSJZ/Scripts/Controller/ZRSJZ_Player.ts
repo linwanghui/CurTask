@@ -18,6 +18,7 @@ import { ZRSJZ_Box } from '../Unit/ZRSJZ_Box';
 import { ZRSJZ_Skill } from '../Skill/ZRSJZ_Skill';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_HarmEffect } from '../Effect/ZRSJZ_HarmEffect';
+import { ZRSJZ_EnhancementService } from '../Service/ZRSJZ_EnhancementService';
 import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
 import { ZRSJZ_SpecialOperationsTaskIcon } from '../Unit/ZRSJZ_SpecialOperationsTaskIcon';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
@@ -431,7 +432,7 @@ export class ZRSJZ_Player extends Component {
                     // 激光留在地图特效层，由组件按玩家的世界位置和实时朝向独立跟随。
                     laser.parent = effectParent;
                     laser.active = true;
-                    const harm = 15 * (1 + ZRSJZ_BoosterShotService.GetBooster("攻击针"))
+                    const harm = ZRSJZ_EnhancementService.GetSkillDamage(15 * (1 + ZRSJZ_BoosterShotService.GetBooster("攻击针")));
                     const muzzlePosition = this.getMuzzlePos() ?? this.node.worldPosition.clone();
                     laserSkill.Show(muzzlePosition, this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, harm, () => {
                         if (!this.CanUseAsyncResult(laserRequestGame)) return;
@@ -465,7 +466,7 @@ export class ZRSJZ_Player extends Component {
                         }
                         bomb.parent = effectParent;
                         bomb.active = true;
-                        const harm = 30 * (1 + ZRSJZ_BoosterShotService.GetBooster("攻击针"))
+                        const harm = ZRSJZ_EnhancementService.GetSkillDamage(30 * (1 + ZRSJZ_BoosterShotService.GetBooster("攻击针")));
                         bombSkill.Show(targetEnemy.worldPosition.clone(), 0, 0, harm);
                     }).catch(error => console.error('[ZRSJZ_Player] 轰炸特效加载失败:', error))
                 }
@@ -597,7 +598,7 @@ export class ZRSJZ_Player extends Component {
         const totalGunDamageRate = 1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
         const harmShot: number = ZRSJZ_BoosterShotService.GetBooster("攻击针");
         const bulletLevel = this.GetBulletLevel(ammoName);
-        const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + totalGunDamageRate + harmShot)
+        const finalDamage = Math.round(ZRSJZ_EnhancementService.GetBonus('攻击') + gunDamage * (bulletDamage / 100 + totalGunDamageRate + harmShot)
             + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).Attack : 0));
 
         const showBullet = (targetBullet: Node, dirX: number, dirY: number): Vec3 | null => {
@@ -721,7 +722,7 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_AudioManager.Instance.PlaySound("近战攻击");
         const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
 
-        const finalDamage = Math.round(
+        const finalDamage = Math.round(ZRSJZ_EnhancementService.GetBonus('攻击') +
             damage * (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() +
                 (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0) +
                 ZRSJZ_BoosterShotService.GetBooster("攻击针")
@@ -960,7 +961,7 @@ export class ZRSJZ_Player extends Component {
             : 1 - this.GetEquippedDamageReductionRate() - ZRSJZ_BoosterShotService.GetBooster("防御针")
                 - (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).DamageReduction : 0);
         let madeHarm = incomingHarm > 0
-            ? Math.max(1, Math.round(damageMultiplier * incomingHarm))
+            ? Math.max(1, Math.round(damageMultiplier * incomingHarm - ZRSJZ_EnhancementService.GetBonus('防御')))
             : 0;
         if (incomingHarm > 0) {
             for (const [source, shield] of this._petShields) {
@@ -1327,7 +1328,7 @@ export class ZRSJZ_Player extends Component {
 
     private OnGunAttackAnimationComplete(): void {
         this._gunAttackAnimationPlayedOnce = true;
-        // 子弹只由 Spine 开枪事件生成；动画完成不再补发子弹。
+        // 子弹只由 Spine 开枪事件生成；动画完成����再补发子弹。
         if (this._waitingFirstGunShot) {
             console.error("[ZRSJZ_Player] 开枪动画未触发 kq/gj_jjq 事件，本轮取消且退回弹药");
             if (this._reservedGunBullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(this._reservedGunBullet);

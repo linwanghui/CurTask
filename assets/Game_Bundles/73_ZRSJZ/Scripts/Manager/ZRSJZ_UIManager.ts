@@ -1,3 +1,4 @@
+import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, AudioClip, AudioSource, Camera, Canvas, Component, director, Director, EventKeyboard, find, input, Input, instantiate, isValid, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
@@ -1041,6 +1042,10 @@ export class ZRSJZ_UIManager extends Component {
                 return false;
             }
 
+            if (ZRSJZ_FragmentService.IsFragment(award.PropName)) {
+                if (!Number.isSafeInteger(totalCount) || !Number.isSafeInteger(ZRSJZ_FragmentService.GetCount(award.PropName) + totalCount)) return false;
+                continue;
+            }
             const maxCount = Math.max(1, Math.floor(Number(propConfig.MaxCount) || 1));
             const stackCount = Math.ceil(totalCount / maxCount);
             const preferredInventory = ZRSJZ_Tools.GetInventoryByPropType(propConfig.PropType);
@@ -1074,6 +1079,10 @@ export class ZRSJZ_UIManager extends Component {
             }
 
             const maxCount = Math.max(1, Math.floor(Number(propConfig.MaxCount) || 1));
+            if (ZRSJZ_FragmentService.IsFragment(propName)) {
+                if (!ZRSJZ_FragmentService.Credit(propName, totalCount)) invalidAwards.push({ PropName: propName, Count: totalCount });
+                continue;
+            }
             let remaining = totalCount;
             while (remaining > 0) {
                 const stackCount = Math.min(maxCount, remaining);
@@ -1535,6 +1544,7 @@ export class ZRSJZ_UIManager extends Component {
         const affectedPropIDs = new Set<string>();
         const receivedPropIDs: string[] = [];
         let receivedFragments = 0;
+        let receivedHeroFragments = 0;
 
         for (const propID in ZRSJZ_GameData.Instance.PropData) {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
@@ -1563,9 +1573,10 @@ export class ZRSJZ_UIManager extends Component {
             }
 
             // 仅对本次可保留的碎片兑换，余额和道具删除共同存档，重复结算不会再发放。
-            if (propData.Name === "宠物碎片") {
+            if (ZRSJZ_FragmentService.IsFragment(propData.Name)) {
                 if (Number.isSafeInteger(propData.CurCount) && propData.CurCount > 0) {
-                    receivedFragments += propData.CurCount;
+                    if (propData.Name === "英雄碎片") receivedHeroFragments += propData.CurCount;
+                    else receivedFragments += propData.CurCount;
                 }
                 delete ZRSJZ_GameData.Instance.PropData[propID];
                 continue;
@@ -1583,9 +1594,9 @@ export class ZRSJZ_UIManager extends Component {
             receivedPropIDs.push(propID);
         }
 
-        if (receivedFragments > 0) {
-            const current = ZRSJZ_GameData.Instance.PetFragments;
-            ZRSJZ_GameData.Instance.PetFragments = (Number.isSafeInteger(current) && current >= 0 ? current : 0) + receivedFragments;
+        if (receivedFragments > 0 || receivedHeroFragments > 0) {
+            ZRSJZ_FragmentService.Credit('宠物碎片', receivedFragments, false);
+            ZRSJZ_FragmentService.Credit('英雄碎片', receivedHeroFragments, false);
             ZRSJZ_GameData.SaveData();
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
         }
@@ -1771,5 +1782,3 @@ export class ZRSJZ_UIManager extends Component {
 
 
 }
-
-

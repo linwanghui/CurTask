@@ -35,7 +35,13 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
     private _selectedSkill = -1;
     private _skillIconRequest = 0;
 
+    private _fragmentGlow: Node = null;
+    protected update(dt: number): void {
+        if (this._fragmentGlow) this._fragmentGlow.angle = (this._fragmentGlow.angle - dt * 45) % 360;
+    }
+
     protected onLoad(): void {
+        this._fragmentGlow = find("Panel/免费获取宠物碎片/碎片背光", this.node);
         const fragments = find("Panel/免费获取宠物碎片", this.node);
         if (fragments) {
             const button = fragments.getComponent(Button) ?? fragments.addComponent(Button);

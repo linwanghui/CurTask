@@ -1,308 +1,136 @@
-import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
-import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
-import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, Button, Color, EventTouch, find, Label, Node, Sprite } from 'cc';
+import { _decorator, Button, Color, Label, Node, ScrollView, Sprite, SpriteFrame, Vec2 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
-import {
-    GetFacilityBonusValue,
-    ZRSJZ_FACILITY_UPGRADE_CONFIG,
-    ZRSJZ_FacilityLevelConfig,
-    ZRSJZ_UpgradeMaterial,
-    ZRSJZ_UpgradeFacilityName,
-    ZRSJZ_PANEL,
-    ZRSJZ_PROP_CONFIG,
-} from '../ZRSJZ_Constant';
+import { ZRSJZ_ENHANCEMENT_NODES, ZRSJZ_ENHANCEMENT_STATS, EnhancementStat } from '../ZRSJZ_EnhancementConfig';
+import { ZRSJZ_EnhancementService as Upgrade } from '../Service/ZRSJZ_EnhancementService';
+import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
-import { ZRSJZ_TaskService } from "../Service/ZRSJZ_TaskService";
 const { ccclass, property } = _decorator;
 
-type ZRSJZ_UpgradeFacilityDisplayName = "射击训练" | "科技研究" | "体能锻炼";
-
-/** 界面使用新名称，配置和存档继续使用旧键，避免已有玩家的升级数据丢失。 */
-const ZRSJZ_FACILITY_DISPLAY_NAME: Readonly<Record<
-    ZRSJZ_UpgradeFacilityName,
-    ZRSJZ_UpgradeFacilityDisplayName
->> = {
-    "靶场": "射击训练",
-    "研究所": "科技研究",
-    "健身": "体能锻炼",
-};
-
-const ZRSJZ_FACILITY_NAME_BY_DISPLAY: Readonly<Record<
-    ZRSJZ_UpgradeFacilityDisplayName,
-    ZRSJZ_UpgradeFacilityName
->> = {
-    "射击训练": "靶场",
-    "科技研究": "研究所",
-    "体能锻炼": "健身",
-};
-
+/** 路线与详情节点保存在预制体中；运行时仅绑定交互、更新显示。 */
 @ccclass('ZRSJZ_UpgradePanel')
 export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
+    @property(SpriteFrame) NormalFrame: SpriteFrame = null;
+    @property(SpriteFrame) OwnedFrame: SpriteFrame = null;
+    @property(SpriteFrame) LevelFrame: SpriteFrame = null;
+    @property(SpriteFrame) OwnedLevelFrame: SpriteFrame = null;
+    @property(SpriteFrame) LineFrame: SpriteFrame = null;
+    @property(SpriteFrame) OwnedLineFrame: SpriteFrame = null;
+    @property(SpriteFrame) DottedFrame: SpriteFrame = null;
+    @property(SpriteFrame) OwnedDottedFrame: SpriteFrame = null;
+    private selected = 'main_1';
+    private version = 0;
+    private route = new Map<string, Node>();
+    private scroll: ScrollView = null;
+    private refreshClock = 0;
+    private signature = '';
+    private static readonly ENOUGH = new Color(18, 185, 67);
+    private static readonly LACK = new Color(220, 55, 55);
 
-    private _title: Label = null;
-    private _attributeName: Label = null;
-    private _currentLevel: Label = null;
-    private _nextLevel: Label = null;
-    private _currentBonus: Label = null;
-    private _nextBonus: Label = null;
-    private _price: Label = null;
-    private _upgradeButton: Button = null;
-    private _facilityButtons: Map<ZRSJZ_UpgradeFacilityDisplayName, Node> = new Map();
-
-    private _materialGrids: Sprite[] = [];
-    private _materialIcons: Sprite[] = [];
-    private _materialNames: Label[] = [];
-    private _materialCounts: Label[] = [];
-
-    private _refreshVersion: number = 0;
-    private _isUpgrading: boolean = false;
-    private _facilityName: ZRSJZ_UpgradeFacilityName = "靶场";
-
-    private static readonly ENOUGH_COLOR: Color = new Color(92, 255, 120, 255);
-    private static readonly LACK_COLOR: Color = new Color(255, 100, 100, 255);
-    private static readonly NORMAL_COLOR: Color = new Color(255, 255, 255, 255);
-
+    private At(path: string): Node { return this.node.getChildByPath(`Panel/${path}`); }
+    private Text(path: string, text: string): Label {
+        const label = this.At(path).getComponent(Label); label.string = text; return label;
+    }
     protected onLoad(): void {
-        const descPath = "Panel/Desc";
-        this._title = find(`${descPath}/PropName`, this.node).getComponent(Label);
-        this._attributeName = find(`${descPath}/Tip2`, this.node).getComponent(Label);
-        this._currentLevel = find(`${descPath}/当前等级`, this.node).getComponent(Label);
-        this._nextLevel = find(`${descPath}/下一等级`, this.node).getComponent(Label);
-        this._currentBonus = find(`${descPath}/当前提升`, this.node).getComponent(Label);
-        this._nextBonus = find(`${descPath}/下一等级提升`, this.node).getComponent(Label);
-        this._price = find(`${descPath}/Buttons/升级/PropPrice/Price`, this.node).getComponent(Label);
-        this._upgradeButton = find(`${descPath}/Buttons/升级`, this.node).getComponent(Button);
-
-        for (let index = 1; index <= 2; index++) {
-            this._materialGrids.push(find(`${descPath}/道具${index}格子`, this.node).getComponent(Sprite));
-            this._materialIcons.push(find(`${descPath}/道具${index}Icon`, this.node).getComponent(Sprite));
-            this._materialNames.push(find(`${descPath}/道具${index}名字`, this.node).getComponent(Label));
-            this._materialCounts.push(find(`${descPath}/道具${index}数量`, this.node).getComponent(Label));
-        }
-
-        this.BindButtons();
-    }
-
-    Show(...args: any[]): void {
-        this._facilityName = this.ResolveFacilityName(args[0]);
-        // args[0] 是设施名称，不能传给 Panel.Show 当作回调执行。
-        super.Show();
-        this.RefreshChecked();
-        this.RefreshView();
-    }
-
-    public async OnButtonClick(event: EventTouch): Promise<void> {
-        ZRSJZ_AudioManager.Instance.PlaySound("点击");
-        switch (event.getCurrentTarget().name) {
-            case "Close":
-                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化界面);
-                break;
-            case "射击训练":
-                this.SelectFacility("射击训练");
-                break;
-            case "体能锻炼":
-                this.SelectFacility("体能锻炼");
-                break;
-            case "科技研究":
-                this.SelectFacility("科技研究");
-                break;
-            case "升级":
-                await this.Upgrade();
-                break;
-        }
-    }
-
-    /** 新弹窗按钮不依赖编辑器 ClickEvent，脚本加载后统一绑定。 */
-    private BindButtons(): void {
-        const closeButton = find("Panel/返回/Close", this.node).getComponent(Button);
-        closeButton.clickEvents.length = 0;
-        closeButton.node.on(Button.EventType.CLICK, () => {
-            ZRSJZ_AudioManager.Instance.PlaySound("点击");
-            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化界面);
-        }, this);
-
-        const displayNames = Object.keys(ZRSJZ_FACILITY_NAME_BY_DISPLAY) as ZRSJZ_UpgradeFacilityDisplayName[];
-        for (const displayName of displayNames) {
-            const buttonNode = find(`Panel/${displayName}`, this.node);
-            const button = buttonNode.getComponent(Button);
-            button.clickEvents.length = 0;
-            buttonNode.on(Button.EventType.CLICK, () => {
-                ZRSJZ_AudioManager.Instance.PlaySound("点击");
-                this.SelectFacility(displayName);
+        this.scroll = this.At('Tree/Scroll').getComponent(ScrollView);
+        this.At('Close').on(Button.EventType.CLICK, () => ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化界面), this);
+        this.At('Desc/Upgrade').on(Button.EventType.CLICK, this.Purchase, this);
+        for (const config of ZRSJZ_ENHANCEMENT_NODES) {
+            const node = this.At(`Tree/Scroll/View/Content/Row_${config.Level}/${config.ID}`);
+            this.route.set(config.ID, node);
+            node.on(Button.EventType.CLICK, () => {
+                this.selected = config.ID;
+                ZRSJZ_AudioManager.Instance?.PlaySound('点击');
+                this.Refresh();
             }, this);
-            this._facilityButtons.set(displayName, buttonNode);
         }
-        this.RefreshChecked();
-
-        this._upgradeButton.clickEvents.length = 0;
-        this._upgradeButton.node.on(Button.EventType.CLICK, async () => {
-            ZRSJZ_AudioManager.Instance.PlaySound("点击");
-            await this.Upgrade();
-        }, this);
     }
-
-    private SelectFacility(displayName: ZRSJZ_UpgradeFacilityDisplayName): void {
-        const facilityName = ZRSJZ_FACILITY_NAME_BY_DISPLAY[displayName];
-        if (!facilityName || facilityName === this._facilityName) {
-            this.RefreshChecked();
-            return;
-        }
-        this._facilityName = facilityName;
-        this.RefreshChecked();
-        this.RefreshView();
+    Show(): void {
+        super.Show();
+        this.selected = `main_${Math.min(50, Upgrade.Level + 1)}`;
+        this.Refresh();
+        this.scheduleOnce(() => {
+            if (!this.node.activeInHierarchy) return;
+            const max = this.scroll.getMaxScrollOffset().y;
+            this.scroll.scrollToOffset(new Vec2(0, Math.max(0, Math.min(max, max - Math.max(0, Upgrade.Level - 1) * 210))), 0);
+        }, 0);
     }
-
-    private RefreshChecked(): void {
-        const selectedDisplayName = ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName];
-        for (const [displayName, buttonNode] of this._facilityButtons) {
-            const checked = buttonNode.getChildByName("Checked");
-            if (checked) {
-                checked.active = displayName === selectedDisplayName;
+    protected onDisable(): void { this.version++; this.unscheduleAllCallbacks(); }
+    protected update(dt: number): void {
+        this.refreshClock += dt;
+        if (this.refreshClock < 0.5) return;
+        this.refreshClock = 0;
+        const config = Upgrade.GetNode(this.selected);
+        const signature = `${Upgrade.Level}:${ZRSJZ_GameData.Instance.Gold}:${(ZRSJZ_GameData.Instance.EnhancementSpecials ?? []).join(',')}:${config.Materials.map(m => ZRSJZ_InventoryService.GetPropCountByName(m.PropName)).join(',')}`;
+        if (signature !== this.signature) { this.signature = signature; this.Refresh(); }
+    }
+    private Purchase(): void {
+        const result = Upgrade.Purchase(this.selected);
+        ZRSJZ_AudioManager.Instance?.PlaySound('点击');
+        ZRSJZ_UIManager.Instance.ShowTip(result || '强化成功！');
+        this.Refresh();
+    }
+    private Refresh(): void {
+        const version = ++this.version;
+        this.Text('Progress', `强化等级  ${Upgrade.Level} / 50`);
+        (Object.keys(ZRSJZ_ENHANCEMENT_STATS) as EnhancementStat[]).forEach((stat, index) =>
+            this.Text(`Bonuses/Stat${index}`, `${stat}  ${Upgrade.Format(stat, Upgrade.GetBonus(stat))}`));
+        for (const config of ZRSJZ_ENHANCEMENT_NODES) {
+            const node = this.route.get(config.ID), owned = Upgrade.IsOwned(config);
+            node.getComponent(Sprite).spriteFrame = owned ? this.OwnedFrame : this.NormalFrame;
+            node.getChildByName('Icon').active = owned || Upgrade.IsAvailable(config);
+            node.getChildByName('GrayIcon').active = !owned && !Upgrade.IsAvailable(config);
+            node.getChildByName('Selected').active = this.selected === config.ID;
+            node.getChildByName('Value').getComponent(Label).string = Upgrade.Format(config.Stat, config.Value);
+            node.getChildByName('Status').getComponent(Label).string = config.Special ? (owned ? '已强化' : Upgrade.IsAvailable(config) ? '可强化' : '特殊强化') : '';
+            if (config.Special) node.parent.getChildByName('Branch').getComponent(Sprite).spriteFrame = owned ? this.OwnedLineFrame : this.LineFrame;
+            if (!config.Special) {
+                const row = node.parent;
+                const dotted = row.getChildByName('Dotted')?.getComponent(Sprite);
+                if (dotted) {
+                    dotted.sizeMode = Sprite.SizeMode.TRIMMED;
+                    // Dotted 位于当前等级与下一等级之间；下一等级完成后才高亮。
+                    dotted.spriteFrame = config.Level < Upgrade.Level
+                        ? this.OwnedDottedFrame
+                        : this.DottedFrame;
+                }
+                row.getChildByName('Level').getComponent(Sprite).spriteFrame = owned ? this.OwnedLevelFrame : this.LevelFrame;
+                const line = row.getChildByName('Line');
+                if (line) line.getComponent(Sprite).spriteFrame = config.Level < Upgrade.Level ? this.OwnedLineFrame : this.LineFrame;
             }
         }
-    }
-
-    private ResolveFacilityName(name: string): ZRSJZ_UpgradeFacilityName {
-        if (name in ZRSJZ_FACILITY_DISPLAY_NAME) {
-            return name as ZRSJZ_UpgradeFacilityName;
-        }
-        return ZRSJZ_FACILITY_NAME_BY_DISPLAY[name as ZRSJZ_UpgradeFacilityDisplayName] ?? "靶场";
-    }
-
-    private async Upgrade(): Promise<void> {
-        if (this._isUpgrading) return;
-
-        const currentLevel = ZRSJZ_FacilityService.GetFacilityLevel(this._facilityName);
-        const config = this.GetNextLevelConfig(currentLevel);
-        if (!config) {
-            ZRSJZ_UIManager.Instance.ShowTip(
-                `${ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName]}已达到最高等级`,
-            );
-            return;
-        }
-
-        if (ZRSJZ_GameData.Instance.Gold < config.Gold) {
-            ZRSJZ_UIManager.Instance.ShowTip("金币不足");
-            return;
-        }
-
-        const lackingMaterial = config.Materials.find(material =>
-            ZRSJZ_InventoryService.GetPropCountByName(material.PropName) < material.Count
-        );
-        if (lackingMaterial) {
-            ZRSJZ_UIManager.Instance.ShowTip(`${lackingMaterial.PropName}数量不足`);
-            return;
-        }
-
-        this._isUpgrading = true;
-        try {
-            ZRSJZ_AccountService.ChangeGold(-config.Gold);
-            for (const material of config.Materials) {
-                ZRSJZ_InventoryService.ConsumeProp(material.PropName, material.Count);
-            }
-            ZRSJZ_FacilityService.SetFacilityLevel(this._facilityName, config.Level);
-            ZRSJZ_AudioManager.Instance?.PlaySound("点击");
-            ZRSJZ_TaskService.CompleteTask("强化1次", 1);
-            ZRSJZ_UIManager.Instance.ShowTip(`升级成功！`);
-            await this.RefreshView();
-        } finally {
-            this._isUpgrading = false;
-        }
-    }
-
-    private async RefreshView(): Promise<void> {
-        const refreshVersion = ++this._refreshVersion;
-        const facilityConfig = ZRSJZ_FACILITY_UPGRADE_CONFIG[this._facilityName];
-        const currentLevel = ZRSJZ_FacilityService.GetFacilityLevel(this._facilityName);
-        const nextConfig = this.GetNextLevelConfig(currentLevel);
-
-        this._title.string = ZRSJZ_FACILITY_DISPLAY_NAME[this._facilityName];
-        this._attributeName.string = facilityConfig.AttributeName;
-        this._currentLevel.string = `lv.${currentLevel}`;
-        this._currentBonus.string = `+${GetFacilityBonusValue(this._facilityName, currentLevel)}${facilityConfig.ValueSuffix}`;
-
-        if (!nextConfig) {
-            this.ShowMaxLevel();
-            return;
-        }
-
-        this._nextLevel.string = `lv.${nextConfig.Level}`;
-        this._nextBonus.string = `+${nextConfig.BonusValue}${facilityConfig.ValueSuffix}`;
-        this._price.string = `${nextConfig.Gold}`;
-        this._price.color = ZRSJZ_GameData.Instance.Gold >= nextConfig.Gold
-            ? ZRSJZ_UpgradePanel.ENOUGH_COLOR
-            : ZRSJZ_UpgradePanel.LACK_COLOR;
-        this._upgradeButton.interactable = true;
-
-        await Promise.all(nextConfig.Materials.map((material, index) =>
-            this.RefreshMaterial(index, material, refreshVersion)
-        ));
-    }
-
-    private async RefreshMaterial(
-        index: number,
-        material: ZRSJZ_UpgradeMaterial,
-        refreshVersion: number,
-    ): Promise<void> {
-        const propConfig = ZRSJZ_PROP_CONFIG.get(material.PropName);
-        const grid = this._materialGrids[index];
-        const icon = this._materialIcons[index];
-        const nameLabel = this._materialNames[index];
-        const countLabel = this._materialCounts[index];
-
-        grid.node.active = true;
-        icon.node.active = true;
-        nameLabel.node.active = true;
-        countLabel.node.active = true;
-        nameLabel.string = material.PropName;
-
-        const ownedCount = ZRSJZ_InventoryService.GetPropCountByName(material.PropName);
-        countLabel.string = `${ownedCount}/${material.Count}`;
-        countLabel.color = ownedCount >= material.Count
-            ? ZRSJZ_UpgradePanel.ENOUGH_COLOR
-            : ZRSJZ_UpgradePanel.LACK_COLOR;
-
-        if (!propConfig) {
-            console.warn(`[ZRSJZ_UpgradePanel] 未找到升级物资配置: ${material.PropName}`);
-            grid.spriteFrame = null;
+        const config = Upgrade.GetNode(this.selected), owned = Upgrade.IsOwned(config), available = Upgrade.IsAvailable(config);
+        const stat = ZRSJZ_ENHANCEMENT_STATS[config.Stat];
+        const statLevel = ZRSJZ_ENHANCEMENT_NODES.filter(n => n.Stat === config.Stat && n.Level <= config.Level).length;
+        this.Text('Desc/Title', `${config.Stat}强化 Lv.${statLevel}`);
+        this.At('Desc/Icon').getComponent(Sprite).spriteFrame = this.route.get(config.ID).getChildByName('Icon').getComponent(Sprite).spriteFrame;
+        this.Text('Desc/Category', `${config.Special ? '特殊强化' : '基础强化'} · 路线 Lv.${config.Level}`);
+        this.Text('Desc/Gain', `本次提升  ${Upgrade.Format(config.Stat, config.Value)}`);
+        this.Text('Desc/Total', owned ? `当前累计  ${Upgrade.Format(config.Stat, Upgrade.GetBonus(config.Stat))}`
+            : `累计 ${Upgrade.Format(config.Stat, Upgrade.GetBonus(config.Stat))} → ${Upgrade.Format(config.Stat, Upgrade.GetBonus(config.Stat) + config.Value)}`);
+        this.Text('Desc/Description', stat.Description);
+        this.Text('Desc/Gold', `${this.Money(ZRSJZ_GameData.Instance.Gold)} / ${this.Money(config.Gold)}`).color = ZRSJZ_GameData.Instance.Gold >= config.Gold ? ZRSJZ_UpgradePanel.ENOUGH : ZRSJZ_UpgradePanel.LACK;
+        this.Text('Desc/Requirement', owned ? '该强化已永久生效' : available ? '消耗以下材料与金币' : config.Special ? `强化达到 Lv.${config.Level} 后可解锁` : `需先完成路线 Lv.${config.Level - 1}`);
+        this.Text('Desc/Upgrade/Text', owned ? '已强化' : available ? '解锁' : '未解锁');
+        this.At('Desc/Upgrade').getComponent(Button).interactable = available;
+        config.Materials.forEach((material, index) => {
+            const base = `Desc/Material${index}`;
+            this.Text(`${base}/Name`, material.PropName);
+            const count = ZRSJZ_InventoryService.GetPropCountByName(material.PropName);
+            this.Text(`${base}/Count`, `${count}/${material.Count}`).color = count >= material.Count ? ZRSJZ_UpgradePanel.ENOUGH : ZRSJZ_UpgradePanel.LACK;
+            const icon = this.At(`${base}/Icon`).getComponent(Sprite);
             icon.spriteFrame = null;
-            return;
-        }
-
-        const [gridSpriteFrame, iconSpriteFrame] = await Promise.all([
-            ZRSJZ_UIManager.Instance.GetPropGridUI(`${propConfig.Quality}1_1`),
-            ZRSJZ_UIManager.Instance.GetPropUI(material.PropName),
-        ]);
-        if (refreshVersion !== this._refreshVersion || !this.node.active) return;
-
-        grid.spriteFrame = gridSpriteFrame;
-        icon.spriteFrame = iconSpriteFrame;
-        ZRSJZ_Tools.ScaleNodeToFit(icon.node, 120, 120);
+            Promise.all([ZRSJZ_UIManager.Instance.GetPropGridUI(`${ZRSJZ_PROP_CONFIG.get(material.PropName).Quality}1_1`),
+                ZRSJZ_UIManager.Instance.GetPropUI(material.PropName)]).then(([grid, frame]) => {
+                if (version !== this.version || !this.node?.isValid || !this.node.activeInHierarchy) return;
+                this.At(base).getComponent(Sprite).spriteFrame = grid;
+                icon.spriteFrame = frame;
+                ZRSJZ_Tools.ScaleNodeToFit(icon.node, 95, 85);
+            }).catch(error => console.warn('[强化] 材料图标加载失败', error));
+        });
     }
-
-    private ShowMaxLevel(): void {
-        this._nextLevel.string = "已满级";
-        this._nextBonus.string = "已满级";
-        this._price.string = "MAX";
-        this._price.color = ZRSJZ_UpgradePanel.NORMAL_COLOR;
-        this._upgradeButton.interactable = false;
-
-        for (let index = 0; index < 2; index++) {
-            this._materialGrids[index].node.active = false;
-            this._materialIcons[index].node.active = false;
-            this._materialNames[index].node.active = false;
-            this._materialCounts[index].node.active = false;
-        }
-    }
-
-    private GetNextLevelConfig(currentLevel: number): ZRSJZ_FacilityLevelConfig | null {
-        return ZRSJZ_FACILITY_UPGRADE_CONFIG[this._facilityName].Levels
-            .find(config => config.Level === currentLevel + 1) ?? null;
-    }
-
-
+    private Money(value: number): string { return value >= 10000 ? `${Number((value / 10000).toFixed(2))}万` : `${value}`; }
 }

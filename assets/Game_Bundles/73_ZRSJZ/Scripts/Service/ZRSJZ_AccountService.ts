@@ -1,4 +1,5 @@
-import { ZRSJZ_WEAPON_SKIN } from "../ZRSJZ_Constant";
+import { ZRSJZ_FragmentService } from "./ZRSJZ_FragmentService";
+import { ZRSJZ_WEAPON_SKIN, ZRSJZ_ROLE_CONFIG, ZRSJZ_SKIN_CONFIG } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
 import { ZRSJZ_PlayerSwitchButton } from "../UI/ZRSJZ_PlayerSwitchButton";
@@ -40,11 +41,28 @@ export class ZRSJZ_AccountService {
         ZRSJZ_GameData.SaveData();
     }
 
+    public static UnlockSkinWithFragments(role: string, skin: string): string {
+        const data = ZRSJZ_GameData.Instance;
+        const config = ZRSJZ_SKIN_CONFIG.get(skin);
+        if (!ZRSJZ_ROLE_CONFIG.get(role)?.Skin.includes(skin) || !config) return "角色或皮肤无效";
+        if (data.HaveSkin.includes(skin)) return "已经解锁";
+        if (skin !== role && !data.HaveRole.includes(role)) return "请先解锁该角色";
+        const price = config.UnlockPrice;
+        if (config.UnlockType !== "英雄碎片" || !Number.isSafeInteger(price) || price <= 0) return "解锁配置无效";
+        const balance = ZRSJZ_FragmentService.GetCount('英雄碎片');
+        if (balance < price) return "英雄碎片不足";
+        data.HeroFragments = balance - price;
+        // AddSkin 同步保存余额和所有权；不经异步广告回调，避免切换角色或连点重复扣款。
+        this.AddSkin(role, skin);
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
+        return "";
+    }
+
     public static AddSkin(role: string, skin: string): void {
         const data = ZRSJZ_GameData.Instance;
-        data.HaveSkin.push(skin);
+        if (!data.HaveSkin.includes(skin)) data.HaveSkin.push(skin);
         if (role === skin) {
-            data.HaveRole.push(role);
+            if (!data.HaveRole.includes(role)) data.HaveRole.push(role);
             this.SetCurSkin(role, skin);
         } else {
             ZRSJZ_GameData.SaveData();
@@ -110,4 +128,3 @@ export class ZRSJZ_AccountService {
         return `${now.getFullYear()}-${`${now.getMonth() + 1}`.padStart(2, "0")}-${`${now.getDate()}`.padStart(2, "0")}`;
     }
 }
-

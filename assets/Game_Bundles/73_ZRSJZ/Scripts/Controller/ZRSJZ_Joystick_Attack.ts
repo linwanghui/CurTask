@@ -10,6 +10,7 @@ import { ZRSJZ_Door } from '../Unit/ZRSJZ_Door';
 import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
+import { ZRSJZ_EnhancementService } from '../Service/ZRSJZ_EnhancementService';
 import { ZRSJZ_SpecialOperationsTaskIcon } from '../Unit/ZRSJZ_SpecialOperationsTaskIcon';
 import { ZRSJZ_Mailbox } from '../Unit/ZRSJZ_Mailbox';
 const { ccclass, property } = _decorator;
@@ -46,6 +47,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     private _slideSprite: Sprite = null;
     private _slideCD: number = 0;
     private _reloadingCD: number = 0;
+    private _reloadDuration: number = 0;
     private _switchButton: Node = null;
     private _bulletCount: Label = null;
     /** 用于识别最后一发子弹刚刚被打出的瞬间，避免初始空弹匣误触发自动换弹。 */
@@ -130,8 +132,8 @@ export class ZRSJZ_Joystick_Attack extends Component {
             if (this._reloadingCD <= 0) {
                 this._reloadingCD = 0;
             }
-            const reloadProgress = (ZRSJZ_Joystick_Attack.LoadingCD - this._reloadingCD)
-                / ZRSJZ_Joystick_Attack.LoadingCD;
+            const reloadProgress = this._reloadDuration > 0 ? (this._reloadDuration - this._reloadingCD)
+                / this._reloadDuration : 1;
             ZRSJZ_EventManager.Emit(
                 ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD,
                 reloadProgress,
@@ -337,7 +339,8 @@ export class ZRSJZ_Joystick_Attack extends Component {
             // 暂停射击但保留按住状态，换弹完成后可自动续射。
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex);
         }
-        this._reloadingCD = ZRSJZ_Joystick_Attack.LoadingCD;
+        this._reloadDuration = ZRSJZ_EnhancementService.GetReloadDuration(ZRSJZ_Joystick_Attack.LoadingCD);
+        this._reloadingCD = this._reloadDuration;
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RELOAD, 0, false, this.PlayerIndex);
         ZRSJZ_AudioManager.Instance.PlaySound("换弹音效");
     }

@@ -1,6 +1,7 @@
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
 import { ZRSJZ_BOOSTER_SHOT_CONFIG } from "../ZRSJZ_Constant";
+import { ZRSJZ_EnhancementService } from './ZRSJZ_EnhancementService';
 
 export class ZRSJZ_BoosterShotService {
     /** 调试开关：跨对局保留，重启游戏恢复关闭，不写入玩家存档。 */
@@ -57,7 +58,7 @@ export class ZRSJZ_BoosterShotService {
     public static GetBoostedRedProbability(baseProbability: number): number {
         const probability = Math.max(0, Math.min(1, Number(baseProbability) || 0));
         const cheatMultiplier = this.SuperHighDropEnabled ? 50 : 1;
-        return Math.min(1, probability * (1 + this.GetBooster("爆率针")) * cheatMultiplier);
+        return Math.min(1, probability * (1 + this.GetBooster("爆率针") + ZRSJZ_EnhancementService.GetBonus('大红掉落概率') / 100) * cheatMultiplier);
     }
 
     /**
@@ -67,7 +68,7 @@ export class ZRSJZ_BoosterShotService {
     public static ApplyRedProbabilityToWeights(weights: readonly number[], redIndex: number): number[] {
         const result = weights.map(weight => Math.max(0, Number(weight) || 0));
         if (redIndex < 0 || redIndex >= result.length
-            || (!this.SuperHighDropEnabled && this.GetBooster("爆率针") <= 0)) return result;
+            || (!this.SuperHighDropEnabled && this.GetBooster("爆率针") <= 0 && ZRSJZ_EnhancementService.GetBonus('大红掉落概率') <= 0)) return result;
 
         const totalWeight = result.reduce((sum, weight) => sum + weight, 0);
         const redWeight = result[redIndex];

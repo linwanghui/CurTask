@@ -15,7 +15,7 @@ import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 8;//当前版本
+    public static readonly Versions = 10;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -80,6 +80,8 @@ export class ZRSJZ_GameData {
 
     public Gold: number = 0;
     public FiringRangeLevel: number = 0;
+    public EnhancementLevel: number = 0;
+    public EnhancementSpecials: string[] = [];
     public FacilityLevel: Partial<Record<ZRSJZ_UpgradeFacilityName, number>> = {};
 
     public HaveRole: string[] = ["威蓝", "泠汐"];
@@ -180,6 +182,9 @@ export class ZRSJZ_GameData {
     public Player2Pet: string = "";//玩家2独立选择；等级、基因仍共用PetData
     public CurPetSkin: string = "";
     //#region 版本6之后新增
+    public HeroFragments: number = 0;//账号共享英雄碎片
+    public HeroFragmentClaimDate: string = "";
+    public HeroFragmentClaimCount: number = 0;
     public PetFragments: number = 0;//宠物碎片数量
     public PetFragmentClaimDate: string = "";//免费碎片领取日期
     public PetFragmentClaimCount: number = 0;//当天免费碎片已领取次数

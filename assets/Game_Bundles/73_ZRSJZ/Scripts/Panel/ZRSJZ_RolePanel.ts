@@ -1,5 +1,6 @@
+import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, EventHandler, EventTouch, find, instantiate, Label, Node, Sprite, SpriteFrame } from 'cc';
+import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_QUALITY, ZRSJZ_ROLE_CONFIG, ZRSJZ_RoleConfig, ZRSJZ_SKIN_CONFIG } from '../ZRSJZ_Constant';
@@ -11,7 +12,6 @@ import { ZRSJZ_SkinItem } from '../UI/ZRSJZ_SkinItem';
 import { ZRSJZ_Skeleton } from '../Controller/ZRSJZ_Skeleton';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_RoleItem } from '../UI/ZRSJZ_RoleItem';
-import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass, property } = _decorator;
 
@@ -44,7 +44,40 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     private _skillIconMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     private _skinListVersion: number = 0;
     private _initialized: boolean = false;
+    private _fragmentEventNode: Node = null;
+    private _fragmentGlow: Node = null;
+
+    private RefreshFragments(): void {
+        const count = find("Panel/英雄碎片/Num", this.node)?.getComponent(Label);
+        if (count) count.string = String(ZRSJZ_FragmentService.GetCount('英雄碎片'));
+        const remaining = ZRSJZ_FragmentService.GetRemaining('英雄碎片');
+        const label = find("Panel/免费获取英雄碎片/剩余次数", this.node)?.getComponent(Label);
+        if (label) label.string = '剩余次数：' + remaining;
+        const dot = find("Panel/免费获取英雄碎片/红点", this.node);
+        if (dot) dot.active = remaining > 0;
+        this.ShowButton();
+    }
+
+    private OpenFragments(): void {
+        if (ZRSJZ_FragmentService.GetRemaining('英雄碎片') <= 0) {
+            ZRSJZ_UIManager.Instance.ShowTip("今日免费次数已用完");
+            return;
+        }
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.英雄碎片弹窗);
+    }
+
+    protected update(dt: number): void {
+        if (this._fragmentGlow) this._fragmentGlow.angle = (this._fragmentGlow.angle - dt * 45) % 360;
+    }
+
     protected onLoad(): void {
+        const free = find("Panel/免费获取英雄碎片", this.node);
+        if (free) {
+            const button = free.getComponent(Button) ?? free.addComponent(Button);
+            button.clickEvents = [];
+            free.on(Button.EventType.CLICK, this.OpenFragments, this);
+        }
+        this._fragmentGlow = find("Panel/免费获取英雄碎片/碎片背光", this.node);
         this.Skeleton = find("Panel/Skin", this.node).getComponent(ZRSJZ_Skeleton);
 
         this.RoleName = find("Panel/角色名字底/RoleName", this.node).getComponent(Label);
@@ -75,9 +108,16 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         this.Skeleton.node.active = false;
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.ShowRoleDesc, this);
         if (this._initialized) this.SelectInitialRole();
+        this._fragmentEventNode = ZRSJZ_UIManager.Instance?.node;
+        this._fragmentEventNode?.on(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshFragments, this);
+        this.RefreshFragments();
+        this.schedule(this.RefreshFragments, 1);
     }
 
     protected onDisable(): void {
+        this.unschedule(this.RefreshFragments);
+        this._fragmentEventNode?.off(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshFragments, this);
+        this._fragmentEventNode = null;
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_SHOW_ROLE_DESC, this.ShowRoleDesc, this);
     }
 
@@ -89,21 +129,11 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.角色界面);
                 break;
             case "金币购买":
-                const price: number = ZRSJZ_SKIN_CONFIG.get(this._curRoleData.Skin[this._curRoleSkinIndex]).UnlockPrice;
-                if (ZRSJZ_GameData.Instance.Gold >= price) {
-                    ZRSJZ_AccountService.ChangeGold(-price);
-                    ZRSJZ_AccountService.AddSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
-                    this.ShowButton();
-                } else {
-                    //金币不足
-                    ZRSJZ_UIManager.Instance.ShowTip("金币不足");
-                }
-                break;
             case "视频获取":
-                Banner.Instance.ShowVideoAd(() => {
-                    ZRSJZ_AccountService.AddSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
-                    this.ShowButton();
-                })
+                if (!this._curRoleData) return;
+                const error = ZRSJZ_AccountService.UnlockSkinWithFragments(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
+                ZRSJZ_UIManager.Instance.ShowTip(error || "解锁成功");
+                this.RefreshFragments();
                 break;
             case "上场":
                 ZRSJZ_AccountService.SetCurSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
@@ -215,10 +245,10 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         }
 
         const skinConfig = ZRSJZ_SKIN_CONFIG.get(this._curRoleData.Skin[this._curRoleSkinIndex]);
-        this.VideoButton.active = !ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]) && skinConfig?.UnlockType == "视频";
-        if (!ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]) && skinConfig?.UnlockType == "金币") {
+        this.VideoButton.active = false;
+        if (!ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]) && skinConfig?.UnlockType == "英雄碎片") {
             this.GoldButton.active = true;
-            this.GoldPrice.string = skinConfig.UnlockPrice.toString();
+            this.GoldPrice.string = `${skinConfig.UnlockPrice} 解锁`;
         } else {
             this.GoldButton.active = false;
         }

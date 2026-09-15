@@ -5,6 +5,7 @@ import {
     ZRSJZ_UpgradeFacilityName,
 } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
+import { ZRSJZ_EnhancementService } from './ZRSJZ_EnhancementService';
 
 /** 基地设施等级及其属性加成计算。 */
 export class ZRSJZ_FacilityService {
@@ -40,11 +41,13 @@ export class ZRSJZ_FacilityService {
     }
 
     public static GetFacilityBonusValue(facilityName: ZRSJZ_UpgradeFacilityName): number {
-        return GetConfiguredFacilityBonusValue(facilityName, this.GetFacilityLevel(facilityName));
+        // 旧接口保留给已发布脚本；旧设施等级不再产生属性加成。
+        return facilityName === '研究所' ? ZRSJZ_EnhancementService.GetBonus('生命')
+            : facilityName === '健身' ? ZRSJZ_EnhancementService.GetBonus('移速') : 0;
     }
 
     public static GetFiringRangeAttackBonusRate(): number {
-        return GetFiringRangeAttackBonusPercent(this.GetFiringRangeLevel()) / 100;
+        return 0; // 新版攻击为固定数值，在玩家伤害入口单独叠加。
     }
 
     public static GetResearchMaxHPBonus(): number {

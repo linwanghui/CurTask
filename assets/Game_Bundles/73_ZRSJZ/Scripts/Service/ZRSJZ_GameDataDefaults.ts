@@ -8,6 +8,7 @@ import {
 } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_SIDE_TASK_LINES } from '../ZRSJZ_TaskLines';
+import { MigrateLegacyEnhancement } from '../ZRSJZ_EnhancementConfig';
 
 /** 新存档初始化和旧存档迁移。此类不触发事件，也不主动写盘。 */
 export class ZRSJZ_GameDataDefaults {
@@ -52,6 +53,11 @@ export class ZRSJZ_GameDataDefaults {
             if (data.Versions === 5 && data.MainTaskComplete?.includes('北境终局')) {
                 data.InventoryRow ??= {};
                 data.InventoryRow[ZRSJZ_INVENTORY.保险箱] = Math.max(3, data.InventoryRow[ZRSJZ_INVENTORY.保险箱] ?? 2);
+            }
+            if (data.Versions === 8) {
+                const progress = MigrateLegacyEnhancement(savedData);
+                data.EnhancementLevel = progress.Level;
+                data.EnhancementSpecials = progress.Specials;
             }
             data.Versions++;
         }
@@ -143,6 +149,11 @@ export class ZRSJZ_GameDataDefaults {
             { Key: "PetFragments", DefaultVaule: 0 },
             { Key: "PetFragmentClaimDate", DefaultVaule: "" },
             { Key: "PetFragmentClaimCount", DefaultVaule: 0 },
+        ]],
+        [9, [
+            { Key: "HeroFragments", DefaultVaule: 0 },
+            { Key: "HeroFragmentClaimDate", DefaultVaule: "" },
+            { Key: "HeroFragmentClaimCount", DefaultVaule: 0 },
         ]],
         [7, [
             { Key: "BossExtractionCompleted", DefaultVaule: {} },

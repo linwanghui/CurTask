@@ -2,6 +2,7 @@ import { _decorator, Component, EventTouch, Node, Sprite, Vec2, clamp01, } from 
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent, } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_EnhancementService } from '../Service/ZRSJZ_EnhancementService';
 
 const { ccclass, property } = _decorator;
 
@@ -33,6 +34,7 @@ export class ZRSJZ_Skill_Button extends Component {
     private _skillCDSprite: Sprite = null;
     private _touchID: number = -1;
     private _skillCD: number = 0;
+    private _cooldownDuration: number = 0;
     private _touchStart: Vec2 = new Vec2();
     private _aimDirection: Vec2 = new Vec2();
     private _aimStrength: number = 0;
@@ -49,7 +51,7 @@ export class ZRSJZ_Skill_Button extends Component {
         if (this.CD <= 0) {
             return 0;
         }
-        return clamp01(this._skillCD / this.CD);
+        return this._cooldownDuration > 0 ? clamp01(this._skillCD / this._cooldownDuration) : 0;
     }
 
     protected onLoad(): void {
@@ -116,8 +118,9 @@ export class ZRSJZ_Skill_Button extends Component {
     }
 
     /** 从完整冷却时间开始计时，也可传入自定义时长。 */
-    public StartCooldown(duration: number = this.CD): void {
-        this._skillCD = Math.max(0, duration);
+    public StartCooldown(duration: number = ZRSJZ_EnhancementService.GetCooldownDuration(this.CD)): void {
+        this._cooldownDuration = Math.max(0, duration);
+        this._skillCD = this._cooldownDuration;
         this.RefreshCooldownView();
     }
 

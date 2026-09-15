@@ -211,10 +211,12 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
         }
 
         const mailAwards = await this.GrantRewards(rewards);
+        const hasFragments = rewards.some(reward => reward.name === "宠物碎片" || reward.name === "英雄碎片");
+        const deliveryTip = mailAwards.length > 0
+            ? "仓库空间不足，其余道具已发至邮件"
+            : "道具已存入仓库";
         void ZRSJZ_UIManager.Instance.ShowTip(
-            mailAwards.length > 0
-                ? "仓库空间不足，放不下的道具已发送至邮件"
-                : "所有的道具已经放入仓库中",
+            hasFragments ? `${deliveryTip}，碎片已计入余额` : deliveryTip,
         );
         const redCount = rewards.reduce((count, reward) =>
             count + (reward.quality === ZRSJZ_PROP_QUALITY.红色 ? 1 : 0), 0
@@ -275,7 +277,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
         const targetValue = this.GetTargetRewardValue(config.price);
         const targetCellValue = targetValue / Math.max(1, targetCells);
         const pool = Array.from(ZRSJZ_PROP_CONFIG.values())
-            .filter(prop => prop.PropType === "物品" && prop.Name !== "宠物碎片");
+            .filter(prop => prop.PropType === "物品");
         const rewards: ZRSJZ_MysteryBoxReward[] = [];
         let occupiedCells = 0;
         let baseValue = 0;
