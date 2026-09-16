@@ -1401,7 +1401,7 @@ const ZRSJZ_MAP_LOOT_WEIGHTS: readonly (readonly number[])[] = [
 ];
 
 const ZRSJZ_MAP_REQUIRED_VALUES: readonly number[] = [
-    300_000, 800_000, 1_600_000, 5_000_000, 18_000_000, 24_000_000,
+    0, 800_000, 1_600_000, 5_000_000, 18_000_000, 24_000_000,
 ];
 
 /** 助战礼包内容。装备名称直接关联 ZRSJZ_PROP_CONFIG，修改后会同步影响展示和实际发放。 */

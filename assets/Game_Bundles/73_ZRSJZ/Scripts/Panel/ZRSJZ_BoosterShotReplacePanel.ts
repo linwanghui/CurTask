@@ -1,4 +1,4 @@
-import { _decorator, EventTouch, find, Label, Sprite, SpriteFrame } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_BOOSTER_SHOT_CONFIG, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -8,6 +8,19 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_BoosterShotReplacePanel')
 export class ZRSJZ_BoosterShotReplacePanel extends ZRSJZ_Panel {
+
+    private _backlights: { node: Node; origin: number; speed: number }[] = [];
+
+    protected update(dt: number): void {
+        for (const light of this._backlights) {
+            light.node.angle = (light.node.angle + light.speed * dt) % 360;
+        }
+    }
+
+    protected onDisable(): void {
+        for (const light of this._backlights) light.node.angle = light.origin;
+    }
+
     @property(SpriteFrame)
     Icons: SpriteFrame[] = [];
 
@@ -19,6 +32,11 @@ export class ZRSJZ_BoosterShotReplacePanel extends ZRSJZ_Panel {
     private _isReplacing: boolean = false;
 
     protected onLoad(): void {
+        // 新针背光顺时针快速旋转，旧针背光逆时针慢转，区分替换两侧。
+        for (const [path, speed] of [["Panel/背光", -42], ["Panel/背光-001", 24]] as const) {
+            const node = find(path, this.node);
+            if (node) this._backlights.push({ node, origin: node.angle, speed });
+        }
         this._newName = find("Panel/NewName", this.node)?.getComponent(Label);
         this._newIcon = find("Panel/NewIcon", this.node)?.getComponent(Sprite);
         this._oldName = find("Panel/OldName", this.node)?.getComponent(Label);
