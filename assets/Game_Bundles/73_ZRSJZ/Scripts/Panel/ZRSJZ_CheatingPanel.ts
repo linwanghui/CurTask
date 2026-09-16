@@ -161,6 +161,9 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             case "宠物碎片加100":
                 ZRSJZ_FragmentService.CreateVideoReward(100)();
                 break;
+            case "英雄碎片加100":
+                ZRSJZ_FragmentService.CreateVideoReward(100, '英雄碎片')();
+                break;
             case "高价值装备":
                 const weapons: string[] = ["兔月盔", "竹月盔", "萌龙盔", "裂光盔", "弑神盔", "光明盔", "冥辉盔",
                     "兔萌甲", "玄竹甲", "绿龙甲", "星轨甲", "赤锋甲", "圣翎甲", "噬星甲",
