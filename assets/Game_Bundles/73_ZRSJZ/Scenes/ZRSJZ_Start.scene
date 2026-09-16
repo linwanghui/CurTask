@@ -190,7 +190,7 @@
     "_priority": 1,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 855.4977876106194,
+    "_orthoHeight": 662.8633975481612,
     "_near": 1,
     "_far": 2000,
     "_color": {
@@ -716,7 +716,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "直升机_检修火花",
+    "_name": "检修火花",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -735,8 +735,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 532.572,
-      "y": 3.8,
+      "x": -195.578,
+      "y": 528.952,
       "z": 0
     },
     "_lrot": {
@@ -748,8 +748,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 1.6488162344983088,
-      "y": 1.6488162344983088,
+      "x": 2,
+      "y": 2,
       "z": 1
     },
     "_mobility": 0,
@@ -9133,7 +9133,7 @@
     "_priority": 10,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 855.4977876106194,
+    "_orthoHeight": 662.8633975481612,
     "_near": 1,
     "_far": 2000,
     "_color": {
