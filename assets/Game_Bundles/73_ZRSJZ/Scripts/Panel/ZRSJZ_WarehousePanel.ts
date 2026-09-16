@@ -26,6 +26,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
     public CheckedNode: Node = null;
     public SellMask: Node = null;
     public SellValue: Label = null;
+    public ActualSellValue: Label = null;
 
     private _warehouseName: string = "";
     private _warehouseNode: Node = null;
@@ -44,6 +45,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         this.CheckedNode = find("Panel/仓库/物品按键/Checked", this.node);
         this.SellMask = find("Panel/仓库/SellMask", this.node);
         this.SellValue = find("总价值/Count", this.SellMask).getComponent(Label);
+        this.ActualSellValue = find("卖出价值/Count", this.SellMask)?.getComponent(Label);
         this._warehouseNode = find("Panel/仓库/物品按键/全部", this.node);
         const buttonParent = this._warehouseNode?.parent;
         this._warehouseButtons = ["全部", "装备", "武器", "弹药", "物品"]
@@ -392,7 +394,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
             if (!propData) return;
 
-            totalValue += propData.UnitPrice * propData.CurCount;
+            totalValue += ZRSJZ_InventoryService.GetPropSellValue(propData);
             tatalCount += propData.CurCount;
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, propID);
             ZRSJZ_InventoryService.RemovePropID(propID);
@@ -411,7 +413,10 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
             return value + (propData ? propData.UnitPrice * propData.CurCount : 0);
         }, 0);
-        this.SellValue.string = `${totalValue}`;
+        this.SellValue.string = `${Math.floor(totalValue)}`;
+        const actualValue = this._sellPropID.reduce((value, propID) =>
+            value + ZRSJZ_InventoryService.GetPropSellValue(ZRSJZ_GameData.Instance.PropData[propID]), 0);
+        if (this.ActualSellValue) this.ActualSellValue.string = `${actualValue}`;
     }
 }
 
