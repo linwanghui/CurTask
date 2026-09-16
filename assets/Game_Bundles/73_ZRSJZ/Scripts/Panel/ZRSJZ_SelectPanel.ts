@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { _decorator, EventTouch, find, Label, Node, Sprite, SpriteFrame, UIOpacity, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_MapConfig, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -388,13 +389,6 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
 
     }
 
-    private FormatValue(value: number): string {
-        const safeValue = Math.max(0, Math.floor(value || 0));
-        if (safeValue >= 10_000) {
-            const wan = safeValue / 10_000;
-            return `${Number.isInteger(wan) ? wan : wan.toFixed(1)}万`;
-        }
-        return `${safeValue}`;
-    }
+    private FormatValue(value: number): string { return FormatMoney(value); }
 
 }

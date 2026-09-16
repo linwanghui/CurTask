@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
@@ -65,7 +66,7 @@ export class ZRSJZ_TaskAward extends Component {
         this._isGetCheck = false;
         this.ShowGetButton();
         this.Name.string = propName;
-        this.Count.string = count.toString();
+        this.Count.string = propName === "钞票" ? FormatMoney(count) : count.toString();
         if (propName.startsWith('仓库_') && propName.endsWith('扩容')) {
             this.Name.string = propName === '仓库_全部扩容'
                 ? '主库'

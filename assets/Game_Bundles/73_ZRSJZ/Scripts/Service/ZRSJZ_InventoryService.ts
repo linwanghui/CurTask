@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import {
     ZRSJZ_AMMO_MAX_COUNT,
     ZRSJZ_AssistFightingGiftConfig,
@@ -28,7 +29,7 @@ export class ZRSJZ_InventoryService {
         const config = ZRSJZ_MAP_CONFIG.get(mapKey);
         if (!config) return '该关卡暂未开放';
         const missing = config.RequiredLoadoutValue - this.GetLoadoutValue(playerIndexes);
-        return missing > 0 ? `战备价值不足，还需${Math.ceil(missing / 10000)}万，无法进入该关卡` : '';
+        return missing > 0 ? `战备价值不足，还需${FormatMoney(missing)}，无法进入该关卡` : '';
     }
     public static GetLoadoutValue(playerIndexes: number[] = [0]): number {
         const carriedInventories = new Set<ZRSJZ_INVENTORY>([

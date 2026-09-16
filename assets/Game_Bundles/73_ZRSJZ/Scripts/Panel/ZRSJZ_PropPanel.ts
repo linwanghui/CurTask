@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Component, EventTouch, find, Label, Node, Sprite } from 'cc';
@@ -78,9 +79,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
         this._isOperating = false;
         const showVersion = ++this._showVersion;
         this.Name.string = propName;
-        this.Price.string = `${Math.floor(
-            isConfigPreview ? propConfig.UnitPrice : propData.UnitPrice * propData.CurCount,
-        )}`;
+        this.Price.string = FormatMoney(isConfigPreview ? propConfig.UnitPrice : propData.UnitPrice * propData.CurCount,);
         if (ZRSJZ_PROP_PROPERTY.has(propName)) {
             //有属性
             this.PropDesc1.active = true;

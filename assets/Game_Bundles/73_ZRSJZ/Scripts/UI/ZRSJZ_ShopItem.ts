@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { _decorator, Component, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
 import { ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -25,7 +26,7 @@ export class ZRSJZ_ShopItem extends Component {
         this.Chekcked.active = false;
         const shopData = ZRSJZ_PROP_CONFIG.get(shopName);
         this.NameLabel.string = shopName;
-        this.PriceLabel.string = `${Math.floor(shopData.UnitPrice)}`;
+        this.PriceLabel.string = FormatMoney(shopData.UnitPrice, true);
         this.Sprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropGridUI(`${shopData.Quality}1_2`);
         this.IconSprite.spriteFrame = await ZRSJZ_UIManager.Instance.GetPropUI(shopName);
         this.ScaleNodeToFit(this.IconSprite.node);

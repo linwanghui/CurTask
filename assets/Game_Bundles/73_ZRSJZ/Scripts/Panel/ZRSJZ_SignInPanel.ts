@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Button, director, find, Label, Node, Sprite, SpriteFrame, Tween, tween, UITransform, v3, Widget } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
@@ -25,10 +26,10 @@ const SIGN_IN_REWARDS: readonly SignInReward[] = [
     { name: '钞票', countText: 'x100万', gold: 1000000 },
     { name: 'K50-云雾', countText: 'x1', weaponSkin: { weaponName: 'K50-轻机枪', skinName: 'K50-云雾' } },
     { name: '钞票', countText: 'x300万', gold: 3000000 },
-    { name: '烬猎', countText: 'x1', roleSkin: { roleName: '威蓝', skinName: '烬猎' } },
+    { name: 'W76-紫墟', countText: 'x1', weaponSkin: { weaponName: 'W76-狙击枪', skinName: 'W76-紫墟' }, duplicateGold: 4000000 },
     { name: '钞票', countText: 'x500万', gold: 5000000 },
     { name: 'W76-狙击枪', countText: 'x1', propName: 'W76-狙击枪', propCount: 1 },
-    { name: 'W76-紫墟', countText: 'x1', weaponSkin: { weaponName: 'W76-狙击枪', skinName: 'W76-紫墟' }, duplicateGold: 7000000 },
+    { name: '烬猎', countText: 'x1', roleSkin: { roleName: '威蓝', skinName: '弑岚' } },
 ];
 
 @ccclass('ZRSJZ_SignInPanel')
@@ -204,7 +205,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
         this.RefreshSignItems();
         ZRSJZ_UIManager.Instance.ShowTip(
             convertedGold > 0
-                ? `签到成功，已拥有${reward.name}，已折算为${convertedGold}金币`
+                ? `签到成功，已拥有${reward.name}，已折算为${FormatMoney(convertedGold)}金币`
                 : sentToMail
                     ? `签到成功，${reward.name}${reward.countText}已发送至邮件`
                     : `签到成功，获得${reward.name}${reward.countText}`,
@@ -228,7 +229,7 @@ export class ZRSJZ_SignInPanel extends ZRSJZ_Panel {
             const config = ZRSJZ_SKIN_CONFIG.get(skinName);
             if (!config || !ZRSJZ_ROLE_CONFIG.get(roleName)?.Skin.includes(skinName)) return null;
             owned = (ZRSJZ_GameData.Instance.HaveSkin ?? []).includes(skinName);
-            price = config.UnlockType === '金币' ? config.UnlockPrice : 0;
+            price = 1000000;
         } else {
             return null;
         }

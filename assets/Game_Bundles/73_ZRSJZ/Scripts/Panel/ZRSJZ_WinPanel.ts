@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { _decorator, EventTouch, find, Label, Node, ScrollView, sp, tween, Tween, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -100,7 +101,7 @@ export class ZRSJZ_WinPanel extends ZRSJZ_Panel {
             ? 0
             : occupiedRowCount * ZRSJZ_GRID_SIZE + (occupiedRowCount - 1) * ZRSJZ_GRID_INTERVAL;
         this.PropContent.getComponent(UITransform).height = contentHeight;
-        this.Earnings.string = `${earnings}`;
+        this.Earnings.string = FormatMoney(earnings);
 
         for (const placement of propPlacements) {
             if (showVersion !== this._showPropVersion) return;

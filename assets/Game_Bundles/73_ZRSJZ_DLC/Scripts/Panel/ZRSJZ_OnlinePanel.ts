@@ -1,3 +1,4 @@
+import { FormatMoney } from "../../../73_ZRSJZ/Scripts/ZRSJZ_NumberFormat";
 import { _decorator, Button, EventTouch, Label, Node } from 'cc';
 import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
@@ -29,7 +30,7 @@ export class ZRSJZ_OnlinePanel extends ZRSJZ_Panel {
         Online.Events.off('start', this.StartBattle, this);
         this.unschedule(this.CheckReadiness);
     }
-    private Value(value: number): string { return value >= 10000 ? (value / 10000).toFixed(1).replace(/\.0$/, '') + '万' : String(Math.floor(value)); }
+    private Value(value: number): string { return FormatMoney(value); }
     private CanReady(showTip: boolean): boolean {
         const config = ZRSJZ_MAP_CONFIG.get(Online.Map);
         const value = ZRSJZ_SelectPanel.GetLoadoutValue([0]);

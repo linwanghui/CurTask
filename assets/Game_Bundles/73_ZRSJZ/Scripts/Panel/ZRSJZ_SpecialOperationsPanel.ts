@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { _decorator, EventTouch, find, Label, Node } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
@@ -65,7 +66,7 @@ export class ZRSJZ_SpecialOperationsPanel extends ZRSJZ_Panel {
         // 原预制体描述区域较矮，使用两行内可完整显示的字号，避免覆盖下方奖励标题。
 
         this.TaskDesc.string = `${config.TaskDesc}`;
-        this.TaskAwardCount.string = config.GoldReward.toLocaleString();
+        this.TaskAwardCount.string = FormatMoney(config.GoldReward);
         if (this.Time) this.Time.string = `${config.TimeLimitSeconds}s`;
 
         if (!this.TaskAwardContent) {

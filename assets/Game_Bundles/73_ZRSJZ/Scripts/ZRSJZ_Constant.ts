@@ -669,7 +669,7 @@ export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new M
 ])
 
 export const ZRSJZ_PROP_PROPERTY_MAX: Map<string, number> = new Map([
-    ["增伤", 20],
+    ["增伤", 40],
     ["背包等级", 8],
     ["容量", 60],
     ["护甲等级", 8],
@@ -942,7 +942,7 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
 export interface ZRSJZ_SkinConfig {
     Name: string,
     Quality: ZRSJZ_PROP_QUALITY,
-    UnlockType: "英雄碎片",
+    UnlockType: "英雄碎片" | "签到解锁",
     UnlockPrice: number,
     Skin: string,
     Headset: string[],
@@ -952,7 +952,7 @@ export interface ZRSJZ_SkinConfig {
 export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> = new Map([
     ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.蓝色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蓝狼/ll1", Headset: ["ll-_0000_前刘海_蓝狼"], EntranceAnis: ["cc_ll"] }],
     ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 10, Skin: "角色/蓝狼/ll2", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
-    ["弑岚", { Name: "弑岚", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 35, Skin: "角色/蓝狼/ll3", Headset: ["蓝狼3_0011_右角", "蓝狼3_0012_左角"], EntranceAnis: ["cc_ll"] }],
+    ["弑岚", { Name: "弑岚", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "签到解锁", UnlockPrice: 35, Skin: "角色/蓝狼/ll3", Headset: ["蓝狼3_0011_右角", "蓝狼3_0012_左角"], EntranceAnis: ["cc_ll"] }],
     ["泠汐", { Name: "泠汐", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/麦小温/m1", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
     ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/麦小温/m2", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
     ["绯朔", { Name: "绯朔", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 40, Skin: "角色/麦小温/m3", Headset: ["m3_0011_右角", "m3_0012_左角"], EntranceAnis: ["cc_m", "cc_m2"] }],

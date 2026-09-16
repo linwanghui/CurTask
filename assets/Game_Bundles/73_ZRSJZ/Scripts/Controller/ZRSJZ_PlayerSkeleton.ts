@@ -29,7 +29,10 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     private readonly _trackCompleteCallbacks = new Map<number, Function>();
 
     protected GetEquippedWeaponryIDs(): string[] {
-        return ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex);
+        // 外观刷新只应用当前持有的武器，避免先显示刀后被枪覆盖。
+        const ids = [...ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex)];
+        ids[this.IsKnife ? 0 : 4] = "";
+        return ids;
     }
 
     protected onLoad(): void {

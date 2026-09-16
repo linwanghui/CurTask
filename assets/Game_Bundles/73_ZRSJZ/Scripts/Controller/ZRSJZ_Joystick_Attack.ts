@@ -427,25 +427,22 @@ export class ZRSJZ_Joystick_Attack extends Component {
         if (this._taskButton?.isValid) this._taskButton.active = this._targetSpecialOperation != null;
     }
 
-    //装备切换
+    // 装备栏操作只刷新当前武器，不改变玩家主动选择的枪/刀状态。
     ShowEquipment(equipmentName: string, isEquipment: boolean = true, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        //枪
-        for (let key of ZRSJZ_WEAPONRY_TYPE.keys()) {
-            const flag = ZRSJZ_WEAPONRY_TYPE.get(key).includes(equipmentName);
-            if (flag) {
-                this._curWeaponIndex = isEquipment ? 0 : 1;
-                this.SwitchWeapon(false);
-                return;
-            }
-        }
+        let equipmentIndex = -1;
+        ZRSJZ_WEAPONRY_TYPE.forEach(names => {
+            if (names.includes(equipmentName)) equipmentIndex = 0;
+        });
+        if (ZRSJZ_KNIFE.includes(equipmentName)) equipmentIndex = 1;
+        if (equipmentIndex < 0) return;
 
-        //刀
-        if (ZRSJZ_KNIFE.includes(equipmentName)) {
-            this._curWeaponIndex = isEquipment ? 1 : 0;
-            this.SwitchWeapon(false);
-            return;
+        if (!this.HasWeapon(this._curWeaponIndex)) {
+            // 当前武器已卸下，统一回退以同步按钮、动画和攻击状态。
+            this.RefreshWeaponSwitchState();
+        } else if (isEquipment && equipmentIndex === this._curWeaponIndex) {
+            // 同类型替换只更新枪口、弹匣或刀名称。
+            this.SwitchWeapon(false, this._curWeaponIndex);
         }
-
     }
 }

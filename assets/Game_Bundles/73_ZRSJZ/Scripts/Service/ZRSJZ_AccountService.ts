@@ -47,6 +47,7 @@ export class ZRSJZ_AccountService {
         if (!ZRSJZ_ROLE_CONFIG.get(role)?.Skin.includes(skin) || !config) return "角色或皮肤无效";
         if (data.HaveSkin.includes(skin)) return "已经解锁";
         if (skin !== role && !data.HaveRole.includes(role)) return "请先解锁该角色";
+        if (config.UnlockType === "签到解锁") return "该皮肤只能签到获得";
         const price = config.UnlockPrice;
         if (config.UnlockType !== "英雄碎片" || !Number.isSafeInteger(price) || price <= 0) return "解锁配置无效";
         const balance = ZRSJZ_FragmentService.GetCount('英雄碎片');

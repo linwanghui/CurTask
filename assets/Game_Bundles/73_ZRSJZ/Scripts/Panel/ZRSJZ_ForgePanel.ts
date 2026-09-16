@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import {
     _decorator,
     Color,
@@ -350,7 +351,7 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
                 + '    价值 ' + this.FormatValue(recipe.value);
         }
         this.LoadPropSprite(this._itemSprite, recipe.itemName, 390, 260);
-        this._goldLabel.string = this.FormatValue(recipe.goldCost);
+        this._goldLabel.string = FormatMoney(recipe.goldCost, true);
         this._timeLabel.string = recipe.durationHours + '小时';
 
         this._materialContent.children.slice().forEach(slot => {
@@ -535,13 +536,7 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
         return '';
     }
 
-    private FormatValue(value: number): string {
-        if (value < 10000) return Math.floor(value).toString();
-        const wan = value / 10000;
-        return wan >= 100
-            ? wan.toFixed(0) + '万'
-            : wan.toFixed(1).replace('.0', '') + '万';
-    }
+    private FormatValue(value: number): string { return FormatMoney(value); }
 
     private FormatDuration(milliseconds: number): string {
         const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
