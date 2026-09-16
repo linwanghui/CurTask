@@ -728,6 +728,15 @@ export const ZRSJZ_WEAPON_SKIN: ReadonlyMap<string, ReadonlyArray<Readonly<ZRSJZ
         { Name: "W76-寒汐", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "视频", Price: 0 },
         { Name: "W76-紫墟", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "视频", Price: 0 },
     ]],
+    ["霜月狼", [
+        { Name: "霜月狼", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "默认", Price: 0 },
+    ]],
+    ["裂海鲨", [
+        { Name: "裂海鲨", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "默认", Price: 0 },
+    ]],
+    ["焚天龙", [
+        { Name: "焚天龙", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "默认", Price: 0 },
+    ]],
 ]);
 export type ZRSJZ_UpgradeMaterial = {
     PropName: string,
