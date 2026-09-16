@@ -113,9 +113,15 @@ export enum ZRSJZ_GRID_TYPE {
     _2x3 = "2_3",
 }
 
+/** 出售折价按类别配置；未配置的战利品按原价出售，不改变购买价和战备价值。 */
+export const ZRSJZ_PROP_SELL_RATES: Readonly<Record<string, number>> = {
+    "枪": 0.5, "刀": 0.5, "头盔": 0.5, "防弹衣": 0.5,
+    "背包": 0.5, "弹药": 0.5, "房卡": 0.5, "门禁卡": 0.5,
+};
+
 /**
- * 搜索物资出售价格倍率。
- * 房卡、弹药和穿戴装备保持原价，只调整 PropType 为“物品”的战利品。
+ * 搜索物资基础价值倍率。
+ * 房卡、弹药和穿戴装备基础价值保持原价，只调整 PropType 为“物品”的战利品。
  */
 const ZRSJZ_SEARCH_LOOT_PRICE_MULTIPLIER: Readonly<Record<ZRSJZ_PROP_QUALITY, number>> = {
     [ZRSJZ_PROP_QUALITY.白色]: 1,
@@ -594,11 +600,11 @@ ZRSJZ_PROP_CONFIG.forEach((config, name) => {
 export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new Map([
     //子弹
     ["1级子弹", { "增伤": 0 }],
-    ["2级子弹", { "增伤": 4 }],
-    ["3级子弹", { "增伤": 8 }],
-    ["4级子弹", { "增伤": 12 }],
-    ["5级子弹", { "增伤": 16 }],
-    ["6级子弹", { "增伤": 20 }],
+    ["2级子弹", { "增伤": 8 }],
+    ["3级子弹", { "增伤": 16 }],
+    ["4级子弹", { "增伤": 24 }],
+    ["5级子弹", { "增伤": 32 }],
+    ["6级子弹", { "增伤": 40 }],
     //头盔
     ["一级头", { "护甲等级": 1, "减伤": 5, }],
     ["二级头", { "护甲等级": 2, "减伤": 10, }],
@@ -1539,6 +1545,39 @@ function CreateMapBoxConfig(
     };
 }
 
+/** 主题箱掉落：数量基数、品质档位偏移及额外保底；不引用 DLC 图片资源。 */
+export const ZRSJZ_THEME_BOX_LOOT_CONFIG: ReadonlyArray<{
+    Name: string; MinCount: number; MaxCount: number; QualityBonus: number; GuaranteedTypes: readonly string[];
+}> = [
+        { "Name": "沙漠_土罐", "MinCount": 1, "MaxCount": 3, "QualityBonus": -1, "GuaranteedTypes": [] },
+        { "Name": "沙漠_宝箱1", "MinCount": 3, "MaxCount": 5, "QualityBonus": 1, "GuaranteedTypes": [] },
+        { "Name": "沙漠_宝箱2", "MinCount": 4, "MaxCount": 6, "QualityBonus": 2, "GuaranteedTypes": [] },
+        { "Name": "沙漠_床头柜", "MinCount": 2, "MaxCount": 4, "QualityBonus": 0, "GuaranteedTypes": [] },
+        { "Name": "沙漠_石棺1", "MinCount": 3, "MaxCount": 5, "QualityBonus": 0, "GuaranteedTypes": [] },
+        { "Name": "沙漠_石棺2", "MinCount": 4, "MaxCount": 6, "QualityBonus": 1, "GuaranteedTypes": [] },
+        { "Name": "沙漠_石棺3", "MinCount": 4, "MaxCount": 7, "QualityBonus": 2, "GuaranteedTypes": [] },
+        { "Name": "沙漠_衣柜", "MinCount": 2, "MaxCount": 4, "QualityBonus": 0, "GuaranteedTypes": ["防弹衣"] },
+        { "Name": "沙漠_货架", "MinCount": 3, "MaxCount": 5, "QualityBonus": 0, "GuaranteedTypes": ["弹药"] },
+        { "Name": "雪地_军备箱", "MinCount": 4, "MaxCount": 7, "QualityBonus": 1, "GuaranteedTypes": ["弹药"] },
+        { "Name": "雪地_抽屉", "MinCount": 2, "MaxCount": 4, "QualityBonus": 0, "GuaranteedTypes": [] },
+        { "Name": "雪地_木桶", "MinCount": 1, "MaxCount": 3, "QualityBonus": -1, "GuaranteedTypes": [] },
+        { "Name": "雪地_水晶箱", "MinCount": 4, "MaxCount": 6, "QualityBonus": 2, "GuaranteedTypes": [] },
+        { "Name": "雪地_科技箱", "MinCount": 3, "MaxCount": 5, "QualityBonus": 1, "GuaranteedTypes": [] },
+        { "Name": "雪地_篮子", "MinCount": 1, "MaxCount": 3, "QualityBonus": -1, "GuaranteedTypes": [] },
+        { "Name": "雪地_衣柜", "MinCount": 2, "MaxCount": 4, "QualityBonus": 0, "GuaranteedTypes": ["防弹衣"] },
+        { "Name": "雪地_货箱", "MinCount": 3, "MaxCount": 6, "QualityBonus": 0, "GuaranteedTypes": ["弹药"] },
+    ];
+
+function CreateThemeMapBoxEntries(mapName: string, modeIndex: number): [string, ZRSJZ_BoxConfig][] {
+    return ZRSJZ_THEME_BOX_LOOT_CONFIG
+        .filter(box => box.Name.startsWith(mapName + "_"))
+        .map(box => [box.Name, CreateMapBoxConfig(
+            box.Name, modeIndex,
+            box.MinCount + Math.floor(modeIndex / 3), box.MaxCount + Math.floor(modeIndex / 2),
+            box.QualityBonus, box.GuaranteedTypes,
+        )]);
+}
+
 function CreateMapModeConfig(
     mapKey: string,
     displayName: string,
@@ -1670,6 +1709,7 @@ function CreateMapModeConfig(
             }],
         ]),
         MapBox: new Map([
+            ...CreateThemeMapBoxEntries(mapName, modeIndex),
             ["军备箱", CreateMapBoxConfig(
                 "军备箱", modeIndex,
                 4 + Math.floor(modeIndex / 2), 7 + modeIndex, 1,
@@ -1960,7 +2000,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
     }],
     ["古迹终战", {
         TaskName: "古迹终战",
-        TaskDesc: "盘踞古迹的首领掌握着北境行动的关键线索。进入绝密行动区域击败Boss，结束沙漠战役。",
+        TaskDesc: "盘踞古迹��首领掌握着北境行动的关键线索。进入绝密行动区域击败Boss，结束沙漠战役。",
         TaskTargets: [
             {
                 TaskTargetName: "打败[沙漠古迹_绝密行动]Boss",

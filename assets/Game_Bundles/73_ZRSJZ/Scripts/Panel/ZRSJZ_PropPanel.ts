@@ -327,7 +327,7 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
                 }
             }
             ZRSJZ_TaskService.CompleteTask("出售任意物品", propData.CurCount);
-            ZRSJZ_AccountService.ChangeGold(propData.UnitPrice * propData.CurCount);
+            ZRSJZ_AccountService.ChangeGold(ZRSJZ_InventoryService.GetPropSellValue(propData));
             ZRSJZ_InventoryService.RemovePropID(this._propID);
             this.ClosePanel();
         } finally {

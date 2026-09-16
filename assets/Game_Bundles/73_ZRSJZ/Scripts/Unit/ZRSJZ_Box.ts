@@ -51,6 +51,13 @@ export class ZRSJZ_Box extends Component {
     @property
     IsInit: boolean = false;
 
+    /** 可选主题外观，依次为关闭、打开；为空时沿用原箱子资源加载逻辑。 */
+    @property([SpriteFrame])
+    ThemeIconSF: SpriteFrame[] = [];
+
+    @property([SpriteFrame])
+    ThemeCheckedSF: SpriteFrame[] = [];
+
     Icon: Sprite = null;
     Checked: Sprite = null;
     IconSF: SpriteFrame[] = [null, null];
@@ -165,6 +172,15 @@ export class ZRSJZ_Box extends Component {
         this.Icon = this.node.getChildByName('Icon').getComponent(Sprite);
         this.Checked = this.node.getChildByName('Checked').getComponent(Sprite);
         this.State = ZRSJZ_BOX_STATE.IDLE;
+        if (this.ThemeIconSF.length === 2 && this.ThemeCheckedSF.length === 2
+            && this.ThemeIconSF.every(Boolean) && this.ThemeCheckedSF.every(Boolean)) {
+            this.IconSF = [...this.ThemeIconSF];
+            this.CheckedSF = [...this.ThemeCheckedSF];
+            this.Icon.spriteFrame = this.IconSF[0];
+            this.Checked.spriteFrame = this.CheckedSF[0];
+            this.Checked.node.active = false;
+            return;
+        }
         this.IconSF = [null, null];
         this.CheckedSF = [null, null];
         ZRSJZ_UIManager.Instance.GetBoxUI(this.BoxName).then((sf: SpriteFrame) => {

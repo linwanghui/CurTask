@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "0693bbe3-2cae-4d7c-990e-9cb7421b9a5b",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "0693bbe3-2cae-4d7c-990e-9cb7421b9a5b@6c48a",
+      "displayName": "石棺3打开",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "0693bbe3-2cae-4d7c-990e-9cb7421b9a5b",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "0693bbe3-2cae-4d7c-990e-9cb7421b9a5b@f9941",
+      "displayName": "石棺3打开",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": -4,
+        "offsetY": -17.5,
+        "trimX": 39,
+        "trimY": 142,
+        "width": 358,
+        "height": 323,
+        "rawWidth": 444,
+        "rawHeight": 572,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -179,
+            -161.5,
+            0,
+            179,
+            -161.5,
+            0,
+            -179,
+            161.5,
+            0,
+            179,
+            161.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            39,
+            430,
+            397,
+            430,
+            39,
+            107,
+            397,
+            107
+          ],
+          "nuv": [
+            0.08783783783783784,
+            0.18706293706293706,
+            0.8941441441441441,
+            0.18706293706293706,
+            0.08783783783783784,
+            0.7517482517482518,
+            0.8941441441441441,
+            0.7517482517482518
+          ],
+          "minPos": [
+            -179,
+            -161.5,
+            0
+          ],
+          "maxPos": [
+            179,
+            161.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "0693bbe3-2cae-4d7c-990e-9cb7421b9a5b@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "0693bbe3-2cae-4d7c-990e-9cb7421b9a5b@6c48a"
+  }
+}

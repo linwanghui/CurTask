@@ -364,7 +364,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             ZRSJZ_UIManager.Instance.ShowTip(lockReason);
             return;
         }
-        if (ZRSJZ_UIManager.ZRSJZ_DLC && this._selectedMapName === "五号小镇") {
+        if (ZRSJZ_UIManager.ZRSJZ_DLC && mapKey === "五号小镇_机密行动") {
             ZRSJZ_UIManager.Instance.ShowPanel(
                 ZRSJZ_PANEL.助战礼包弹窗,
                 mapKey,

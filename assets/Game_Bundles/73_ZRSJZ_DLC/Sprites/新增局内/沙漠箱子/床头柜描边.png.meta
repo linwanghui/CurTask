@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "2137d0a7-5cf1-4040-84c6-d75b6ac7c5a6",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "2137d0a7-5cf1-4040-84c6-d75b6ac7c5a6@6c48a",
+      "displayName": "床头柜描边",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "2137d0a7-5cf1-4040-84c6-d75b6ac7c5a6",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "2137d0a7-5cf1-4040-84c6-d75b6ac7c5a6@f9941",
+      "displayName": "床头柜描边",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 8.5,
+        "offsetY": -2.5,
+        "trimX": 80,
+        "trimY": 129,
+        "width": 301,
+        "height": 319,
+        "rawWidth": 444,
+        "rawHeight": 572,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -150.5,
+            -159.5,
+            0,
+            150.5,
+            -159.5,
+            0,
+            -150.5,
+            159.5,
+            0,
+            150.5,
+            159.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            80,
+            443,
+            381,
+            443,
+            80,
+            124,
+            381,
+            124
+          ],
+          "nuv": [
+            0.18018018018018017,
+            0.21678321678321677,
+            0.8581081081081081,
+            0.21678321678321677,
+            0.18018018018018017,
+            0.7744755244755245,
+            0.8581081081081081,
+            0.7744755244755245
+          ],
+          "minPos": [
+            -150.5,
+            -159.5,
+            0
+          ],
+          "maxPos": [
+            150.5,
+            159.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "2137d0a7-5cf1-4040-84c6-d75b6ac7c5a6@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "2137d0a7-5cf1-4040-84c6-d75b6ac7c5a6@6c48a"
+  }
+}

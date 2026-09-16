@@ -6,6 +6,7 @@ import {
     ZRSJZ_INVENTORY_CONFIG,
     ZRSJZ_MAP_CONFIG,
     ZRSJZ_PROP_CONFIG,
+    ZRSJZ_PROP_SELL_RATES,
     ZRSJZ_PropData,
 } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
@@ -13,6 +14,15 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager
 
 /** 道具、装备、仓库、弹药及房卡相关业务。 */
 export class ZRSJZ_InventoryService {
+    /** 单独出售、批量出售及预览共用；整叠折价后向下取整到钞票整数。 */
+    public static GetPropSellValue(prop: Pick<ZRSJZ_PropData, "PropType" | "UnitPrice" | "CurCount">): number {
+        if (!prop) return 0;
+        const rate = ZRSJZ_PROP_SELL_RATES[prop.PropType] ?? 1;
+        const price = Number.isFinite(prop.UnitPrice) ? Math.max(0, prop.UnitPrice) : 0;
+        const count = Number.isFinite(prop.CurCount) ? Math.max(0, Math.floor(prop.CurCount)) : 0;
+        return Math.floor(price * count * rate);
+    }
+
     /** 所有进入战斗的入口复用同一门槛，战斗内消耗弹药不会追溯取消准入。 */
     public static GetBattleEntryError(mapKey: string, playerIndexes: number[] = [0]): string {
         const config = ZRSJZ_MAP_CONFIG.get(mapKey);

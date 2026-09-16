@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "9581795b-eade-4bb9-87c9-3089e5fceb7e",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "9581795b-eade-4bb9-87c9-3089e5fceb7e@6c48a",
+      "displayName": "石棺2描边",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "9581795b-eade-4bb9-87c9-3089e5fceb7e",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "9581795b-eade-4bb9-87c9-3089e5fceb7e@f9941",
+      "displayName": "石棺2描边",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 4,
+        "offsetY": -64.5,
+        "trimX": 38,
+        "trimY": 165,
+        "width": 376,
+        "height": 371,
+        "rawWidth": 444,
+        "rawHeight": 572,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -188,
+            -185.5,
+            0,
+            188,
+            -185.5,
+            0,
+            -188,
+            185.5,
+            0,
+            188,
+            185.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            38,
+            407,
+            414,
+            407,
+            38,
+            36,
+            414,
+            36
+          ],
+          "nuv": [
+            0.08558558558558559,
+            0.06293706293706294,
+            0.9324324324324325,
+            0.06293706293706294,
+            0.08558558558558559,
+            0.7115384615384616,
+            0.9324324324324325,
+            0.7115384615384616
+          ],
+          "minPos": [
+            -188,
+            -185.5,
+            0
+          ],
+          "maxPos": [
+            188,
+            185.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "9581795b-eade-4bb9-87c9-3089e5fceb7e@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "9581795b-eade-4bb9-87c9-3089e5fceb7e@6c48a"
+  }
+}
