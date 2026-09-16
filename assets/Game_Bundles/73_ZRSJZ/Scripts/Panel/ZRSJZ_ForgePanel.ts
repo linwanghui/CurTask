@@ -7,6 +7,9 @@ import {
     Sprite,
     SpriteFrame,
     UITransform,
+    Tween,
+    tween,
+    Vec3,
     instantiate,
     isValid,
 } from 'cc';
@@ -47,6 +50,8 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
     private _itemNameLabel: Label = null;
     private _itemPropertyLabel: Label = null;
     private _itemSprite: Sprite = null;
+    private _floatTween: Tween<Node> = null;
+    private _floatOrigin: Vec3 = null;
     private _materialContent: Node = null;
     private _materialTemplate: Node = null;
     private _goldLabel: Label = null;
@@ -66,7 +71,40 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
     }
 
     protected onEnable(): void {
-        this.InitializeRuntime().then(() => this.RefreshAll());
+        this.InitializeRuntime().then(() => {
+            if (!isValid(this.node) || !this.enabledInHierarchy) return;
+            this.RefreshAll();
+            this.StartEquipmentFloat();
+        });
+    }
+
+    protected onDisable(): void {
+        this.StopEquipmentFloat();
+    }
+
+    protected onDestroy(): void {
+        this.StopEquipmentFloat();
+    }
+
+    private StartEquipmentFloat(): void {
+        const node = this._itemSprite?.node;
+        if (!isValid(node) || this._floatTween) return;
+        this._floatOrigin = node.position.clone();
+        const top = this._floatOrigin.clone();
+        top.y += 30;
+        this._floatTween = tween(node)
+            .to(2.4, { position: top }, { easing: 'sineInOut' })
+            .to(2.4, { position: this._floatOrigin.clone() }, { easing: 'sineInOut' })
+            .union().repeatForever().start();
+    }
+
+    private StopEquipmentFloat(): void {
+        this._floatTween?.stop();
+        this._floatTween = null;
+        if (this._floatOrigin && isValid(this._itemSprite?.node)) {
+            this._itemSprite.node.setPosition(this._floatOrigin);
+        }
+        this._floatOrigin = null;
     }
 
     protected update(deltaTime: number): void {

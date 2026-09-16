@@ -1,0 +1,47 @@
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const root=path.resolve(__dirname,'..');
+function load(file,deps={}){const sandbox={exports:{},require:n=>{assert(n in deps,n);return deps[n];}};
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root,file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText,sandbox);return sandbox.exports;}
+const constant=load('Scripts/ZRSJZ_Constant.ts'),before=JSON.stringify([...constant.ZRSJZ_PROP_CONFIG]);
+const forge=load('Scripts/ZRSJZ_ForgeConstant.ts',{'./ZRSJZ_Constant':constant});
+const recipes=forge.ZRSJZ_FORGE_RECIPES,config=constant.ZRSJZ_PROP_CONFIG;
+const validTypes=new Set(['枪','刀','头盔','防弹衣','背包']);
+const newEquipment=["霜月狼","裂海鲨","焚天龙","兔月盔","竹月盔","萌龙盔","裂光盔","弑神盔","光明盔","冥辉盔","兔萌甲","玄竹甲","绿龙甲","星轨甲","赤锋甲","圣翎甲","噬星甲","兔绒包","云竹包","恐仔囊","天穹包","赤辉囊","烬菱包","虚空匣"];
+const expected=[...config.values()].filter(c=>validTypes.has(c.PropType)&&c.UnitPrice>100000);
+assert.equal(recipes.length,expected.length);
+assert.equal(new Set(recipes.map(r=>r.itemName)).size,recipes.length);
+for(const c of expected)assert(forge.GetForgeRecipe(c.Name));
+for(const name of newEquipment)assert(config.has(name)&&forge.GetForgeRecipe(name),name);
+const distinct=new Set(),combinations=new Set();
+for(const r of recipes){
+ assert(r.materials.length>=4&&r.materials.length<=6,r.itemName+' slot count');
+ assert(r.materials[0].name.endsWith('蓝图')&&r.materials[0].count===1);
+ assert.equal(new Set(r.materials.map(m=>m.name)).size,r.materials.length);
+ let value=0;
+ for(const [i,m] of r.materials.entries()){
+  assert(config.has(m.name)&&Number.isInteger(m.count)&&m.count>0,r.itemName+': '+m.name);
+  if(i){value+=config.get(m.name).UnitPrice*m.count;distinct.add(m.name);}
+ }
+ assert.equal(value,r.ordinaryMaterialValue);
+ assert(value>=r.value*.30&&value<=r.value*.50,r.itemName+': ratio '+value/r.value);
+ assert(r.durationHours>=1&&r.durationHours<=8);
+ combinations.add(r.materials.slice(1).map(m=>m.name).sort().join('|'));
+}
+const sorted=[...recipes].sort((a,b)=>a.value-b.value);
+for(let i=1;i<sorted.length;i++)assert(sorted[i].durationHours>=sorted[i-1].durationHours);
+assert(distinct.size>=35,'Material pool must be diverse');
+assert(combinations.size>=recipes.length*.8,'At least 80% unique ingredient combinations');
+assert.equal(JSON.stringify([...config]),before,'No sale prices changed');
+assert.equal(JSON.stringify(load('Scripts/ZRSJZ_ForgeConstant.ts',{'./ZRSJZ_Constant':constant}).ZRSJZ_FORGE_RECIPES),JSON.stringify(recipes),'Deterministic recipes');
+for(const type of ['头盔','防弹衣','背包']){
+ const field=type==='背包'?'背包等级':'护甲等级';
+ const equipment=[...config.values()].filter(c=>c.PropType===type).sort((a,b)=>constant.ZRSJZ_PROP_PROPERTY.get(a.Name)[field]-constant.ZRSJZ_PROP_PROPERTY.get(b.Name)[field]);
+ for(let i=1;i<equipment.length;i++)assert(equipment[i].UnitPrice>equipment[i-1].UnitPrice,'Higher grade must cost more');
+}
+let gunPrice=config.get('W76-狙击枪').UnitPrice;
+for(const name of ['霜月狼','裂海鲨','焚天龙']){assert(config.get(name).UnitPrice>gunPrice);gunPrice=config.get(name).UnitPrice;}
+// Existing in-progress jobs keep itemName / finishAt; ensure all old priced recipes still resolve.
+for(const c of config.values())if(validTypes.has(c.PropType)&&c.UnitPrice>100000)assert(forge.GetForgeRecipe(c.Name));
+if(process.argv.includes('--json'))console.log(JSON.stringify({count:recipes.length,added:newEquipment.length,materialKinds:distinct.size,uniqueCombinations:combinations.size,recipes}));
+else console.log('PASS:',recipes.length,'recipes;',newEquipment.length,'new equipment;',distinct.size,'material kinds;',combinations.size,'unique combinations; budget 30–50%; 1–8 hours; stable catalog and sale prices.');
