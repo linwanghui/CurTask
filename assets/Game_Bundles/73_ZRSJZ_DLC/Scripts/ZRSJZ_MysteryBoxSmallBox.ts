@@ -1,6 +1,7 @@
 import {
     _decorator,
     Component,
+    Label,
     isValid,
     Node,
     Sprite,
@@ -41,6 +42,12 @@ export class ZRSJZ_MysteryBoxSmallBox extends Component {
     ): Promise<void> {
         this._propName = propName;
         this._quality = quality;
+        const nameLabel = this.node.getChildByName("名字")?.getComponent(Label);
+        if (nameLabel) {
+            nameLabel.string = propName;
+            // Do not reveal the item name before the blind-box search completes.
+            nameLabel.node.active = false;
+        }
         const displayWidth = Math.max(1, width * 0.97);
         const displayHeight = Math.max(1, height * 0.97);
         this.Resize(displayWidth, displayHeight);
@@ -128,6 +135,8 @@ export class ZRSJZ_MysteryBoxSmallBox extends Component {
     }
 
     private PlayPropRevealEffect(): Promise<void> {
+        const nameNode = this.node.getChildByName("名字");
+        if (nameNode) nameNode.active = true;
         const propNode = this.node.getChildByName("道具图");
         if (!propNode) return Promise.resolve();
 

@@ -32,7 +32,7 @@ export class ZRSJZ_Player extends Component {
     /** 0 为玩家1，1 为玩家2；所有战斗输入和装备读取都以此隔离。 */
     PlayerIndex: number = 0;
     public readonly Speed: number = 1500;
-    public readonly InitHP: number = 100;
+    public readonly InitHP: number = 500;
     RigidBody: RigidBody2D = null;
     Collider: CircleCollider2D = null;
     WeaponType: string = "";

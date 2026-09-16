@@ -7,6 +7,8 @@ import {
     Sprite,
     SpriteFrame,
     UITransform,
+    Widget,
+    Layout,
     Tween,
     tween,
     Vec3,
@@ -162,6 +164,7 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
         const listFrame = root.getChildByName('装备列表框');
         const viewport = listFrame?.getChildByName('装备列表');
         this._listContent = viewport?.getChildByName('content') ?? null;
+        this.ConfigureListSizing();
         this._itemTemplate = this._listContent?.getChildByName('装备条目模板') ?? null;
         this._normalEquipmentBackground = this._itemTemplate
             ?.getChildByName('装备底')?.getComponent(Sprite)?.spriteFrame ?? null;
@@ -199,6 +202,19 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
         // 只有完整绑定成功后才隐藏模板，避免绑定失败时整个列表变空。
         if (bound) this._itemTemplate.active = false;
         return bound;
+    }
+
+    private ConfigureListSizing(): void {
+        if (!this._listContent) return;
+        // RefreshList owns item positions and content height. A stretch-height Widget
+        // would overwrite that height during the first engine layout pass.
+        const widget = this._listContent.getComponent(Widget);
+        if (widget) {
+            widget.isAlignBottom = false;
+            widget.updateAlignment();
+        }
+        const layout = this._listContent.getComponent(Layout);
+        if (layout) layout.enabled = false;
     }
 
     private ConfigureProgressSprite(): void {
