@@ -42,13 +42,13 @@ export class ZRSJZ_BoxroomService {
     }
 
     public static GetTotalGunDamageBonusRate(): number {
-        return ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate()
-            + this.GetBoxroomAttributeBonusRate("枪械伤害");
+        return (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate())
+            * (1 + this.GetBoxroomAttributeBonusRate("枪械伤害")) - 1;
     }
 
     public static GetTotalMeleeDamageBonusRate(): number {
-        return ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate()
-            + this.GetBoxroomAttributeBonusRate("近战伤害");
+        return (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate())
+            * (1 + this.GetBoxroomAttributeBonusRate("近战伤害")) - 1;
     }
 
     public static RecordMysteryBoxOpen(cost: number, value: number, redCount: number): void {

@@ -371,8 +371,8 @@ export class ZRSJZ_Player extends Component {
 
         //血量初始化
         this.MaxHP = this.InitHP
-            * (1 + ZRSJZ_FacilityService.GetResearchMaxHPBonus() / 100
-                + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("生命") : 0))
+            * (1 + ZRSJZ_FacilityService.GetResearchMaxHPBonus() / 100)
+            * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("生命") : 0))
             + ZRSJZ_BoosterShotService.GetBoosterValue("生命针")
             + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).MaxHP : 0);
         this.CurHP = this.MaxHP;
@@ -389,7 +389,8 @@ export class ZRSJZ_Player extends Component {
         this.FillInitialMagazineWhenReady();
 
         //速度初始化
-        this.MaxSpeed = this.Speed * (1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate() + ZRSJZ_BoosterShotService.GetBooster("移速针"));
+        this.MaxSpeed = this.Speed * (1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate())
+            * (1 + ZRSJZ_BoosterShotService.GetBooster("移速针"));
         this.CurSpeed = this.MaxSpeed;
 
         this._curScale = this.node.scale.x;
@@ -596,11 +597,12 @@ export class ZRSJZ_Player extends Component {
         }
         const gunDamage = this.GetGunProperty("伤害", 0);//本身伤害
         const bulletDamage = ZRSJZ_PROP_PROPERTY.get(ammoName)?.["增伤"] ?? 0;//子弹攻击力加成
-        const totalGunDamageRate = 1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0);
+        const totalGunDamageRate = (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate())
+            * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0));
         const harmShot: number = ZRSJZ_BoosterShotService.GetBooster("攻击针");
         const bulletLevel = this.GetBulletLevel(ammoName);
-        const finalDamage = Math.round(gunDamage * (bulletDamage / 100 + totalGunDamageRate + harmShot
-            + ZRSJZ_EnhancementService.GetBonus('攻击') / 100)
+        const finalDamage = Math.round(gunDamage * (1 + bulletDamage / 100) * totalGunDamageRate
+            * (1 + harmShot) * (1 + ZRSJZ_EnhancementService.GetBonus('攻击') / 100)
             + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).Attack : 0));
 
         const showBullet = (targetBullet: Node, dirX: number, dirY: number): Vec3 | null => {
@@ -724,11 +726,11 @@ export class ZRSJZ_Player extends Component {
         ZRSJZ_AudioManager.Instance.PlaySound("近战攻击");
         const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
 
-        const finalDamage = Math.round(damage * (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate() +
-                (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("枪械伤害") : 0) +
-                ZRSJZ_BoosterShotService.GetBooster("攻击针") +
-                ZRSJZ_EnhancementService.GetBonus('攻击') / 100
-            ) + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).Attack : 0)
+        const finalDamage = Math.round(damage * (1 + ZRSJZ_FacilityService.GetFiringRangeAttackBonusRate())
+            * (1 + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_BoxroomService.GetBoxroomAttributeBonusRate("近战伤害") : 0))
+            * (1 + ZRSJZ_BoosterShotService.GetBooster("攻击针"))
+            * (1 + ZRSJZ_EnhancementService.GetBonus('攻击') / 100)
+            + (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).Attack : 0)
         );
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         enemys = enemys.filter(enemy => !enemy.IsDead);
@@ -958,11 +960,14 @@ export class ZRSJZ_Player extends Component {
         // 暂停不会撤回已经触发的碰撞/动画攻击回调，伤害入口必须再次检查。
         if (!game || game.GamePaused || game.IsGameFinished || this.CurHP <= 0) return;
         const incomingHarm = Math.max(0, harm);
-        const damageMultiplier = this._shielding
-            ? 0.1
-            : 1 - this.GetEquippedDamageReductionRate() - ZRSJZ_BoosterShotService.GetBooster("防御针")
-                - ZRSJZ_EnhancementService.GetBonus('防御') / 100
-                - (ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).DamageReduction : 0);
+        // 不设合计减伤上限；独立来源逐项乘算，最后统一取整。
+        // 单项配置超过 100% 时剩余伤害归零，避免负因子相乘反而增加伤害。
+        const remaining = (rate: number) => Math.max(0, 1 - Math.max(0, rate));
+        const damageMultiplier = this.GetEquippedDamageMultiplier()
+            * remaining(ZRSJZ_BoosterShotService.GetBooster("防御针"))
+            * remaining(ZRSJZ_EnhancementService.GetBonus('防御') / 100)
+            * remaining(ZRSJZ_UIManager.ZRSJZ_DLC ? ZRSJZ_PetService.GetPlayerPassiveBonus(ZRSJZ_PetService.GetBattlePet(this.PlayerIndex)).DamageReduction : 0)
+            * (this._shielding ? 0.1 : 1);
         let madeHarm = incomingHarm > 0
             ? Math.max(1, Math.round(damageMultiplier * incomingHarm))
             : 0;
@@ -1029,17 +1034,18 @@ export class ZRSJZ_Player extends Component {
         this.HP.Show(this.CurHP);
     }
 
-    /** 头盔与防弹衣减伤相加，最终上限为 50%，避免高阶装备完全免伤。 */
-    private GetEquippedDamageReductionRate(): number {
-        let reductionPercent = 0;
+    /** 头盔、防弹衣分别减少剩余伤害，不再设置合计 50% 上限。 */
+    private GetEquippedDamageMultiplier(): number {
+        let multiplier = 1;
         for (const equipmentIndex of [1, 2]) {
             const equipmentID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[equipmentIndex];
             const equipmentName = ZRSJZ_GameData.Instance.PropData[equipmentID]?.Name;
-            reductionPercent += equipmentName
+            const reductionPercent = equipmentName
                 ? ZRSJZ_PROP_PROPERTY.get(equipmentName)?.["减伤"] ?? 0
                 : 0;
+            multiplier *= Math.max(0, 1 - Math.max(0, reductionPercent / 100));
         }
-        return Math.min(0.5, Math.max(0, reductionPercent / 100));
+        return multiplier;
     }
 
     private _hitVisualBaseScale: Vec3 = null;

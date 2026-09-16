@@ -39,7 +39,10 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     }
     protected onLoad(): void {
         this.scroll = this.At('Tree/Scroll').getComponent(ScrollView);
-        this.At('Close').on(Button.EventType.CLICK, () => ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化界面), this);
+        this.At('Close').on(Button.EventType.CLICK, () => {
+            ZRSJZ_AudioManager.Instance?.PlaySound('点击');
+            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.强化界面);
+        }, this);
         this.At('Desc/Upgrade').on(Button.EventType.CLICK, this.Purchase, this);
         for (const config of ZRSJZ_ENHANCEMENT_NODES) {
             const node = this.At(`Tree/Scroll/View/Content/Row_${config.Level}/${config.ID}`);
