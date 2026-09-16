@@ -246,7 +246,12 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
                     ? this.SelectedEquipmentBackground
                     : this._normalEquipmentBackground;
             }
-            const icon = row.getChildByName('装备图标')?.getComponent(Sprite);
+            const iconRoot = row.getChildByName('装备图标');
+            const qualityFrame = iconRoot?.getChildByName('品质框')?.getComponent(Sprite);
+            this.LoadMaterialGridSprite(qualityFrame, recipe.itemName);
+            // Keep the quality frame fixed while fitting the equipment image independently.
+            const icon = iconRoot?.getChildByName('图标')?.getComponent(Sprite)
+                ?? iconRoot?.getComponent(Sprite);
             const iconTransform = icon?.node.getComponent(UITransform);
             this.LoadPropSprite(
                 icon,
