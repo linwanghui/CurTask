@@ -86,7 +86,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             fx: this.EnemySkeleton?.node.scale.x || 1, fy: this.EnemySkeleton?.node.scale.y || 1,
             animation: skeleton?.getCurrent(0)?.animation?.name || '', hp: this._health,
             dead: this.IsDead, ax: this.EnemySkeleton?.AttackX || 0, ay: this.EnemySkeleton?.AttackY || 0,
-            aim: this.EnemySkeleton?.HasDirection || false, stun: this.IsPetStunned };
+            aim: this.EnemySkeleton?.HasDirection || false, bossAim: this.EnemySkeleton?.IsBossAttackDirection || false, stun: this.IsPetStunned };
     }
     public ApplyOnlineState(state: any): void {
         if (!this.onlineStarted || this.IsDead) return;
@@ -102,6 +102,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (!visual) return;
         visual.node.setScale(state.fx, state.fy, 1);
         visual.AttackX = state.ax; visual.AttackY = state.ay; visual.HasDirection = state.aim;
+        if (state.bossAim) visual.SetBossAttackDirection(state.ax, state.ay);
+        else visual.ResetBossAttackDirection();
         const skeleton = visual.Skeleton;
         skeleton.paused = !!state.stun;
         if (state.animation && skeleton.skeletonData?.getRuntimeData()?.findAnimation(state.animation)
@@ -819,7 +821,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         );
     }
 
-    private HasDirectPath(targetPosition: Readonly<Vec3>): boolean {
+    protected HasDirectPath(targetPosition: Readonly<Vec3>): boolean {
         if (!ZRSJZ_PATH_CONFIG.EnablePathFinding) {
             return true;
         }

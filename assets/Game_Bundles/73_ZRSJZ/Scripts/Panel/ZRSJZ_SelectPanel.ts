@@ -242,40 +242,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
 
     /** 联机每台设备只带入玩家一的配置，不能计入本地玩家二的装备。 */
     public static GetLoadoutValue(playerIndexes: number[] = [0]): number {
-        const carriedInventories = new Set<ZRSJZ_INVENTORY>([
-            ZRSJZ_INVENTORY.卡包,
-            ZRSJZ_INVENTORY.弹药,
-            ZRSJZ_INVENTORY.武器_枪,
-            ZRSJZ_INVENTORY.武器_头盔,
-            ZRSJZ_INVENTORY.武器_防弹衣,
-            ZRSJZ_INVENTORY.武器_背包,
-            ZRSJZ_INVENTORY.武器_刀,
-        ]);
-        const playerIndexSet = new Set(playerIndexes);
-        const propIDs = new Set<string>();
-        for (const playerIndex of playerIndexes) {
-            ZRSJZ_InventoryService.GetWeaponryIDs(playerIndex).filter(Boolean).forEach(id => propIDs.add(id));
-            ZRSJZ_InventoryService.GetAmmoIDs(playerIndex).filter(Boolean).forEach(id => propIDs.add(id));
-        }
-
-        for (const propID in ZRSJZ_GameData.Instance.PropData) {
-            const propData = ZRSJZ_GameData.Instance.PropData[propID];
-            if (
-                propData
-                && carriedInventories.has(propData.CurInventory)
-                && playerIndexSet.has(propData.OwnerPlayerIndex ?? 0)
-            ) {
-                propIDs.add(propID);
-            }
-        }
-
-        let totalValue = 0;
-        propIDs.forEach(propID => {
-            const propData = ZRSJZ_GameData.Instance.PropData[propID];
-            if (!propData) return;
-            totalValue += Math.max(0, propData.UnitPrice || 0) * Math.max(0, propData.CurCount || 0);
-        });
-        return totalValue;
+        return ZRSJZ_InventoryService.GetLoadoutValue(playerIndexes);
     }
 
     /** 可供界面和自动化测试复用的纯准入判断，不会切换场景。 */

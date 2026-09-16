@@ -63,8 +63,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             ChaseSpeed: config.ChaseSpeed,
             PatrolWaitTime: config.PatrolWaitTime,
             PatrolArriveDistance: config.PatrolArriveDistance,
-            MovingAttackRange: normalAttack.Range,
-            StandingAttackRange: normalAttack.Range,
+            MovingAttackRange: this.GetAttackStartRange(normalAttack),
+            StandingAttackRange: this.GetAttackStartRange(normalAttack),
             AttackInterval: normalAttack.Cooldown,
             IdleAnimation: config.IdleAnimation,
             MoveAnimation: config.MoveAnimation,
@@ -136,6 +136,11 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
 
         this.UpdateCooldowns(dt);
         this.UpdateOutOfCombatRegen(dt);
+        // 保持高于玩家当前实际移速，包括移速强化、针剂和短时冲刺。
+        const fastestPlayer = Math.max(0, ...ZRSJZ_Game.Instance.Players
+            .filter(player => !player.IsDead).map(player => player.CurSpeed));
+        const chaseSpeed = Math.max(this.BossConfig.ChaseSpeed, fastestPlayer * 1.12);
+        if (this.EnemyConfig.ChaseSpeed !== chaseSpeed) this.EnemyConfig = { ...this.EnemyConfig, ChaseSpeed: chaseSpeed };
 
         // 一个攻击动作播放完毕前，不允许开始其他动作。
         if (this._activeSkill) {
@@ -207,8 +212,14 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         const attack = this._activeSkill ?? this._activeNormalAttack;
         if (!attack || this._activeAttackTriggered || eventName !== attack.TriggerEvent) return null;
 
-        // this._activeAttackTriggered = true;
+        this.RefreshAttackDirection();
+        this._activeAttackTriggered = true;
         return attack;
+    }
+
+    /** 起手与命中均以根节点为圆心，留出50单位余量，避免静止目标也在伤害圈外。 */
+    private GetAttackStartRange(attack: Readonly<ZRSJZ_BossSkillConfig>): number {
+        return Math.max(0, Math.min(attack.Range, attack.DamageRange - 50));
     }
 
     private UpdateCooldowns(dt: number): void {
@@ -262,7 +273,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             const skill = this.BossConfig.Skills[index];
             if (
                 this._skillCooldowns[index] > 0
-                || targetDistance > Math.max(0, skill.Range)
+                || targetDistance > this.GetAttackStartRange(skill)
+                || !this.HasDirectPath(this.Target.worldPosition)
             ) {
                 continue;
             }
@@ -288,7 +300,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             this.node.worldPosition,
             this.Target.worldPosition,
         );
-        if (targetDistance > Math.max(0, normalAttack.Range)) {
+        if (targetDistance > this.GetAttackStartRange(normalAttack)) {
             return false;
         }
 
@@ -370,7 +382,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         if (attack.CanMoveWhileCasting) {
             this.NavigateTo(
                 this.Target.worldPosition,
-                this.BossConfig.ChaseSpeed,
+                this.EnemyConfig.ChaseSpeed,
                 dt,
                 attack.Animation,
                 false,
@@ -393,6 +405,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             this.AttackX * this.AttackX + this.AttackY * this.AttackY,
         );
         this.UpdateAimDirection(this.AttackX, this.AttackY, distance);
+        // Boss 资源不依赖普通士兵的 mz IK 骨骼，只旋转显示节点，不旋转碰撞体。
+        this.EnemySkeleton?.SetBossAttackDirection(this.AttackX, this.AttackY);
     }
 
     private FinishActiveAttack(): void {
@@ -400,6 +414,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         this._activeSkill = null;
         this._activeNormalAttack = null;
         this._activeAttackTriggered = false;
+
+        this.EnemySkeleton?.ResetBossAttackDirection();
 
         // 普攻结束后先进入待机，等待普攻冷却；下一帧仍会优先判断可用技能。
         if (
@@ -414,6 +430,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     }
 
     private CancelActiveAttack(): void {
+        this.EnemySkeleton?.ResetBossAttackDirection();
         this._actionSerial++;
         this._activeSkill = null;
         this._activeNormalAttack = null;

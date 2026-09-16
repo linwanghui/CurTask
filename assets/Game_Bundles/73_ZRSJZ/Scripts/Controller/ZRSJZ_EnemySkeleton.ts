@@ -15,6 +15,9 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
     IsKnife: boolean = false;
     private _mzBone: sp.spine.Bone = null;
     private _baseScale = new Vec3();
+    private _bossAttackDirection = false;
+    private _baseAngle = 0;
+    public get IsBossAttackDirection(): boolean { return this._bossAttackDirection; }
 
     protected get UsesPlayerDLCAppearance(): boolean {
         return false;
@@ -24,6 +27,7 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
         super.onLoad();
         this._mzBone = this.Skeleton?.findBone('mz');
         this._baseScale.set(this.node.scale.x, this.node.scale.y, this.node.scale.z);
+        this._baseAngle = this.node.eulerAngles.z;
     }
 
     protected onEnable(): void {
@@ -58,6 +62,7 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
 
     //玩家转向
     private ApplyAimDirection(): void {
+        if (this._bossAttackDirection) return;
         if (!this._mzBone || !this.HasDirection) {
             return;
         }
@@ -87,6 +92,23 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
 
         // 重新计算 IK 和所有骨骼世界坐标
         this.Skeleton._skeleton.updateWorldTransform();
+    }
+
+    public SetBossAttackDirection(x: number, y: number): void {
+        if (Math.hypot(x, y) < 0.001) return;
+        this._bossAttackDirection = true;
+        const facing = x < 0 ? -1 : 1;
+        this.SetPlayerDir(facing);
+        const angle = Math.atan2(y, x) * 180 / Math.PI - (facing < 0 ? 180 : 0);
+        this.node.setRotationFromEuler(0, 0, this._baseAngle + angle);
+    }
+
+    public ResetBossAttackDirection(): void {
+        if (!this._bossAttackDirection) return;
+        this._bossAttackDirection = false;
+        this.HasDirection = false;
+        this.node.setRotationFromEuler(0, 0, this._baseAngle);
+        this.SetPlayerDir(this.AttackX < 0 ? -1 : 1);
     }
 
     //显示装备

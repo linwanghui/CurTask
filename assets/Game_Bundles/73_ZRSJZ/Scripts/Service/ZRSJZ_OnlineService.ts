@@ -1,6 +1,7 @@
 import { EventTarget, Node } from 'cc';
 import { ZRSJZ_MAP_CONFIG } from '../ZRSJZ_Constant';
 
+import { ZRSJZ_InventoryService } from './ZRSJZ_InventoryService';
 export interface ZRSJZ_OnlineMember { id: string; name: string; ready: boolean; }
 export interface ZRSJZ_OnlineRoom { code: string; host: string; phase: string; map: string; members: ZRSJZ_OnlineMember[]; }
 export interface ZRSJZ_OnlinePose { x: number; y: number; sx: number; sy: number; skin: string; animation: string; dead?: boolean;
@@ -103,6 +104,8 @@ export class ZRSJZ_OnlineService {
                 this.SetStatus(String(message.message));
             } else if (message.type === 'start' && !this.Battle) {
                 if (message.map !== this.Map || !ZRSJZ_MAP_CONFIG.has(message.map)) { this.SetStatus('地图版本不一致，请更新客户端'); return; }
+                const entryError = ZRSJZ_InventoryService.GetBattleEntryError(message.map, [0]);
+                if (entryError) { this.Disconnect(); this.SetStatus(entryError); return; }
                 this.Battle = true;
                 this.BattleHost = this.IsHost;
                 this.BattleEnded = false;

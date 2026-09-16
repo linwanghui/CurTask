@@ -4,6 +4,7 @@ import {
     ZRSJZ_GridData,
     ZRSJZ_INVENTORY,
     ZRSJZ_INVENTORY_CONFIG,
+    ZRSJZ_MAP_CONFIG,
     ZRSJZ_PROP_CONFIG,
     ZRSJZ_PropData,
 } from "../ZRSJZ_Constant";
@@ -12,6 +13,50 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager
 
 /** 道具、装备、仓库、弹药及房卡相关业务。 */
 export class ZRSJZ_InventoryService {
+    /** 所有进入战斗的入口复用同一门槛，战斗内消耗弹药不会追溯取消准入。 */
+    public static GetBattleEntryError(mapKey: string, playerIndexes: number[] = [0]): string {
+        const config = ZRSJZ_MAP_CONFIG.get(mapKey);
+        if (!config) return '该关卡暂未开放';
+        const missing = config.RequiredLoadoutValue - this.GetLoadoutValue(playerIndexes);
+        return missing > 0 ? `战备价值不足，还需${Math.ceil(missing / 10000)}万，无法进入该关卡` : '';
+    }
+    public static GetLoadoutValue(playerIndexes: number[] = [0]): number {
+        const carriedInventories = new Set<ZRSJZ_INVENTORY>([
+            ZRSJZ_INVENTORY.卡包,
+            ZRSJZ_INVENTORY.弹药,
+            ZRSJZ_INVENTORY.武器_枪,
+            ZRSJZ_INVENTORY.武器_头盔,
+            ZRSJZ_INVENTORY.武器_防弹衣,
+            ZRSJZ_INVENTORY.武器_背包,
+            ZRSJZ_INVENTORY.武器_刀,
+        ]);
+        const playerIndexSet = new Set(playerIndexes);
+        const propIDs = new Set<string>();
+        for (const playerIndex of playerIndexes) {
+            this.GetWeaponryIDs(playerIndex).filter(Boolean).forEach(id => propIDs.add(id));
+            this.GetAmmoIDs(playerIndex).filter(Boolean).forEach(id => propIDs.add(id));
+        }
+
+        for (const propID in ZRSJZ_GameData.Instance.PropData) {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            if (
+                propData
+                && carriedInventories.has(propData.CurInventory)
+                && playerIndexSet.has(propData.OwnerPlayerIndex ?? 0)
+            ) {
+                propIDs.add(propID);
+            }
+        }
+
+        let totalValue = 0;
+        propIDs.forEach(propID => {
+            const propData = ZRSJZ_GameData.Instance.PropData[propID];
+            if (!propData) return;
+            totalValue += Math.max(0, propData.UnitPrice || 0) * Math.max(0, propData.CurCount || 0);
+        });
+        return totalValue;
+    }
+
 
     /** 调用方完成双向占格校验后，一次性提交交换，最后才保存及广播。 */
     public static ApplySwap(moves: { id: string, inventory: ZRSJZ_INVENTORY, playerIndex: number,

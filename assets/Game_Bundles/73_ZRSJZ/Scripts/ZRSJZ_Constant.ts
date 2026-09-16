@@ -1159,7 +1159,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         LoseRange: 2500,
         PatrolRadius: 500,
         PatrolSpeed: 400,
-        ChaseSpeed: 550,
+        ChaseSpeed: 2200,
         PatrolWaitTime: 1,
         PatrolArriveDistance: 50,
         IdleAnimation: "daiji",
@@ -1194,7 +1194,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         LoseRange: 2500,
         PatrolRadius: 500,
         PatrolSpeed: 380,
-        ChaseSpeed: 520,
+        ChaseSpeed: 2200,
         PatrolWaitTime: 1,
         PatrolArriveDistance: 50,
         IdleAnimation: "idle",
@@ -1229,7 +1229,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         LoseRange: 2500,
         PatrolRadius: 500,
         PatrolSpeed: 360,
-        ChaseSpeed: 480,
+        ChaseSpeed: 2200,
         PatrolWaitTime: 1,
         PatrolArriveDistance: 50,
         IdleAnimation: "idle",
@@ -1401,7 +1401,7 @@ const ZRSJZ_MAP_LOOT_WEIGHTS: readonly (readonly number[])[] = [
 ];
 
 const ZRSJZ_MAP_REQUIRED_VALUES: readonly number[] = [
-    0, 150_000, 500_000, 1_200_000, 3_000_000, 7_000_000,
+    300_000, 800_000, 1_600_000, 5_000_000, 18_000_000, 24_000_000,
 ];
 
 /** 助战礼包内容。装备名称直接关联 ZRSJZ_PROP_CONFIG，修改后会同步影响展示和实际发放。 */
@@ -1450,9 +1450,9 @@ export const ZRSJZ_ASSIST_FIGHTING_GIFT_CONFIG: ReadonlyMap<
 ]);
 
 const ZRSJZ_MAP_TIME_LIMITS: readonly number[] = [18, 16, 14, 13, 12, 11];
-const ZRSJZ_MAP_HP_MULTIPLIERS: readonly number[] = [0.9, 1.15, 1.5, 1.95, 2.55, 3.25];
-const ZRSJZ_MAP_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.35, 1.65, 2.05, 2.5];
-const ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS: readonly number[] = [0.9, 1.1, 1.3, 1.55, 1.85, 2.2];
+const ZRSJZ_MAP_HP_MULTIPLIERS: readonly number[] = [1, 1.4, 2, 3, 4.3, 6];
+const ZRSJZ_MAP_HARM_MULTIPLIERS: readonly number[] = [1, 1.3, 1.7, 2.2, 2.9, 3.8];
+const ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS: readonly number[] = [1.2, 1.6, 2.1, 2.8, 3.7, 4.8];
 const ZRSJZ_MAP_SPEED_MULTIPLIERS: readonly number[] = [0.95, 1, 1.05, 1.1, 1.15, 1.2];
 const ZRSJZ_MAP_ATTACK_INTERVAL_MULTIPLIERS: readonly number[] = [1.05, 1, 0.95, 0.9, 0.85, 0.8];
 /** 六个模式进入战斗后触发空投的时间（秒），高难度更早提供争夺目标。 */
@@ -1545,11 +1545,12 @@ function CreateMapModeConfig(
     modeIndex: number,
 ): ZRSJZ_MapConfig {
     const hpMultiplier = ZRSJZ_MAP_HP_MULTIPLIERS[modeIndex];
+    const bossHPMultiplier = [1.5, 2.3, 3.5, 5, 7.5, 11][modeIndex];
     const harmMultiplier = ZRSJZ_MAP_HARM_MULTIPLIERS[modeIndex];
     const bossHarmMultiplier = ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS[modeIndex];
     const speedMultiplier = ZRSJZ_MAP_SPEED_MULTIPLIERS[modeIndex];
     const attackIntervalMultiplier = ZRSJZ_MAP_ATTACK_INTERVAL_MULTIPLIERS[modeIndex];
-    const requiredValue = ZRSJZ_MAP_REQUIRED_VALUES[modeIndex];
+    const requiredValue = mapKey === "新手村" ? 0 : ZRSJZ_MAP_REQUIRED_VALUES[modeIndex];
     const commonMin = 2 + Math.floor(modeIndex / 3);
     const commonMax = 4 + Math.ceil(modeIndex / 2);
     const eliteMin = 3 + Math.floor(modeIndex / 3);
@@ -1627,7 +1628,7 @@ function CreateMapModeConfig(
         ]),
         MapBoss: new Map([
             ["Boss1", {
-                HP: Math.round(1200 * hpMultiplier),
+                HP: Math.round(1200 * bossHPMultiplier),
                 HarmMultiple: bossHarmMultiplier,
                 SpeedMultiplier: speedMultiplier,
                 CooldownMultiplier: attackIntervalMultiplier,
@@ -1640,7 +1641,7 @@ function CreateMapModeConfig(
                 ),
             }],
             ["Boss2", {
-                HP: Math.round(1050 * hpMultiplier),
+                HP: Math.round(1050 * bossHPMultiplier),
                 HarmMultiple: bossHarmMultiplier,
                 SpeedMultiplier: speedMultiplier,
                 CooldownMultiplier: attackIntervalMultiplier,
@@ -1653,7 +1654,7 @@ function CreateMapModeConfig(
                 ),
             }],
             ["Boss3", {
-                HP: Math.round(1350 * hpMultiplier),
+                HP: Math.round(1350 * bossHPMultiplier),
                 HarmMultiple: bossHarmMultiplier,
                 SpeedMultiplier: speedMultiplier,
                 CooldownMultiplier: attackIntervalMultiplier,

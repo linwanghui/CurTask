@@ -1,0 +1,1270 @@
+{
+  "placement": {
+    "城镇": {
+      "持枪小兵": 6,
+      "持刀小兵": 10,
+      "军备箱": 6,
+      "医疗箱": 3,
+      "小木箱": 4,
+      "小纸箱": 5,
+      "Boss1": 1,
+      "木箱": 8,
+      "柜子": 4,
+      "喷火兵": 3,
+      "盾牌兵": 3,
+      "密码箱": 2,
+      "门": 2,
+      "特别行动": 4
+    },
+    "沙漠": {
+      "持枪小兵": 6,
+      "持刀小兵": 12,
+      "军备箱": 6,
+      "医疗箱": 3,
+      "小木箱": 4,
+      "小纸箱": 5,
+      "木箱": 9,
+      "柜子": 4,
+      "喷火兵": 4,
+      "盾牌兵": 4,
+      "密码箱": 2,
+      "门": 3,
+      "Boss2": 1,
+      "撤离点": 2,
+      "特别行动": 4
+    },
+    "雪地": {
+      "持枪小兵": 6,
+      "持刀小兵": 12,
+      "军备箱": 6,
+      "医疗箱": 3,
+      "小木箱": 4,
+      "小纸箱": 5,
+      "木箱": 8,
+      "柜子": 3,
+      "喷火兵": 4,
+      "盾牌兵": 4,
+      "密码箱": 2,
+      "门": 2,
+      "Boss3": 1,
+      "撤离点": 2,
+      "特别行动": 4
+    }
+  },
+  "maps": [
+    {
+      "key": "五号小镇_机密行动",
+      "difficulty": 1,
+      "required": 0,
+      "boxEV": {
+        "军备箱": 146462.7035136248,
+        "小木箱": 53893.02777526755,
+        "小纸箱": 35928.6851835117,
+        "木箱": 80839.54166290132,
+        "柜子": 80839.54166290132,
+        "密码箱": 220263.55884888902
+      },
+      "enemy": [
+        [
+          "持枪小兵",
+          {
+            "HP": 90,
+            "Harm": 9,
+            "SpeedMultiplier": 0.95,
+            "AttackIntervalMultiplier": 1.05,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 2,
+              "MaxPropCount": 4,
+              "Probability": [
+                60,
+                25,
+                10,
+                4,
+                0.8,
+                0.2
+              ],
+              "GuaranteedPropTypes": [
+                "枪",
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "持刀小兵",
+          {
+            "HP": 99,
+            "Harm": 11,
+            "SpeedMultiplier": 0.95,
+            "AttackIntervalMultiplier": 1.05,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 2,
+              "MaxPropCount": 4,
+              "Probability": [
+                60,
+                25,
+                10,
+                4,
+                0.8,
+                0.2
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "喷火兵",
+          {
+            "HP": 135,
+            "Harm": 16,
+            "SpeedMultiplier": 0.95,
+            "AttackIntervalMultiplier": 1.05,
+            "Box": {
+              "BoxName": "物资箱3",
+              "MinPropCount": 3,
+              "MaxPropCount": 5,
+              "Probability": [
+                48,
+                28,
+                15,
+                6,
+                2.3,
+                0.7
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "盾牌兵",
+          {
+            "HP": 198,
+            "Harm": 10,
+            "SpeedMultiplier": 0.95,
+            "AttackIntervalMultiplier": 1.05,
+            "Box": {
+              "BoxName": "物资箱4",
+              "MinPropCount": 3,
+              "MaxPropCount": 5,
+              "Probability": [
+                48,
+                28,
+                15,
+                6,
+                2.3,
+                0.7
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ]
+      ],
+      "boss": [
+        [
+          "Boss1",
+          {
+            "HP": 1080,
+            "HarmMultiple": 0.9,
+            "SpeedMultiplier": 0.95,
+            "CooldownMultiplier": 1.05,
+            "Box": {
+              "BoxName": "物资箱5",
+              "MinPropCount": 5,
+              "MaxPropCount": 8,
+              "Probability": [
+                36,
+                28,
+                20,
+                10,
+                4.5,
+                1.5
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss2",
+          {
+            "HP": 945,
+            "HarmMultiple": 0.9,
+            "SpeedMultiplier": 0.95,
+            "CooldownMultiplier": 1.05,
+            "Box": {
+              "BoxName": "物资箱6",
+              "MinPropCount": 5,
+              "MaxPropCount": 8,
+              "Probability": [
+                36,
+                28,
+                20,
+                10,
+                4.5,
+                1.5
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss3",
+          {
+            "HP": 1215,
+            "HarmMultiple": 0.9,
+            "SpeedMultiplier": 0.95,
+            "CooldownMultiplier": 1.05,
+            "Box": {
+              "BoxName": "物资箱7",
+              "MinPropCount": 5,
+              "MaxPropCount": 8,
+              "Probability": [
+                36,
+                28,
+                20,
+                10,
+                4.5,
+                1.5
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "key": "沙漠古迹_机密行动",
+      "difficulty": 2,
+      "required": 150000,
+      "boxEV": {
+        "军备箱": 240553.8128618896,
+        "小木箱": 93276.02977605001,
+        "小纸箱": 44925.65059703667,
+        "木箱": 133251.47110864287,
+        "柜子": 133251.47110864287,
+        "密码箱": 373364.0938748914
+      },
+      "enemy": [
+        [
+          "持枪小兵",
+          {
+            "HP": 115,
+            "Harm": 11,
+            "SpeedMultiplier": 1,
+            "AttackIntervalMultiplier": 1,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 2,
+              "MaxPropCount": 5,
+              "Probability": [
+                48,
+                28,
+                15,
+                6,
+                2.3,
+                0.7
+              ],
+              "GuaranteedPropTypes": [
+                "枪",
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "持刀小兵",
+          {
+            "HP": 126,
+            "Harm": 13,
+            "SpeedMultiplier": 1,
+            "AttackIntervalMultiplier": 1,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 2,
+              "MaxPropCount": 5,
+              "Probability": [
+                48,
+                28,
+                15,
+                6,
+                2.3,
+                0.7
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "喷火兵",
+          {
+            "HP": 173,
+            "Harm": 20,
+            "SpeedMultiplier": 1,
+            "AttackIntervalMultiplier": 1,
+            "Box": {
+              "BoxName": "物资箱3",
+              "MinPropCount": 3,
+              "MaxPropCount": 6,
+              "Probability": [
+                36,
+                28,
+                20,
+                10,
+                4.5,
+                1.5
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "盾牌兵",
+          {
+            "HP": 253,
+            "Harm": 12,
+            "SpeedMultiplier": 1,
+            "AttackIntervalMultiplier": 1,
+            "Box": {
+              "BoxName": "物资箱4",
+              "MinPropCount": 3,
+              "MaxPropCount": 6,
+              "Probability": [
+                36,
+                28,
+                20,
+                10,
+                4.5,
+                1.5
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ]
+      ],
+      "boss": [
+        [
+          "Boss1",
+          {
+            "HP": 1380,
+            "HarmMultiple": 1.1,
+            "SpeedMultiplier": 1,
+            "CooldownMultiplier": 1,
+            "Box": {
+              "BoxName": "物资箱5",
+              "MinPropCount": 5,
+              "MaxPropCount": 9,
+              "Probability": [
+                26,
+                25,
+                23,
+                15,
+                8,
+                3
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss2",
+          {
+            "HP": 1208,
+            "HarmMultiple": 1.1,
+            "SpeedMultiplier": 1,
+            "CooldownMultiplier": 1,
+            "Box": {
+              "BoxName": "物资箱6",
+              "MinPropCount": 5,
+              "MaxPropCount": 9,
+              "Probability": [
+                26,
+                25,
+                23,
+                15,
+                8,
+                3
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss3",
+          {
+            "HP": 1552,
+            "HarmMultiple": 1.1,
+            "SpeedMultiplier": 1,
+            "CooldownMultiplier": 1,
+            "Box": {
+              "BoxName": "物资箱7",
+              "MinPropCount": 5,
+              "MaxPropCount": 9,
+              "Probability": [
+                26,
+                25,
+                23,
+                15,
+                8,
+                3
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "key": "极北之地_机密行动",
+      "difficulty": 3,
+      "required": 500000,
+      "boxEV": {
+        "军备箱": 439185.27690381365,
+        "小木箱": 161396.01830309985,
+        "小纸箱": 80310.26607016308,
+        "木箱": 242094.02745464977,
+        "柜子": 242094.02745464977,
+        "密码箱": 634876.769548889
+      },
+      "enemy": [
+        [
+          "持枪小兵",
+          {
+            "HP": 150,
+            "Harm": 14,
+            "SpeedMultiplier": 1.05,
+            "AttackIntervalMultiplier": 0.95,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 2,
+              "MaxPropCount": 5,
+              "Probability": [
+                36,
+                28,
+                20,
+                10,
+                4.5,
+                1.5
+              ],
+              "GuaranteedPropTypes": [
+                "枪",
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "持刀小兵",
+          {
+            "HP": 165,
+            "Harm": 16,
+            "SpeedMultiplier": 1.05,
+            "AttackIntervalMultiplier": 0.95,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 2,
+              "MaxPropCount": 5,
+              "Probability": [
+                36,
+                28,
+                20,
+                10,
+                4.5,
+                1.5
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "喷火兵",
+          {
+            "HP": 225,
+            "Harm": 24,
+            "SpeedMultiplier": 1.05,
+            "AttackIntervalMultiplier": 0.95,
+            "Box": {
+              "BoxName": "物资箱3",
+              "MinPropCount": 3,
+              "MaxPropCount": 6,
+              "Probability": [
+                26,
+                25,
+                23,
+                15,
+                8,
+                3
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "盾牌兵",
+          {
+            "HP": 330,
+            "Harm": 15,
+            "SpeedMultiplier": 1.05,
+            "AttackIntervalMultiplier": 0.95,
+            "Box": {
+              "BoxName": "物资箱4",
+              "MinPropCount": 3,
+              "MaxPropCount": 6,
+              "Probability": [
+                26,
+                25,
+                23,
+                15,
+                8,
+                3
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ]
+      ],
+      "boss": [
+        [
+          "Boss1",
+          {
+            "HP": 1800,
+            "HarmMultiple": 1.3,
+            "SpeedMultiplier": 1.05,
+            "CooldownMultiplier": 0.95,
+            "Box": {
+              "BoxName": "物资箱5",
+              "MinPropCount": 6,
+              "MaxPropCount": 9,
+              "Probability": [
+                17,
+                21,
+                25,
+                20,
+                12,
+                5
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss2",
+          {
+            "HP": 1575,
+            "HarmMultiple": 1.3,
+            "SpeedMultiplier": 1.05,
+            "CooldownMultiplier": 0.95,
+            "Box": {
+              "BoxName": "物资箱6",
+              "MinPropCount": 6,
+              "MaxPropCount": 9,
+              "Probability": [
+                17,
+                21,
+                25,
+                20,
+                12,
+                5
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss3",
+          {
+            "HP": 2025,
+            "HarmMultiple": 1.3,
+            "SpeedMultiplier": 1.05,
+            "CooldownMultiplier": 0.95,
+            "Box": {
+              "BoxName": "物资箱7",
+              "MinPropCount": 6,
+              "MaxPropCount": 9,
+              "Probability": [
+                17,
+                21,
+                25,
+                20,
+                12,
+                5
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "key": "五号小镇_绝密行动",
+      "difficulty": 4,
+      "required": 1200000,
+      "boxEV": {
+        "军备箱": 673026.5525386448,
+        "小木箱": 310824.3461400867,
+        "小纸箱": 160244.2490723306,
+        "木箱": 404071.6499821127,
+        "柜子": 404071.6499821127,
+        "密码箱": 1124228.7836803512
+      },
+      "enemy": [
+        [
+          "持枪小兵",
+          {
+            "HP": 195,
+            "Harm": 17,
+            "SpeedMultiplier": 1.1,
+            "AttackIntervalMultiplier": 0.9,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 3,
+              "MaxPropCount": 6,
+              "Probability": [
+                26,
+                25,
+                23,
+                15,
+                8,
+                3
+              ],
+              "GuaranteedPropTypes": [
+                "枪",
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "持刀小兵",
+          {
+            "HP": 215,
+            "Harm": 20,
+            "SpeedMultiplier": 1.1,
+            "AttackIntervalMultiplier": 0.9,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 3,
+              "MaxPropCount": 6,
+              "Probability": [
+                26,
+                25,
+                23,
+                15,
+                8,
+                3
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "喷火兵",
+          {
+            "HP": 293,
+            "Harm": 30,
+            "SpeedMultiplier": 1.1,
+            "AttackIntervalMultiplier": 0.9,
+            "Box": {
+              "BoxName": "物资箱3",
+              "MinPropCount": 4,
+              "MaxPropCount": 7,
+              "Probability": [
+                17,
+                21,
+                25,
+                20,
+                12,
+                5
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "盾牌兵",
+          {
+            "HP": 429,
+            "Harm": 18,
+            "SpeedMultiplier": 1.1,
+            "AttackIntervalMultiplier": 0.9,
+            "Box": {
+              "BoxName": "物资箱4",
+              "MinPropCount": 4,
+              "MaxPropCount": 7,
+              "Probability": [
+                17,
+                21,
+                25,
+                20,
+                12,
+                5
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ]
+      ],
+      "boss": [
+        [
+          "Boss1",
+          {
+            "HP": 2340,
+            "HarmMultiple": 1.55,
+            "SpeedMultiplier": 1.1,
+            "CooldownMultiplier": 0.9,
+            "Box": {
+              "BoxName": "物资箱5",
+              "MinPropCount": 6,
+              "MaxPropCount": 10,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss2",
+          {
+            "HP": 2048,
+            "HarmMultiple": 1.55,
+            "SpeedMultiplier": 1.1,
+            "CooldownMultiplier": 0.9,
+            "Box": {
+              "BoxName": "物资箱6",
+              "MinPropCount": 6,
+              "MaxPropCount": 10,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss3",
+          {
+            "HP": 2633,
+            "HarmMultiple": 1.55,
+            "SpeedMultiplier": 1.1,
+            "CooldownMultiplier": 0.9,
+            "Box": {
+              "BoxName": "物资箱7",
+              "MinPropCount": 6,
+              "MaxPropCount": 10,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "key": "沙漠古迹_绝密行动",
+      "difficulty": 5,
+      "required": 3000000,
+      "boxEV": {
+        "军备箱": 1283629.5477864495,
+        "小木箱": 496627.4970313561,
+        "小纸箱": 281251.30570028623,
+        "木箱": 677219.3141336674,
+        "柜子": 677219.3141336674,
+        "密码箱": 1283629.5477864495
+      },
+      "enemy": [
+        [
+          "持枪小兵",
+          {
+            "HP": 255,
+            "Harm": 21,
+            "SpeedMultiplier": 1.15,
+            "AttackIntervalMultiplier": 0.85,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 3,
+              "MaxPropCount": 6,
+              "Probability": [
+                17,
+                21,
+                25,
+                20,
+                12,
+                5
+              ],
+              "GuaranteedPropTypes": [
+                "枪",
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "持刀小兵",
+          {
+            "HP": 281,
+            "Harm": 25,
+            "SpeedMultiplier": 1.15,
+            "AttackIntervalMultiplier": 0.85,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 3,
+              "MaxPropCount": 6,
+              "Probability": [
+                17,
+                21,
+                25,
+                20,
+                12,
+                5
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "喷火兵",
+          {
+            "HP": 383,
+            "Harm": 37,
+            "SpeedMultiplier": 1.15,
+            "AttackIntervalMultiplier": 0.85,
+            "Box": {
+              "BoxName": "物资箱3",
+              "MinPropCount": 4,
+              "MaxPropCount": 7,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "盾牌兵",
+          {
+            "HP": 561,
+            "Harm": 23,
+            "SpeedMultiplier": 1.15,
+            "AttackIntervalMultiplier": 0.85,
+            "Box": {
+              "BoxName": "物资箱4",
+              "MinPropCount": 4,
+              "MaxPropCount": 7,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ]
+      ],
+      "boss": [
+        [
+          "Boss1",
+          {
+            "HP": 3060,
+            "HarmMultiple": 1.85,
+            "SpeedMultiplier": 1.15,
+            "CooldownMultiplier": 0.85,
+            "Box": {
+              "BoxName": "物资箱5",
+              "MinPropCount": 7,
+              "MaxPropCount": 10,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss2",
+          {
+            "HP": 2678,
+            "HarmMultiple": 1.85,
+            "SpeedMultiplier": 1.15,
+            "CooldownMultiplier": 0.85,
+            "Box": {
+              "BoxName": "物资箱6",
+              "MinPropCount": 7,
+              "MaxPropCount": 10,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss3",
+          {
+            "HP": 3442,
+            "HarmMultiple": 1.85,
+            "SpeedMultiplier": 1.15,
+            "CooldownMultiplier": 0.85,
+            "Box": {
+              "BoxName": "物资箱7",
+              "MinPropCount": 7,
+              "MaxPropCount": 10,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "key": "极北之地_绝密行动",
+      "difficulty": 6,
+      "required": 7000000,
+      "boxEV": {
+        "军备箱": 1457043.3865702678,
+        "小木箱": 971362.2577135119,
+        "小纸箱": 478675.71451294265,
+        "木箱": 1295149.6769513492,
+        "柜子": 1295149.6769513492,
+        "密码箱": 1457043.3865702678
+      },
+      "enemy": [
+        [
+          "持枪小兵",
+          {
+            "HP": 325,
+            "Harm": 25,
+            "SpeedMultiplier": 1.2,
+            "AttackIntervalMultiplier": 0.8,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 3,
+              "MaxPropCount": 7,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": [
+                "枪",
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "持刀小兵",
+          {
+            "HP": 358,
+            "Harm": 30,
+            "SpeedMultiplier": 1.2,
+            "AttackIntervalMultiplier": 0.8,
+            "Box": {
+              "BoxName": "物资箱1",
+              "MinPropCount": 3,
+              "MaxPropCount": 7,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "喷火兵",
+          {
+            "HP": 488,
+            "Harm": 45,
+            "SpeedMultiplier": 1.2,
+            "AttackIntervalMultiplier": 0.8,
+            "Box": {
+              "BoxName": "物资箱3",
+              "MinPropCount": 4,
+              "MaxPropCount": 8,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ],
+        [
+          "盾牌兵",
+          {
+            "HP": 715,
+            "Harm": 28,
+            "SpeedMultiplier": 1.2,
+            "AttackIntervalMultiplier": 0.8,
+            "Box": {
+              "BoxName": "物资箱4",
+              "MinPropCount": 4,
+              "MaxPropCount": 8,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": [
+                "防弹衣",
+                "头盔"
+              ]
+            }
+          }
+        ]
+      ],
+      "boss": [
+        [
+          "Boss1",
+          {
+            "HP": 3900,
+            "HarmMultiple": 2.2,
+            "SpeedMultiplier": 1.2,
+            "CooldownMultiplier": 0.8,
+            "Box": {
+              "BoxName": "物资箱5",
+              "MinPropCount": 7,
+              "MaxPropCount": 11,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss2",
+          {
+            "HP": 3413,
+            "HarmMultiple": 2.2,
+            "SpeedMultiplier": 1.2,
+            "CooldownMultiplier": 0.8,
+            "Box": {
+              "BoxName": "物资箱6",
+              "MinPropCount": 7,
+              "MaxPropCount": 11,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ],
+        [
+          "Boss3",
+          {
+            "HP": 4388,
+            "HarmMultiple": 2.2,
+            "SpeedMultiplier": 1.2,
+            "CooldownMultiplier": 0.8,
+            "Box": {
+              "BoxName": "物资箱7",
+              "MinPropCount": 7,
+              "MaxPropCount": 11,
+              "Probability": [
+                10,
+                15,
+                22,
+                24,
+                19,
+                10
+              ],
+              "GuaranteedPropTypes": []
+            }
+          }
+        ]
+      ]
+    }
+  ],
+  "plans": [
+    [
+      "五号小镇_机密行动",
+      "CN8-突击步枪；二级头/二级甲/二级包；1级弹",
+      "41.58",
+      "满足",
+      "19%",
+      7,
+      50,
+      5.7,
+      "0.10"
+    ],
+    [
+      "沙漠古迹_机密行动",
+      "DX9-冲锋枪；三级头/三级甲/三级包；1级弹",
+      "92.82",
+      "满足",
+      "27.75%",
+      8,
+      51,
+      5.786,
+      "0.10"
+    ],
+    [
+      "极北之地_机密行动",
+      "K50-轻机枪；四级头/四级甲/四级包；2级弹",
+      "180.60",
+      "满足",
+      "36%",
+      9,
+      75,
+      9.343,
+      "3.75"
+    ],
+    [
+      "五号小镇_绝密行动",
+      "K50-轻机枪；五级头/五级甲/五级包；2级弹",
+      "541.00",
+      "满足",
+      "43.75%",
+      10,
+      87,
+      10.371,
+      "4.35"
+    ],
+    [
+      "沙漠古迹_绝密行动",
+      "ssv-狙击枪；六级头/六级甲/六级包；2级弹",
+      "2168.50",
+      "满足",
+      "51%",
+      10,
+      13,
+      10.2,
+      "0.65"
+    ],
+    [
+      "极北之地_绝密行动",
+      "ssv-狙击枪；六级头/六级甲/六级包；2级弹",
+      "2168.50",
+      "满足",
+      "51%",
+      12,
+      22,
+      18.6,
+      "1.10"
+    ]
+  ]
+}

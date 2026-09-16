@@ -291,6 +291,18 @@ export class ZRSJZ_Game extends Component {
     }
 
     protected async start(): Promise<void> {
+        if (!this.IsTutorial) {
+            const players = ZRSJZ_OnlineService.Battle ? [0] : ZRSJZ_GameData.Instance.CurModel === '2p' ? [0, 1] : [0];
+            const reason = ZRSJZ_InventoryService.GetBattleEntryError(ZRSJZ_GameData.Instance.CurMap, players);
+            if (reason) {
+                this.GamePaused = true;
+                this._isGameFinished = true;
+                if (ZRSJZ_OnlineService.Battle) ZRSJZ_OnlineService.Disconnect();
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, 'ZRSJZ_Start',
+                    () => ZRSJZ_UIManager.Instance.ShowTip(reason));
+                return;
+            }
+        }
         ZRSJZ_InventoryService.SetActivePlayerIndex(0);
         await ZRSJZ_UIManager.Instance.InitializeBattleInventories();
         this.LoadMap();

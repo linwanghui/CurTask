@@ -67,6 +67,20 @@ export class ZRSJZ_GameDataDefaults {
             flag = true;
         }
 
+        // 新增装备撤回定价：同时恢复此前已经按临时价格保存的实例。
+        const revertedEquipment = new Set([
+            '兔月盔', '竹月盔', '萌龙盔', '裂光盔', '弑神盔', '光明盔', '冥辉盔',
+            '兔萌甲', '玄竹甲', '绿龙甲', '星轨甲', '赤锋甲', '圣翎甲', '噬星甲',
+            '兔绒包', '云竹包', '恐仔囊', '天穹包', '赤辉囊', '烬菱包', '虚空匣',
+            '霜月狼', '裂海鲨', '焚天龙',
+        ]);
+        for (const prop of Object.values(data.PropData ?? {})) {
+            const config = ZRSJZ_PROP_CONFIG.get(prop.Name);
+            if (revertedEquipment.has(prop.Name) && config?.UnitPrice === 0 && prop.UnitPrice !== 0) {
+                prop.UnitPrice = 0;
+                flag = true;
+            }
+        }
         return flag;
     }
 
