@@ -107405,9 +107405,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 39,
-      "g": 51,
-      "b": 58,
+      "r": 44,
+      "g": 58,
+      "b": 39,
       "a": 255
     },
     "_string": "10万 / 1.2万",
@@ -107430,7 +107430,7 @@
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": false,
+    "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -107468,8 +107468,6 @@
       "__id__": 0
     },
     "fileId": "354b8ffc-7762-4514-8aed-a6bd93358ce9",
-    "instance": null,
-    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {

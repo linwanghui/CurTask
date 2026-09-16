@@ -30,8 +30,8 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     private signature = '';
     private materialAwards: ZRSJZ_TaskAward[] = [];
     private materialSetup: Promise<void> = null;
-    private static readonly ENOUGH = new Color(18, 185, 67);
-    private static readonly LACK = new Color(220, 55, 55);
+    private static readonly ENOUGH = new Color(0, 255, 0);
+    private static readonly LACK = new Color(255, 0, 0);
 
     private At(path: string): Node { return this.node.getChildByPath(`Panel/${path}`); }
     private Text(path: string, text: string): Label {

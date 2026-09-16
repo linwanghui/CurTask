@@ -1,4 +1,4 @@
-import { _decorator, EventTouch, find, Label, Node, Sprite, SpriteFrame } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, Sprite, SpriteFrame, UIOpacity, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_INVENTORY, ZRSJZ_MAP_CONFIG, ZRSJZ_MapConfig, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
@@ -35,7 +35,89 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
     private _selectedActionName: string = "机密行动";
     private _exclusiveDropRefreshVersion: number = 0;
 
+    private _mapEffectTime = 0;
+    private _mapEffects: {
+        node: Node; origin: Vec3; opacity: UIOpacity;
+        ripple: Node; rippleOpacity: UIOpacity; selected: boolean; burstTime: number;
+    }[] = [];
+
+    private InitMapEffects(): void {
+        for (const mapName of this._mapNames) {
+            const node = find(`Panel/${mapName}`, this.node);
+            const checked = node?.getChildByName("Checked");
+            const source = checked?.getComponent(Sprite);
+            if (!node || !checked || !source) continue;
+            // 只复制描边图片，不复制锁图标、按钮和点击事件。
+            const ripple = new Node("SelectionRipple");
+            ripple.layer = node.layer;
+            ripple.parent = node;
+            ripple.setSiblingIndex(checked.getSiblingIndex());
+            ripple.setPosition(checked.position);
+            const transform = ripple.addComponent(UITransform);
+            const sourceTransform = checked.getComponent(UITransform);
+            transform.setAnchorPoint(sourceTransform.anchorPoint);
+            const sprite = ripple.addComponent(Sprite);
+            sprite.spriteFrame = source.spriteFrame;
+            sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+            transform.setContentSize(sourceTransform.contentSize);
+            ripple.active = false;
+            this._mapEffects.push({
+                node, origin: node.position.clone(),
+                opacity: checked.getComponent(UIOpacity) ?? checked.addComponent(UIOpacity),
+                ripple, rippleOpacity: ripple.addComponent(UIOpacity), selected: false, burstTime: 1,
+            });
+        }
+    }
+
+    protected update(dt: number): void {
+        this._mapEffectTime += dt;
+        this._mapEffects.forEach((effect, index) => {
+            const phase = this._mapEffectTime * Math.PI * 2 / 3.2;
+            const offset = index * Math.PI * 2 / 3;
+            // 相对固定原点计算，反复开关面板也不会累积位置偏移。
+            const y = 9 * (Math.sin(phase + offset) - Math.sin(offset));
+            effect.node.setPosition(effect.origin.x, effect.origin.y + y, effect.origin.z);
+            effect.opacity.opacity = effect.selected
+                ? 205 + 50 * Math.sin(this._mapEffectTime * Math.PI * 2 / 1.6) : 255;
+            if (effect.ripple.active) {
+                effect.burstTime = Math.min(1, effect.burstTime + dt / 0.65);
+                const progress = effect.burstTime;
+                const scale = 1 + 0.18 * (1 - (1 - progress) ** 2);
+                effect.ripple.setScale(scale, scale, 1);
+                effect.rippleOpacity.opacity = 210 * (1 - progress);
+                if (progress >= 1) effect.ripple.active = false;
+            }
+        });
+    }
+
+    protected onDisable(): void {
+        this._mapEffectTime = 0;
+        for (const effect of this._mapEffects) {
+            effect.node.setPosition(effect.origin);
+            effect.opacity.opacity = 255;
+            effect.ripple.active = false;
+            effect.selected = false;
+        }
+    }
+
+    private RefreshMapEffects(): void {
+        for (const effect of this._mapEffects) {
+            const selected = effect.node.name === this._selectedMapName;
+            if (selected && !effect.selected) {
+                effect.burstTime = 0;
+                effect.ripple.setScale(1, 1, 1);
+                effect.rippleOpacity.opacity = 210;
+                effect.ripple.active = true;
+            } else if (!selected) {
+                effect.ripple.active = false;
+                effect.opacity.opacity = 255;
+            }
+            effect.selected = selected;
+        }
+    }
+
     protected onLoad(): void {
+        this.InitMapEffects();
         this.BindSelectEvents();
         this.RestoreSelection();
         this.RefreshSelection();
@@ -129,6 +211,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             }
         });
 
+        this.RefreshMapEffects();
         this._actionNames.forEach(actionName => {
             const actionNode = find(`Panel/${actionName}`, this.node);
             const selected = actionName === this._selectedActionName;
