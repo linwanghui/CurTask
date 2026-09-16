@@ -1,4 +1,5 @@
 import { ZRSJZ_MainReminderService } from './Service/ZRSJZ_MainReminderService';
+import { ZRSJZ_ActionSuppliesService } from './Service/ZRSJZ_ActionSuppliesService';
 import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
 import { _decorator, Button, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3, instantiate, Prefab, sp, isValid } from 'cc';
@@ -23,6 +24,8 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
 export class ZRSJZ_Start extends Component {
+    @property(Node)
+    SupplyButton: Node = null;
 
     @property(Node)
     SignBtn: Node = null;
@@ -101,10 +104,12 @@ export class ZRSJZ_Start extends Component {
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_CHANGE, this.RefreshMailTip, this);
         this.RefreshMailTip();
         this.schedule(this.RefreshMainReminders, 1);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SUPPLIES_CHANGE, this.RefreshMainReminders, this);
     }
 
     protected onDisable(): void {
         this.unschedule(this.RefreshMainReminders);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SUPPLIES_CHANGE, this.RefreshMainReminders, this);
         for (const tip of this._mainReminderNodes.values()) {
             if (isValid(tip, true)) {
                 Tween.stopAllByTarget(tip);
@@ -126,6 +131,11 @@ export class ZRSJZ_Start extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "补给":
+                if (ZRSJZ_ActionSuppliesService.Refresh(ZRSJZ_UIManager.ZRSJZ_DLC)) {
+                    ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.行动补给弹窗);
+                }
+                break;
             case "联机游戏":
                 if (!ZRSJZ_UIManager.ZRSJZ_DLC) {
                     ZRSJZ_UIManager.Instance.ShowTip("联机资源正在加载，请稍后再试");
@@ -290,6 +300,9 @@ export class ZRSJZ_Start extends Component {
     private _mainReminderNodes = new Map<string, Node>();
 
     private RefreshMainReminders(): void {
+        if (isValid(this.SupplyButton)) {
+            this.SupplyButton.active = ZRSJZ_ActionSuppliesService.Refresh(ZRSJZ_UIManager.ZRSJZ_DLC);
+        }
         if (!ZRSJZ_UIManager.ZRSJZ_UI || !isValid(this.UIPanel, true)) return;
         if (this._mainReminderNodes.size === 0) {
             const names = new Set(['宠物']);
@@ -397,4 +410,3 @@ export class ZRSJZ_Start extends Component {
     }
 
 }
-

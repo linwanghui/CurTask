@@ -15,7 +15,7 @@ import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 10;//当前版本
+    public static readonly Versions = 11;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -79,6 +79,10 @@ export class ZRSJZ_GameData {
     public IsTutorial: boolean = false;
 
     public Gold: number = 0;
+    public SupplyLastClaimTime: number = 0;
+    /** -1 没有待领取补给，0/1 为固定的奖励方案。 */
+    public SupplyOffer: number = -1;
+    public SupplyFailurePending: boolean = false;
     public FiringRangeLevel: number = 0;
     public EnhancementLevel: number = 0;
     public EnhancementSpecials: string[] = [];

@@ -43,7 +43,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 300,
+      "y": 9.644,
       "z": 0
     },
     "_lrot": {
@@ -96,7 +96,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": 1.7060000000000173,
       "z": 0
     },
     "_lrot": {
@@ -136,8 +136,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1180,
-      "height": 100
+      "width": 104,
+      "height": 67
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -175,12 +175,12 @@
     "_string": "提示",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 71,
-    "_fontSize": 70,
+    "_actualFontSize": 50,
+    "_fontSize": 50,
     "_fontFamily": "Arial",
-    "_lineHeight": 70,
-    "_overflow": 2,
-    "_enableWrapText": true,
+    "_lineHeight": 50,
+    "_overflow": 0,
+    "_enableWrapText": false,
     "_font": {
       "__uuid__": "7dab8514-b7c5-474c-a721-598a51503397",
       "__expectedType__": "cc.TTFFont"
@@ -192,12 +192,12 @@
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": false,
+    "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
-      "r": 0,
-      "g": 0,
-      "b": 0,
+      "r": 31,
+      "g": 31,
+      "b": 31,
       "a": 255
     },
     "_outlineWidth": 2,
@@ -233,14 +233,14 @@
     "__prefab": {
       "__id__": 8
     },
-    "_alignFlags": 42,
+    "_alignFlags": 18,
     "_target": null,
     "_left": 10,
     "_right": 10,
     "_top": 0,
     "_bottom": 0,
     "_horizontalCenter": 0,
-    "_verticalCenter": 0,
+    "_verticalCenter": 1.7060000000000173,
     "_isAbsLeft": true,
     "_isAbsRight": true,
     "_isAbsTop": true,
@@ -266,8 +266,6 @@
       "__id__": 0
     },
     "fileId": "e3H35GbCZA1qA+1kKLhVHf",
-    "instance": null,
-    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -284,8 +282,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 1200,
-      "height": 140
+      "width": 494,
+      "height": 88.712
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -321,7 +319,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "9a85d639-b4af-4b45-9387-268364e80553@f9941",
+      "__uuid__": "a317c26c-5cf0-4bb7-acb8-bba4d131eb42@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 2,

@@ -54,6 +54,7 @@ export enum ZRSJZ_PANEL {
     宠物碎片弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物碎片弹窗",
     宠物皮肤弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物皮肤弹窗",
     宠物基因弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物基因弹窗",
+    行动补给弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/行动补给弹窗",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
 }
 
