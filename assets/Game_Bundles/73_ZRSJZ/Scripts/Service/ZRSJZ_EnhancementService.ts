@@ -7,6 +7,8 @@ import { ZRSJZ_TaskService } from './ZRSJZ_TaskService';
 /** 新强化唯一入口；旧设施字段只用于一次性迁移，不参与属性计算。 */
 export class ZRSJZ_EnhancementService {
     private static busy = false;
+    /** 仅当前运行会话有效，不写入 GameData；重启游戏自动恢复收费。 */
+    public static FreeUpgradeEnabled = false;
     public static get Level(): number {
         const value = ZRSJZ_GameData.Instance.EnhancementLevel;
         return Number.isFinite(value) ? Math.max(0, Math.min(ZRSJZ_ENHANCEMENT_MAX_LEVEL, Math.floor(value))) : 0;
@@ -30,6 +32,7 @@ export class ZRSJZ_EnhancementService {
     public static GetBlockReason(node: EnhancementNode): string {
         if (this.IsOwned(node)) return '已强化';
         if (!this.IsAvailable(node)) return node.Special ? `强化达到 Lv.${node.Level} 后解锁` : `请先完成 Lv.${node.Level - 1}`;
+        if (this.FreeUpgradeEnabled) return '';
         if (ZRSJZ_GameData.Instance.Gold < node.Gold) return '金币不足';
         const lack = node.Materials.find(m => ZRSJZ_InventoryService.GetPropCountByName(m.PropName) < m.Count);
         return lack ? `${lack.PropName}不足` : '';
@@ -43,13 +46,13 @@ export class ZRSJZ_EnhancementService {
         if (reason) return reason;
         this.busy = true;
         try {
-            for (const material of node.Materials) {
+            for (const material of this.FreeUpgradeEnabled ? [] : node.Materials) {
                 if (!ZRSJZ_InventoryService.ConsumeProp(material.PropName, material.Count)) return '材料发生变化，请重试';
             }
             const data = ZRSJZ_GameData.Instance;
             if (node.Special) (data.EnhancementSpecials ??= []).push(node.ID);
             else data.EnhancementLevel = node.Level;
-            ZRSJZ_AccountService.ChangeGold(-node.Gold);
+            if (!this.FreeUpgradeEnabled) ZRSJZ_AccountService.ChangeGold(-node.Gold);
             ZRSJZ_GameData.SaveData();
             ZRSJZ_TaskService.CompleteTask('强化1次', 1);
             return '';

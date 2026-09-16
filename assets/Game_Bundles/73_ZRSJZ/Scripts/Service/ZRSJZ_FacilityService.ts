@@ -47,7 +47,7 @@ export class ZRSJZ_FacilityService {
     }
 
     public static GetFiringRangeAttackBonusRate(): number {
-        return 0; // 新版攻击为固定数值，在玩家伤害入口单独叠加。
+        return 0; // 新版攻击百分比在玩家伤害入口单独叠加。
     }
 
     public static GetResearchMaxHPBonus(): number {
