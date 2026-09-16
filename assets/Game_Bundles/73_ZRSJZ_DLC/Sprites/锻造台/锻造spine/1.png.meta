@@ -2,11 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
-  "uuid": "fdd41b50-8b71-40cf-a5fe-ed48d2090a04",
-========
-  "uuid": "d71b214a-9af9-41d9-b1f1-514298f75fc8",
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
+  "uuid": "16b473b1-e4c8-40b0-a46d-5396ae51d992",
   "files": [
     ".json",
     ".png"
@@ -14,23 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
-      "uuid": "fdd41b50-8b71-40cf-a5fe-ed48d2090a04@6c48a",
+      "uuid": "16b473b1-e4c8-40b0-a46d-5396ae51d992@6c48a",
       "displayName": "1",
-========
-      "uuid": "d71b214a-9af9-41d9-b1f1-514298f75fc8@6c48a",
-      "displayName": "焚天龙",
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
-        "imageUuidOrDatabaseUri": "fdd41b50-8b71-40cf-a5fe-ed48d2090a04",
-========
-        "imageUuidOrDatabaseUri": "d71b214a-9af9-41d9-b1f1-514298f75fc8",
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
+        "imageUuidOrDatabaseUri": "16b473b1-e4c8-40b0-a46d-5396ae51d992",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -47,13 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
-      "uuid": "fdd41b50-8b71-40cf-a5fe-ed48d2090a04@f9941",
+      "uuid": "16b473b1-e4c8-40b0-a46d-5396ae51d992@f9941",
       "displayName": "1",
-========
-      "uuid": "d71b214a-9af9-41d9-b1f1-514298f75fc8@f9941",
-      "displayName": "焚天龙",
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -61,21 +43,12 @@
         "rotated": false,
         "offsetX": 0,
         "offsetY": 0,
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
         "trimX": 2,
         "trimY": 2,
         "width": 694,
         "height": 475,
         "rawWidth": 698,
         "rawHeight": 479,
-========
-        "trimX": 0,
-        "trimY": 0,
-        "width": 899,
-        "height": 520,
-        "rawWidth": 899,
-        "rawHeight": 520,
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -87,7 +60,6 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
             -347,
             -237.5,
             0,
@@ -99,19 +71,6 @@
             0,
             347,
             237.5,
-========
-            -449.5,
-            -260,
-            0,
-            449.5,
-            -260,
-            0,
-            -449.5,
-            260,
-            0,
-            449.5,
-            260,
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
             0
           ],
           "indexes": [
@@ -123,7 +82,6 @@
             3
           ],
           "uv": [
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
             2,
             477,
             696,
@@ -132,16 +90,6 @@
             2,
             696,
             2
-========
-            0,
-            520,
-            899,
-            520,
-            0,
-            0,
-            899,
-            0
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
           ],
           "nuv": [
             0.0028653295128939827,
@@ -154,7 +102,6 @@
             0.9958246346555324
           ],
           "minPos": [
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
             -347,
             -237.5,
             0
@@ -162,26 +109,13 @@
           "maxPos": [
             347,
             237.5,
-========
-            -449.5,
-            -260,
-            0
-          ],
-          "maxPos": [
-            449.5,
-            260,
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
             0
           ]
         },
         "isUuid": true,
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
-        "imageUuidOrDatabaseUri": "fdd41b50-8b71-40cf-a5fe-ed48d2090a04@6c48a",
-========
-        "imageUuidOrDatabaseUri": "d71b214a-9af9-41d9-b1f1-514298f75fc8@6c48a",
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
+        "imageUuidOrDatabaseUri": "16b473b1-e4c8-40b0-a46d-5396ae51d992@6c48a",
         "atlasUuid": "",
-        "trimType": "none"
+        "trimType": "auto"
       },
       "ver": "1.0.12",
       "imported": true,
@@ -195,10 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-<<<<<<<< HEAD:assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/锻造台/锻造spine/1.png.meta
-    "redirect": "fdd41b50-8b71-40cf-a5fe-ed48d2090a04@6c48a"
-========
-    "redirect": "d71b214a-9af9-41d9-b1f1-514298f75fc8@6c48a"
->>>>>>>> 4d8657fc983cef9a45fe825f32f9ab1178729fb4:assets/Game_Bundles/73_ZRSJZ/Sprites/Weaponry/冲锋枪/焚天龙.png.meta
+    "redirect": "16b473b1-e4c8-40b0-a46d-5396ae51d992@6c48a"
   }
 }
