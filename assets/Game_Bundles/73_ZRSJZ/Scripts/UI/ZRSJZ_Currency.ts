@@ -14,6 +14,18 @@ export class ZRSJZ_Currency extends Component {
     private _curTween: Tween = null;
     private _curCurrency: number = 0;
 
+    /** 仅格式化余额显示，不修改实际金币；亿级余额舍去万以下的尾数。 */
+    public static FormatAmount(value: number): string {
+        const amount = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
+        if (amount < 10000) return amount.toString();
+        if (amount < 100000000) {
+            const remainder = amount % 10000;
+            return `${Math.floor(amount / 10000)}万${remainder === 0 ? '' : remainder}`;
+        }
+        const wan = Math.floor((amount % 100000000) / 10000);
+        return `${Math.floor(amount / 100000000)}亿${wan === 0 ? '' : wan + '万'}`;
+    }
+
     protected onLoad(): void {
         this.Currency = this.node.getChildByName("Count").getComponent(Label);
     }
@@ -42,12 +54,12 @@ export class ZRSJZ_Currency extends Component {
             .to(0.5, { value: ZRSJZ_GameData.Instance.Gold }, {
                 onUpdate: () => {
                     this._curCurrency = object.value;
-                    if (this.Currency) this.Currency.string = object.value.toFixed(0);
+                    if (this.Currency) this.Currency.string = ZRSJZ_Currency.FormatAmount(object.value);
                 }
             })
             .call(() => {
                 this._curCurrency = Math.floor(ZRSJZ_GameData.Instance.Gold);
-                if (this.Currency) this.Currency.string = this._curCurrency.toString();
+                if (this.Currency) this.Currency.string = ZRSJZ_Currency.FormatAmount(this._curCurrency);
             })
             .start();
     }
@@ -57,5 +69,4 @@ export class ZRSJZ_Currency extends Component {
         ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.获取金币弹窗);
     }
 }
-
 

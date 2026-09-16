@@ -1,0 +1,27 @@
+const fs = require('fs');
+const vm = require('vm');
+const assert = require('assert');
+const ts = require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const source = fs.readFileSync('Scripts/UI/ZRSJZ_Currency.ts', 'utf8');
+const compiled = ts.transpileModule(source, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2019, experimentalDecorators: true },
+    reportDiagnostics: true,
+});
+assert.equal(compiled.diagnostics.length, 0);
+const output = {};
+vm.runInNewContext(compiled.outputText, {
+    exports: output,
+    require: name => name === 'cc'
+        ? { _decorator: { ccclass: () => type => type }, Component: class {} }
+        : {},
+});
+const cases = [
+    [0, '0'], [3500, '3500'], [9999, '9999'], [10000, '1万'],
+    [23500, '2万3500'], [20001, '2万1'], [99999999, '9999万9999'],
+    [100000000, '1亿'], [100009999, '1亿'], [100010000, '1亿1万'],
+    [235006789, '2亿3500万'], [1234567890, '12亿3456万'],
+];
+for (const [amount, expected] of cases) assert.equal(output.ZRSJZ_Currency.FormatAmount(amount), expected);
+assert(source.includes('this.Currency.string = ZRSJZ_Currency.FormatAmount(object.value)'));
+assert(source.includes('this.Currency.string = ZRSJZ_Currency.FormatAmount(this._curCurrency)'));
+console.log('PASS: 12 currency-format cases; both animated and final balances use the formatter.');
