@@ -1,0 +1,21 @@
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const root=path.resolve(__dirname,'..'),s=JSON.parse(fs.readFileSync(path.resolve(root,'../73_ZRSJZ_DLC/Prefabs/Panel/锻造界面.prefab')));
+const row=s.find(n=>n.__type__==='cc.Node'&&n._name==='装备条目模板');
+const content=s[row._parent.__id__],viewport=s[content._parent.__id__];
+const comp=(n,type)=>n._components.map(r=>s[r.__id__]).find(c=>c.__type__===type);
+assert.equal(comp(content,'cc.Widget')._alignFlags&4,0,'Content must not stretch vertically');
+assert(comp(content,'cc.Widget')._alignFlags&1,'Keep top alignment');
+assert.equal(comp(content,'cc.Layout')._enabled,false,'Manual layout has sole ownership');
+assert(comp(viewport,'cc.ScrollView').vertical);
+const count=11,height=Math.max(comp(viewport,'cc.UITransform')._contentSize.height,count*(comp(row,'cc.UITransform')._contentSize.height+20)+20);
+assert(height>comp(viewport,'cc.UITransform')._contentSize.height);
+class Widget{} class Layout{}
+const sandbox={exports:{},require:n=>n==='cc'?{Widget,Layout,SpriteFrame:class{},_decorator:{ccclass:()=>c=>c,property:()=>()=>{}}}:n==='./ZRSJZ_Panel'?{ZRSJZ_Panel:class{}}:{}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root,'Scripts/Panel/ZRSJZ_ForgePanel.ts'),'utf8'),{compilerOptions:{module:1,target:7,experimentalDecorators:true}}).outputText,sandbox);
+const panel=new sandbox.exports.ZRSJZ_ForgePanel();let h=height;
+const widget={isAlignBottom:true,updateAlignment(){if(this.isAlignBottom)h=866;}},layout={enabled:true};
+panel._listContent={getComponent:t=>t===Widget?widget:layout};panel.ConfigureListSizing();
+widget.updateAlignment();assert.equal(h,height,'First widget pass must not overwrite content height');
+assert.equal(layout.enabled,false);panel.ConfigureListSizing();assert.equal(h,height);
+console.log('PASS: first-open content retains scrollable height, stretch disabled, layout conflict removed, idempotent setup.');

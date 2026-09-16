@@ -69,6 +69,22 @@ const MATERIAL_POOLS: Readonly<Record<ZRSJZ_ForgeCategory, readonly string[]>> =
         '反应炉', '半身像', '黄金鳄鱼头', '勇士半身像', '火箭燃料', '碳纤维'],
 };
 
+// Endgame rifles use distinct, hand-tuned material sets; blueprint is added below.
+const SPECIAL_WEAPON_MATERIALS: Readonly<Record<string, readonly ZRSJZ_ForgeMaterial[]>> = {
+    '霜月狼': [
+        { name: '军用雷达', count: 1 }, { name: '高速阵列', count: 3 },
+        { name: '供能单元', count: 2 }, { name: '脑机数据', count: 4 },
+    ],
+    '裂海鲨': [
+        { name: '无人机', count: 3 }, { name: '刀片服务器', count: 3 },
+        { name: '动力电池组', count: 2 }, { name: '实验数据', count: 2 },
+    ],
+    '焚天龙': [
+        { name: '火箭燃料', count: 1 }, { name: '反应炉', count: 3 },
+        { name: '155炮弹', count: 3 }, { name: '装甲车电池', count: 2 },
+    ],
+};
+
 function GetDurationHours(value: number): number {
     if (value < 250000) return 1;
     if (value < 500000) return 2;
@@ -150,7 +166,8 @@ function BuildRecipes(): ZRSJZ_ForgeRecipe[] {
         const value = config.UnitPrice;
         if (!category || value <= 100000) return;
 
-        const ordinaryMaterials = BuildOrdinaryMaterials(category, value, config.Name);
+        const ordinaryMaterials = SPECIAL_WEAPON_MATERIALS[config.Name]?.map(material => ({ ...material }))
+            ?? BuildOrdinaryMaterials(category, value, config.Name);
         const ordinaryMaterialValue = ordinaryMaterials.reduce(
             (sum, material) => sum
                 + (ZRSJZ_PROP_CONFIG.get(material.name)?.UnitPrice ?? 0) * material.count,
