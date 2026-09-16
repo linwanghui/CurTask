@@ -80,7 +80,8 @@ export class ZRSJZ_PetService {
             if (skill?.Kind !== "被动" || !this.IsSkillUnlocked(petName, index) || !skill.PlayerBonus) continue;
             bonus.Attack += skill.PlayerBonus.Attack;
             bonus.MaxHP += skill.PlayerBonus.MaxHP;
-            bonus.DamageReduction += skill.PlayerBonus.DamageReduction;
+            bonus.DamageReduction = 1 - (1 - bonus.DamageReduction)
+                * Math.max(0, 1 - Math.max(0, skill.PlayerBonus.DamageReduction));
         }
         return bonus;
     }
@@ -144,7 +145,7 @@ export class ZRSJZ_PetService {
         result.HP += skinBonus.HP;
         result.Defense += skinBonus.Defense;
         result.Backpack += skinBonus.Backpack;
-        result.AttackSpeedMultiplier += skinBonus.AttackSpeedMultiplier;
+        result.AttackSpeedMultiplier *= 1 + skinBonus.AttackSpeedMultiplier;
         result.Skills = config?.PetSkills.filter((_, index) => this.IsSkillUnlocked(petName, index)) ?? [];
         return result;
     }

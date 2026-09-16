@@ -58,7 +58,8 @@ export class ZRSJZ_BoosterShotService {
     public static GetBoostedRedProbability(baseProbability: number): number {
         const probability = Math.max(0, Math.min(1, Number(baseProbability) || 0));
         const cheatMultiplier = this.SuperHighDropEnabled ? 50 : 1;
-        return Math.min(1, probability * (1 + this.GetBooster("爆率针") + ZRSJZ_EnhancementService.GetBonus('大红掉落概率') / 100) * cheatMultiplier);
+        return Math.min(1, probability * (1 + this.GetBooster("爆率针"))
+            * (1 + ZRSJZ_EnhancementService.GetBonus('大红掉落概率') / 100) * cheatMultiplier);
     }
 
     /**
