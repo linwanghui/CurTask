@@ -146,6 +146,11 @@ export class ZRSJZ_GameDataDefaults {
 
     //需要更新的数据 
     private static readonly DataDefaults: Map<number, { Key: string, DefaultVaule: any }[]> = new Map([
+        [10, [
+            { Key: "SupplyLastClaimTime", DefaultVaule: 0 },
+            { Key: "SupplyOffer", DefaultVaule: -1 },
+            { Key: "SupplyFailurePending", DefaultVaule: false },
+        ]],
         [1, [
             { Key: "InventoryRow", DefaultVaule: {} }
         ]],

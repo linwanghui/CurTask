@@ -2,6 +2,7 @@ import { director } from "cc";
 import { ZRSJZ_UIManager } from "./ZRSJZ_UIManager";
 
 export class ZRSJZ_MyEvent {
+    public static ZRSJZ_SUPPLIES_CHANGE: string = 'ZRSJZ_SUPPLIES_CHANGE';
     public static ZRSJZ_LOADED_DLC: string = 'ZRSJZ_LOADED_DLC';//DLC加载完毕
     public static ZRSJZ_LOADED_UI: string = 'ZRSJZ_LOADED_UI';//UI加载完毕
 
@@ -87,5 +88,4 @@ export class ZRSJZ_EventManager {
     }
 
 }
-
 

@@ -1,0 +1,21 @@
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+class UITransform{} class Widget{} class Label{} Label.Overflow={NONE:0,RESIZE_HEIGHT:3};
+const cc={Component:class{},UITransform,Widget,Label,_decorator:{ccclass:()=>c=>c}};
+const sandbox={exports:{},require:n=>n==='cc'?cc:{}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.resolve(__dirname,'../Scripts/UI/ZRSJZ_Tip.ts'),'utf8'),{compilerOptions:{module:1,target:7,experimentalDecorators:true}}).outputText,sandbox);
+const c=new sandbox.exports.ZRSJZ_Tip();
+const size=()=>({width:220,height:140,setContentSize(w,h){this.width=w;this.height=h;}});
+const bg=size(),text=size(),widget={updateAlignment(){}};
+c.getComponent=()=>bg;
+c.Text={string:'',getComponent:t=>t===Widget?widget:text,updateRenderData(){
+ const lines=this.string.split('\n'),width=Math.max(...lines.map(l=>[...l].reduce((v,ch)=>v+(ch.charCodeAt(0)>127?70:35),0)));
+ if(this.overflow===0){text.width=width;text.height=lines.length*70;}
+ else text.height=lines.reduce((v,l)=>v+Math.max(1,Math.ceil([...l].reduce((s,ch)=>s+(ch.charCodeAt(0)>127?70:35),0)/text.width)),0)*70;
+}};
+c.Text.string='提示';c.ResizeToText();assert.equal(bg.width,220);assert.equal(bg.height,140);
+c.Text.string='装备不足'.repeat(20);c.ResizeToText();assert.equal(bg.width,1200);assert(bg.height>140);
+c.Text.string='好';c.ResizeToText();assert.equal(bg.width,150);assert.equal(bg.height,140);
+c.Text.string='';c.ResizeToText();assert.equal(bg.width,100);
+c.Text.string='第一行\n第二行';c.ResizeToText();assert.equal(bg.width,290);assert.equal(bg.height,180);
+console.log('PASS: measured width + padding, 1200 cap, multiline height, pooled long-to-short reset, empty text.');

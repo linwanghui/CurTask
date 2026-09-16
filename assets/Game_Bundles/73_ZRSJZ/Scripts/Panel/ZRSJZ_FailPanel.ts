@@ -1,6 +1,7 @@
 import { _decorator, EventTouch, find, Label, Node, sp, tween, Tween, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_ActionSuppliesService } from '../Service/ZRSJZ_ActionSuppliesService';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ProjectEvent, ProjectEventManager } from 'db://assets/Scripts/Framework/Managers/ProjectEventManager';
@@ -57,6 +58,7 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
                 if (this._isReturning) return;
                 this._isReturning = true;
                 await ZRSJZ_UIManager.Instance.FinishGameInventory(false);
+                ZRSJZ_ActionSuppliesService.MarkFailureReturn();
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Start");
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.失败弹窗);
                 break;
@@ -64,5 +66,4 @@ export class ZRSJZ_FailPanel extends ZRSJZ_Panel {
     }
 
 }
-
 
