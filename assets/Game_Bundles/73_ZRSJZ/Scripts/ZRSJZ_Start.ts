@@ -1,5 +1,6 @@
 import { ZRSJZ_MainReminderService } from './Service/ZRSJZ_MainReminderService';
 import { ZRSJZ_ActionSuppliesService } from './Service/ZRSJZ_ActionSuppliesService';
+import { ZRSJZ_MerchantService } from './Service/ZRSJZ_MerchantService';
 import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
 import { _decorator, Button, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3, instantiate, Prefab, sp, isValid } from 'cc';
@@ -26,6 +27,8 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_Start extends Component {
     @property(Node)
     SupplyButton: Node = null;
+    @property(Node)
+    MerchantButton: Node = null;
 
     @property(Node)
     SignBtn: Node = null;
@@ -52,6 +55,7 @@ export class ZRSJZ_Start extends Component {
     UIPanel: Node = null;
 
     protected start(): void {
+        ZRSJZ_MerchantService.EnterHome();
 
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
         const cb: Function = () => {
@@ -131,6 +135,11 @@ export class ZRSJZ_Start extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "神秘商人":
+                if (ZRSJZ_MerchantService.Refresh(ZRSJZ_UIManager.ZRSJZ_DLC)) {
+                    ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.神秘商人弹窗);
+                }
+                break;
             case "补给":
                 if (ZRSJZ_ActionSuppliesService.Refresh(ZRSJZ_UIManager.ZRSJZ_DLC)) {
                     ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.行动补给弹窗);
@@ -300,6 +309,9 @@ export class ZRSJZ_Start extends Component {
     private _mainReminderNodes = new Map<string, Node>();
 
     private RefreshMainReminders(): void {
+        if (isValid(this.MerchantButton)) {
+            this.MerchantButton.active = ZRSJZ_MerchantService.Refresh(ZRSJZ_UIManager.ZRSJZ_DLC);
+        }
         if (isValid(this.SupplyButton)) {
             this.SupplyButton.active = ZRSJZ_ActionSuppliesService.Refresh(ZRSJZ_UIManager.ZRSJZ_DLC);
         }
