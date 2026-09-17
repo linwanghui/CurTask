@@ -1124,6 +1124,8 @@ export interface ZRSJZ_BossSkillConfig {
     Animation: string;
     /** Spine 动画中用于真正结算攻击效果的事件名称。 */
     TriggerEvent: string;
+    /** 每次动作最多结算的伤害事件数，默认1；多段技能按动画逐段触发。 */
+    HitCount?: number;
     /** 释放技能期间是否可以继续向目标移动。 */
     CanMoveWhileCasting: boolean;
 }
@@ -1164,7 +1166,7 @@ export interface ZRSJZ_BossConfig {
 }
 
 /** 固定追击速度：玩家最高 1500×1.1×1.2+1500=3480，再提高10%。后续直接调整此值。 */
-export const ZRSJZ_BOSS_CHASE_SPEED = 1500;
+export const ZRSJZ_BOSS_CHASE_SPEED = 1000;
 
 /** Boss配置统一入口，Boss基类按节点名或 EnemyName 读取。 */
 export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> = new Map([
@@ -1185,8 +1187,8 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         OutOfCombatRegenPercentPerSecond: 0.02,
         NormalAttack: {
             Name: "普通攻击",
-            Range: 400,
-            DamageRange: 300,
+            Range: 300,
+            DamageRange: 500,
             Damage: 12,
             Cooldown: 2.6,
             Animation: "pg",
@@ -1195,12 +1197,13 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         },
         Skills: [{
             Name: "超级陀螺",
-            Range: 400,
-            DamageRange: 500,
+            Range: 300,
+            DamageRange: 700,
             Damage: 28,
             Cooldown: 7.5,
             Animation: "1",
             TriggerEvent: "dz",
+            HitCount: 4,
             CanMoveWhileCasting: false,
         }],
     }],
@@ -1221,8 +1224,8 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         OutOfCombatRegenPercentPerSecond: 0.02,
         NormalAttack: {
             Name: "普通攻击",
-            Range: 400,
-            DamageRange: 300,
+            Range: 300,
+            DamageRange: 500,
             Damage: 9,
             Cooldown: 2.2,
             Animation: "atk1",
@@ -1232,11 +1235,12 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         Skills: [{
             Name: "死亡剪刀",
             Range: 400,
-            DamageRange: 500,
+            DamageRange: 700,
             Damage: 36,
             Cooldown: 9,
             Animation: "atk2",
-            TriggerEvent: "gj",
+            TriggerEvent: "dz",
+            HitCount: 4,
             CanMoveWhileCasting: false,
         }],
     }],
@@ -1257,8 +1261,8 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         OutOfCombatRegenPercentPerSecond: 0.02,
         NormalAttack: {
             Name: "普通攻击",
-            Range: 400,
-            DamageRange: 300,
+            Range: 300,
+            DamageRange: 500,
             Damage: 14,
             Cooldown: 3,
             Animation: "atk1",
@@ -1268,11 +1272,12 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         Skills: [{
             Name: "超级炸弹",
             Range: 400,
-            DamageRange: 500,
+            DamageRange: 700,
             Damage: 45,
             Cooldown: 10,
             Animation: "atk2",
-            TriggerEvent: "gj",
+            TriggerEvent: "dz",
+            HitCount: 4,
             CanMoveWhileCasting: false,
         }],
     }],

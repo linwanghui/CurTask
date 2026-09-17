@@ -1,3 +1,4 @@
+import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
 import { _decorator, director, Node, Vec3 } from 'cc';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
@@ -91,6 +92,7 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
 
     Knife(range: number) {
         if (this.IsDead) return;
+        ZRSJZ_DestructibleService.HitArea(this.node.worldPosition, range, this.AttackDamage);
         Coop.SendArea(this.node.worldPosition, range, this.AttackDamage);
         ZRSJZ_FriendlyDamageService.DamagePetsInRange(this.node.worldPosition, range, this.AttackDamage);
         if (!this.Target) return;

@@ -1,3 +1,4 @@
+import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
 import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, v2, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -99,6 +100,11 @@ export class ZRSJZ_Bullet extends Component {
         if (contract) contract.disabled = true;
         if (this._isRemove) return;
 
+        if (ZRSJZ_DestructibleService.HitNode(otherCollider.node, this._harm)) {
+            this._isRemove = true;
+            this.scheduleOnce(() => this.Recycle());
+            return;
+        }
         // console.error(otherCollider.node.name);
         if (otherCollider.group === ZRSJZ_TIER.地形) {
             this._isRemove = true;

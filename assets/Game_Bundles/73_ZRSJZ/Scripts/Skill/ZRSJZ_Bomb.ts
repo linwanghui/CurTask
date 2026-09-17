@@ -1,3 +1,4 @@
+import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { _decorator, Component, director, Node, sp, Vec3 } from 'cc';
 import { ZRSJZ_Skill } from './ZRSJZ_Skill';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -73,6 +74,7 @@ export class ZRSJZ_Bomb extends ZRSJZ_Skill {
     }
 
     Attack() {
+        ZRSJZ_DestructibleService.HitArea(this.node.worldPosition, this.SkillRange, this.Harm);
         let enemys = director.getScene()?.getComponentsInChildren(ZRSJZ_EnemyBase) ?? [];
         const currentPosition = this.node.worldPosition;
         enemys = enemys.filter(enemy => !enemy.IsDead);

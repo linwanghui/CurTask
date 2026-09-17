@@ -131,6 +131,24 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     ClearAttackAnimation(): void {
         this._trackCompleteCallbacks.delete(1);
         this.Skeleton?.clearTrack(1);
+        // clearTrack 不会复位附件；中途死亡会跳过刀光动画末尾的隐藏帧。
+        // 只清理攻击特效槽，保留实际武器 dao、服装和角色皮肤。
+        for (const slotName of [
+            "images/skill/slj/tc_add/tc_0001",
+            "images/skill/tybg_add/tybg_01",
+            "images/skill/zuihouyiji/dtcg_add/dtcg_0001",
+            "images/skill/zuihouyiji/twtd/twtd_0001",
+            "images/skill/zuihouyiji/twtd/twtd_1",
+            "images/skill/zuihouyiji/twtd/twtd_2",
+            "images/skill/tybg_add/tybg_1",
+            "images/skill/baodian_add/js_5_normal/js_5_0001",
+            "images/skill/baodian_add/js_5_normal/js_5_1",
+            "images/effect/xuanfeng/xuanfeng_00045",
+            "images/effect/xuanfeng/xuanfeng_45",
+            "dao1",
+        ]) {
+            this.Skeleton?.findSlot(slotName)?.setAttachment(null);
+        }
     }
 
     ResetAttackAnimationSpeed(): void {
