@@ -16,6 +16,15 @@ export class ZRSJZ_MysteriousMerchantPanel extends ZRSJZ_Panel {
     private slots: Node[] = [];
     private renderVersion = 0;
     private buying = false;
+    private displayedRemaining = -1;
+    private dateCheckElapsed = 0;
+
+    protected update(dt: number): void {
+        this.dateCheckElapsed += dt;
+        if (this.dateCheckElapsed < 1) return;
+        this.dateCheckElapsed = 0;
+        if (this.Panel && Merchant.Remaining() !== this.displayedRemaining) this.Render();
+    }
 
     Show(): void {
         this.PlayerIndex = -1;
@@ -48,6 +57,10 @@ export class ZRSJZ_MysteriousMerchantPanel extends ZRSJZ_Panel {
     }
 
     private Render(): void {
+        const remaining = Merchant.Remaining();
+        this.displayedRemaining = remaining;
+        const limitLabel = this.Panel.getChildByName('限购次数')?.getComponent(Label);
+        if (limitLabel) limitLabel.string = `今日剩余购买次数：${remaining}/${Merchant.DailyLimit}`;
         const version = ++this.renderVersion;
         this.slots.forEach((slot, index) => {
             const goods = Merchant.Goods[index];
@@ -76,11 +89,18 @@ export class ZRSJZ_MysteriousMerchantPanel extends ZRSJZ_Panel {
     private async Buy(index: number): Promise<void> {
         const goods = Merchant.Goods[index];
         if (!ZRSJZ_UIManager.ZRSJZ_DLC || !Merchant.Visible || !goods || goods.Sold || goods.Buying || this.buying) return;
+        if (Merchant.Remaining() <= 0) {
+            ZRSJZ_UIManager.Instance.ShowTip('已达今日购买上限！');
+            this.Render();
+            return;
+        }
         if (ZRSJZ_GameData.Instance.Gold < goods.Price) {
             ZRSJZ_UIManager.Instance.ShowTip('金币不足');
             return;
         }
         ZRSJZ_AudioManager.Instance.PlaySound('点击');
+        const purchaseDate = Merchant.ReservePurchase();
+        if (!purchaseDate) return;
         this.buying = goods.Buying = true;
         this.Render();
         ZRSJZ_AccountService.ChangeGold(-goods.Price);
@@ -90,6 +110,7 @@ export class ZRSJZ_MysteriousMerchantPanel extends ZRSJZ_Panel {
             goods.Sold = true;
             ZRSJZ_UIManager.Instance.ShowTip(result.MailID ? '购买成功，仓库已满，商品已发送邮件' : '购买成功');
         } catch (error) {
+            Merchant.CancelPurchase(purchaseDate);
             ZRSJZ_AccountService.ChangeGold(goods.Price);
             console.error('[神秘商人] 购买失败', error);
             ZRSJZ_UIManager.Instance.ShowTip('购买失败，金币已退回');

@@ -1,4 +1,5 @@
 import { ZRSJZ_PROP_CONFIG, ZRSJZ_PROP_QUALITY } from '../ZRSJZ_Constant';
+import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 
 export interface ZRSJZ_MerchantGoods {
     Name: string;
@@ -10,6 +11,37 @@ export interface ZRSJZ_MerchantGoods {
 
 /** 每次主页场景的一次性商人会话；打开/关闭弹窗不会生成新商品。 */
 export class ZRSJZ_MerchantService {
+    public static readonly DailyLimit = 5;
+
+    /** 按设备本地自然日重置，不是从购买时间起算 24 小时。 */
+    public static Remaining(now = new Date()): number {
+        const date = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        const data = ZRSJZ_GameData.Instance;
+        if (data.MerchantPurchaseDate !== date) {
+            data.MerchantPurchaseDate = date;
+            data.MerchantPurchaseCount = 0;
+            ZRSJZ_GameData.SaveData();
+        }
+        return Math.max(0, this.DailyLimit - data.MerchantPurchaseCount);
+    }
+
+    /** 先占用并保存次数，防止异步发奖期间重复购买；失败时退还。 */
+    public static ReservePurchase(now = new Date()): string | null {
+        if (this.Remaining(now) <= 0) return null;
+        const data = ZRSJZ_GameData.Instance;
+        data.MerchantPurchaseCount++;
+        ZRSJZ_GameData.SaveData();
+        return data.MerchantPurchaseDate;
+    }
+
+    public static CancelPurchase(date: string): void {
+        const data = ZRSJZ_GameData.Instance;
+        // 跨天失败不能扣减新一天的已购次数。
+        if (data.MerchantPurchaseDate !== date) return;
+        data.MerchantPurchaseCount = Math.max(0, data.MerchantPurchaseCount - 1);
+        ZRSJZ_GameData.SaveData();
+    }
+
     public static Visible = false;
     public static Goods: ZRSJZ_MerchantGoods[] = [];
     private static rolled = false;

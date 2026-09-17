@@ -146,6 +146,10 @@ export class ZRSJZ_GameDataDefaults {
 
     //需要更新的数据 
     private static readonly DataDefaults: Map<number, { Key: string, DefaultVaule: any }[]> = new Map([
+        [11, [
+            { Key: "MerchantPurchaseDate", DefaultVaule: "" },
+            { Key: "MerchantPurchaseCount", DefaultVaule: 0 },
+        ]],
         [10, [
             { Key: "SupplyLastClaimTime", DefaultVaule: 0 },
             { Key: "SupplyOffer", DefaultVaule: -1 },
