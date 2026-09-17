@@ -21,6 +21,12 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     @property(SpriteFrame)
     SkillIconSFs: SpriteFrame[] = [];
 
+    /** 名字底品质图：依次为稀有、史诗、传说，直接绑定预制体资源。 */
+    @property([SpriteFrame])
+    NameQualitySFs: SpriteFrame[] = [];
+    private _nameQualitySprite: Sprite = null;
+    private _defaultNameQualityFrame: SpriteFrame = null;
+
     Skeleton: ZRSJZ_Skeleton = null;
 
     RoleName: Label = null;
@@ -82,6 +88,8 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         this.Skeleton = find("Panel/Skin", this.node).getComponent(ZRSJZ_Skeleton);
 
         this.RoleName = find("Panel/角色名字底/RoleName", this.node).getComponent(Label);
+        this._nameQualitySprite = find("Panel/角色名字底", this.node)?.getComponent(Sprite);
+        this._defaultNameQualityFrame = this._nameQualitySprite?.spriteFrame ?? null;
         this.RoleDesc = find("Panel/详情/RoleDesc", this.node).getComponent(Label);
         this.SkillIcon = find("Panel/详情/SkillIcon", this.node).getComponent(Sprite);
         this.SkillDesc = find("Panel/详情/SkillDesc", this.node).getComponent(Label);
@@ -247,8 +255,20 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         this.ShowButton();
     }
 
+    private RefreshNameQuality(): void {
+        if (!this._nameQualitySprite || !this._curRoleData) return;
+        const skin = this._curRoleData.Skin[this._curRoleSkinIndex];
+        const quality = ZRSJZ_SKIN_CONFIG.get(skin)?.Quality;
+        const index = quality === ZRSJZ_PROP_QUALITY.白色 ? 0
+            : quality === ZRSJZ_PROP_QUALITY.紫色 ? 1
+                : quality === ZRSJZ_PROP_QUALITY.红色 ? 2 : -1;
+        this._nameQualitySprite.sizeMode = Sprite.SizeMode.TRIMMED;
+        this._nameQualitySprite.spriteFrame = this.NameQualitySFs[index] ?? this._defaultNameQualityFrame;
+    }
+
     ShowButton() {
         if (!this._curRoleData) return;
+        this.RefreshNameQuality();
         const roleIndex = ZRSJZ_PlayerSwitchButton.CurPlayer == "1p" ? 0 : 1;
         if (ZRSJZ_GameData.Instance.CurRole[roleIndex] == this._curRoleData.Name && ZRSJZ_GameData.Instance.CurSkin[roleIndex] == this._curRoleData.Skin[this._curRoleSkinIndex]) {
             this.AppearedButton.active = true;

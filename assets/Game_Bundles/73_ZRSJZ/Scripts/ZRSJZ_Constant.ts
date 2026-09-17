@@ -950,26 +950,28 @@ export interface ZRSJZ_SkinConfig {
 }
 
 export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> = new Map([
-    ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.蓝色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蓝狼/ll1", Headset: ["ll-_0000_前刘海_蓝狼"], EntranceAnis: ["cc_ll"] }],
+    ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蓝狼/ll1", Headset: ["ll-_0000_前刘海_蓝狼"], EntranceAnis: ["cc_ll"] }],
     ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 10, Skin: "角色/蓝狼/ll2", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
     ["弑岚", { Name: "弑岚", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "签到解锁", UnlockPrice: 35, Skin: "角色/蓝狼/ll3", Headset: ["蓝狼3_0011_右角", "蓝狼3_0012_左角"], EntranceAnis: ["cc_ll"] }],
+
     ["泠汐", { Name: "泠汐", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/麦小温/m1", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
-    ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.金色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/麦小温/m2", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
+    ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/麦小温/m2", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
     ["绯朔", { Name: "绯朔", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 40, Skin: "角色/麦小温/m3", Headset: ["m3_0011_右角", "m3_0012_左角"], EntranceAnis: ["cc_m", "cc_m2"] }],
-    ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/左亚/w1", Headset: [], EntranceAnis: ["cc_w"] }],
-    ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/左亚/w2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
+
+    ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/左亚/w1", Headset: [], EntranceAnis: ["cc_w"] }],
+    ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/左亚/w2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
     ["黯祁", { Name: "黯祁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/左亚/w3", Headset: ["w3_0013_帽子"], EntranceAnis: ["cc_w"] }],
 
-    ["沧戈", { Name: "沧戈", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/乌鲁鲁/乌鲁", Headset: ["乌鲁__头发"], EntranceAnis: ["cc_w"] }],
-    ["狩荒", { Name: "狩荒", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁2", Headset: ["乌鲁2_0019_帽子前", "乌鲁2_0014_帽子后",], EntranceAnis: ["cc_w"] }],
+    ["沧戈", { Name: "沧戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/乌鲁鲁/乌鲁", Headset: ["乌鲁__头发"], EntranceAnis: ["cc_w"] }],
+    ["狩荒", { Name: "狩荒", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁2", Headset: ["乌鲁2_0019_帽子前", "乌鲁2_0014_帽子后",], EntranceAnis: ["cc_w"] }],
     ["煌罡", { Name: "煌罡", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁3", Headset: ["乌鲁3_0012_皇冠"], EntranceAnis: ["cc_w"] }],
 
-    ["霁锋", { Name: "霁锋", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蜂医/蜂医1", Headset: [], EntranceAnis: ["cc_w"] }],
-    ["赤骁", { Name: "赤骁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医2", Headset: ["蓝狼3_0012_左角"], EntranceAnis: ["cc_w"] }],
+    ["霁锋", { Name: "霁锋", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蜂医/蜂医1", Headset: [], EntranceAnis: ["cc_w"] }],
+    ["赤骁", { Name: "赤骁", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医2", Headset: ["蓝狼3_0012_左角"], EntranceAnis: ["cc_w"] }],
     ["鸦暝", { Name: "鸦暝", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医3", Headset: ["蜂医3_0013_帽子", "蜂医3_0014_羽毛", "蜂医3_0017_嘴"], EntranceAnis: ["cc_w"] }],
 
-    ["浅燎", { Name: "浅燎", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/露娜/露娜1", Headset: ["露娜1_0019_墨镜"], EntranceAnis: ["cc_w"] }],
-    ["鸢铠", { Name: "鸢铠", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜2", Headset: [], EntranceAnis: ["cc_w"] }],
+    ["浅燎", { Name: "浅燎", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/露娜/露娜1", Headset: ["露娜1_0019_墨镜"], EntranceAnis: ["cc_w"] }],
+    ["鸢铠", { Name: "鸢铠", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜2", Headset: [], EntranceAnis: ["cc_w"] }],
     ["凌魇", { Name: "凌魇", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜3", Headset: [], EntranceAnis: ["cc_w"] }],
 ])
 
@@ -1139,6 +1141,8 @@ export interface ZRSJZ_BossConfig {
     PatrolSpeed: number;
     /** 追击速度。 */
     ChaseSpeed: number;
+    /** 仅跑动动画加速，攻击和死亡保持原速。 */
+    MoveAnimationSpeed: number;
     /** 到达巡逻点后的停留时间。 */
     PatrolWaitTime: number;
     /** 判定到达巡逻点的距离。 */
@@ -1159,6 +1163,9 @@ export interface ZRSJZ_BossConfig {
     Skills: ZRSJZ_BossSkillConfig[];
 }
 
+/** 固定追击速度：玩家最高 1500×1.1×1.2+1500=3480，再提高10%。后续直接调整此值。 */
+export const ZRSJZ_BOSS_CHASE_SPEED = 1500;
+
 /** Boss配置统一入口，Boss基类按节点名或 EnemyName 读取。 */
 export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> = new Map([
     ["Boss1", {
@@ -1167,7 +1174,8 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         LoseRange: 2500,
         PatrolRadius: 500,
         PatrolSpeed: 400,
-        ChaseSpeed: 2200,
+        ChaseSpeed: ZRSJZ_BOSS_CHASE_SPEED,
+        MoveAnimationSpeed: 1.74,
         PatrolWaitTime: 1,
         PatrolArriveDistance: 50,
         IdleAnimation: "daiji",
@@ -1202,7 +1210,8 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         LoseRange: 2500,
         PatrolRadius: 500,
         PatrolSpeed: 380,
-        ChaseSpeed: 2200,
+        ChaseSpeed: ZRSJZ_BOSS_CHASE_SPEED,
+        MoveAnimationSpeed: 1.74,
         PatrolWaitTime: 1,
         PatrolArriveDistance: 50,
         IdleAnimation: "idle",
@@ -1237,7 +1246,8 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         LoseRange: 2500,
         PatrolRadius: 500,
         PatrolSpeed: 360,
-        ChaseSpeed: 2200,
+        ChaseSpeed: ZRSJZ_BOSS_CHASE_SPEED,
+        MoveAnimationSpeed: 1.74,
         PatrolWaitTime: 1,
         PatrolArriveDistance: 50,
         IdleAnimation: "idle",

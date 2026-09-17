@@ -16,7 +16,7 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
     private _mzBone: sp.spine.Bone = null;
     private _baseScale = new Vec3();
     private _bossAttackDirection = false;
-    private _baseAngle = 0;
+
     public get IsBossAttackDirection(): boolean { return this._bossAttackDirection; }
 
     protected get UsesPlayerDLCAppearance(): boolean {
@@ -27,7 +27,7 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
         super.onLoad();
         this._mzBone = this.Skeleton?.findBone('mz');
         this._baseScale.set(this.node.scale.x, this.node.scale.y, this.node.scale.z);
-        this._baseAngle = this.node.eulerAngles.z;
+
     }
 
     protected onEnable(): void {
@@ -94,21 +94,14 @@ export class ZRSJZ_EnemySkeleton extends ZRSJZ_Skeleton {
         this.Skeleton._skeleton.updateWorldTransform();
     }
 
-    public SetBossAttackDirection(x: number, y: number): void {
-        if (Math.hypot(x, y) < 0.001) return;
+    /** 兼容旧联机状态，只保持朝向，不旋转整套 Spine 节点。 */
+    public SetBossAttackDirection(x: number, _y: number): void {
         this._bossAttackDirection = true;
-        const facing = x < 0 ? -1 : 1;
-        this.SetPlayerDir(facing);
-        const angle = Math.atan2(y, x) * 180 / Math.PI - (facing < 0 ? 180 : 0);
-        this.node.setRotationFromEuler(0, 0, this._baseAngle + angle);
+        if (Math.abs(x) > 0.1) this.SetPlayerDir(x < 0 ? -1 : 1);
     }
 
     public ResetBossAttackDirection(): void {
-        if (!this._bossAttackDirection) return;
         this._bossAttackDirection = false;
-        this.HasDirection = false;
-        this.node.setRotationFromEuler(0, 0, this._baseAngle);
-        this.SetPlayerDir(this.AttackX < 0 ? -1 : 1);
     }
 
     //显示装备

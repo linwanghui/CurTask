@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "a0b2d8a0-2c47-4d93-8e62-caf4fef4dbdd",
+  "uuid": "423cbd5d-82d6-4a8c-a8d0-2472b611825e",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "a0b2d8a0-2c47-4d93-8e62-caf4fef4dbdd@6c48a",
-      "displayName": "角色名字底",
+      "uuid": "423cbd5d-82d6-4a8c-a8d0-2472b611825e@6c48a",
+      "displayName": "史诗",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "a0b2d8a0-2c47-4d93-8e62-caf4fef4dbdd",
+        "imageUuidOrDatabaseUri": "423cbd5d-82d6-4a8c-a8d0-2472b611825e",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "a0b2d8a0-2c47-4d93-8e62-caf4fef4dbdd@f9941",
-      "displayName": "角色名字底",
+      "uuid": "423cbd5d-82d6-4a8c-a8d0-2472b611825e@f9941",
+      "displayName": "史诗",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "a0b2d8a0-2c47-4d93-8e62-caf4fef4dbdd@6c48a",
+        "imageUuidOrDatabaseUri": "423cbd5d-82d6-4a8c-a8d0-2472b611825e@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "a0b2d8a0-2c47-4d93-8e62-caf4fef4dbdd@6c48a"
+    "redirect": "423cbd5d-82d6-4a8c-a8d0-2472b611825e@6c48a"
   }
 }

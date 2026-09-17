@@ -33,6 +33,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     private _activeAttackTriggered: boolean = false;
     private _actionSerial: number = 0;
     private _outOfCombatRegenElapsed: number = 0;
+    private _holdingAttackRange = false;
+    private readonly _attackRangeHysteresis = 80;
 
     public get IsCastingSkill(): boolean {
         return this._activeSkill !== null;
@@ -89,7 +91,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             ...this.BossConfig,
             MaxHealth: maxHealth,
             PatrolSpeed: this.BossConfig.PatrolSpeed * bossConfig.SpeedMultiplier,
-            ChaseSpeed: this.BossConfig.ChaseSpeed * bossConfig.SpeedMultiplier,
+            ChaseSpeed: this.BossConfig.ChaseSpeed,
             NormalAttack: {
                 ...this.BossConfig.NormalAttack,
                 Cooldown: this.BossConfig.NormalAttack.Cooldown * bossConfig.CooldownMultiplier,
@@ -103,7 +105,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             ...this.EnemyConfig,
             MaxHealth: maxHealth,
             PatrolSpeed: this.EnemyConfig.PatrolSpeed * bossConfig.SpeedMultiplier,
-            ChaseSpeed: this.EnemyConfig.ChaseSpeed * bossConfig.SpeedMultiplier,
+            ChaseSpeed: this.BossConfig.ChaseSpeed,
             AttackInterval: this.EnemyConfig.AttackInterval * bossConfig.CooldownMultiplier,
         };
         this.DamageMultiplier = Math.max(0, bossConfig.HarmMultiple);
@@ -136,12 +138,6 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
 
         this.UpdateCooldowns(dt);
         this.UpdateOutOfCombatRegen(dt);
-        // 保持高于玩家当前实际移速，包括移速强化、针剂和短时冲刺。
-        const fastestPlayer = Math.max(0, ...ZRSJZ_Game.Instance.Players
-            .filter(player => !player.IsDead).map(player => player.CurSpeed));
-        const chaseSpeed = Math.max(this.BossConfig.ChaseSpeed, fastestPlayer * 1.12);
-        if (this.EnemyConfig.ChaseSpeed !== chaseSpeed) this.EnemyConfig = { ...this.EnemyConfig, ChaseSpeed: chaseSpeed };
-
         // 一个攻击动作播放完毕前，不允许开始其他动作。
         if (this._activeSkill) {
             this.UpdateActiveSkill(dt);
@@ -150,6 +146,21 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         if (this._activeNormalAttack) {
             this.UpdateActiveNormalAttack(dt);
             return;
+        }
+
+        // 冷却时保留停留区：进入250、退出330，避免边界微动反复触发追击。
+        if (this._holdingAttackRange && this.IsTargetAvailable() && !this.IsPetStunned) {
+            const distance = Vec3.distance(this.node.worldPosition, this.Target.worldPosition);
+            const stayRange = this.GetAttackStartRange(this.BossConfig.NormalAttack) + this._attackRangeHysteresis;
+            if (this._normalAttackCooldown > 0 && distance <= stayRange && this.HasDirectPath(this.Target.worldPosition)) {
+                if (!this.TryStartSkill()) {
+                    this.ClearNavigation();
+                    this.StopMoving();
+                    this.PlayAnimation(this.BossConfig.IdleAnimation);
+                }
+                return;
+            }
+            this._holdingAttackRange = false;
         }
 
         // 已经有目标时，必须先尝试技能，避免 EnemyBase 先执行普攻。
@@ -337,6 +348,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             console.warn(`[ZRSJZ_BossBase] 攻击“${attack.Name}”未配置 TriggerEvent，不会结算伤害。`);
         }
 
+        this._holdingAttackRange = true;
         this._activeSkill = isSkill ? attack : null;
         this._activeNormalAttack = isSkill ? null : attack;
         this._activeAttackTriggered = false;
@@ -405,8 +417,7 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
             this.AttackX * this.AttackX + this.AttackY * this.AttackY,
         );
         this.UpdateAimDirection(this.AttackX, this.AttackY, distance);
-        // Boss 资源不依赖普通士兵的 mz IK 骨骼，只旋转显示节点，不旋转碰撞体。
-        this.EnemySkeleton?.SetBossAttackDirection(this.AttackX, this.AttackY);
+        // 保留原武器骨骼动画，不旋转整套角色或在起手后反复镜像。
     }
 
     private FinishActiveAttack(): void {
@@ -430,11 +441,26 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     }
 
     private CancelActiveAttack(): void {
+        this._holdingAttackRange = false;
         this.EnemySkeleton?.ResetBossAttackDirection();
         this._actionSerial++;
         this._activeSkill = null;
         this._activeNormalAttack = null;
         this._activeAttackTriggered = false;
+    }
+
+    protected PlayAnimation(animationName: string, loop: boolean = true, cb: Function = null): void {
+        if (this.EnemySkeleton?.Skeleton) {
+            this.EnemySkeleton.Skeleton.timeScale = animationName === this.BossConfig?.MoveAnimation
+                ? this.BossConfig.MoveAnimationSpeed : 1;
+        }
+        super.PlayAnimation(animationName, loop, cb);
+    }
+
+    public ApplyOnlineState(state: any): void {
+        super.ApplyOnlineState(state);
+        if (this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.timeScale =
+            state.animation === this.BossConfig?.MoveAnimation ? this.BossConfig.MoveAnimationSpeed : 1;
     }
 
     protected OnDeath(): void {
