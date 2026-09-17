@@ -469,10 +469,10 @@ export class ZRSJZ_UIManager extends Component {
             if (panelNode) {
                 panelNode.setSiblingIndex(99);
                 panelNode.getComponent(ZRSJZ_Panel).Show(...args);
-                if (panelName === "暂停界面") {
-                } else {
-                    ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
-                }
+                ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
+                // if (panelName === "暂停界面") {
+                // } else {
+                // }
             }
         }
 
