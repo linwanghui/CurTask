@@ -43,13 +43,13 @@ export class ZRSJZ_Boss extends ZRSJZ_BossBase {
         }
         switch (attack.Name) {
             case "普通攻击":
-                this._attack(this.node.worldPosition, attack.DamageRange, attack.Damage);
+                this._attack(this._getStartPos(this.FireBoneName), attack.DamageRange, attack.Damage);
                 break;
             case "超级陀螺":
                 this._attack(this.node.worldPosition, attack.DamageRange, attack.Damage);
                 break;
             case "死亡剪刀":
-                this._attack(this.node.worldPosition, attack.DamageRange, attack.Damage);
+                this._attack(this._getStartPos(this.FireBoneName), attack.DamageRange, attack.Damage);
                 break;
             case "超级炸弹":
                 this._attack(this.node.worldPosition, attack.DamageRange, attack.Damage);

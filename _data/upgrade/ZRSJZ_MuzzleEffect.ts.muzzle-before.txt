@@ -1,4 +1,4 @@
-import { _decorator, Component, Director, director, Node, sp, Vec3 } from 'cc';
+import { _decorator, Component, Node, sp, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 const { ccclass, property } = _decorator;
 
@@ -11,28 +11,11 @@ export class ZRSJZ_MuzzleEffect extends Component {
 
     private _dirX: number = 0;
     private _dirY: number = 0;
-    private _poseProvider: (() => { position: Vec3; x: number; y: number }) = null;
-
-    protected onEnable(): void { director.on(Director.EVENT_BEFORE_DRAW, this.FollowMuzzle, this); }
-    protected onDisable(): void {
-        director.off(Director.EVENT_BEFORE_DRAW, this.FollowMuzzle, this);
-        this._poseProvider = null;
-    }
-    private FollowMuzzle(): void {
-        if (!this._poseProvider) return;
-        const pose = this._poseProvider();
-        if (!pose) { ZRSJZ_PoolManager.Instance.PutNode(this.node); return; }
-        this.node.setWorldPosition(pose.position);
-        if (pose.x !== 0 || pose.y !== 0) this.node.setWorldRotationFromEuler(0, 0, Math.atan2(pose.y, pose.x) * 180 / Math.PI);
-    }
-
-    Show(worldPos: Vec3, dirX: number, dirY: number,
-        poseProvider: (() => { position: Vec3; x: number; y: number }) = null) {
+    Show(worldPos: Vec3, dirX: number, dirY: number) {
         if (!this._isInit) {
             this._isInit = true;
             this.Skeleton = this.node.getChildByName("Spine").getComponent(sp.Skeleton);
         }
-        this._poseProvider = poseProvider;
         this.node.active = true;
         this.node.setWorldPosition(worldPos.clone());
 
@@ -54,7 +37,6 @@ export class ZRSJZ_MuzzleEffect extends Component {
 
         const angle = Math.atan2(this._dirY, this._dirX) * 180 / Math.PI;
         this.node.setWorldRotationFromEuler(0, 0, angle);
-        this.FollowMuzzle();
     }
 }
 

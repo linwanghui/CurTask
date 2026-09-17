@@ -94,6 +94,14 @@ export class ZRSJZ_Bullet extends Component {
         const angle = Math.atan2(this._dirY, this._dirX) * 180 / Math.PI + this.RotationOffset;
         this.node.setWorldRotationFromEuler(0, 0, angle);
         this.node.active = true;
+        // 枪口刷新后才出弹，此时本帧物理步进已结束，节点变换标记又会在帧末清除。
+        // 立即同步 Cocos 3.8.6 Box2D 刚体，避免下帧用对象池中的旧位置、旧角度覆盖节点。
+        const body = this._rigidBody?.impl as {
+            syncPositionToPhysics?: () => void;
+            syncRotationToPhysics?: () => void;
+        };
+        body?.syncPositionToPhysics?.();
+        body?.syncRotationToPhysics?.();
     }
 
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {

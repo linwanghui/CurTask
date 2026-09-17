@@ -64,7 +64,6 @@ export class ZRSJZ_Player extends Component {
     private _aniName: string = "";
     private _isFireing: boolean = false;
     private _waitingFirstGunShot: boolean = false;
-    private _gunShotPending = false;
     private _gunAttackAnimationPlayedOnce: boolean = false;
     private _gunAttackAnimationActive: boolean = false;
     private _preparingGunAttack: boolean = false;
@@ -273,7 +272,7 @@ export class ZRSJZ_Player extends Component {
                 && this.WeaponType === "枪"
                 && (event.data.name === "kq" || event.data.name === "gj_jjq")
             ) {
-                this.QueueReservedGunBullet();
+                this.FireReservedGunBullet();
             } else if (this._knifeAnimationPlaying) {
                 if (event.data.name === "dao") {
                     this.KnifeAttack(200);
@@ -580,28 +579,8 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
-    private QueueReservedGunBullet(): void {
-        if (this._gunShotPending || !this._waitingFirstGunShot || !this._reservedGunBullet) return;
-        this._gunShotPending = true;
-        const requestId = this._gunAttackRequestId;
-        const flush = () => {
-            if (!this._gunShotPending || requestId !== this._gunAttackRequestId) return;
-            const game = ZRSJZ_Game.Instance;
-            if (!game || game.IsGameFinished || this.IsDead || !this.node.activeInHierarchy || this.WeaponType !== '枪') {
-                this.CancelGunAttackState();
-                return;
-            }
-            if (game.GamePaused) { this.PlayerSkeleton.QueueAttackAfterAim(flush); return; }
-            this._gunShotPending = false;
-            this.FireReservedGunBullet();
-            // 低帧率下开火与完成事件可能在同一帧到达，先出弹再结束动画。
-            if (this._gunAttackAnimationPlayedOnce) this.OnGunAttackAnimationComplete();
-        };
-        this.PlayerSkeleton.QueueAttackAfterAim(flush);
-    }
-
     private FireReservedGunBullet(): void {
-        // 由 Track 1 开枪事件排队，在瞄准骨骼刷新后生成主子弹。
+        // 主子弹只能由整体 Spine 的 Track 1 开枪事件调用此方法生成。
         if (!this._waitingFirstGunShot || !this._reservedGunBullet) return;
 
         const bullet = this._reservedGunBullet;
@@ -664,10 +643,9 @@ export class ZRSJZ_Player extends Component {
         // 主子弹确认生成后再显示枪口和播放声音，避免出现只有开火表现却没有子弹。
         // ZRSJZ_Game.Instance?.Cameras[this.PlayerIndex]?.Shake();
         const muzzleRequestGame = ZRSJZ_Game.Instance;
-        const muzzleRequestId = this._gunAttackRequestId;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
             if (!muzzleEffect?.isValid) return;
-            if (!this.CanUseAsyncResult(muzzleRequestGame) || this.IsDead || this.WeaponType !== '枪' || muzzleRequestId !== this._gunAttackRequestId) {
+            if (!this.CanUseAsyncResult(muzzleRequestGame)) {
                 this.RecycleAsyncNode(muzzleEffect);
                 return;
             }
@@ -677,13 +655,8 @@ export class ZRSJZ_Player extends Component {
                 this.RecycleAsyncNode(muzzleEffect);
                 return;
             }
-            // 子弹保留发射快照；短暂枪口火焰跟随当前枪口，避免异步加载和转向造成错位。
-            muzzle.Show(mainBulletSpawnPos, attackX, attackY, () => {
-                if (!this.CanUseAsyncResult(muzzleRequestGame) || this.IsDead || this.WeaponType !== '枪'
-                    || muzzleRequestId !== this._gunAttackRequestId) return null;
-                const position = this.getMuzzlePos();
-                return position ? { position, x: this.PlayerSkeleton.AttackX, y: this.PlayerSkeleton.AttackY } : null;
-            });
+            // 异步加载结束时玩家可能已经移动或改变瞄准方向，必须沿用这一发的枪口快照。
+            muzzle.Show(mainBulletSpawnPos, attackX, attackY);
         }).catch(error => console.error("[ZRSJZ_Player] 枪口特效创建失败", error));
 
         if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._magazineAmmo.length <= 0) {
@@ -1351,7 +1324,6 @@ export class ZRSJZ_Player extends Component {
     }
 
     private CancelGunAttackState(): void {
-        this._gunShotPending = false;
         this._gunAttackRequestId++;
         this._isFireing = false;
         this._waitingFirstGunShot = false;
@@ -1361,7 +1333,7 @@ export class ZRSJZ_Player extends Component {
         this.PlayerSkeleton.ClearAttackAnimation();
         this._preparingGunAttack = false;
         if (this._reservedGunBullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(this._reservedGunBullet);
-        if (!ZRSJZ_Game.Instance?.UnlimitedFirepower && this._reservedGunAmmoName) {
+        if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._reservedGunAmmoName) {
             this._magazineAmmo.unshift(this._reservedGunAmmoName);
         }
         this._reservedGunBullet = null;
@@ -1370,7 +1342,6 @@ export class ZRSJZ_Player extends Component {
 
     private OnGunAttackAnimationComplete(): void {
         this._gunAttackAnimationPlayedOnce = true;
-        if (this._gunShotPending) return;
         // 子弹只由 Spine 开枪事件生成；动画完成����再补发子弹。
         if (this._waitingFirstGunShot) {
             console.error("[ZRSJZ_Player] 开枪动画未触发 kq/gj_jjq 事件，本轮取消且退回弹药");

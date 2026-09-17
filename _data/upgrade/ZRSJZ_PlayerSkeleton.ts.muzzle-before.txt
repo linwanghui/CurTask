@@ -24,8 +24,6 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     IsKnife: boolean = false;
     public OnlineAttackSerial = 0;
 
-    private _afterAimAttack: (() => void) = null;
-
     private _mzBone: sp.spine.Bone = null;
     private _baseScale = new Vec3();
     private readonly _trackCompleteCallbacks = new Map<number, Function>();
@@ -59,13 +57,13 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
     protected onEnable(): void {
         this.Show();
-        director.on(Director.EVENT_BEFORE_DRAW, this.UpdateAimAndAttack, this);
+        director.on(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
     }
 
     protected onDisable(): void {
-        director.off(Director.EVENT_BEFORE_DRAW, this.UpdateAimAndAttack, this);
+        director.off(Director.EVENT_BEFORE_DRAW, this.ApplyAimDirection, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
         this.ClearAttackAnimation();
@@ -131,7 +129,6 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     }
 
     ClearAttackAnimation(): void {
-        this._afterAimAttack = null;
         this._trackCompleteCallbacks.delete(1);
         this.Skeleton?.clearTrack(1);
         // clearTrack 不会复位附件；中途死亡会跳过刀光动画末尾的隐藏帧。
@@ -177,16 +174,6 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
             this._baseScale.y,
             this._baseScale.z,
         );
-    }
-
-    /** 动画事件只排队，待骨骼姿态与本帧绘制一致后执行。 */
-    QueueAttackAfterAim(callback: () => void): void { this._afterAimAttack = callback; }
-
-    private UpdateAimAndAttack(): void {
-        this.ApplyAimDirection();
-        const attack = this._afterAimAttack;
-        this._afterAimAttack = null;
-        attack?.();
     }
 
     private ApplyAimDirection(): void {

@@ -83,7 +83,7 @@ export const ZRSJZ_PANEL_PATH_CONFIG: Map<string, string> = new Map([
     ["盲盒界面", "主页-盲盒界面"],
     ["锻造界面", "主页-锻造界面"],
     ["行动补给", "主页-行动补给"],
-    ["神秘商人", "主页-神秘商人"]
+    ["神秘商人", "主页-神秘商人"],
 ])
 
 //物理层级
@@ -1168,7 +1168,7 @@ export interface ZRSJZ_BossConfig {
 }
 
 /** 固定追击速度：玩家最高 1500×1.1×1.2+1500=3480，再提高10%。后续直接调整此值。 */
-export const ZRSJZ_BOSS_CHASE_SPEED = 1000;
+export const ZRSJZ_BOSS_CHASE_SPEED = 1500;
 
 /** Boss配置统一入口，Boss基类按节点名或 EnemyName 读取。 */
 export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> = new Map([
@@ -1186,7 +1186,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         MoveAnimation: "pao",
         WeaponName: "突击步枪",
         DieAnimation: "daodi",
-        OutOfCombatRegenPercentPerSecond: 0.02,
+        OutOfCombatRegenPercentPerSecond: 0.1,
         NormalAttack: {
             Name: "普通攻击",
             Range: 300,
@@ -1200,7 +1200,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         Skills: [{
             Name: "超级陀螺",
             Range: 300,
-            DamageRange: 700,
+            DamageRange: 1000,
             Damage: 28,
             Cooldown: 7.5,
             Animation: "1",
@@ -1223,7 +1223,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         MoveAnimation: "zl",
         WeaponName: "突击步枪",
         DieAnimation: "dead",
-        OutOfCombatRegenPercentPerSecond: 0.02,
+        OutOfCombatRegenPercentPerSecond: 0.1,
         NormalAttack: {
             Name: "普通攻击",
             Range: 300,
@@ -1260,7 +1260,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         MoveAnimation: "zl",
         WeaponName: "突击步枪",
         DieAnimation: "dead",
-        OutOfCombatRegenPercentPerSecond: 0.02,
+        OutOfCombatRegenPercentPerSecond: 0.1,
         NormalAttack: {
             Name: "普通攻击",
             Range: 300,
