@@ -72,7 +72,7 @@ export class ZRSJZ_MysteriousMerchantPanel extends ZRSJZ_Panel {
             slot.getChildByName('售罄遮罩').active = goods.Sold;
             const purchase = slot.getChildByName('购买');
             purchase.active = !goods.Sold;
-            purchase.getComponent(Button).interactable = remaining > 0 && !this.buying && !goods.Buying;
+            purchase.getComponent(Button).interactable = !this.buying && !goods.Buying;
             const icon = slot.getChildByName('道具图').getComponent(Sprite);
             icon.spriteFrame = null;
             ZRSJZ_UIManager.Instance.GetPropUI(goods.Name)?.then(asset => {
@@ -90,7 +90,7 @@ export class ZRSJZ_MysteriousMerchantPanel extends ZRSJZ_Panel {
         const goods = Merchant.Goods[index];
         if (!ZRSJZ_UIManager.ZRSJZ_DLC || !Merchant.Visible || !goods || goods.Sold || goods.Buying || this.buying) return;
         if (Merchant.Remaining() <= 0) {
-            ZRSJZ_UIManager.Instance.ShowTip('今日购买次数已用完，明天再来吧');
+            ZRSJZ_UIManager.Instance.ShowTip('已达今日购买上限！');
             this.Render();
             return;
         }
