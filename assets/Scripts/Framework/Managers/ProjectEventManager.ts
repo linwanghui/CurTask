@@ -11,6 +11,7 @@ export class ProjectEvent {
     public static 游戏结束: string = 'ProjectEvent.游戏结束';//游戏结束(弹出结算界面)
     public static 弹出窗口: string = 'ProjectEvent.弹出窗口';//游戏弹出暂停窗口、游戏功能窗口等等
     public static 页面转换: string = 'ProjectEvent.页面转换';//游戏主页有二级菜单或功能菜单等之类的，进入游戏不要发送此消息
+    public static 暂停窗口: string = 'ProjectEvent.暂停窗口';//暂停窗口(弹出结算界面)
     public static 返回主页: string = 'ProjectEvent.返回主页';//游戏返回主页
     public static 返回主页按钮事件: string = 'ProjectEvent.返回主页按钮事件';//游戏返回主页的按钮点击（参数0：返回主页按钮的默认点击事件）
     public static 初始化更多模式按钮: string = 'ProjectEvent.初始化更多模式按钮';//游戏的更多模式按钮初始化(参数0：更多模式按钮的Node)

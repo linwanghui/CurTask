@@ -469,10 +469,11 @@ export class ZRSJZ_UIManager extends Component {
             if (panelNode) {
                 panelNode.setSiblingIndex(99);
                 panelNode.getComponent(ZRSJZ_Panel).Show(...args);
-                ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
-                // if (panelName === "暂停界面") {
-                // } else {
-                // }
+                if (panelName === "暂停界面" && !Banner.IS_BYTEDANCE_MINI_GAME) {
+                    ProjectEventManager.emit(ProjectEvent.暂停窗口, "真人三角洲");
+                } else {
+                    ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
+                }
             }
         }
 
