@@ -1,3 +1,4 @@
+import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { ZRSJZ_BoxroomService } from "../Service/ZRSJZ_BoxroomService";
 import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
 import { ZRSJZ_PetService } from "../Service/ZRSJZ_PetService";
@@ -745,6 +746,7 @@ export class ZRSJZ_Player extends Component {
         Vec3.add(targetPosition, this.node.worldPosition.clone(), up);
 
         targetPosition.x += Math.sign(this.PlayerSkeleton.AttackX) * 150;
+        ZRSJZ_DestructibleService.HitArea(targetPosition, skillRange, finalDamage);
 
         // ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/MuzzleEffect").then((muzzleEffect: Node) => {
         //     muzzleEffect.parent = this.node;
@@ -853,6 +855,9 @@ export class ZRSJZ_Player extends Component {
     Resurgence(playerIndex?: number) {
         if (ZRSJZ_Game.Instance?.IsGameFinished) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        // 复活前清掉被死亡打断的攻击状态、回调和刀光附件。
+        this.CancelGunAttackState();
+        this.CancelKnifeAttackState();
         this.CurHP = this.MaxHP;
         this._isStop = false;
         this.ResetMovement();

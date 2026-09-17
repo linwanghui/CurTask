@@ -30,7 +30,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     private _normalAttackCooldown: number = 0;
     private _activeSkill: Readonly<ZRSJZ_BossSkillConfig> = null;
     private _activeNormalAttack: Readonly<ZRSJZ_BossSkillConfig> = null;
-    private _activeAttackTriggered: boolean = false;
+    private _activeAttackHitCount = 0;
+    private _activeAttackEventTimes = new Set<number>();
     private _actionSerial: number = 0;
     private _outOfCombatRegenElapsed: number = 0;
     private _holdingAttackRange = false;
@@ -215,16 +216,23 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
     /**
      * 在具体 Boss 的 OnAttack 中调用。
      * 只有 Spine 事件与当前普攻/技能的 TriggerEvent 一致时才返回配置，
-     * 并保证单次动画只结算一次伤害。
+     * 单段普攻只结算一次，多段技能按各自事件时间逐段结算。
      */
     protected ConsumeAttackEvent(
         eventName: string,
+        eventTime?: number,
     ): Readonly<ZRSJZ_BossSkillConfig> {
         const attack = this._activeSkill ?? this._activeNormalAttack;
-        if (!attack || this._activeAttackTriggered || eventName !== attack.TriggerEvent) return null;
+        if (!attack || eventName !== attack.TriggerEvent) return null;
+        if (this._activeAttackHitCount >= Math.max(1, attack.HitCount ?? 1)) return null;
+        // 同一时间点重复回调不消耗下一段；不同时间点即使同一帧到达也分别处理。
+        if (Number.isFinite(eventTime)) {
+            if (this._activeAttackEventTimes.has(eventTime)) return null;
+            this._activeAttackEventTimes.add(eventTime);
+        }
 
         this.RefreshAttackDirection();
-        this._activeAttackTriggered = true;
+        this._activeAttackHitCount++;
         return attack;
     }
 
@@ -351,7 +359,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         this._holdingAttackRange = true;
         this._activeSkill = isSkill ? attack : null;
         this._activeNormalAttack = isSkill ? null : attack;
-        this._activeAttackTriggered = false;
+        this._activeAttackHitCount = 0;
+        this._activeAttackEventTimes.clear();
         this.ClearNavigation();
         this.RefreshAttackDirection();
 
@@ -424,7 +433,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         const finishedNormalAttack = this._activeNormalAttack !== null;
         this._activeSkill = null;
         this._activeNormalAttack = null;
-        this._activeAttackTriggered = false;
+        this._activeAttackHitCount = 0;
+        this._activeAttackEventTimes.clear();
 
         this.EnemySkeleton?.ResetBossAttackDirection();
 
@@ -446,7 +456,8 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         this._actionSerial++;
         this._activeSkill = null;
         this._activeNormalAttack = null;
-        this._activeAttackTriggered = false;
+        this._activeAttackHitCount = 0;
+        this._activeAttackEventTimes.clear();
     }
 
     protected PlayAnimation(animationName: string, loop: boolean = true, cb: Function = null): void {

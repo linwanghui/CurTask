@@ -257,7 +257,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         this.EnemySkeleton.Skeleton.setEventListener((trackEntry, event) => {
             if (typeof event !== "number" && event.data.name) {
-                this.OnAnimationEvent(event.data.name);
+                this.OnAnimationEvent(event.data.name, event.time);
             }
         });
         if (this.soloState) this.TakeOverLocally(this.soloState);
@@ -532,13 +532,13 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     protected abstract FindTarget(): Node;
 
     /** 子类在这里实现真正的攻击，例如生成子弹或造成近战伤害。 */
-    protected abstract OnAttack(attack: string): void;
+    protected abstract OnAttack(attack: string, eventTime?: number): void;
 
     /** 子类可拦截 Spine 动画事件；默认将事件交给普通攻击处理。 */
-    protected OnAnimationEvent(eventName: string): void {
+    protected OnAnimationEvent(eventName: string, eventTime?: number): void {
         if (Coop.Replica || Coop.Stopped) return;
         if (this.IsDead || this.IsPetStunned || (ZRSJZ_Game.Instance?.GamePaused && !Online.Battle) || ZRSJZ_Game.Instance?.IsGameFinished) return;
-        this.OnAttack(eventName);
+        this.OnAttack(eventName, eventTime);
     }
 
     /** 子类可覆写配置来源，例如 Boss 从 ZRSJZ_BOSS_CONFIG 中读取。 */

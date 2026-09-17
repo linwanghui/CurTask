@@ -1,3 +1,4 @@
+import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { _decorator, ERaycast2DType, Node, PhysicsSystem2D, Vec2, Vec3 } from 'cc';
 import { ZRSJZ_Skill } from './ZRSJZ_Skill';
 import { ZRSJZ_TIER } from '../ZRSJZ_Constant';
@@ -61,8 +62,8 @@ export class ZRSJZ_Laser extends ZRSJZ_Skill {
     }
 
     Attack() {
-        const results1 = PhysicsSystem2D.instance.raycast(new Vec2(this.Point1_0.worldPosition.x, this.Point1_0.worldPosition.y), new Vec2(this.Point1_1.worldPosition.x, this.Point1_1.worldPosition.y), ERaycast2DType.All, ZRSJZ_TIER.敌人,);
-        const results2 = PhysicsSystem2D.instance.raycast(new Vec2(this.Point2_0.worldPosition.x, this.Point2_0.worldPosition.y), new Vec2(this.Point2_1.worldPosition.x, this.Point2_1.worldPosition.y), ERaycast2DType.All, ZRSJZ_TIER.敌人,);
+        const results1 = PhysicsSystem2D.instance.raycast(new Vec2(this.Point1_0.worldPosition.x, this.Point1_0.worldPosition.y), new Vec2(this.Point1_1.worldPosition.x, this.Point1_1.worldPosition.y), ERaycast2DType.All, ZRSJZ_TIER.敌人 | ZRSJZ_TIER.地形,);
+        const results2 = PhysicsSystem2D.instance.raycast(new Vec2(this.Point2_0.worldPosition.x, this.Point2_0.worldPosition.y), new Vec2(this.Point2_1.worldPosition.x, this.Point2_1.worldPosition.y), ERaycast2DType.All, ZRSJZ_TIER.敌人 | ZRSJZ_TIER.地形,);
 
         // 合并两条射线的结果，并以碰撞体为单位去重。
         const results = Array.from(
@@ -72,6 +73,7 @@ export class ZRSJZ_Laser extends ZRSJZ_Skill {
         );
 
         results.forEach(result => {
+            ZRSJZ_DestructibleService.HitNode(result.collider.node, this.Harm);
             result.collider.node.getComponent(ZRSJZ_EnemyBase)?.BeHit(this.Harm);
         })
     }

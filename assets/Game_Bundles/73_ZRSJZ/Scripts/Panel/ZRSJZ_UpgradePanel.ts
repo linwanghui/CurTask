@@ -84,8 +84,11 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
     private Refresh(): void {
         ++this.version;
         this.Text('Progress', `强化等级  ${Upgrade.Level} / 50`);
-        (Object.keys(ZRSJZ_ENHANCEMENT_STATS) as EnhancementStat[]).forEach((stat, index) =>
-            this.Text(`Bonuses/Stat${index}`, `${stat}  ${Upgrade.Format(stat, Upgrade.GetBonus(stat))}`));
+        (Object.keys(ZRSJZ_ENHANCEMENT_STATS) as EnhancementStat[]).forEach(stat => {
+            // 新版属性卡片将名称与加成数值分开，名称和样式由预制体维护。
+            const nodeName = stat === '大红掉落概率' ? '大红掉率' : stat;
+            this.Text(`Bonuses/${nodeName}/Num`, Upgrade.Format(stat, Upgrade.GetBonus(stat)));
+        });
         for (const config of ZRSJZ_ENHANCEMENT_NODES) {
             const node = this.route.get(config.ID), owned = Upgrade.IsOwned(config);
             node.getComponent(Sprite).spriteFrame = owned ? this.OwnedFrame : this.NormalFrame;

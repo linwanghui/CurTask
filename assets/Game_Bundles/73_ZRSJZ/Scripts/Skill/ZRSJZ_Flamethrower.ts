@@ -1,3 +1,4 @@
+import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
 import { _decorator, Component, ERaycast2DType, Node, PhysicsSystem2D, Vec2 } from 'cc';
 import { ZRSJZ_Skill } from './ZRSJZ_Skill';
@@ -22,9 +23,10 @@ export class ZRSJZ_Flamethrower extends ZRSJZ_Skill {
     }
 
     Attack() {
-        const results1 = PhysicsSystem2D.instance.raycast(new Vec2(this.Point1_0.worldPosition.x, this.Point1_0.worldPosition.y), new Vec2(this.Point1_1.worldPosition.x, this.Point1_1.worldPosition.y), ERaycast2DType.All, ZRSJZ_TIER.玩家,);
-        const results2 = PhysicsSystem2D.instance.raycast(new Vec2(this.Point2_0.worldPosition.x, this.Point2_0.worldPosition.y), new Vec2(this.Point2_1.worldPosition.x, this.Point2_1.worldPosition.y), ERaycast2DType.All, ZRSJZ_TIER.玩家,);
+        const results1 = PhysicsSystem2D.instance.raycast(new Vec2(this.Point1_0.worldPosition.x, this.Point1_0.worldPosition.y), new Vec2(this.Point1_1.worldPosition.x, this.Point1_1.worldPosition.y), ERaycast2DType.All, ZRSJZ_TIER.玩家 | ZRSJZ_TIER.地形,);
+        const results2 = PhysicsSystem2D.instance.raycast(new Vec2(this.Point2_0.worldPosition.x, this.Point2_0.worldPosition.y), new Vec2(this.Point2_1.worldPosition.x, this.Point2_1.worldPosition.y), ERaycast2DType.All, ZRSJZ_TIER.玩家 | ZRSJZ_TIER.地形,);
 
+        [...results1, ...results2].forEach(result => ZRSJZ_DestructibleService.HitNode(result.collider.node, this.Harm));
         ZRSJZ_FriendlyDamageService.DamageNodes([...results1, ...results2].map(result => result.collider.node), this.Harm);
     }
 }
