@@ -1,6 +1,7 @@
 import { ZRSJZ_MainReminderService } from './Service/ZRSJZ_MainReminderService';
 import { ZRSJZ_ActionSuppliesService } from './Service/ZRSJZ_ActionSuppliesService';
 import { ZRSJZ_MerchantService } from './Service/ZRSJZ_MerchantService';
+import { ZRSJZ_NoticeService } from './Service/ZRSJZ_NoticeService';
 import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
 import { _decorator, Button, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3, instantiate, Prefab, sp, isValid } from 'cc';
@@ -29,6 +30,8 @@ export class ZRSJZ_Start extends Component {
     SupplyButton: Node = null;
     @property(Node)
     MerchantButton: Node = null;
+    private _noticeHomeReady = false;
+    private _noticeRequested = false;
 
     @property(Node)
     SignBtn: Node = null;
@@ -74,6 +77,7 @@ export class ZRSJZ_Start extends Component {
             this.showRedTaskTip();
             this.showMoreGameBtnAni();
             this.LoadPanel.active = false;
+            this._noticeHomeReady = true;
             this.UIPanel.setScale(this.GetPanelScale());
 
             if (ZRSJZ_AccountService.CanClaimSignInReward()) {
@@ -135,6 +139,15 @@ export class ZRSJZ_Start extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "公告":
+                if (!ZRSJZ_UIManager.ZRSJZ_DLC) {
+                    ZRSJZ_UIManager.Instance.ShowTip('公告资源正在加载，请稍后再试');
+                    break;
+                }
+                // 主动查看不受当天关闭记录限制，也不额外触发一次自动公告。
+                this._noticeRequested = true;
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.公告界面);
+                break;
             case "神秘商人":
                 if (ZRSJZ_MerchantService.Refresh(ZRSJZ_UIManager.ZRSJZ_DLC)) {
                     ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.神秘商人弹窗);
@@ -309,6 +322,12 @@ export class ZRSJZ_Start extends Component {
     private _mainReminderNodes = new Map<string, Node>();
 
     private RefreshMainReminders(): void {
+        if (this._noticeHomeReady && !this._noticeRequested && ZRSJZ_UIManager.ZRSJZ_UI
+            && ZRSJZ_NoticeService.ShouldShow(ZRSJZ_UIManager.ZRSJZ_DLC)
+            && !ZRSJZ_UIManager.Dragging && !ZRSJZ_UIManager.Instance.HasOpenPanels) {
+            this._noticeRequested = true;
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.公告界面);
+        }
         if (isValid(this.MerchantButton)) {
             this.MerchantButton.active = ZRSJZ_MerchantService.Refresh(ZRSJZ_UIManager.ZRSJZ_DLC);
         }

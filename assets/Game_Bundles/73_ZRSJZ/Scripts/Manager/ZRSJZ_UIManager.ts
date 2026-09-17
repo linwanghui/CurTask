@@ -101,6 +101,8 @@ export class ZRSJZ_UIManager extends Component {
     private _panelNode: Node = null;
     private _panelMap: Map<string, Node> = new Map<string, Node>();
     private _curPanel: string[] = [];
+    /** 包括正在加载的弹窗，供首页自动弹窗排队使用。 */
+    public get HasOpenPanels(): boolean { return this._curPanel.length > 0 || this._curPlayerPanels.size > 0; }
     /** 双人局内弹窗必须每名玩家各有一个实例，不能复用全局面板节点。 */
     private readonly _playerPanelMap = new Map<string, Node>();
     private readonly _curPlayerPanels = new Set<string>();
