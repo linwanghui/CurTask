@@ -1,6 +1,6 @@
 import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Sprite, SpriteFrame } from 'cc';
+import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_QUALITY, ZRSJZ_ROLE_CONFIG, ZRSJZ_RoleConfig, ZRSJZ_SKIN_CONFIG } from '../ZRSJZ_Constant';
@@ -36,6 +36,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     AppearButton: Node = null;
 
     GoldPrice: Label = null;
+    private _signInOnlyTip: Node = null;
 
     private _curRoleData: Readonly<ZRSJZ_RoleConfig> = null;
     private _roleSkins: ZRSJZ_SkinItem[] = [];
@@ -93,6 +94,19 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         this.AppearButton = find("Panel/状态/上场", this.node);
 
         this.GoldPrice = find("Panel/状态/金币购买/Price", this.node).getComponent(Label);
+        this._signInOnlyTip = new Node("签到解锁提示");
+        this._signInOnlyTip.layer = this.GoldButton.layer;
+        this._signInOnlyTip.parent = this.GoldButton.parent;
+        this._signInOnlyTip.setPosition(this.GoldButton.position);
+        this._signInOnlyTip.addComponent(UITransform).setContentSize(480, 70);
+        const tip = this._signInOnlyTip.addComponent(Label);
+        tip.string = "该皮肤只能签到获得";
+        tip.font = this.GoldPrice.font;
+        tip.fontSize = 32;
+        tip.lineHeight = 40;
+        tip.horizontalAlign = Label.HorizontalAlign.CENTER;
+        tip.verticalAlign = Label.VerticalAlign.CENTER;
+        this._signInOnlyTip.active = false;
     }
 
     protected async start(): Promise<void> {
@@ -245,6 +259,8 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         }
 
         const skinConfig = ZRSJZ_SKIN_CONFIG.get(this._curRoleData.Skin[this._curRoleSkinIndex]);
+        this._signInOnlyTip.active = skinConfig?.UnlockType === "签到解锁"
+            && !ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]);
         this.VideoButton.active = false;
         if (!ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]) && skinConfig?.UnlockType == "英雄碎片") {
             this.GoldButton.active = true;

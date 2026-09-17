@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Button, EventTouch, find, isValid, Label, Node, Sprite, UITransform, v3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
@@ -124,7 +125,7 @@ export class ZRSJZ_GetBulletPanel extends ZRSJZ_Panel {
     private RefreshDisplay(): void {
         const progress = this._maxCount > 0 ? this._count / this._maxCount : 0;
         if (this._countLabel) this._countLabel.string = `${this._count}/${this._maxCount}`;
-        if (this._priceLabel) this._priceLabel.string = `${this._count * this._unitPrice}`;
+        if (this._priceLabel) this._priceLabel.string = FormatMoney(this._count * this._unitPrice, true);
         if (this._fill) this._fill.fillRange = progress;
         if (this._handle && this._track) {
             const width = this._track.getComponent(UITransform)?.contentSize.width ?? 0;

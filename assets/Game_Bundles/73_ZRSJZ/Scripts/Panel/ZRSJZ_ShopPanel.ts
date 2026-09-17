@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Prefab, sp, Sprite, SpriteFrame, Tween, tween } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
@@ -242,7 +243,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         const shopData = ZRSJZ_PROP_CONFIG.get(this._curShop);
         // this._shopPrice = shopData.UnitPrice * shopData.MaxCount;
         this._shopPrice = Math.floor(shopData.UnitPrice);
-        this.ShopPrice.string = `${this._shopPrice}`;
+        this.ShopPrice.string = FormatMoney(this._shopPrice, true);
         this._curShopsTs[this._curShowIndex].Chekcked.active = true;
         ZRSJZ_Tools.ScaleNodeToFit(this.ShopIcon.node, 500, 200);
         // this.ShopIcon.node.setScale(this._scale, this._scale, 1);
@@ -363,7 +364,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
             this.ShopUse.active = false;
             this.ShopUsing.active = false;
             this.ShopCurrency.active = true;
-            this.ShopPrice.string = `${this._shopPrice}`;
+            this.ShopPrice.string = FormatMoney(this._shopPrice, true);
             return;
         }
 
@@ -376,7 +377,7 @@ export class ZRSJZ_ShowPanel extends ZRSJZ_Panel {
         this.ShopUse.active = owned && !using;
         this.ShopUsing.active = using;
         this.ShopCurrency.active = true;
-        this.ShopPrice.string = skinConfig === undefined ? "未配置" : `${skinConfig.Price}`;
+        this.ShopPrice.string = skinConfig === undefined ? "未配置" : FormatMoney(skinConfig.Price, true);
     }
 
     private async OnPurchase(): Promise<void> {

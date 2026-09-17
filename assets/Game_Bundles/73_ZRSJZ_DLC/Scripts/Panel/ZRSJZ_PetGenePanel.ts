@@ -1,3 +1,4 @@
+import { FormatMoney } from "../../../73_ZRSJZ/Scripts/ZRSJZ_NumberFormat";
 import { _decorator, Button, Color, Event, find, Graphics, isValid, Label, Layout, Node, ScrollView, Sprite, SpriteFrame, UITransform, Vec2 } from 'cc';
 import { EDITOR } from 'cc/env';
 import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
@@ -79,7 +80,7 @@ export class ZRSJZ_PetGenePanel extends ZRSJZ_Panel {
         const gene = ZRSJZ_PET_GENE_CONFIG.find(item => item.Level === this._selectedLevel) ?? ZRSJZ_PET_GENE_CONFIG[0];
         this.SetLabel("效果", ZRSJZ_PetService.GetGeneEffectText("星核幼龙", gene));
         this.SetLabel("Tip", "学习消耗：" + gene.CostProp);
-        this.SetLabel("消耗道具数量", materialCount + "/" + gene.CostCount);
+        this.SetLabel("消耗道具数量", gene.CostProp === "金币" ? FormatMoney(Number(materialCount)) + "/" + FormatMoney(gene.CostCount, true) : materialCount + "/" + gene.CostCount);
         const count = find("Panel/消耗道具数量", this.node)?.getComponent(Label);
         if (count) count.color = Number(materialCount) >= gene.CostCount ? new Color(40, 180, 55) : new Color(230, 65, 55);
         this.SetLabel("学习/tip", "学习");
@@ -285,7 +286,7 @@ export class ZRSJZ_PetGenePanel extends ZRSJZ_Panel {
         this.SetLabel("效果", ZRSJZ_PetService.GetGeneEffectText(this._petName, gene));
         this.SetLabel("Tip", "学习消耗：" + gene.CostProp);
         const available = ZRSJZ_PetService.GetGeneCostOwned(gene);
-        this.SetLabel("消耗道具数量", available + "/" + gene.CostCount);
+        this.SetLabel("消耗道具数量", gene.CostProp === "金币" ? FormatMoney(Number(available)) + "/" + FormatMoney(gene.CostCount, true) : available + "/" + gene.CostCount);
         const count = find("Panel/消耗道具数量", this.node)?.getComponent(Label);
         if (count) count.color = available >= gene.CostCount ? new Color(40, 180, 55) : new Color(230, 65, 55);
         find("Panel/已学习", this.node).active = isLearned;

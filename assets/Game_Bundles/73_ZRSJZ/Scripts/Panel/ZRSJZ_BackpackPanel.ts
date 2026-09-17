@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { ZRSJZ_PetBackpackView } from '../UI/ZRSJZ_PetBackpackView';
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, EventTouch, find, Label, Layout, Node, ScrollView, Sprite, SpriteFrame, Widget } from 'cc';
@@ -134,7 +135,7 @@ export class ZRSJZ_BackpackPanel extends ZRSJZ_Panel {
             ZRSJZ_INVENTORY.背包,
             ZRSJZ_INVENTORY.保险箱,
         ], this._playerIndex);
-        if (this._totalValue) this._totalValue.string = `${totalValue}`;
+        if (this._totalValue) this._totalValue.string = FormatMoney(totalValue);
     }
 
     ShowBackpack() {

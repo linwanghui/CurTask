@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { SpriteFrame } from "cc";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
 import { ZRSJZ_PROP_CONFIG } from "../ZRSJZ_Constant";
@@ -230,12 +231,7 @@ export class ZRSJZ_GradeService {
         return `${percentage.toFixed(1)}%`;
     }
 
-    public static FormatAssetValue(value: number): string {
-        const safeValue = Math.max(0, Math.floor(Number(value) || 0));
-        if (safeValue >= 100000000) return `${(safeValue / 10000000).toFixed(1)}亿`;
-        if (safeValue >= 10000) return `${(safeValue / 10000).toFixed(1)}万`;
-        return safeValue.toString();
-    }
+    public static FormatAssetValue(value: number): string { return FormatMoney(value); }
 
     public static GetRoleAvatar(roleName: string): Promise<SpriteFrame | null> {
         return this.LoadRoleSprite("Sprites/等级系统/头像", roleName);

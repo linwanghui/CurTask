@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
 import { _decorator, EventTouch, find, Label, Node, ScrollView, tween, Tween, UIOpacity, UITransform, v2, Vec3 } from 'cc';
@@ -413,10 +414,10 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
             return value + (propData ? propData.UnitPrice * propData.CurCount : 0);
         }, 0);
-        this.SellValue.string = `${Math.floor(totalValue)}`;
+        this.SellValue.string = FormatMoney(totalValue);
         const actualValue = this._sellPropID.reduce((value, propID) =>
             value + ZRSJZ_InventoryService.GetPropSellValue(ZRSJZ_GameData.Instance.PropData[propID]), 0);
-        if (this.ActualSellValue) this.ActualSellValue.string = `${actualValue}`;
+        if (this.ActualSellValue) this.ActualSellValue.string = FormatMoney(actualValue);
     }
 }
 

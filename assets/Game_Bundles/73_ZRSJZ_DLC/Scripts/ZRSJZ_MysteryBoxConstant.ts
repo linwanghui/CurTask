@@ -1,3 +1,4 @@
+import { FormatMoney } from "../../73_ZRSJZ/Scripts/ZRSJZ_NumberFormat";
 import { ZRSJZ_PROP_QUALITY } from '../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
 
 export type ZRSJZ_MysteryBoxType = "普通箱" | "精品箱" | "极品箱";
@@ -66,10 +67,4 @@ export const ZRSJZ_MYSTERY_BOX_QUALITY_RANK: Record<string, number> = {
     [ZRSJZ_PROP_QUALITY.红色]: 6,
 };
 
-export function FormatMysteryBoxValue(value: number): string {
-    const safeValue = Math.max(0, Math.floor(value));
-    if (safeValue < 10000) return safeValue.toString();
-
-    const wan = safeValue / 10000;
-    return `${wan >= 100 ? wan.toFixed(0) : wan.toFixed(1).replace(/\.0$/, "")}万`;
-}
+export function FormatMysteryBoxValue(value: number, exact: boolean = false): string { return FormatMoney(value, exact); }

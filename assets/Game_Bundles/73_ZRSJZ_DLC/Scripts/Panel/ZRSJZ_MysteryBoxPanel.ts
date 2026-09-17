@@ -156,7 +156,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
                 ?.getComponent(Label);
             if (priceLabel) {
                 priceLabel.string = FormatMysteryBoxValue(
-                    ZRSJZ_MYSTERY_BOX_CONFIG[type].price
+                    ZRSJZ_MYSTERY_BOX_CONFIG[type].price, true
                 );
             }
         }
@@ -229,7 +229,7 @@ export class ZRSJZ_MysteryBoxPanel extends ZRSJZ_Panel {
         this.RefreshStatistics();
         this._isOpening = false;
         this.SetOpenButtonText(
-            `再来一次(${FormatMysteryBoxValue(config.price)})`
+            `再来一次(${FormatMysteryBoxValue(config.price, true)})`
         );
     }
 

@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_PET_SKILL_EFFECT_CONFIG, ZRSJZ_PetBattleSkillConfig, ZRSJZ_PET_CONFIG, ZRSJZ_PET_GENE_CONFIG, ZRSJZ_PET_SKIN_CONFIG, ZRSJZ_PET_SKILL_CONFIG, ZRSJZ_PROP_CONFIG, ZRSJZ_PetGeneConfig, ZRSJZ_PetPlayerBonus } from "../ZRSJZ_Constant";
 import { ZRSJZ_InventoryService } from "./ZRSJZ_InventoryService";
@@ -261,7 +262,7 @@ export class ZRSJZ_PetService {
         const separator = condition.indexOf("x");
         const resource = (separator < 0 ? condition : condition.slice(0, separator)).trim();
         const label = separator < 0 ? "" : condition.slice(separator + 1).trim();
-        return { resource, label, count: Number(label) };
+        return { resource, label: resource === "金币" ? FormatMoney(Number(label), true) : label, count: Number(label) };
     }
 
     public static TryUnlockSkin(petName: string, skinName: string, videoRewarded: boolean = false): string {
@@ -295,7 +296,7 @@ export class ZRSJZ_PetService {
     public static GetUnlockLabel(petName: string): string {
         const config = ZRSJZ_PET_CONFIG.get(petName);
         if (!config) return "无法解锁";
-        if (config.PetUnlock === "金币解锁") return `${config.PetUnlockValue ?? 0}金币解锁`;
+        if (config.PetUnlock === "金币解锁") return `${FormatMoney(config.PetUnlockValue ?? 0, true)}金币解锁`;
         if (config.PetUnlock === "等级解锁") return `${config.PetUnlockValue ?? 0}级解锁`;
         if (config.PetUnlock === "宠物碎片解锁") return `${config.PetUnlockValue ?? 0}宠物碎片解锁`;
         return config.PetUnlock || "免费解锁";

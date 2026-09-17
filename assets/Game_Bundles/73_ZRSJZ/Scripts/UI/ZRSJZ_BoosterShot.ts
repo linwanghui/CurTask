@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { _decorator, Component, EventTouch, find, Label, Node, Sprite } from 'cc';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import Banner from 'db://assets/Scripts/Banner';
@@ -111,12 +112,7 @@ export class ZRSJZ_BoosterShot extends Component {
         }
     }
 
-    FormatAssetValue(value: number): string {
-        const safeValue = Math.max(0, Math.floor(Number(value) || 0));
-        if (safeValue >= 100000000) return `${(safeValue / 10000000)}亿`;
-        if (safeValue >= 10000) return `${(safeValue / 10000)}万`;
-        return safeValue.toString();
-    }
+    FormatAssetValue(value: number): string { return FormatMoney(value, true); }
 
 }
 

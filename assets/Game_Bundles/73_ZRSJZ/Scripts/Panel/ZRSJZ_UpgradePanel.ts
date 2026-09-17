@@ -1,3 +1,4 @@
+import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { _decorator, Button, Color, Label, Node, ScrollView, Sprite, SpriteFrame, UITransform, Vec2 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_ENHANCEMENT_NODES, ZRSJZ_ENHANCEMENT_STATS, EnhancementStat } from '../ZRSJZ_EnhancementConfig';
@@ -124,7 +125,7 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
             : `累计 ${Upgrade.Format(config.Stat, Upgrade.GetBonus(config.Stat))} → ${Upgrade.Format(config.Stat, Upgrade.GetBonus(config.Stat) + config.Value)}`);
         this.Text('Desc/Description', stat.Description);
         const free = Upgrade.FreeUpgradeEnabled, gold = free ? 0 : config.Gold;
-        this.Text('Desc/Gold', `${this.Money(ZRSJZ_GameData.Instance.Gold)} / ${this.Money(gold)}`).color = ZRSJZ_GameData.Instance.Gold >= gold ? ZRSJZ_UpgradePanel.ENOUGH : ZRSJZ_UpgradePanel.LACK;
+        this.Text('Desc/Gold', `${this.Money(ZRSJZ_GameData.Instance.Gold)} / ${FormatMoney(gold, true)}`).color = ZRSJZ_GameData.Instance.Gold >= gold ? ZRSJZ_UpgradePanel.ENOUGH : ZRSJZ_UpgradePanel.LACK;
         this.Text('Desc/Requirement', owned ? '该强化已永久生效' : available ? (free ? '本次游戏免费：免材料、免金币' : '消耗以下材料与金币') : config.Special ? `强化达到 Lv.${config.Level} 后可解锁` : `需先完成路线 Lv.${config.Level - 1}`);
         this.Text('Desc/Upgrade/Text', owned ? '已强化' : available ? (free ? '免费强化' : '解锁') : '未解锁');
         const upgradeButton = this.At('Desc/Upgrade');
@@ -173,5 +174,5 @@ export class ZRSJZ_UpgradePanel extends ZRSJZ_Panel {
             .finally(() => { this.materialSetup = null; });
         return this.materialSetup;
     }
-    private Money(value: number): string { return value >= 10000 ? `${Number((value / 10000).toFixed(2))}万` : `${value}`; }
+    private Money(value: number): string { return FormatMoney(value); }
 }
