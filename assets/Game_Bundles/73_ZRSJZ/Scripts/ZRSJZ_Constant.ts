@@ -1190,7 +1190,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         NormalAttack: {
             Name: "普通攻击",
             Range: 300,
-            DamageRange: 500,
+            DamageRange: 700,
             Damage: 12,
             Cooldown: 2.6,
             Animation: "pg",
@@ -1227,7 +1227,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         NormalAttack: {
             Name: "普通攻击",
             Range: 300,
-            DamageRange: 500,
+            DamageRange: 700,
             Damage: 9,
             Cooldown: 2.2,
             Animation: "atk1",
@@ -1264,7 +1264,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         NormalAttack: {
             Name: "普通攻击",
             Range: 300,
-            DamageRange: 500,
+            DamageRange: 700,
             Damage: 14,
             Cooldown: 3,
             Animation: "atk1",
@@ -1274,7 +1274,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         Skills: [{
             Name: "超级炸弹",
             Range: 400,
-            DamageRange: 700,
+            DamageRange: 1000,
             Damage: 45,
             Cooldown: 10,
             Animation: "atk2",
@@ -1380,10 +1380,10 @@ export interface ZRSJZ_ParacargoConfig {
 
 /** 轰炸区刷新配置；所有随机时间均为闭区间内的均匀随机。 */
 export const ZRSJZ_BOMB_PLOT_SPAWN_CONFIG = Object.freeze({
-    FirstSpawnMinSeconds: 60,
-    FirstSpawnMaxSeconds: 90,
-    RepeatSpawnMinSeconds: 60,
-    RepeatSpawnMaxSeconds: 90,
+    FirstSpawnMinSeconds: 120,
+    FirstSpawnMaxSeconds: 180,
+    RepeatSpawnMinSeconds: 120,
+    RepeatSpawnMaxSeconds: 180,
 });
 
 export interface ZRSJZ_MapConfig {
@@ -1567,8 +1567,6 @@ export const ZRSJZ_THEME_BOX_LOOT_CONFIG: ReadonlyArray<{
     Name: string; MinCount: number; MaxCount: number; QualityBonus: number; GuaranteedTypes: readonly string[];
 }> = [
         { "Name": "沙漠_土罐", "MinCount": 1, "MaxCount": 3, "QualityBonus": -1, "GuaranteedTypes": [] },
-        { "Name": "沙漠_宝箱1", "MinCount": 3, "MaxCount": 5, "QualityBonus": 1, "GuaranteedTypes": [] },
-        { "Name": "沙漠_宝箱2", "MinCount": 4, "MaxCount": 6, "QualityBonus": 2, "GuaranteedTypes": [] },
         { "Name": "沙漠_床头柜", "MinCount": 2, "MaxCount": 4, "QualityBonus": 0, "GuaranteedTypes": [] },
         { "Name": "沙漠_石棺1", "MinCount": 3, "MaxCount": 5, "QualityBonus": 0, "GuaranteedTypes": [] },
         { "Name": "沙漠_石棺2", "MinCount": 4, "MaxCount": 6, "QualityBonus": 1, "GuaranteedTypes": [] },
@@ -1579,7 +1577,6 @@ export const ZRSJZ_THEME_BOX_LOOT_CONFIG: ReadonlyArray<{
         { "Name": "雪地_抽屉", "MinCount": 2, "MaxCount": 4, "QualityBonus": 0, "GuaranteedTypes": [] },
         { "Name": "雪地_木桶", "MinCount": 1, "MaxCount": 3, "QualityBonus": -1, "GuaranteedTypes": [] },
         { "Name": "雪地_水晶箱", "MinCount": 4, "MaxCount": 6, "QualityBonus": 2, "GuaranteedTypes": [] },
-        { "Name": "雪地_科技箱", "MinCount": 3, "MaxCount": 5, "QualityBonus": 1, "GuaranteedTypes": [] },
         { "Name": "雪地_篮子", "MinCount": 1, "MaxCount": 3, "QualityBonus": -1, "GuaranteedTypes": [] },
         { "Name": "雪地_衣柜", "MinCount": 2, "MaxCount": 4, "QualityBonus": 0, "GuaranteedTypes": ["防弹衣"] },
         { "Name": "雪地_货箱", "MinCount": 3, "MaxCount": 6, "QualityBonus": 0, "GuaranteedTypes": ["弹药"] },
@@ -1620,7 +1617,7 @@ function CreateMapModeConfig(
         ZRSJZ_PROP_CONFIG.get(propName)?.PropType !== "物品"
     );
     const paracargoConfig: ZRSJZ_ParacargoConfig = {
-        SpawnTimeSeconds: mapKey === "新手村" ? 0 : ZRSJZ_PARACARGO_SPAWN_TIMES[modeIndex],
+        SpawnTimeSeconds: mapKey === "新手村" || Math.random() > 0.5 ? 0 : ZRSJZ_PARACARGO_SPAWN_TIMES[modeIndex],
         DropHeight: 1800,
         DropDuration: Math.max(3, 5 - modeIndex * 0.25),
         MinPropCount: 5 + Math.floor(modeIndex / 2),
