@@ -1,4 +1,4 @@
-import { _decorator, Collider2D, BoxCollider2D, CircleCollider2D, PolygonCollider2D, Intersection2D, Color, Component, Node, PhysicsSystem2D, Rect, RigidBody2D, tween, Tween, v3, Vec2, Vec3 } from 'cc';
+import { _decorator, Collider2D, Color, Component, Node, PhysicsSystem2D, Rect, RigidBody2D, tween, Tween, v3, Vec2, Vec3 } from 'cc';
 import {
     ZRSJZ_ANI,
     ZRSJZ_BoxConfig,
@@ -1003,21 +1003,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         const radius = Math.max(1, ZRSJZ_PATH_CONFIG.AgentRadius);
         const offsetY = ZRSJZ_PATH_CONFIG.AgentOffsetY;
         const bounds = new Rect(candidate.x - radius, candidate.y + offsetY - radius, radius * 2, radius * 2);
-        const blocked = PhysicsSystem2D.instance.testAABB(bounds).some(collider => {
-            if (!collider.enabledInHierarchy || collider.sensor || (collider.group & ZRSJZ_TIER.地形) === 0) return false;
-            // testAABB 只返回粗略包围盒候选；凹形墙的包围盒也覆盖可走空地。
-            // 再检查真实形状，避免空地被误判后敌人一直原地等候。
-            if (collider instanceof BoxCollider2D || collider instanceof PolygonCollider2D) {
-                return Intersection2D.rectPolygon(bounds, collider.worldPoints);
-            }
-            if (collider instanceof CircleCollider2D) {
-                const center = collider.worldPosition;
-                const dx = center.x - Math.max(bounds.x, Math.min(bounds.xMax, center.x));
-                const dy = center.y - Math.max(bounds.y, Math.min(bounds.yMax, center.y));
-                return dx * dx + dy * dy <= collider.worldRadius * collider.worldRadius;
-            }
-            return true;
-        });
+        const blocked = PhysicsSystem2D.instance.testAABB(bounds).some(collider =>
+            collider.enabledInHierarchy && !collider.sensor && (collider.group & ZRSJZ_TIER.地形) !== 0);
         if (blocked) return false;
         return ZRSJZ_PathFinder.HasDirectPath(this.node.worldPosition, candidate,
             ZRSJZ_TIER.地形, radius, offsetY, 1);

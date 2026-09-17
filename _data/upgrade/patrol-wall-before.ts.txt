@@ -1,4 +1,4 @@
-import { _decorator, Collider2D, BoxCollider2D, CircleCollider2D, PolygonCollider2D, Intersection2D, Color, Component, Node, PhysicsSystem2D, Rect, RigidBody2D, tween, Tween, v3, Vec2, Vec3 } from 'cc';
+import { _decorator, Collider2D, Color, Component, Node, RigidBody2D, tween, Tween, v3, Vec2, Vec3 } from 'cc';
 import {
     ZRSJZ_ANI,
     ZRSJZ_BoxConfig,
@@ -188,9 +188,6 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     private _worldPosition: Vec3 = new Vec3();
     private _moveVelocity: Vec2 = new Vec2();
     private _patrolWaitRemaining: number = 0;
-    private _patrolProgressTime = 0;
-    private _patrolBlockedTime = 0;
-    private _patrolLastPosition = new Vec3();
     private _targetSearchRemaining: number = 0;
     private _attackCooldown: number = 0;
     private _animationName: string = '';
@@ -373,22 +370,6 @@ export abstract class ZRSJZ_EnemyBase extends Component {
                 this.SelectNextPatrolPoint();
             }
             return;
-        }
-
-        // 独立于 A* 的卡住计时，避免 BuildPath 重置检测后无限重试同一巡逻点。
-        this._patrolProgressTime += Math.max(0, dt);
-        const interval = Math.max(0.25, ZRSJZ_PATH_CONFIG.StuckCheckInterval);
-        if (this._patrolProgressTime >= interval) {
-            const moved = Vec3.distance(current, this._patrolLastPosition);
-            this._patrolBlockedTime = moved < Math.max(1, ZRSJZ_PATH_CONFIG.StuckDistance)
-                ? this._patrolBlockedTime + this._patrolProgressTime : 0;
-            this._patrolProgressTime = 0;
-            this._patrolLastPosition.set(current);
-            if (this._patrolBlockedTime >= Math.max(1, ZRSJZ_PATH_CONFIG.StuckTime)) {
-                this.StopMoving();
-                this.SelectNextPatrolPoint();
-                return;
-            }
         }
 
         this.NavigateTo(
@@ -998,38 +979,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.EnemySkeleton.HasDirection = true;
     }
 
-    /** 仅用于巡逻选点：检查完整身体宽度和落点空间，不改变追击寻路。 */
-    private CanPatrolTo(candidate: Readonly<Vec3>): boolean {
-        const radius = Math.max(1, ZRSJZ_PATH_CONFIG.AgentRadius);
-        const offsetY = ZRSJZ_PATH_CONFIG.AgentOffsetY;
-        const bounds = new Rect(candidate.x - radius, candidate.y + offsetY - radius, radius * 2, radius * 2);
-        const blocked = PhysicsSystem2D.instance.testAABB(bounds).some(collider => {
-            if (!collider.enabledInHierarchy || collider.sensor || (collider.group & ZRSJZ_TIER.地形) === 0) return false;
-            // testAABB 只返回粗略包围盒候选；凹形墙的包围盒也覆盖可走空地。
-            // 再检查真实形状，避免空地被误判后敌人一直原地等候。
-            if (collider instanceof BoxCollider2D || collider instanceof PolygonCollider2D) {
-                return Intersection2D.rectPolygon(bounds, collider.worldPoints);
-            }
-            if (collider instanceof CircleCollider2D) {
-                const center = collider.worldPosition;
-                const dx = center.x - Math.max(bounds.x, Math.min(bounds.xMax, center.x));
-                const dy = center.y - Math.max(bounds.y, Math.min(bounds.yMax, center.y));
-                return dx * dx + dy * dy <= collider.worldRadius * collider.worldRadius;
-            }
-            return true;
-        });
-        if (blocked) return false;
-        return ZRSJZ_PathFinder.HasDirectPath(this.node.worldPosition, candidate,
-            ZRSJZ_TIER.地形, radius, offsetY, 1);
-    }
-
     private SelectNextPatrolPoint(): void {
-        // 新巡逻点不能继续使用旧目标的路径、速度或卡住计时。
-        this.StopMoving();
-        this.ClearNavigation();
-        this._patrolProgressTime = 0;
-        this._patrolBlockedTime = 0;
-        this._patrolLastPosition.set(this.node.worldPosition);
         const radius = Math.max(0, this.EnemyConfig.PatrolRadius);
         const candidate = new Vec3();
 
@@ -1042,8 +992,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
                 this._patrolCenter.y + Math.sin(angle) * distance,
                 this._patrolCenter.z,
             );
-            if (Vec3.distance(this.node.worldPosition, candidate) > Math.max(0, this.EnemyConfig.PatrolArriveDistance)
-                && this.CanPatrolTo(candidate)) {
+            if (this.HasDirectPath(candidate)) {
                 this._patrolTarget.set(candidate);
                 return;
             }
@@ -1051,7 +1000,6 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         // 周围暂时没有合适位置时留在原地，等待下一轮重新选择。
         this._patrolTarget.set(this.node.worldPosition);
-        this._patrolWaitRemaining = Math.max(0.25, this.EnemyConfig.PatrolWaitTime);
     }
 
     private TryAttack(): void {
