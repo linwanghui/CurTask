@@ -146,6 +146,7 @@ export class ZRSJZ_GameDataDefaults {
 
     //需要更新的数据 
     private static readonly DataDefaults: Map<number, { Key: string, DefaultVaule: any }[]> = new Map([
+        [12, [{ Key: "NoticeClosedDate", DefaultVaule: "" }]],
         [11, [
             { Key: "MerchantPurchaseDate", DefaultVaule: "" },
             { Key: "MerchantPurchaseCount", DefaultVaule: 0 },
