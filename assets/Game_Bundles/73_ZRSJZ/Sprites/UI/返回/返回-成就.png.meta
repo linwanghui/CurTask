@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "54fc7e6f-48b5-4c0e-b570-81be846b597b",
+  "uuid": "6a7d34b5-ab9c-46aa-be03-d3112c3571eb",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "54fc7e6f-48b5-4c0e-b570-81be846b597b@6c48a",
-      "displayName": "经验条",
+      "uuid": "6a7d34b5-ab9c-46aa-be03-d3112c3571eb@6c48a",
+      "displayName": "返回-成就",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "54fc7e6f-48b5-4c0e-b570-81be846b597b",
+        "imageUuidOrDatabaseUri": "6a7d34b5-ab9c-46aa-be03-d3112c3571eb",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "54fc7e6f-48b5-4c0e-b570-81be846b597b@f9941",
-      "displayName": "经验条",
+      "uuid": "6a7d34b5-ab9c-46aa-be03-d3112c3571eb@f9941",
+      "displayName": "返回-成就",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 260,
-        "height": 36,
-        "rawWidth": 260,
-        "rawHeight": 36,
+        "width": 342,
+        "height": 105,
+        "rawWidth": 342,
+        "rawHeight": 105,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -130,
-            -18,
+            -171,
+            -52.5,
             0,
-            130,
-            -18,
+            171,
+            -52.5,
             0,
-            -130,
-            18,
+            -171,
+            52.5,
             0,
-            130,
-            18,
+            171,
+            52.5,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            36,
-            260,
-            36,
+            105,
+            342,
+            105,
             0,
             0,
-            260,
+            342,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -130,
-            -18,
+            -171,
+            -52.5,
             0
           ],
           "maxPos": [
-            130,
-            18,
+            171,
+            52.5,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "54fc7e6f-48b5-4c0e-b570-81be846b597b@6c48a",
+        "imageUuidOrDatabaseUri": "6a7d34b5-ab9c-46aa-be03-d3112c3571eb@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "54fc7e6f-48b5-4c0e-b570-81be846b597b@6c48a"
+    "redirect": "6a7d34b5-ab9c-46aa-be03-d3112c3571eb@6c48a"
   }
 }

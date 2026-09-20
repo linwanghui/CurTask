@@ -2,6 +2,8 @@ import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_AccountService } from './ZRSJZ_AccountService';
 import { ZRSJZ_ACHIEVEMENT_CONFIG, ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG, ZRSJZ_AchievementConfig, ZRSJZ_AchievementReward, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_InventoryService } from './ZRSJZ_InventoryService';
+import { ZRSJZ_TitleService } from './ZRSJZ_TitleService';
+import { ZRSJZ_AvatarFrameService } from './ZRSJZ_AvatarFrameService';
 
 /** 记录成就进度、完成状态和领奖；配置统一来自 ZRSJZ_Constant。 */
 export class ZRSJZ_AchievementService {
@@ -50,6 +52,14 @@ export class ZRSJZ_AchievementService {
     }
     public static GetCompletionPercent(): number { return Math.floor(this.GetCompletedCount() * 100 / this.Items.length); }
 
+    /** 主页提醒包含成就条目和当前宝箱阶段的可领取奖励。 */
+    public static HasClaimableRewards(): boolean {
+        this.SyncCompleted();
+        const claimed = ZRSJZ_GameData.Instance.AchievementClaimed ?? [];
+        return this.Items.some(item => !claimed.includes(item.id) && this.IsCompleted(item))
+            || this.GetMilestoneState(this.GetNextMilestone()) === 'claimable';
+    }
+
     public static Claim(id: string): boolean {
         this.SyncCompleted();
         const item = this.Items.find(config => config.id === id);
@@ -65,14 +75,15 @@ export class ZRSJZ_AchievementService {
     public static ClaimAll(): number {
         let count = 0;
         for (const item of this.Items) if (this.Claim(item.id)) count++;
-        for (const percent of this.Milestones) if (this.ClaimMilestone(percent)) count++;
+        // 里程碑由宝箱逐档领取，避免一键领取让宝箱跨过多个阶段。
         return count;
     }
 
     public static ClaimMilestone(percent: number): boolean {
         const data = ZRSJZ_GameData.Instance;
         const config = ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG.find(item => item.percent === percent);
-        if (!config || this.GetMilestoneState(percent) !== 'claimable' || !this.ValidateRewards(config.rewards)) return false;
+        if (!config || percent !== this.GetNextMilestone()
+            || this.GetMilestoneState(percent) !== 'claimable' || !this.ValidateRewards(config.rewards)) return false;
         data.AchievementMilestonesClaimed ??= [];
         data.AchievementMilestonesClaimed.push(percent);
         this.GrantRewards(config.rewards);
@@ -84,11 +95,10 @@ export class ZRSJZ_AchievementService {
         return this.Milestones.includes(percent) && this.GetCompletionPercent() >= percent ? 'claimable' : 'locked';
     }
 
-    /** 点击进度条时，优先领取最早达标的未领奖阶段。 */
+    /** 始终停在最早未领取的阶段，完成度增加不会使宝箱跳档。 */
     public static GetNextMilestone(): number {
         const ordered = [...this.Milestones].sort((a, b) => a - b);
-        return ordered.find(value => this.GetMilestoneState(value) === 'claimable')
-            ?? ordered.find(value => this.GetMilestoneState(value) === 'locked')
+        return ordered.find(value => !ZRSJZ_GameData.Instance.AchievementMilestonesClaimed?.includes(value))
             ?? ordered[ordered.length - 1];
     }
 
@@ -117,16 +127,17 @@ export class ZRSJZ_AchievementService {
 
     private static GrantRewards(rewards: readonly ZRSJZ_AchievementReward[]): void {
         const data = ZRSJZ_GameData.Instance;
-        data.OwnedTitles ??= [];
         data.OwnedAvatarFrames ??= ['1'];
         for (const reward of rewards) {
             switch (reward.type) {
                 case '钞票': ZRSJZ_AccountService.ChangeGold(reward.count); break;
                 case '道具': ZRSJZ_InventoryService.AddPropsToWarehouseByName(reward.name, reward.count); break;
-                case '称号': if (!data.OwnedTitles.includes(reward.name)) data.OwnedTitles.push(reward.name); break;
-                case '头像框': if (!data.OwnedAvatarFrames.includes(reward.id)) data.OwnedAvatarFrames.push(reward.id); break;
+                case '称号': break; // 领取记录写入后，由统一条件检查解锁。
+                case '头像框': break; // 头像框按统一条件解锁，不绕过 Boss/视频条件。
             }
         }
+        ZRSJZ_TitleService.SyncUnlocks(false);
+        ZRSJZ_AvatarFrameService.SyncUnlocks(false);
         ZRSJZ_GameData.SaveData();
     }
 
@@ -136,6 +147,7 @@ export class ZRSJZ_AchievementService {
         data.AchievementProgress ??= {};
         data.AchievementProgress[id] = Math.max(0, data.AchievementProgress[id] || 0) + amount;
         this.SyncCompleted(false);
+        ZRSJZ_TitleService.SyncUnlocks(false);
         ZRSJZ_GameData.SaveData();
     }
     private static Max(id: string, value: number): void {

@@ -208,8 +208,11 @@ export class ZRSJZ_Start extends Component {
             case "设置":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.设置界面);
                 break;
-            case "等级":
+            case "头像":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.等级弹窗);
+                break;
+            case "称号":
+                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.称号弹窗);
                 break;
             case "邮件":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.邮件界面);
@@ -342,7 +345,7 @@ export class ZRSJZ_Start extends Component {
         }
         if (!ZRSJZ_UIManager.ZRSJZ_UI || !isValid(this.UIPanel, true)) return;
         if (this._mainReminderNodes.size === 0) {
-            const names = new Set(['宠物', '活动']);
+            const names = new Set(['宠物', '活动', '成就']);
             // 只匹配主页按钮，避免把同名宠物展示节点作为入口。
             for (const button of this.UIPanel.getComponentsInChildren(Button)) {
                 const target = button.node;

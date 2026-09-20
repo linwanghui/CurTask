@@ -7,22 +7,24 @@ import {
 } from '../Service/ZRSJZ_GradeService';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_GetExpPanel } from '../Panel/ZRSJZ_GetExpPanel';
+import { ZRSJZ_ProfileAppearance } from './ZRSJZ_ProfileAppearance';
+import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_GradeUI')
 export class ZRSJZ_GradeUI extends Component {
-    private _icon: Sprite = null;
+    private _appearance: ZRSJZ_ProfileAppearance = null;
     private _roleName: Label = null;
     private _grade: Label = null;
     private _progress: Sprite = null;
     private _experience: Label = null;
-    private _iconRequestVersion: number = 0;
     private _isExperienceAnimating: boolean = false;
     private _experienceAnimationQueue: ZRSJZ_ExperienceAddedInfo[] = [];
     private readonly _experienceTweenValue = { value: 0 };
+    private _appearanceTimer = 0;
 
     protected onLoad(): void {
-        this._icon = this.node.getChildByName("Icon")?.getComponent(Sprite) ?? null;
+        this._appearance = new ZRSJZ_ProfileAppearance(this.node, ZRSJZ_PANEL.等级弹窗);
         this._roleName = this.node.getChildByName("Name")?.getComponent(Label) ?? null;
         this._grade = this.node.getChildByName("等级")?.getComponent(Label) ?? null;
         this._progress = this.node.getChildByName("进度")?.getComponent(Sprite) ?? null;
@@ -30,6 +32,7 @@ export class ZRSJZ_GradeUI extends Component {
     }
 
     protected onEnable(): void {
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.Refresh, this);
         ZRSJZ_EventManager.OnPersist(
             ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE,
             this.Refresh,
@@ -45,7 +48,8 @@ export class ZRSJZ_GradeUI extends Component {
 
     protected onDisable(): void {
         ZRSJZ_GradeService.FlushOnlineTime();
-        ++this._iconRequestVersion;
+        this._appearance?.Suspend();
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.Refresh, this);
         ZRSJZ_EventManager.OffPersist(
             ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE,
             this.Refresh,
@@ -66,23 +70,16 @@ export class ZRSJZ_GradeUI extends Component {
         const gradeInfo = ZRSJZ_GradeService.GetGradeInfo();
         if (this._roleName) this._roleName.string = roleName;
         if (!this._isExperienceAnimating) this.ApplyGradeInfo(gradeInfo);
-        void this.RefreshRoleIcon(roleName);
+        this._appearance?.Refresh();
     }
 
     protected update(deltaTime: number): void {
         ZRSJZ_GradeService.UpdateOnlineTime(deltaTime);
+        this._appearanceTimer += deltaTime;
+        if (this._appearanceTimer >= 1) { this._appearanceTimer = 0; this._appearance?.Refresh(); }
     }
 
-    private async RefreshRoleIcon(roleName: string): Promise<void> {
-        const requestVersion = ++this._iconRequestVersion;
-        const spriteFrame = await ZRSJZ_GradeService.GetSelectedAvatar(roleName);
-        if (
-            requestVersion !== this._iconRequestVersion
-            || !this._icon?.node?.isValid
-            || ZRSJZ_GameData.Instance.CurRole?.[0] !== roleName
-        ) return;
-        if (spriteFrame) this._icon.spriteFrame = spriteFrame;
-    }
+    protected onDestroy(): void { this._appearance?.Dispose(); }
 
     private OnExperienceAdded(changeInfo: ZRSJZ_ExperienceAddedInfo): void {
         if (!changeInfo || changeInfo.Amount <= 0) return;

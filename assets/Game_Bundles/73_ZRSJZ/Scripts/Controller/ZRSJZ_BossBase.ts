@@ -10,6 +10,7 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
+import { ZRSJZ_TitleService } from '../Service/ZRSJZ_TitleService';
 import { ZRSJZ_TaskService } from '../Service/ZRSJZ_TaskService';
 import { ZRSJZ_OnlineCombat as Coop } from '../Service/ZRSJZ_OnlineCombat';
 import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
@@ -202,6 +203,16 @@ export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
         if (this.IsDead) return;
         this.CancelActiveAttack();
         super.Die();
+        if (!ZRSJZ_Game.Instance?.IsTutorial) ZRSJZ_TitleService.RecordBossDefeated(this.EnemyName.trim() || this.node.name);
+        if (!ZRSJZ_Game.Instance?.IsTutorial) {
+            const data = ZRSJZ_GameData.Instance;
+            const difficulty = ZRSJZ_MAP_CONFIG.get(data.CurMap)?.Difficulty;
+            data.AvatarFrameBossDifficulties ??= [];
+            if (difficulty && !data.AvatarFrameBossDifficulties.includes(difficulty)) {
+                data.AvatarFrameBossDifficulties.push(difficulty);
+                ZRSJZ_GameData.SaveData();
+            }
+        }
         ZRSJZ_Game.Instance?.RecordBossDefeated();
         ZRSJZ_TaskService.CompleteTask(`打败[${ZRSJZ_GameData.Instance.CurMap}]Boss`, 1);
         ZRSJZ_TaskService.RecordBoss(ZRSJZ_GameData.Instance.CurMap);

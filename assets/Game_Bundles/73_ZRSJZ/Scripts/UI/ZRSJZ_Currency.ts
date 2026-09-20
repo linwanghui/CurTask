@@ -24,16 +24,15 @@ export class ZRSJZ_Currency extends Component {
 
     protected start(): void {
         this.Show();
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.Show, this);
     }
 
     protected onEnable(): void {
         ZRSJZ_UIManager.Instance.AddCurrency(this.node);
-        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.Show, this);
     }
 
     protected onDisable(): void {
         ZRSJZ_UIManager.Instance?.RemoveCurrency(this.node);
-        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.Show, this);
     }
 
     Show() {

@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "54fc7e6f-48b5-4c0e-b570-81be846b597b",
+  "uuid": "af6104dc-2251-4f69-bbe3-1b80f1341300",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "54fc7e6f-48b5-4c0e-b570-81be846b597b@6c48a",
-      "displayName": "经验条",
+      "uuid": "af6104dc-2251-4f69-bbe3-1b80f1341300@6c48a",
+      "displayName": "勇者",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "54fc7e6f-48b5-4c0e-b570-81be846b597b",
+        "imageUuidOrDatabaseUri": "af6104dc-2251-4f69-bbe3-1b80f1341300",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "54fc7e6f-48b5-4c0e-b570-81be846b597b@f9941",
-      "displayName": "经验条",
+      "uuid": "af6104dc-2251-4f69-bbe3-1b80f1341300@f9941",
+      "displayName": "勇者",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 260,
-        "height": 36,
-        "rawWidth": 260,
-        "rawHeight": 36,
+        "width": 216,
+        "height": 66,
+        "rawWidth": 216,
+        "rawHeight": 66,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -130,
-            -18,
+            -108,
+            -33,
             0,
-            130,
-            -18,
+            108,
+            -33,
             0,
-            -130,
-            18,
+            -108,
+            33,
             0,
-            130,
-            18,
+            108,
+            33,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            36,
-            260,
-            36,
+            66,
+            216,
+            66,
             0,
             0,
-            260,
+            216,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -130,
-            -18,
+            -108,
+            -33,
             0
           ],
           "maxPos": [
-            130,
-            18,
+            108,
+            33,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "54fc7e6f-48b5-4c0e-b570-81be846b597b@6c48a",
+        "imageUuidOrDatabaseUri": "af6104dc-2251-4f69-bbe3-1b80f1341300@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "54fc7e6f-48b5-4c0e-b570-81be846b597b@6c48a"
+    "redirect": "af6104dc-2251-4f69-bbe3-1b80f1341300@6c48a"
   }
 }
