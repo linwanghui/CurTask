@@ -64,16 +64,13 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
             this.filter = index ? 'completed' : 'all';
             this.Refresh();
         }));
-        this.milestones = ZRSJZ_AchievementService.Milestones.map(percent => {
-            const node = this.Panel.getChildByName('里程碑' + percent);
-            this.Click(node, () => this.ClaimMilestone(percent));
-            return node;
-        });
+        this.milestones = ZRSJZ_AchievementService.Milestones.map(percent =>
+            this.Panel.getChildByName('里程碑' + percent));
         this.Click(this.Panel.getChildByName('进度框').getChildByName('进度领奖区域'), () =>
             this.ClaimMilestone(ZRSJZ_AchievementService.GetNextMilestone()));
         this.Click(this.progress.node, () => this.ClaimMilestone(ZRSJZ_AchievementService.GetNextMilestone()));
         this.Click(this.Panel.getChildByName('宝箱'), () =>
-            this.ClaimMilestone(ZRSJZ_AchievementService.Milestones[1] ?? ZRSJZ_AchievementService.Milestones[0]));
+            this.ClaimMilestone(ZRSJZ_AchievementService.GetNextMilestone()));
         this.Click(this.claimAll, () => {
             const count = ZRSJZ_AchievementService.ClaimAll();
             ZRSJZ_UIManager.Instance.ShowTip(count ? '已领取' + count + '份奖励' : '暂无可领取奖励');
@@ -95,7 +92,7 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
     private Refresh(): void {
         const completed = ZRSJZ_AchievementService.GetCompletedCount();
         const data = ZRSJZ_GameData.Instance;
-        const percent = this.UpdateProgress(completed, ZRSJZ_AchievementService.Items.length, data.AchievementMilestonesClaimed);
+        this.UpdateProgress(completed, ZRSJZ_AchievementService.Items.length, data.AchievementMilestonesClaimed);
         this.tabs.forEach((tab, index) => {
             const selected = (this.filter === 'completed') === (index === 1);
             tab.getChildByName(index ? '已完成选中' : '全部选中').active = selected;
@@ -103,8 +100,7 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
                 ? new Color(255, 255, 255) : new Color(29, 37, 44);
         });
         const canClaim = ZRSJZ_AchievementService.Items.some(item =>
-            ZRSJZ_AchievementService.IsCompleted(item) && !data.AchievementClaimed.includes(item.id))
-            || ZRSJZ_AchievementService.Milestones.some(value => percent >= value && !data.AchievementMilestonesClaimed.includes(value));
+            ZRSJZ_AchievementService.IsCompleted(item) && !data.AchievementClaimed.includes(item.id));
         (this.claimAll.getComponent(UIOpacity) ?? this.claimAll.addComponent(UIOpacity)).opacity = canClaim ? 255 : 150;
         const items = ZRSJZ_AchievementService.Items.filter(item => this.filter === 'all' || ZRSJZ_AchievementService.IsCompleted(item));
         this.content.children.forEach(row => row.active = false);
@@ -132,8 +128,14 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
             (node.getComponent(UIOpacity) ?? node.addComponent(UIOpacity)).opacity = claimed.includes(milestone) ? 150 : 255;
         });
         const chest = this.Panel.getChildByName('宝箱');
-        const chestMilestone = ZRSJZ_AchievementService.Milestones[1] ?? ZRSJZ_AchievementService.Milestones[0];
-        chest.setPosition(left + width * chestMilestone / 100, chest.position.y, chest.position.z);
+        const chestMilestone = [...ZRSJZ_AchievementService.Milestones]
+            .sort((a, b) => a - b).find(value => !claimed.includes(value));
+        chest.active = chestMilestone !== undefined;
+        if (chest.active) chest.setPosition(left + width * chestMilestone / 100, chest.position.y, chest.position.z);
+        const chestClaimable = chest.active && percent >= chestMilestone;
+        const chestSprite = chest.getComponent(Sprite);
+        chestSprite.grayscale = !chestClaimable;
+        chestSprite.color = chestClaimable ? new Color(255, 255, 255) : new Color(150, 150, 150);
         return percent;
     }
     private ResetList(count: number): void {
@@ -150,14 +152,20 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
             row.parent = this.content;
         }
         row.setPosition(18, -83 - index * 184);
+        const referenceRow = this.content.getChildByName('成就-初入战场');
+        if (referenceRow && referenceRow !== row) {
+            for (const name of ['已领取', '前往']) {
+                row.getChildByName(name).setPosition(referenceRow.getChildByName(name).position);
+            }
+        }
         row.active = true;
-        row.getComponent(Sprite).spriteFrame = completed && !claimed && this.completedBackground
+        row.getComponent(Sprite).spriteFrame = completed && this.completedBackground
             ? this.completedBackground : this.normalBackground;
         const number = row.getChildByName('序号');
-        number.getComponent(Sprite).spriteFrame = completed && !claimed ? this.completedNumberFrame : this.normalNumberFrame;
+        number.getComponent(Sprite).spriteFrame = completed ? this.completedNumberFrame : this.normalNumberFrame;
         const numberLabel = number.getChildByName('数字').getComponent(Label);
         numberLabel.string = String(index + 1);
-        numberLabel.color = completed && !claimed ? new Color(29, 37, 44) : new Color(255, 255, 255);
+        numberLabel.color = completed ? new Color(29, 37, 44) : new Color(255, 255, 255);
         row.getChildByName('名称').getComponent(Label).string = '【' + item.id + '】';
         row.getChildByName('描述').getComponent(Label).string = item.description;
         row.getChildByName('奖励数值').getComponent(Label).string = ZRSJZ_AchievementService.DescribeRewards(item.rewards, '\n');

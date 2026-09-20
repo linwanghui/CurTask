@@ -1,22 +1,21 @@
-import { _decorator, Color, EventTouch, find, instantiate, Label, Layout, Node, RichText, ScrollView, sp, Sprite, SpriteFrame, UIOpacity } from 'cc';
+import { _decorator, Button, Color, EventTouch, find, instantiate, Label, Layout, Node, RichText, ScrollView, sp, Sprite, SpriteFrame, UIOpacity } from 'cc';
 import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
 import { ZRSJZ_GameData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
-import { ZRSJZ_PANEL } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
+import { ZRSJZ_PANEL, ZRSJZ_AVATAR_FRAME_UNLOCK } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_EventManager';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ZRSJZ_AudioManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
-import { ZRSJZ_PetService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_PetService';
+import { ZRSJZ_AvatarFrameService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_AvatarFrameService';
+import Banner from 'db://assets/Scripts/Banner';
 const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_AvatarFramePanel')
 export class ZRSJZ_AvatarFramePanel extends ZRSJZ_Panel {
     private readonly avatars = ['威蓝', '泠汐', '凌魇', '夜喵', '黯祁', '鸦暝', '鸢铠', '霁锋', '赤骁', '绯朔', '狩荒', '煌罡', '烬猎', '灼戈', '浅燎', '沧戈', '星栗', '弑岚'];
     private readonly frames = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-    /** 后续头像框的解锁来源在这里配置。 */
-    private readonly frameUnlock: Record<string, { text: string; keyword?: string; pet?: string; skin?: string }> = {
-        '6': { text: '解锁宠物皮肤\n深渊魔龙获得', keyword: '深渊魔龙', pet: '星核幼龙', skin: '深渊魔龙' },
-    };
+    private readonly frameUnlock = ZRSJZ_AVATAR_FRAME_UNLOCK;
+    private lastVideoClick = 0;
     private tab: 'avatar' | 'frame' = 'avatar';
     private selected = '';
     private request = 0;
@@ -25,13 +24,16 @@ export class ZRSJZ_AvatarFramePanel extends ZRSJZ_Panel {
     private frameSpines = new Map<string, sp.SkeletonData>();
 
     protected onLoad(): void {
-        for (const name of ['Mask', '关闭', '头像', '头像框', '使用']) {
+        const videoButton = find('Panel/观看视频', this.node)?.getComponent(Button);
+        if (videoButton) videoButton.clickEvents = [];
+        for (const name of ['Mask', '关闭', '头像', '头像框', '使用', '观看视频']) {
             const node = name === 'Mask' ? find(name, this.node) : find(`Panel/${name}`, this.node);
             node?.on(Node.EventType.TOUCH_END, this.OnClick, this);
         }
     }
 
     public Show(): void {
+        ZRSJZ_AvatarFrameService.SyncUnlocks();
         super.Show();
         this.tab = 'avatar';
         this.selected = ZRSJZ_GameData.Instance.CurrentAvatar || '威蓝';
@@ -79,6 +81,7 @@ export class ZRSJZ_AvatarFramePanel extends ZRSJZ_Panel {
     }
 
     private Refresh(): void {
+        ZRSJZ_AvatarFrameService.SyncUnlocks();
         const data = ZRSJZ_GameData.Instance;
         const isAvatar = this.tab === 'avatar';
         const title = find('Panel/Name', this.node)?.getComponent(Label);
@@ -132,6 +135,8 @@ export class ZRSJZ_AvatarFramePanel extends ZRSJZ_Panel {
         const equipped = (isAvatar ? data.CurrentAvatar : data.CurrentAvatarFrame) === this.selected;
         find('Panel/使用', this.node).active = selectedOwned && !equipped;
         find('Panel/使用中', this.node).active = selectedOwned && equipped;
+        const video = find('Panel/观看视频', this.node);
+        if (video) video.active = !isAvatar && !selectedOwned && !!this.frameUnlock[this.selected]?.video;
         const tip = find('Panel/Tip', this.node)?.getComponent(Label);
         if (tip) tip.string = '';
         this.RefreshUnlockCondition(selectedOwned);
@@ -144,9 +149,7 @@ export class ZRSJZ_AvatarFramePanel extends ZRSJZ_Panel {
     private IsOwned(name: string, isAvatar: boolean): boolean {
         const data = ZRSJZ_GameData.Instance;
         if (isAvatar) return data.HaveRole?.includes(name) ?? false;
-        if (data.OwnedAvatarFrames?.includes(name)) return true;
-        const unlock = this.frameUnlock[name];
-        return !!unlock?.pet && !!unlock.skin && ZRSJZ_PetService.CheckPetSkin(unlock.pet, unlock.skin);
+        return ZRSJZ_AvatarFrameService.IsOwned(name);
     }
 
     private SetFrameVisual(node: Node, id: string): void {
@@ -197,6 +200,17 @@ export class ZRSJZ_AvatarFramePanel extends ZRSJZ_Panel {
             this.selected = this.tab === 'avatar' ? ZRSJZ_GameData.Instance.CurrentAvatar : ZRSJZ_GameData.Instance.CurrentAvatarFrame;
             this.Refresh();
             this.ScrollToTop();
+            return;
+        }
+        if (name === '观看视频') {
+            if (this.tab !== 'frame' || Date.now() - this.lastVideoClick < 1000) return;
+            const reward = ZRSJZ_AvatarFrameService.CreateVideoReward(this.selected);
+            if (!reward) return;
+            this.lastVideoClick = Date.now();
+            Banner.Instance.ShowVideoAd(() => {
+                if (reward()) ZRSJZ_UIManager.Instance?.ShowTip('头像框已解锁');
+                if (this.isValid && this.node.activeInHierarchy) this.Refresh();
+            });
             return;
         }
         if (name !== '使用') return;

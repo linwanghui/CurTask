@@ -6,11 +6,12 @@ import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_GradeService } from '../Service/ZRSJZ_GradeService';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
+import { ZRSJZ_ProfileAppearance } from '../UI/ZRSJZ_ProfileAppearance';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_GradePanel')
 export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
-    private _roleFrame: Sprite = null;
+    private _appearance: ZRSJZ_ProfileAppearance = null;
     private _roleName: Label = null;
     private _grade: Label = null;
     private _progress: Sprite = null;
@@ -20,13 +21,9 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
     private _evacuationRate: Label = null;
     private _playTime: Label = null;
     private _optimumEvacuation: Label = null;
-    private _roleFrameRequestVersion: number = 0;
 
     protected onLoad(): void {
-        this._roleFrame = find("Panel/角色框", this.node)?.getComponent(Sprite) ?? null;
-        this._roleFrame?.node.on(Node.EventType.TOUCH_END, () => {
-            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.头像框弹窗);
-        }, this);
+        this._appearance = new ZRSJZ_ProfileAppearance(this.node.getChildByName('Panel'));
         this._roleName = find("Panel/RoleName", this.node)?.getComponent(Label) ?? null;
         this._grade = find("Panel/等级/RoleName", this.node)?.getComponent(Label) ?? null;
         this._progress = find("Panel/等级/进度", this.node)?.getComponent(Sprite) ?? null;
@@ -42,6 +39,9 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
     }
 
     protected onEnable(): void {
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshAssets, this);
+        this.schedule(this.Refresh, 1);
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.Refresh, this);
         ZRSJZ_EventManager.OnPersist(
             ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE,
             this.Refresh,
@@ -49,13 +49,16 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
         );
         ZRSJZ_EventManager.OnPersist(
             ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE,
-            this.Refresh,
+            this.RefreshAssets,
             this,
         );
     }
 
     protected onDisable(): void {
-        ++this._roleFrameRequestVersion;
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshAssets, this);
+        this.unschedule(this.Refresh);
+        this._appearance?.Suspend();
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.Refresh, this);
         ZRSJZ_EventManager.OffPersist(
             ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE,
             this.Refresh,
@@ -63,7 +66,7 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
         );
         ZRSJZ_EventManager.OffPersist(
             ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE,
-            this.Refresh,
+            this.RefreshAssets,
             this,
         );
     }
@@ -85,11 +88,7 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
                 ? "MAX"
                 : `${gradeInfo.CurrentExperience} / ${gradeInfo.RequiredExperience}`;
         }
-        if (this._totalAssets) {
-            this._totalAssets.string = ZRSJZ_GradeService.FormatAssetValue(
-                ZRSJZ_GradeService.GetTotalAssetValue(),
-            );
-        }
+        this.RefreshAssets();
         if (this._totalGames) {
             this._totalGames.string = Math.max(0, Math.floor(data.TotalGamePlayed ?? 0)).toString();
         }
@@ -107,18 +106,15 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
                 data.OptimumEvacuation,
             );
         }
-        void this.RefreshRoleFrame(roleName);
+        this._appearance?.Refresh();
     }
 
-    private async RefreshRoleFrame(roleName: string): Promise<void> {
-        const requestVersion = ++this._roleFrameRequestVersion;
-        const spriteFrame = await ZRSJZ_GradeService.GetRoleFrame(roleName);
-        if (
-            requestVersion !== this._roleFrameRequestVersion
-            || !this._roleFrame?.node?.isValid
-            || ZRSJZ_GameData.Instance.CurRole?.[0] !== roleName
-        ) return;
-        if (spriteFrame) this._roleFrame.spriteFrame = spriteFrame;
+    protected onDestroy(): void { this._appearance?.Dispose(); }
+
+    private RefreshAssets(): void {
+        if (!this._totalAssets) return;
+        const text = ZRSJZ_GradeService.FormatAssetValue(ZRSJZ_GradeService.GetTotalAssetValue());
+        if (this._totalAssets.string !== text) this._totalAssets.string = text;
     }
 
 
@@ -133,4 +129,3 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
     }
 
 }
-

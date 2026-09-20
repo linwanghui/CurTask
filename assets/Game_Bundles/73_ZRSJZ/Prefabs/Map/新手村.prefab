@@ -3351,6 +3351,8 @@
     "BoxName": "军备箱",
     "AudioName": "开箱子",
     "IsInit": true,
+    "ThemeIconSF": [],
+    "ThemeCheckedSF": [],
     "AvailableProps": [
       "CN8-突击步枪",
       "1级子弹",
@@ -4822,6 +4824,8 @@
     "BoxName": "密码箱",
     "AudioName": "开密码箱",
     "IsInit": true,
+    "ThemeIconSF": [],
+    "ThemeCheckedSF": [],
     "AvailableProps": [
       "高速阵列",
       "高档座椅",
@@ -5030,8 +5034,8 @@
     ],
     "value": {
       "__type__": "cc.Vec3",
-      "x": 4340.849,
-      "y": 1089.796,
+      "x": 4343.263,
+      "y": 1080.071,
       "z": 0
     }
   },
@@ -13028,6 +13032,7 @@
     "Unit": {
       "__id__": 129
     },
+    "OilPoints": null,
     "Box1": {
       "__id__": 149
     },

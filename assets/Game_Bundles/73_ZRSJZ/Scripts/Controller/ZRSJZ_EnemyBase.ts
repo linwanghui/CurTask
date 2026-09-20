@@ -3,6 +3,7 @@ import {
     ZRSJZ_ANI,
     ZRSJZ_BoxConfig,
     ZRSJZ_ENEMY_CONFIG,
+    ZRSJZ_BOSS_CONFIG,
     ZRSJZ_EnemyConfig,
     ZRSJZ_MAP_CONFIG,
     ZRSJZ_PATH_CONFIG,
@@ -516,6 +517,11 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             Online.Combat({ kind: 'states', states: [state] });
         }
         ZRSJZ_Game.Instance?.RecordKill(1, this.node);
+        if (!ZRSJZ_Game.Instance?.IsTutorial && !ZRSJZ_BOSS_CONFIG.has(this.EnemyName.trim() || this.node.name)) {
+            const data = ZRSJZ_GameData.Instance;
+            data.AvatarFrameNormalKills = (data.AvatarFrameNormalKills ?? 0) + 1;
+            ZRSJZ_GameData.SaveData();
+        }
         this.Target = null;
         this.ClearNavigation();
         this.StopMoving();

@@ -74,10 +74,37 @@ export class ZRSJZ_GameDataDefaults {
             data.Versions++;
         }
 
+        // 版本18→19：一次性转换旧称号名，配置中不再维护别名。
+        if (data.Versions < 19) {
+            const legacyNames: Record<string, string> = {
+                '王者之师': '王者之姿', '战场精英': '不败战神', '万能兵王': '荣耀之巅',
+            };
+            data.OwnedTitles = [...new Set((data.OwnedTitles ?? []).map(name => legacyNames[name] ?? name))];
+            data.EquippedTitle = legacyNames[data.EquippedTitle] ?? data.EquippedTitle ?? '';
+        }
         while (data.Versions < ZRSJZ_GameData.Versions) {
             loadData();
             flag = true;
         }
+
+        if (!data.OwnedTitles?.includes('勇者')) {
+            data.OwnedTitles = ['勇者', ...(data.OwnedTitles ?? [])];
+            flag = true;
+        }
+        if (!data.EquippedTitle || !data.OwnedTitles.includes(data.EquippedTitle)) {
+            data.EquippedTitle = '勇者';
+            flag = true;
+        }
+        data.DefeatedTitleBosses ??= [];
+        if (!data.OwnedAvatarFrames?.includes('1')) {
+            data.OwnedAvatarFrames = ['1', ...(data.OwnedAvatarFrames ?? [])];
+            flag = true;
+        }
+        if (!data.CurrentAvatarFrame || !data.OwnedAvatarFrames.includes(data.CurrentAvatarFrame)) {
+            data.CurrentAvatarFrame = '1'; flag = true;
+        }
+        data.AvatarFrameBossDifficulties ??= [];
+        data.AvatarFrameNormalKills ??= 0;
 
         // 新增装备撤回定价：同时恢复此前已经按临时价格保存的实例。
         const revertedEquipment = new Set([
@@ -158,6 +185,7 @@ export class ZRSJZ_GameDataDefaults {
 
     //需要更新的数据 
     private static readonly DataDefaults: Map<number, { Key: string, DefaultVaule: any }[]> = new Map([
+        [17, [{ Key: 'EquippedTitle', DefaultVaule: '' }]],
         [16, [{ Key: 'OwnedTitles', DefaultVaule: [] }]],
         [15, [
             { Key: 'AchievementCompleted', DefaultVaule: [] },

@@ -4,6 +4,7 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager
 import { ZRSJZ_PROP_CONFIG } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_Tools } from "../ZRSJZ_Tools";
+import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 
 export interface ZRSJZ_GradeInfo {
     Level: number;
@@ -203,7 +204,8 @@ export class ZRSJZ_GradeService {
             },
             0,
         );
-        return Math.floor(inventoryValue + collectionValue);
+        const goldValue = Math.max(0, Number(data.Gold) || 0);
+        return Math.floor(goldValue + inventoryValue + collectionValue);
     }
 
     public static GetPropIDsValue(propIDs: readonly string[]): number {
@@ -238,6 +240,9 @@ export class ZRSJZ_GradeService {
     }
 
     public static async GetSelectedAvatar(roleName: string): Promise<SpriteFrame | null> {
+        if (!ZRSJZ_UIManager.ZRSJZ_DLC) {
+            return ZRSJZ_Tools.LoadSpriteByBundle('73_ZRSJZ', 'Sprites/主页/主页头像框/威蓝');
+        }
         const selected = ZRSJZ_GameData.Instance.CurrentAvatar;
         if (selected) {
             try {

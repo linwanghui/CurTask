@@ -638,10 +638,6 @@ export class ZRSJZ_Game extends Component {
         playerIndex: number = 0,
     ): void {
         if (!this._battleStarted || this.GamePaused || this._isGameFinished) return;
-        if (this._specialOperationState === "进行中") {
-            void ZRSJZ_UIManager.Instance.ShowTip("任务还未完成 无法撤离");
-            return;
-        }
         this._playerEvacuationPoints.set(
             playerIndex === 1 ? 1 : 0,
             evacuationPointName || "固定撤离点",
@@ -736,6 +732,7 @@ export class ZRSJZ_Game extends Component {
         this.GamePaused = true;
         this.SetEvacuationVisible(false);
         const goodsIDs = this.GetAllGoodsID();
+        this.SetSpecialOperationCountdownVisible(false);
         this.FinalizeBattleStatistics(
             true,
             ZRSJZ_GradeService.GetPropIDsValue(goodsIDs),
@@ -2124,7 +2121,6 @@ export class ZRSJZ_Game extends Component {
         this._specialOperationPlayerIndex = playerIndex === 1 ? 1 : 0;
         this._specialOperationObjectiveCompleted = false;
         const setupVersion = ++this._specialOperationSetupVersion;
-        this.CancelEvacuation();
         this.HideSpecialOperationPoint(sourceTaskPoint, playerIndex);
         this.PlayTaskStateAnimation("kaishi", "kaishi");
         this.SetSpecialOperationCountdownVisible(true);

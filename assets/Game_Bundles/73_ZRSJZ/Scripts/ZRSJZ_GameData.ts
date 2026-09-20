@@ -15,7 +15,7 @@ import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 17;//当前版本
+    public static readonly Versions = 21;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -98,7 +98,11 @@ export class ZRSJZ_GameData {
     public CurrentAvatar: string = "威蓝";
     public CurrentAvatarFrame: string = "1";
     public OwnedAvatarFrames: string[] = ["1"];
-    public OwnedTitles: string[] = [];//已获得的称号
+    public AvatarFrameBossDifficulties: number[] = [];
+    public AvatarFrameNormalKills: number = 0;
+    public OwnedTitles: string[] = ['勇者'];//已获得的称号
+    public EquippedTitle: string = '勇者';//当前穿戴称号
+    public DefeatedTitleBosses: string[] = [];//实际击败过的Boss种类
 
     public PropID: number = 0;
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};
