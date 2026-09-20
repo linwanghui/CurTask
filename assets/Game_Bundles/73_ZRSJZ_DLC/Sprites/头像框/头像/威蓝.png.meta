@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "6074e71d-c1a7-4053-b2f0-970073debc0f",
+  "uuid": "69ee1266-b548-4966-934d-4276ca5552a4",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "6074e71d-c1a7-4053-b2f0-970073debc0f@6c48a",
+      "uuid": "69ee1266-b548-4966-934d-4276ca5552a4@6c48a",
       "displayName": "威蓝",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "6074e71d-c1a7-4053-b2f0-970073debc0f",
+        "imageUuidOrDatabaseUri": "69ee1266-b548-4966-934d-4276ca5552a4",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,7 +34,7 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "6074e71d-c1a7-4053-b2f0-970073debc0f@f9941",
+      "uuid": "69ee1266-b548-4966-934d-4276ca5552a4@f9941",
       "displayName": "威蓝",
       "id": "f9941",
       "name": "spriteFrame",
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "6074e71d-c1a7-4053-b2f0-970073debc0f@6c48a",
+        "imageUuidOrDatabaseUri": "69ee1266-b548-4966-934d-4276ca5552a4@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "6074e71d-c1a7-4053-b2f0-970073debc0f@6c48a"
+    "redirect": "69ee1266-b548-4966-934d-4276ca5552a4@6c48a"
   }
 }

@@ -1,4 +1,4 @@
-import { _decorator, EventTouch, find, Label, Sprite } from 'cc';
+import { _decorator, EventTouch, find, Label, Node, Sprite } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -24,6 +24,9 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
 
     protected onLoad(): void {
         this._roleFrame = find("Panel/角色框", this.node)?.getComponent(Sprite) ?? null;
+        this._roleFrame?.node.on(Node.EventType.TOUCH_END, () => {
+            ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.头像框弹窗);
+        }, this);
         this._roleName = find("Panel/RoleName", this.node)?.getComponent(Label) ?? null;
         this._grade = find("Panel/等级/RoleName", this.node)?.getComponent(Label) ?? null;
         this._progress = find("Panel/等级/进度", this.node)?.getComponent(Sprite) ?? null;
@@ -130,5 +133,4 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
     }
 
 }
-
 

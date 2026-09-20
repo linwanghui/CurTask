@@ -346,7 +346,7 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     public static InitDLC() {
-        if (!Banner.TimeMask) return;
+        if (!Banner.IsShowServerBundle) return;
         const instance = ZRSJZ_UIManager._instance;
         const lifecycleVersion = ZRSJZ_UIManager._lifecycleVersion;
         BundleManager.LoadBundle("73_ZRSJZ_DLC", () => {

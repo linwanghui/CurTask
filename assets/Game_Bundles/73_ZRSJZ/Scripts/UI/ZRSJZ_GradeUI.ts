@@ -75,7 +75,7 @@ export class ZRSJZ_GradeUI extends Component {
 
     private async RefreshRoleIcon(roleName: string): Promise<void> {
         const requestVersion = ++this._iconRequestVersion;
-        const spriteFrame = await ZRSJZ_GradeService.GetRoleAvatar(roleName);
+        const spriteFrame = await ZRSJZ_GradeService.GetSelectedAvatar(roleName);
         if (
             requestVersion !== this._iconRequestVersion
             || !this._icon?.node?.isValid

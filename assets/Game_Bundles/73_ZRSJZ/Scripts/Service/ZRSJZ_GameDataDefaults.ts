@@ -1,5 +1,6 @@
 import {
     ZRSJZ_AMMO_MAX_COUNT,
+    ZRSJZ_ACHIEVEMENT_CONFIG,
     ZRSJZ_GridData,
     ZRSJZ_INVENTORY,
     ZRSJZ_MAIN_TASK_CONFIG,
@@ -58,6 +59,17 @@ export class ZRSJZ_GameDataDefaults {
                 const progress = MigrateLegacyEnhancement(savedData);
                 data.EnhancementLevel = progress.Level;
                 data.EnhancementSpecials = progress.Specials;
+            }
+            if (data.Versions === 15) {
+                // 已达标进度和已经领取过的成就补入完成记录，不重复发奖。
+                data.AchievementCompleted ??= [];
+                for (const item of ZRSJZ_ACHIEVEMENT_CONFIG) {
+                    if ((data.AchievementClaimed?.includes(item.id)
+                        || (data.AchievementProgress?.[item.id] ?? 0) >= item.target)
+                        && !data.AchievementCompleted.includes(item.id)) {
+                        data.AchievementCompleted.push(item.id);
+                    }
+                }
             }
             data.Versions++;
         }
@@ -146,6 +158,21 @@ export class ZRSJZ_GameDataDefaults {
 
     //需要更新的数据 
     private static readonly DataDefaults: Map<number, { Key: string, DefaultVaule: any }[]> = new Map([
+        [16, [{ Key: 'OwnedTitles', DefaultVaule: [] }]],
+        [15, [
+            { Key: 'AchievementCompleted', DefaultVaule: [] },
+        ]],
+        [14, [
+            { Key: 'AchievementProgress', DefaultVaule: {} },
+            { Key: 'AchievementClaimed', DefaultVaule: [] },
+            { Key: 'AchievementMilestonesClaimed', DefaultVaule: [] },
+            { Key: 'AchievementEvacuationStreak', DefaultVaule: 0 },
+        ]],
+        [13, [
+            { Key: "CurrentAvatar", DefaultVaule: "威蓝" },
+            { Key: "CurrentAvatarFrame", DefaultVaule: "1" },
+            { Key: "OwnedAvatarFrames", DefaultVaule: ["1"] },
+        ]],
         [12, [{ Key: "NoticeClosedDate", DefaultVaule: "" }]],
         [11, [
             { Key: "MerchantPurchaseDate", DefaultVaule: "" },

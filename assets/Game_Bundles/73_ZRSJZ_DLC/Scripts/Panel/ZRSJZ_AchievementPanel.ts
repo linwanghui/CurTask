@@ -1,0 +1,195 @@
+import { _decorator, Color, instantiate, Label, Node, ScrollView, Sprite, SpriteFrame, UITransform, UIOpacity } from 'cc';
+import { EDITOR } from 'cc/env';
+import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
+import { ZRSJZ_AchievementService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_AchievementService';
+import { ZRSJZ_AudioManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_PANEL, ZRSJZ_AchievementConfig, ZRSJZ_ACHIEVEMENT_CONFIG } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
+import { ZRSJZ_GameData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
+import { ZRSJZ_UIManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
+const { ccclass, property } = _decorator;
+
+@ccclass('ZRSJZ_AchievementPanel')
+export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
+    @property(SpriteFrame) completedBackground: SpriteFrame = null;
+    @property(SpriteFrame) normalNumberFrame: SpriteFrame = null;
+    @property(SpriteFrame) completedNumberFrame: SpriteFrame = null;
+    @property(SpriteFrame) milestoneReachedFrame: SpriteFrame = null;
+    @property(SpriteFrame) milestoneLockedFrame: SpriteFrame = null;
+
+    private content: Node = null;
+    private rowTemplate: Node = null;
+    private scroll: ScrollView = null;
+    private progress: Sprite = null;
+    private claimAll: Node = null;
+    private tabs: Node[] = [];
+    private milestones: Node[] = [];
+    private filter: 'all' | 'completed' = 'all';
+    private bound = false;
+    private normalBackground: SpriteFrame = null;
+    private interactiveRows = new WeakSet<Node>();
+
+    protected onLoad(): void { this.Bind(); }
+    public Show(): void {
+        this.Bind();
+        this.filter = 'all';
+        super.Show();
+        this.Refresh();
+    }
+    private Click(node: Node, callback: () => void): void {
+        node.on(Node.EventType.TOUCH_END, () => {
+            ZRSJZ_AudioManager.Instance?.PlaySound('点击');
+            callback();
+        }, this);
+    }
+    private Bind(): void {
+        if (this.bound) return;
+        this.Panel = this.node.getChildByName('Panel');
+        this.scroll = this.Panel.getChildByName('成就列表').getComponent(ScrollView);
+        this.content = this.scroll.node.getChildByName('Content');
+        this.scroll.content = this.content;
+        this.rowTemplate = this.content.getChildByName('成就条目模板')
+            ?? this.content.children.find(row => row.name.startsWith('成就-'));
+        if (!this.rowTemplate) throw new Error('成就列表缺少成就条目，请重新导入成就界面预制体');
+        if (this.rowTemplate.name === '成就条目模板') this.rowTemplate.active = false;
+        const normalRow = this.content.children.find(row => row.getChildByName('前往')?.active);
+        this.normalBackground = (normalRow ?? this.rowTemplate).getComponent(Sprite).spriteFrame;
+        this.progress = this.Panel.getChildByName('进度').getComponent(Sprite);
+        this.progress.type = Sprite.Type.FILLED;
+        this.progress.fillType = Sprite.FillType.HORIZONTAL;
+        this.claimAll = this.Panel.getChildByName('领取所有奖励');
+        const tabBox = this.Panel.getChildByName('选项框');
+        this.tabs = [tabBox.getChildByName('全部'), tabBox.getChildByName('已完成')];
+        this.Click(this.Panel.getChildByName('返回'), () => ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.成就界面));
+        this.tabs.forEach((tab, index) => this.Click(tab, () => {
+            this.filter = index ? 'completed' : 'all';
+            this.Refresh();
+        }));
+        this.milestones = ZRSJZ_AchievementService.Milestones.map(percent => {
+            const node = this.Panel.getChildByName('里程碑' + percent);
+            this.Click(node, () => this.ClaimMilestone(percent));
+            return node;
+        });
+        this.Click(this.Panel.getChildByName('进度框').getChildByName('进度领奖区域'), () =>
+            this.ClaimMilestone(ZRSJZ_AchievementService.GetNextMilestone()));
+        this.Click(this.progress.node, () => this.ClaimMilestone(ZRSJZ_AchievementService.GetNextMilestone()));
+        this.Click(this.Panel.getChildByName('宝箱'), () =>
+            this.ClaimMilestone(ZRSJZ_AchievementService.Milestones[1] ?? ZRSJZ_AchievementService.Milestones[0]));
+        this.Click(this.claimAll, () => {
+            const count = ZRSJZ_AchievementService.ClaimAll();
+            ZRSJZ_UIManager.Instance.ShowTip(count ? '已领取' + count + '份奖励' : '暂无可领取奖励');
+            this.Refresh();
+        });
+        this.bound = true;
+    }
+    private ClaimMilestone(percent: number): void {
+        const state = ZRSJZ_AchievementService.GetMilestoneState(percent);
+        if (state === 'claimed') {
+            ZRSJZ_UIManager.Instance.ShowTip('奖励已领取');
+        } else if (state === 'locked') {
+            ZRSJZ_UIManager.Instance.ShowTip('完成度不足');
+        } else if (ZRSJZ_AchievementService.ClaimMilestone(percent)) {
+            ZRSJZ_UIManager.Instance.ShowTip('奖励领取成功');
+            this.Refresh();
+        } else ZRSJZ_UIManager.Instance.ShowTip('奖励配置错误');
+    }
+    private Refresh(): void {
+        const completed = ZRSJZ_AchievementService.GetCompletedCount();
+        const data = ZRSJZ_GameData.Instance;
+        const percent = this.UpdateProgress(completed, ZRSJZ_AchievementService.Items.length, data.AchievementMilestonesClaimed);
+        this.tabs.forEach((tab, index) => {
+            const selected = (this.filter === 'completed') === (index === 1);
+            tab.getChildByName(index ? '已完成选中' : '全部选中').active = selected;
+            tab.getChildByName(index ? '已完成文字' : '全部文字').getComponent(Label).color = selected
+                ? new Color(255, 255, 255) : new Color(29, 37, 44);
+        });
+        const canClaim = ZRSJZ_AchievementService.Items.some(item =>
+            ZRSJZ_AchievementService.IsCompleted(item) && !data.AchievementClaimed.includes(item.id))
+            || ZRSJZ_AchievementService.Milestones.some(value => percent >= value && !data.AchievementMilestonesClaimed.includes(value));
+        (this.claimAll.getComponent(UIOpacity) ?? this.claimAll.addComponent(UIOpacity)).opacity = canClaim ? 255 : 150;
+        const items = ZRSJZ_AchievementService.Items.filter(item => this.filter === 'all' || ZRSJZ_AchievementService.IsCompleted(item));
+        this.content.children.forEach(row => row.active = false);
+        items.forEach((item, index) => this.AddRow(item, index, ZRSJZ_AchievementService.GetProgress(item.id),
+            ZRSJZ_AchievementService.IsCompleted(item), data.AchievementClaimed.includes(item.id), true));
+        this.Panel.getChildByName('暂无成就').active = items.length === 0;
+        this.ResetList(items.length);
+    }
+    /** 填充、里程碑坐标和数字共用同一完成比例，避免美术摆位与实际进度不一致。 */
+    private UpdateProgress(completed: number, total: number, claimed: readonly number[] = []): number {
+        const ratio = total > 0 ? Math.min(1, Math.max(0, completed / total)) : 0;
+        const percent = Math.floor(ratio * 100);
+        this.progress.fillStart = 0;
+        this.progress.fillRange = ratio;
+        const label = this.Panel.getChildByName('完成率');
+        label.active = true;
+        label.getComponent(Label).string = '已完成 ' + completed + '/' + total + '（' + percent + '%）';
+        const transform = this.progress.node.getComponent(UITransform);
+        const width = transform.width * this.progress.node.scale.x;
+        const left = this.progress.node.position.x - width * transform.anchorX;
+        this.milestones.forEach((node, index) => {
+            const milestone = ZRSJZ_AchievementService.Milestones[index];
+            node.setPosition(left + width * milestone / 100, node.position.y, node.position.z);
+            node.getComponent(Sprite).spriteFrame = percent >= milestone ? this.milestoneReachedFrame : this.milestoneLockedFrame;
+            (node.getComponent(UIOpacity) ?? node.addComponent(UIOpacity)).opacity = claimed.includes(milestone) ? 150 : 255;
+        });
+        const chest = this.Panel.getChildByName('宝箱');
+        const chestMilestone = ZRSJZ_AchievementService.Milestones[1] ?? ZRSJZ_AchievementService.Milestones[0];
+        chest.setPosition(left + width * chestMilestone / 100, chest.position.y, chest.position.z);
+        return percent;
+    }
+    private ResetList(count: number): void {
+        this.scroll.stopAutoScroll();
+        const viewHeight = this.scroll.node.getComponent(UITransform).height;
+        this.content.getComponent(UITransform).setContentSize(1430, Math.max(viewHeight, count * 184));
+        this.content.setPosition(0, viewHeight / 2);
+    }
+    private AddRow(item: ZRSJZ_AchievementConfig, index: number, progress: number, completed: boolean, claimed: boolean, interactive: boolean): void {
+        let row = this.content.getChildByName('成就-' + item.id);
+        if (!row) {
+            row = instantiate(this.rowTemplate);
+            row.name = '成就-' + item.id;
+            row.parent = this.content;
+        }
+        row.setPosition(18, -83 - index * 184);
+        row.active = true;
+        row.getComponent(Sprite).spriteFrame = completed && !claimed && this.completedBackground
+            ? this.completedBackground : this.normalBackground;
+        const number = row.getChildByName('序号');
+        number.getComponent(Sprite).spriteFrame = completed && !claimed ? this.completedNumberFrame : this.normalNumberFrame;
+        const numberLabel = number.getChildByName('数字').getComponent(Label);
+        numberLabel.string = String(index + 1);
+        numberLabel.color = completed && !claimed ? new Color(29, 37, 44) : new Color(255, 255, 255);
+        row.getChildByName('名称').getComponent(Label).string = '【' + item.id + '】';
+        row.getChildByName('描述').getComponent(Label).string = item.description;
+        row.getChildByName('奖励数值').getComponent(Label).string = ZRSJZ_AchievementService.DescribeRewards(item.rewards, '\n');
+        row.getChildByName('进度').getComponent(Label).string = '(' + (completed ? item.target : Math.min(item.target, Math.floor(progress))) + '/' + item.target + ')';
+        const claim = row.getChildByName('领取奖励');
+        const go = row.getChildByName('前往');
+        claim.active = completed && !claimed;
+        go.active = !completed;
+        row.getChildByName('已领取').active = claimed;
+        if (!interactive || this.interactiveRows.has(row)) return;
+        this.interactiveRows.add(row);
+        const showRewards = () => ZRSJZ_UIManager.Instance.ShowTip(ZRSJZ_AchievementService.DescribeRewards(item.rewards));
+        this.Click(row.getChildByName('奖励数值'), showRewards);
+        this.Click(row.getChildByName('奖励图标'), showRewards);
+        this.Click(row.getChildByName('已领取'), () => ZRSJZ_UIManager.Instance.ShowTip('奖励已领取'));
+        this.Click(claim, () => {
+            if (ZRSJZ_AchievementService.Claim(item.id)) {
+                ZRSJZ_UIManager.Instance.ShowTip('获得' + ZRSJZ_AchievementService.DescribeRewards(item.rewards));
+                this.Refresh();
+            }
+        });
+        this.Click(go, () => {
+            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.成就界面);
+            ZRSJZ_UIManager.Instance.ShowPanel(item.destination === 'pets' ? ZRSJZ_PANEL.宠物界面 : ZRSJZ_PANEL.选关界面);
+        });
+    }
+    /** 仅供 Cocos 编辑器预览排版；不读取或写入玩家存档。 */
+    public PreviewLayout(): void {
+        if (!EDITOR) return;
+        this.Bind();
+        ZRSJZ_ACHIEVEMENT_CONFIG.forEach((item, index) => this.AddRow(item, index, 0, false, false, false));
+        this.ResetList(ZRSJZ_ACHIEVEMENT_CONFIG.length);
+        this.UpdateProgress(0, ZRSJZ_ACHIEVEMENT_CONFIG.length);
+    }
+}

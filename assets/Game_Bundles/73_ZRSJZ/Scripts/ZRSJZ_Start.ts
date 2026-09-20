@@ -4,7 +4,7 @@ import { ZRSJZ_MerchantService } from './Service/ZRSJZ_MerchantService';
 import { ZRSJZ_NoticeService } from './Service/ZRSJZ_NoticeService';
 import { ZRSJZ_InventoryService } from "./Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "./Service/ZRSJZ_AccountService";
-import { _decorator, Button, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3, instantiate, Prefab, sp, isValid } from 'cc';
+import { _decorator, Button, Component, director, easing, EventTouch, Label, Node, sys, Tween, tween, UITransform, v3, Vec3, instantiate, Prefab, sp, isValid, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_PetService } from './Service/ZRSJZ_PetService';
 import { ZRSJZ_PET_SKIN_CONFIG } from './ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
@@ -216,6 +216,9 @@ export class ZRSJZ_Start extends Component {
                 break;
             case "宠物":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.宠物界面);
+                break;
+            case "成就":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.成就界面);
                 break;
             case "更多游戏":
                 UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("文字三角洲"), "WZSJZ_Start"]);

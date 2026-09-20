@@ -237,6 +237,16 @@ export class ZRSJZ_GradeService {
         return this.LoadRoleSprite("Sprites/等级系统/头像", roleName);
     }
 
+    public static async GetSelectedAvatar(roleName: string): Promise<SpriteFrame | null> {
+        const selected = ZRSJZ_GameData.Instance.CurrentAvatar;
+        if (selected) {
+            try {
+                return await ZRSJZ_Tools.LoadSpriteByBundle('73_ZRSJZ_DLC', `Sprites/头像框/头像/${selected}`);
+            } catch (error) { console.warn('[ZRSJZ_GradeService] 头像加载失败', error); }
+        }
+        return this.GetRoleAvatar(ZRSJZ_GameData.Instance.CurRole?.[0] || roleName);
+    }
+
     public static GetRoleFrame(roleName: string): Promise<SpriteFrame | null> {
         return this.LoadRoleSprite("Sprites/等级系统/角色框", roleName);
     }

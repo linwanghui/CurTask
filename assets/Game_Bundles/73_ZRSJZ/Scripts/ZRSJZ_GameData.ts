@@ -15,7 +15,7 @@ import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 13;//当前版本
+    public static readonly Versions = 17;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -95,6 +95,10 @@ export class ZRSJZ_GameData {
     public CurRole: string[] = ["威蓝", "泠汐"];
     public HaveSkin: string[] = ["威蓝", "泠汐"];
     public CurSkin: string[] = ["威蓝", "泠汐"];
+    public CurrentAvatar: string = "威蓝";
+    public CurrentAvatarFrame: string = "1";
+    public OwnedAvatarFrames: string[] = ["1"];
+    public OwnedTitles: string[] = [];//已获得的称号
 
     public PropID: number = 0;
     public PropData: { [ID: string]: ZRSJZ_PropData } = {};
@@ -133,6 +137,12 @@ export class ZRSJZ_GameData {
     public TotalTimePlayed: number = 0;//累计游戏在线时长（秒）
     public TotalEvacuation: number = 0;//成功撤离次数
     public OptimumEvacuation: number = 0;//最佳单局撤离带出价值
+    /** 成就进度；计数只从本版本起记录，旧战绩由已有统计字段读取。 */
+    public AchievementProgress: Record<string, number> = {};
+    public AchievementCompleted: string[] = [];
+    public AchievementClaimed: string[] = [];
+    public AchievementMilestonesClaimed: number[] = [];
+    public AchievementEvacuationStreak: number = 0;
 
     //#region 增强针
     BoosterShotData: { [Key: string]: number } = {};//增强针数据

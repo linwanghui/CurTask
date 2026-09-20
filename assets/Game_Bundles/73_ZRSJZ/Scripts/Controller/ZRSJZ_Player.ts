@@ -1,4 +1,5 @@
 import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
+import { ZRSJZ_AchievementService } from '../Service/ZRSJZ_AchievementService';
 import { ZRSJZ_BoxroomService } from "../Service/ZRSJZ_BoxroomService";
 import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
 import { ZRSJZ_PetService } from "../Service/ZRSJZ_PetService";
@@ -857,6 +858,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 血量恢复
     async Recover(hp: number) {
+        if (hp > 0 && this.CurHP < this.MaxHP && !this.IsDead) ZRSJZ_AchievementService.HealUsed();
         this.CurHP = Math.min(this.MaxHP, this.CurHP + hp);
         this.HP.Show(this.CurHP);
         const recoverRequestGame = ZRSJZ_Game.Instance;

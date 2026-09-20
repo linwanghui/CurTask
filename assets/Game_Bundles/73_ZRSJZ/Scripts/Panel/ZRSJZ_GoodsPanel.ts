@@ -1,4 +1,5 @@
 import { FormatMoney } from "../ZRSJZ_NumberFormat";
+import { ZRSJZ_AchievementService } from '../Service/ZRSJZ_AchievementService';
 import { ZRSJZ_PetBackpackView } from '../UI/ZRSJZ_PetBackpackView';
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import {
@@ -154,6 +155,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             ZRSJZ_UIManager.Instance.HidePlayerPanel(ZRSJZ_PANEL.物资弹窗, this._playerIndex);
             return;
         }
+        if (box) ZRSJZ_AchievementService.ContainerSearched(box.node.uuid);
         this._activeBox = box;
         ZRSJZ_UIManager.Instance.DeactivatePlayerInventoryNodes(this._playerIndex);
         super.Show();

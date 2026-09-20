@@ -5,8 +5,60 @@ export const ZRSJZ_GRID_INTERVAL = 5;//格子间隔
 // 单个弹药格最多可堆叠的子弹数量。
 export const ZRSJZ_AMMO_MAX_COUNT = 60;
 
+/** 同一成就或里程碑可以同时发放多种奖励。道具 name 对应 ZRSJZ_PROP_CONFIG，头像框 id 对应资源编号。 */
+export type ZRSJZ_AchievementReward =
+    | { type: '钞票'; count: number }
+    | { type: '道具'; name: string; count: number }
+    | { type: '称号'; name: string }
+    | { type: '头像框'; id: string };
+
+export interface ZRSJZ_AchievementConfig {
+    id: string;
+    description: string;
+    target: number;
+    rewards: readonly ZRSJZ_AchievementReward[];
+    /** 未完成条目的“前往”入口，默认打开选关。 */
+    destination?: 'battle' | 'pets';
+}
+
+/** 成就条件与奖励配置；界面和记录逻辑共用。 */
+export const ZRSJZ_ACHIEVEMENT_CONFIG: readonly ZRSJZ_AchievementConfig[] = [
+        { id: '初入战场', description: '完成第1场对局', target: 1, rewards: [{ type: '钞票', count: 1000 }, { type: '称号', name: '王者之师' }] },
+        { id: '枪火洗礼', description: '在一局战斗中存活并成功撤离', target: 1, rewards: [{ type: '钞票', count: 1500 }] },
+        { id: '战地医师', description: '累计治疗100次', target: 100, rewards: [{ type: '钞票', count: 3000 }] },
+        { id: '枪械入门', description: '使用任意武器累计击败20名敌人', target: 20, rewards: [{ type: '钞票', count: 2000 }, { type: '道具', name: '1级子弹', count: 60 }] },
+        { id: '有惊无险', description: '生命值低于10%时成功撤离', target: 1, rewards: [{ type: '钞票', count: 3000 }] },
+        { id: '搜刮专家', description: '累计搜索200个容器', target: 200, rewards: [{ type: '钞票', count: 3000 }] },
+        { id: '火力覆盖', description: '累计击败100名敌人', target: 100, rewards: [{ type: '钞票', count: 5000 }] },
+        { id: '无人能挡', description: '单局连续击败5名敌人且期间不倒地', target: 5, rewards: [{ type: '钞票', count: 3000 }] },
+        { id: '刀尖起舞', description: '累计完成50次近战击败', target: 50, rewards: [{ type: '钞票', count: 4000 }] },
+        { id: '绝地反击', description: '生命值低于10%时连续击败3名敌人', target: 3, rewards: [{ type: '钞票', count: 5000 }] },
+        { id: '赏金猎人', description: '累计完成50个特殊任务', target: 50, rewards: [{ type: '钞票', count: 5000 }] },
+        { id: '百万撤离', description: '单局撤离物资总价值达到100万', target: 1000000, rewards: [{ type: '钞票', count: 10000 }] },
+        { id: '雷区舞者', description: '触发轰炸区并规避10次轰炸', target: 10, rewards: [{ type: '钞票', count: 4000 }] },
+        { id: '火力压制', description: '使用散弹枪击败100名敌人', target: 100, rewards: [{ type: '钞票', count: 6000 }] },
+        { id: '战场主宰', description: '累计击败1000名敌人', target: 1000, rewards: [{ type: '钞票', count: 15000 }] },
+        { id: '近战大师', description: '使用近战武器击败100人', target: 100, rewards: [{ type: '钞票', count: 7000 }, { type: '头像框', id: '2' }] },
+        { id: '沙漠之狼', description: '在沙漠地图累计战斗5小时', target: 18000, rewards: [{ type: '钞票', count: 8000 }] },
+        { id: '雪域幽灵', description: '在雪地地图中完成100次击杀', target: 100, rewards: [{ type: '钞票', count: 6000 }] },
+        { id: '不灭传说', description: '连续20场成功撤离', target: 20, rewards: [{ type: '钞票', count: 12000 }] },
+        { id: '万能兵王', description: '解锁80%以上成就', target: 17, rewards: [{ type: '钞票', count: 15000 }] },
+        { id: '萌宠相伴', description: '解锁一只宠物', target: 1, rewards: [{ type: '钞票', count: 1500 }, { type: '称号', name: '超凡勇士' }], destination: 'pets' },
+        { id: '甜蜜双排', description: '双人组队完成一次对局', target: 1, rewards: [{ type: '钞票', count: 2000 }] },
+    ];
+/** 左侧阶段奖励；percent 为完成百分比，rewards 支持混合奖励。 */
+export const ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG: readonly {
+    percent: number; rewards: readonly ZRSJZ_AchievementReward[];
+}[] = [
+    { percent: 20, rewards: [{ type: '钞票', count: 3000 }, { type: '道具', name: '1级子弹', count: 60 }] },
+    { percent: 50, rewards: [{ type: '钞票', count: 8000 }, { type: '头像框', id: '3' }] },
+    { percent: 80, rewards: [{ type: '钞票', count: 15000 }, { type: '称号', name: '战场精英' }] },
+    { percent: 100, rewards: [{ type: '钞票', count: 25000 }, { type: '称号', name: '万能兵王' }, { type: '头像框', id: '4' }] },
+];
+
 //界面路径
 export enum ZRSJZ_PANEL {
+    头像框弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/头像框弹窗",
     公告界面 = "73_ZRSJZ_DLC/Prefabs/Panel/公告界面",
     联机界面 = "73_ZRSJZ_DLC/Prefabs/Panel/联机界面",
     选关界面 = "73_ZRSJZ/Prefabs/Panel/选关界面",
@@ -57,6 +109,7 @@ export enum ZRSJZ_PANEL {
     宠物基因弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物基因弹窗",
     行动补给弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/行动补给弹窗",
     神秘商人弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/神秘商人弹窗",
+    成就界面 = "73_ZRSJZ_DLC/Prefabs/Panel/成就界面",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
 }
 

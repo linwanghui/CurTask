@@ -20,6 +20,7 @@ import { ZRSJZ_SpecialOperationsTaskIcon } from './Unit/ZRSJZ_SpecialOperationsT
 import { ZRSJZ_Door } from './Unit/ZRSJZ_Door';
 import { ZRSJZ_Mailbox } from './Unit/ZRSJZ_Mailbox';
 import { ZRSJZ_GradeService } from './Service/ZRSJZ_GradeService';
+import { ZRSJZ_AchievementService } from './Service/ZRSJZ_AchievementService';
 import { ZRSJZ_BoosterShotService } from './Service/ZRSJZ_BoosterShotService';
 import { ZRSJZ_PetService } from './Service/ZRSJZ_PetService';
 import { ZRSJZ_OnlineService } from './Service/ZRSJZ_OnlineService';
@@ -1017,6 +1018,7 @@ export class ZRSJZ_Game extends Component {
         this._battleStatisticsStarted = true;
         this._battleStatisticsFinalized = false;
         ZRSJZ_GradeService.RecordBattleStarted();
+        ZRSJZ_AchievementService.BattleStarted();
     }
 
     /** 每局只结算一次撤离统计与待发放经验；主动退出时不生成经验。 */
@@ -1040,6 +1042,11 @@ export class ZRSJZ_Game extends Component {
             this._elapsedGameTime,
             this._killCount,
             queueExperience,
+        );
+        ZRSJZ_AchievementService.BattleFinished(
+            evacuationSuccess, evacuationValue, this._elapsedGameTime,
+            ZRSJZ_GameData.Instance.CurMap, this.IsTwoPlayerMode(),
+            evacuationSuccess && this.Players.some(player => !player.IsDead && player.CurHP < player.MaxHP * 0.1),
         );
     }
 
@@ -1069,6 +1076,7 @@ export class ZRSJZ_Game extends Component {
     /** 玩家死亡只冻结自己；两名玩家均死亡后才暂停整场游戏。 */
     public OnPlayerDied(playerIndex: number): void {
         if (this._isGameFinished) return;
+        ZRSJZ_AchievementService.PlayerDied();
         const normalizedIndex = playerIndex === 1 ? 1 : 0;
         this._playersGivenUpResurrection.delete(normalizedIndex);
         this._playerEvacuationPoints.delete(normalizedIndex);
@@ -1969,6 +1977,15 @@ export class ZRSJZ_Game extends Component {
     RecordKill(count: number = 1, killedEnemy: Node = null): void {
         if (!Number.isFinite(count) || count <= 0) return;
         this._killCount += Math.floor(count);
+        const killer = this.Players.length === 1 ? this.Players[0] : null;
+        const gunID = killer ? ZRSJZ_InventoryService.GetWeaponryIDs(killer.PlayerIndex)[0] : '';
+        const gunName = ZRSJZ_GameData.Instance.PropData[gunID]?.Name || '';
+        const weapon: '枪' | '刀' | '散弹枪' | 'unknown' = killer?.WeaponType === '刀' ? '刀'
+            : killer?.WeaponType === '枪' ? (/散弹|霰弹/.test(gunName) ? '散弹枪' : '枪') : 'unknown';
+        ZRSJZ_AchievementService.EnemyKilled(Math.floor(count), weapon,
+            ZRSJZ_GameData.Instance.CurMap.includes('极北'),
+            !!(killer ?? this.CurPlayer) && !(killer ?? this.CurPlayer).IsDead
+                && (killer ?? this.CurPlayer).CurHP < (killer ?? this.CurPlayer).MaxHP * 0.1);
         const guns = this.Players.filter(player => !player.IsDead).map(player => {
             const gunID = ZRSJZ_InventoryService.GetWeaponryIDs(player.PlayerIndex)[0];
             return ZRSJZ_GameData.Instance.PropData[gunID]?.Name;
@@ -2223,6 +2240,7 @@ export class ZRSJZ_Game extends Component {
 
     private CompleteSpecialOperation(config: Readonly<ZRSJZ_SpecialOperationConfig>): void {
         if (this._specialOperationState !== '进行中') return;
+        ZRSJZ_AchievementService.SpecialTaskCompleted();
         this._onlineOperationTarget = this._specialOperationTargetEnemy?.getComponent(ZRSJZ_EnemyBase)?.OnlineID || this._onlineOperationTarget;
         this._specialOperationState = "已完成";
         this.PublishOnlineSpecialOperation();
