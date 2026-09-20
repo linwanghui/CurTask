@@ -139,6 +139,9 @@ export class ZRSJZ_Start extends Component {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "活动":
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.活动界面);
+                break;
             case "公告":
                 if (!ZRSJZ_UIManager.ZRSJZ_DLC) {
                     ZRSJZ_UIManager.Instance.ShowTip('公告资源正在加载，请稍后再试');
@@ -339,7 +342,7 @@ export class ZRSJZ_Start extends Component {
         }
         if (!ZRSJZ_UIManager.ZRSJZ_UI || !isValid(this.UIPanel, true)) return;
         if (this._mainReminderNodes.size === 0) {
-            const names = new Set(['宠物']);
+            const names = new Set(['宠物', '活动']);
             // 只匹配主页按钮，避免把同名宠物展示节点作为入口。
             for (const button of this.UIPanel.getComponentsInChildren(Button)) {
                 const target = button.node;

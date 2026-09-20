@@ -1,5 +1,6 @@
 import { _decorator, Camera, Color, Component, director, Director, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
+import { ZRSJZ_ActivityService } from './Service/ZRSJZ_ActivityService';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
@@ -1033,6 +1034,7 @@ export class ZRSJZ_Game extends Component {
             || this.IsTutorial
         ) return;
         this._battleStatisticsFinalized = true;
+        if (evacuationSuccess) ZRSJZ_ActivityService.RecordExtraction(evacuationValue);
         if (evacuationSuccess && this._bossDefeatedThisBattle) {
             ZRSJZ_LevelProgressService.RecordCompletion(this._progressMapKey);
         }

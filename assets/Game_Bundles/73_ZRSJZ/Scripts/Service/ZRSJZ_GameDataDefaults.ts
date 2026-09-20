@@ -46,6 +46,12 @@ export class ZRSJZ_GameDataDefaults {
         }
 
         const loadData = () => {
+            if (data.Versions === 17) {
+                // 新活动从零开始，不用历史撤离统计追溯发奖，也不覆盖旧存档其他字段。
+                if (savedData.ActivityExtractionValue === undefined) data.ActivityExtractionValue = 0;
+                if (savedData.ActivityTaskClaimed === undefined) data.ActivityTaskClaimed = [];
+                if (savedData.ActivityRewardClaimed === undefined) data.ActivityRewardClaimed = [];
+            }
             (this.DataDefaults.get(data.Versions) ?? []).forEach(item => {
                 if (savedData[item.Key] === undefined) data[item.Key] = item.DefaultVaule;
             });
