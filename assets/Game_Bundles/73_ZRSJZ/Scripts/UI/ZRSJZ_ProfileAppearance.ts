@@ -15,6 +15,7 @@ export class ZRSJZ_ProfileAppearance {
     private version = 0;
     private keys: Partial<Record<'avatar' | 'frame' | 'title', string>> = {};
     private ready = false;
+    private disposed = false;
     private clicks: Array<{ node: Node; handler: (event: EventTouch) => void }> = [];
 
     constructor(private root: Node, avatarPanel = ZRSJZ_PANEL.头像框弹窗) {
@@ -42,25 +43,34 @@ export class ZRSJZ_ProfileAppearance {
         this.Reset();
     }
     private Reset(): void {
+        if (this.disposed || !isValid(this.root, true)) return;
         for (const item of this.defaults) {
-            if (!isValid(item.sprite, true)) continue;
+            if (!isValid(item.sprite, true) || !isValid(item.sprite.node, true)) continue;
             item.sprite.enabled = true;
             item.sprite.node.active = true;
             item.sprite.spriteFrame = item.frame;
         }
-        if (this.spineNode) {
+        if (isValid(this.spineNode, true)) {
             this.spineNode.active = false;
             const skeleton = this.spineNode.getComponent(sp.Skeleton);
-            if (skeleton) { skeleton.clearTracks(); skeleton.skeletonData = null; }
+            if (isValid(skeleton, true)) { skeleton.clearTracks(); skeleton.skeletonData = null; }
         }
     }
     public Suspend(): void { ++this.version; this.keys = {}; this.ready = false; this.Reset(); }
     public Dispose(): void {
-        this.Suspend();
-        for (const { node, handler } of this.clicks) if (isValid(node)) node.off(Node.EventType.TOUCH_END, handler, this);
+        if (this.disposed) return;
+        this.disposed = true;
+        // 销毁时只失效请求、解除监听，不再重置可能已销毁的子节点。
+        ++this.version;
+        this.keys = {};
+        for (const { node, handler } of this.clicks) if (isValid(node, true)) node.off(Node.EventType.TOUCH_END, handler, this);
         this.clicks = [];
+        this.defaults = [];
+        this.avatar = this.frame = this.title = null;
+        this.spineNode = this.root = null;
     }
     public Refresh(): void {
+        if (this.disposed || !isValid(this.root, true)) return;
         const data = ZRSJZ_GameData.Instance;
         const ready = ZRSJZ_UIManager.ZRSJZ_DLC;
         const avatar = data.CurrentAvatar || '威蓝', frame = data.CurrentAvatarFrame || '1', title = data.EquippedTitle || '勇者';
@@ -85,13 +95,13 @@ export class ZRSJZ_ProfileAppearance {
             if (!target || this.keys[slot] === value) return;
             this.keys[slot] = value;
             bundle.load(path + '/spriteFrame', SpriteFrame, (error, asset) => {
-                if (!current(slot, value)) return;
+                if (!current(slot, value) || !isValid(target, true) || !isValid(target.node, true)) return;
                 if (error || !asset) { delete this.keys[slot]; return; }
                 target.sizeMode = Sprite.SizeMode.CUSTOM;
                 target.spriteFrame = asset;
                 target.enabled = true;
                 target.node.active = true;
-                if (slot === 'frame' && this.spineNode) {
+                if (slot === 'frame' && isValid(this.spineNode, true)) {
                     this.spineNode.active = false;
                     const skeleton = this.spineNode.getComponent(sp.Skeleton);
                     if (skeleton) { skeleton.clearTracks(); skeleton.skeletonData = null; }
@@ -104,7 +114,7 @@ export class ZRSJZ_ProfileAppearance {
         else if (this.spineNode && this.keys.frame !== frame) {
             this.keys.frame = frame;
             bundle.load('Sprites/头像框/头像框/Spine/' + frame + '/1', sp.SkeletonData, (error, asset) => {
-                if (!current('frame', frame)) return;
+                if (!current('frame', frame) || !isValid(this.spineNode, true)) return;
                 if (error || !asset) { delete this.keys.frame; return; }
                 const oldSprite = this.spineNode.getComponent(Sprite);
                 if (oldSprite) oldSprite.enabled = false;

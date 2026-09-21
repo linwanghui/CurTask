@@ -8,6 +8,7 @@ import {
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_GetExpPanel } from '../Panel/ZRSJZ_GetExpPanel';
 import { ZRSJZ_ProfileAppearance } from './ZRSJZ_ProfileAppearance';
+import { ZRSJZ_TitleShine } from './ZRSJZ_TitleShine';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 const { ccclass } = _decorator;
 
@@ -25,6 +26,8 @@ export class ZRSJZ_GradeUI extends Component {
 
     protected onLoad(): void {
         this._appearance = new ZRSJZ_ProfileAppearance(this.node, ZRSJZ_PANEL.等级弹窗);
+        const title = this.node.getChildByName('称号');
+        if (title && !title.getComponent(ZRSJZ_TitleShine)) title.addComponent(ZRSJZ_TitleShine);
         this._roleName = this.node.getChildByName("Name")?.getComponent(Label) ?? null;
         this._grade = this.node.getChildByName("等级")?.getComponent(Label) ?? null;
         this._progress = this.node.getChildByName("进度")?.getComponent(Sprite) ?? null;
