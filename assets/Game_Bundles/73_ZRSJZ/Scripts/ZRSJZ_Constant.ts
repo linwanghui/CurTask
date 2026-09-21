@@ -9,6 +9,7 @@ export const ZRSJZ_AMMO_MAX_COUNT = 60;
 
 //界面路径
 export enum ZRSJZ_PANEL {
+    曼德尔箱界面 = "73_ZRSJZ_DLC/Prefabs/Panel/曼德尔箱界面",
     活动界面 = "73_ZRSJZ_DLC/Prefabs/Panel/活动界面",
     公告界面 = "73_ZRSJZ_DLC/Prefabs/Panel/公告界面",
     联机界面 = "73_ZRSJZ_DLC/Prefabs/Panel/联机界面",

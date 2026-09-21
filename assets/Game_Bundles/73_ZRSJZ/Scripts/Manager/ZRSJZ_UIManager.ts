@@ -579,6 +579,7 @@ export class ZRSJZ_UIManager extends Component {
     public HidePanel(panel: string, ...args: any[]) {
         if (ZRSJZ_UIManager.Dragging) return;
         const panelName = panel.split('/').pop() || panel;
+        if (this._panelMap.get(panelName)?.getComponent(ZRSJZ_Panel)?.CanClose === false) return;
         if (!this._curPanel.includes(panelName)) return;//面板未显示
         this._curPanel.splice(this._curPanel.indexOf(panelName), 1);
 

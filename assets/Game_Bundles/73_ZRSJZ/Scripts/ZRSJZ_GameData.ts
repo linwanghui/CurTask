@@ -15,7 +15,7 @@ import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 21;//当前版本
+    public static readonly Versions = 22;//当前版本
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -89,6 +89,10 @@ export class ZRSJZ_GameData {
     public ActivityExtractionValue: number = 0;
     public ActivityTaskClaimed: number[] = [];
     public ActivityRewardClaimed: number[] = [];
+    public MandellBricks: number = 0;
+    public MandellFreeDate: string = '';
+    public MandellFreeCount: number = 0;
+    public MandellPending: { names: string[]; propIDs: string[]; granted: boolean } = null;
     public FiringRangeLevel: number = 0;
     public EnhancementLevel: number = 0;
     public EnhancementSpecials: string[] = [];

@@ -7,6 +7,8 @@ export class ZRSJZ_Panel extends Component {
     Panel: Node = null;
     /** -1 表示全局弹窗，0/1 表示分屏中所属玩家。 */
     public PlayerIndex: number = -1;
+    /** 发奖动画等不可中断操作可临时阻止关闭。 */
+    public get CanClose(): boolean { return true; }
 
     Show(...args: any[]) {
         if (!this.Panel) this.Panel = find("Panel", this.node);
@@ -63,4 +65,3 @@ export class ZRSJZ_Panel extends Component {
     }
 
 }
-

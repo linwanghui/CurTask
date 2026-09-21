@@ -1,0 +1,167 @@
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+const assert = require('assert/strict');
+const ts = require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const root = path.resolve(__dirname, '..');
+function load(file, requireModule) {
+    const source = fs.readFileSync(path.join(root, file), 'utf8');
+    const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, experimentalDecorators: true } }).outputText;
+    const exports = {};
+    vm.runInNewContext(js, { exports, require: requireModule, console, Date, Math });
+    return exports;
+}
+const config = load('Scripts/ZRSJZ_Constant.ts', () => { throw Error('Unexpected constant dependency'); });
+let saved;
+const Data = { Instance: { MandellBricks: 15, MandellFreeDate: '', MandellFreeCount: 0, MandellPending: null, PropID: 0, PropData: {} }, SaveData() { saved = JSON.stringify(this.Instance); } };
+const deps = id => id.includes('GameData') ? { ZRSJZ_GameData: Data } : config;
+const Box = load('Scripts/Service/ZRSJZ_MandellService.ts', deps).ZRSJZ_MandellService;
+const Q = config.ZRSJZ_PROP_QUALITY;
+const quality = name => config.ZRSJZ_PROP_CONFIG.get(name).Quality;
+assert.equal(config.ZRSJZ_PROP_CONFIG.has('曼德尔砖'), false);
+assert.ok(Box.Pool().length > 0);
+assert.ok(Box.Pool().every(p => !['枪', '刀', '头盔', '防弹衣', '背包'].includes(p.PropType)));
+const totals = { [Q.紫色]: 0, [Q.金色]: 0, [Q.红色]: 0 };
+for (let i = 0; i < 1000; i++) { let n = 0; totals[quality(Box.Roll(1, () => ++n === 1 ? i / 1000 : .5)[0])]++; }
+assert.deepEqual(Object.values(totals), [750, 180, 70]);
+const guarantee = Box.Roll(10, () => 0);
+assert.equal(guarantee.filter(n => quality(n) === Q.金色).length, 1);
+assert.equal(Box.Animation(guarantee), '2chuanshuo');
+assert.equal(Box.Animation(Box.Roll(10, () => .99)), '3shenhua');
+const oldBalance = Box.Balance;
+Box.Begin(10);
+assert.equal(Box.Balance, oldBalance - 10);
+assert.throws(() => Box.Begin(1));
+Data.Instance = JSON.parse(saved); // Simulate process exit during animation.
+assert.equal(Box.Pending.names.length, 10);
+Box.Materialize();
+const ids = Object.keys(Data.Instance.PropData);
+Box.Materialize();
+assert.deepEqual(Object.keys(Data.Instance.PropData), ids);
+assert.equal(ids.length, 10);
+Box.Complete();
+Data.Instance.MandellBricks = 0;
+assert.throws(() => Box.Begin(1));
+assert.equal(Box.Balance, 0);
+const reward = Box.VideoReward();
+assert.equal(reward(), true); assert.equal(reward(), false);
+assert.equal(Box.Balance, 5);
+assert.equal(Box.VideoReward()(), true); assert.equal(Box.VideoReward()(), true);
+assert.equal(Box.VideoReward()(), false); assert.equal(Box.Balance, 15);
+Data.Instance.MandellFreeDate = '2000-1-1';
+assert.equal(Box.Remaining(), 3);
+console.log('PASS: real prize pools, 75/18/7 boundaries, ten-pull guarantee, debit, interrupted draw recovery, idempotent rewards, daily videos.');
+
+const prefab = JSON.parse(fs.readFileSync(path.resolve(root, '../73_ZRSJZ_DLC/Prefabs/Panel/曼德尔箱界面.prefab'), 'utf8'));
+function checkRefs(v) { if (!v || typeof v !== 'object') return; if ('__id__' in v) assert.ok(prefab[v.__id__], 'Broken reference ' + v.__id__); for (const x of Object.values(v)) checkRefs(x); }
+prefab.forEach(checkRefs);
+const fileIDs = prefab.filter(x => x.fileId).map(x => x.fileId);
+assert.equal(new Set(fileIDs).size, fileIDs.length);
+prefab.forEach((n, i) => {
+    if (n.__type__ !== 'cc.Node') return;
+    assert.equal(prefab[n._prefab.__id__].__type__, 'cc.PrefabInfo');
+    for (const c of n._children) assert.equal(prefab[c.__id__]._parent.__id__, i);
+    for (const c of n._components) assert.equal(prefab[c.__id__].node.__id__, i);
+});
+function at(p) { let n = prefab[1]; for (const part of p.split('/')) { n = n._children.map(r => prefab[r.__id__]).find(x => x._name === part); assert.ok(n, p); } return n; }
+for (const name of ['返回', '单抽', '十连抽', '奖品一览', '免费获得', '宝箱', '动画', '开启提示', '货币数量']) at('Panel/' + name);
+assert.equal(prefab.some(n => n.__type__ === 'cc.Node' && n._name === '奖励弹窗'), false);
+at('Panel/免费获得弹窗/领取');
+for (const popup of ['免费获得弹窗']) {
+    at('Panel/' + popup + '/遮罩');
+    const board = at('Panel/' + popup + '/弹版');
+    assert.ok(board._components.some(c => prefab[c.__id__].__type__ === 'cc.BlockInputEvents'));
+}
+console.log('PASS: serialized prefab paths, ownership and unique IDs.');
+
+(async () => {
+    const noopDecorator = () => target => target;
+    const cc = { _decorator: { ccclass: noopDecorator, property: () => () => {} }, Enum: x => x, isValid: () => true, sp: { Skeleton: class {} }, Label: class {}, Button: class { static EventType = { CLICK: 'click' }; }, Node: { EventType: { TOUCH_END: 'touch-end' } } };
+    let delivered = false, shown = false, hidden = false;
+    const ui = {
+        ReceiveExistingProps: async () => { delivered = true; return []; },
+        HidePanel: () => { hidden = true; }, ShowTip: () => {},
+        ShowPanel: (name, options) => {
+            assert.equal(name, config.ZRSJZ_PANEL.获取奖励弹窗);
+            assert.equal(options.DisplayOnly, true);
+            assert.equal(options.Awards.length, 10);
+            assert.ok(delivered);
+            shown = true;
+        },
+    };
+    const Panel = load('Scripts/Panel/ZRSJZ_MandellBoxPanel.ts', id => {
+        if (id === 'cc') return cc;
+        if (id.includes('MandellService')) return { ZRSJZ_MandellService: Box };
+        if (id.includes('ZRSJZ_Panel')) return { ZRSJZ_Panel: class {} };
+        if (id.includes('UIManager')) return { ZRSJZ_UIManager: { Instance: ui } };
+        if (id.includes('AudioManager')) return { ZRSJZ_AudioManager: { Instance: { PlaySound() {} } } };
+        if (id.includes('GameData')) return { ZRSJZ_GameData: Data };
+        if (id.includes('Constant')) return config;
+        return {};
+    }).ZRSJZ_MandellBoxPanel;
+    let completed;
+    const skeleton = { skeletonData: { getRuntimeData: () => ({ findAnimation: () => true }) }, clearTracks() {}, setToSetupPose() {}, setCompleteListener(fn) { completed = fn; }, setAnimation(_, name, loop) { assert.equal(loop, false); this.name = name; return {}; } };
+    const panel = new Panel();
+    panel.node = {};
+    panel.Panel = { getChildByName: name => name === '动画' ? { getComponent: () => skeleton } : { set active(v) { shown = v; } }, getChildByPath: () => ({ getComponent: () => ({ string: '' }) }) };
+    panel.ClosePopups = () => {}; panel.Refresh = () => {};
+    panel.SetOpening = value => { panel.opening = value; };
+    const promise = panel.Open(10);
+    const balance = Box.Balance;
+    assert.equal(panel.CanClose, false);
+    await panel.Open(1);
+    panel.Action('返回');
+    assert.equal(hidden, false); assert.equal(Box.Balance, balance);
+    assert.equal(delivered, false); assert.equal(shown, false);
+    completed({ animation: { name: skeleton.name } });
+    await promise;
+    assert.equal(delivered, true); assert.equal(shown, true); assert.equal(panel.CanClose, true);
+    console.log('PASS: repeated clicks/exit blocked, delivery and reward popup wait for Spine completion.');
+    const giftButton = { active: true };
+    const label = { string: '' };
+    panel.Panel = { getChildByName: name => name === '免费获得' ? giftButton : { getComponent: () => label }, getChildByPath: () => ({ getComponent: () => label }) };
+    panel.initialized = true;
+    Data.Instance.MandellFreeCount = 3;
+    Panel.prototype.Refresh.call(panel);
+    assert.equal(giftButton.active, false);
+    Data.Instance.MandellFreeDate = '2000-1-1';
+    Panel.prototype.Refresh.call(panel);
+    assert.equal(giftButton.active, true);
+    console.log('PASS: third daily claim hides gift entry; next day restores it.');
+
+    // Load the user's current prefab hierarchy into a lightweight node fixture.
+    // This catches missing-node errors in Initialize/Refresh, not just compile errors.
+    const nodes = new Map();
+    prefab.forEach((n, id) => {
+        if (n.__type__ !== 'cc.Node') return;
+        const components = n._components.map(c => ({ ...prefab[c.__id__] }));
+        nodes.set(id, {
+            name: n._name, active: n._active, events: {},
+            getChildByName(name) { return n._children.map(c => nodes.get(c.__id__)).find(c => c.name === name) || null; },
+            getChildByPath(p) { return p.split('/').reduce((node, part) => node?.getChildByName(part), this); },
+            getComponent(type) {
+                if (type === cc.sp.Skeleton) return skeleton;
+                return components.find(c => c.__type__ === (type === cc.Button ? 'cc.Button' : 'cc.Label'));
+            },
+            on(event, callback) { (this.events[event] ||= []).push(callback); },
+        });
+    });
+    const current = new Panel();
+    current.node = nodes.get(1);
+    current.Panel = current.node.getChildByName('Panel');
+    current.Initialize(); current.Initialize();
+    current.ClosePopups(); current.SetOpening(false); current.Refresh();
+    const popup = current.Panel.getChildByName('免费获得弹窗');
+    assert.equal(popup.active, false);
+    assert.equal(current.Panel.getChildByName('奖品一览').active, false);
+    popup.active = true;
+    popup.getChildByName('遮罩').events['touch-end'][0]();
+    assert.equal(popup.active, false);
+    assert.equal(popup.getChildByName('关闭').events.click.length, 1);
+    current.SetOpening(true);
+    popup.active = true;
+    popup.getChildByName('遮罩').events['touch-end'][0]();
+    assert.equal(popup.active, true);
+    assert.equal(current.Panel.getChildByName('单抽').getComponent(cc.Button).interactable, false);
+    console.log('PASS: current edited prefab initializes/refreshes without removed nodes, mask closes only while idle.');
+})().catch(error => { console.error(error); process.exitCode = 1; });

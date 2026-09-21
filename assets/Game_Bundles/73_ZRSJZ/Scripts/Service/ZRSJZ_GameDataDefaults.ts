@@ -46,6 +46,12 @@ export class ZRSJZ_GameDataDefaults {
         }
 
         const loadData = () => {
+            if (data.Versions === 21) {
+                if (savedData.MandellBricks === undefined) data.MandellBricks = 0;
+                if (savedData.MandellFreeDate === undefined) data.MandellFreeDate = '';
+                if (savedData.MandellFreeCount === undefined) data.MandellFreeCount = 0;
+                if (savedData.MandellPending === undefined) data.MandellPending = null;
+            }
             if (data.Versions === 17) {
                 // 新活动从零开始，不用历史撤离统计追溯发奖，也不覆盖旧存档其他字段。
                 if (savedData.ActivityExtractionValue === undefined) data.ActivityExtractionValue = 0;

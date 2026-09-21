@@ -186,6 +186,10 @@ export class ZRSJZ_Start extends Component {
             case "收藏室":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.收藏室界面);
                 break;
+            case "曼德尔箱":
+                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.曼德尔箱界面);
+                else ZRSJZ_UIManager.Instance.ShowTip('曼德尔箱资源正在加载，请稍后再试');
+                break;
             case "盲盒":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.盲盒界面);
                 break;
