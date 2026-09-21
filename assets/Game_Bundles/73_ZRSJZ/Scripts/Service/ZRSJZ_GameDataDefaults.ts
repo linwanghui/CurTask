@@ -10,6 +10,7 @@ import {
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_SIDE_TASK_LINES } from '../ZRSJZ_TaskLines';
 import { MigrateLegacyEnhancement } from '../ZRSJZ_EnhancementConfig';
+import { CreateBattlePassState } from '../ZRSJZ_BattlePassConfig';
 
 /** 新存档初始化和旧存档迁移。此类不触发事件，也不主动写盘。 */
 export class ZRSJZ_GameDataDefaults {
@@ -46,6 +47,12 @@ export class ZRSJZ_GameDataDefaults {
         }
 
         const loadData = () => {
+            if (data.Versions === 22) {
+                data.BattlePass ??= CreateBattlePassState();
+                data.BattlePass.advancedClaimed ??= [];
+                data.BattlePass.advancedUnlocked ??= false;
+            }
+            if (data.Versions === 21 && savedData.BattlePass === undefined) data.BattlePass = CreateBattlePassState();
             if (data.Versions === 17) {
                 // 新活动从零开始，不用历史撤离统计追溯发奖，也不覆盖旧存档其他字段。
                 if (savedData.ActivityExtractionValue === undefined) data.ActivityExtractionValue = 0;

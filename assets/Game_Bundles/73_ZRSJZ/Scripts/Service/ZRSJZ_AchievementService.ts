@@ -4,6 +4,7 @@ import { ZRSJZ_ACHIEVEMENT_CONFIG, ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG, ZRSJZ_Ach
 import { ZRSJZ_InventoryService } from './ZRSJZ_InventoryService';
 import { ZRSJZ_TitleService } from './ZRSJZ_TitleService';
 import { ZRSJZ_AvatarFrameService } from './ZRSJZ_AvatarFrameService';
+import { ZRSJZ_BattlePassService } from './ZRSJZ_BattlePassService';
 
 /** 记录成就进度、完成状态和领奖；配置统一来自 ZRSJZ_Constant。 */
 export class ZRSJZ_AchievementService {
@@ -165,6 +166,8 @@ export class ZRSJZ_AchievementService {
         this.lowHpEnemyKillStreak = 0;
     }
     public static BattleFinished(success: boolean, value: number, seconds: number, map: string, duo: boolean, lowHp: boolean): void {
+        ZRSJZ_BattlePassService.Record('battle');
+        if (success) ZRSJZ_BattlePassService.Record('extract');
         this.Add('初入战场');
         if (duo) this.Max('甜蜜双排', 1);
         const data = ZRSJZ_GameData.Instance;
@@ -180,6 +183,7 @@ export class ZRSJZ_AchievementService {
     }
     public static PlayerDied(): void { this.battleKillStreak = 0; this.lowHpEnemyKillStreak = 0; }
     public static EnemyKilled(count: number, weapon: '枪' | '刀' | '散弹枪' | 'unknown', snowMap: boolean, lowHp: boolean): void {
+        ZRSJZ_BattlePassService.Record('kill', count);
         this.Add('火力覆盖', count);
         this.Add('战场主宰', count);
         this.battleKillStreak += count;
@@ -191,12 +195,13 @@ export class ZRSJZ_AchievementService {
         if (weapon === '散弹枪') this.Add('火力压制', count);
         if (snowMap) this.Add('雪域幽灵', count);
     }
-    public static HealUsed(): void { this.Add('战地医师'); }
+    public static HealUsed(): void { this.Add('战地医师'); ZRSJZ_BattlePassService.Record('heal'); }
     public static ContainerSearched(id: string): void {
         if (!id || this.searchedBoxes.has(id)) return;
         this.searchedBoxes.add(id);
+        ZRSJZ_BattlePassService.Record('search');
         this.Add('搜刮专家');
     }
-    public static SpecialTaskCompleted(): void { this.Add('赏金猎人'); }
+    public static SpecialTaskCompleted(): void { this.Add('赏金猎人'); ZRSJZ_BattlePassService.Record('special'); }
     public static BombAvoided(): void { this.Add('雷区舞者'); }
 }

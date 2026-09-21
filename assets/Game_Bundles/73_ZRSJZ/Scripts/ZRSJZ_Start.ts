@@ -1,4 +1,5 @@
 import { ZRSJZ_MainReminderService } from './Service/ZRSJZ_MainReminderService';
+import { ZRSJZ_BattlePassService } from './Service/ZRSJZ_BattlePassService';
 import { ZRSJZ_ActionSuppliesService } from './Service/ZRSJZ_ActionSuppliesService';
 import { ZRSJZ_MerchantService } from './Service/ZRSJZ_MerchantService';
 import { ZRSJZ_NoticeService } from './Service/ZRSJZ_NoticeService';
@@ -58,6 +59,7 @@ export class ZRSJZ_Start extends Component {
     UIPanel: Node = null;
 
     protected start(): void {
+        ZRSJZ_BattlePassService.EnsurePeriods();
         ZRSJZ_MerchantService.EnterHome();
 
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
@@ -225,6 +227,10 @@ export class ZRSJZ_Start extends Component {
                 break;
             case "成就":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.成就界面);
+                break;
+            case "战令":
+                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.战令界面);
+                else ZRSJZ_UIManager.Instance.ShowTip('资源加载中，请稍后');
                 break;
             case "更多游戏":
                 UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("文字三角洲"), "WZSJZ_Start"]);

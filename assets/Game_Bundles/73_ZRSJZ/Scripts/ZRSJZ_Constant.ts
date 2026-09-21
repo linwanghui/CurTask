@@ -61,6 +61,8 @@ export enum ZRSJZ_PANEL {
     行动补给弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/行动补给弹窗",
     神秘商人弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/神秘商人弹窗",
     成就界面 = "73_ZRSJZ_DLC/Prefabs/Panel/成就界面",
+
+    战令界面 = "73_ZRSJZ_DLC/Prefabs/Panel/战令界面",
     头像框弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/头像框弹窗",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
 }

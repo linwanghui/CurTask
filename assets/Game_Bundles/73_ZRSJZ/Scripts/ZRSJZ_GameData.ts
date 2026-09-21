@@ -3,6 +3,7 @@ import { ZRSJZ_INVENTORY, ZRSJZ_MailConfig, ZRSJZ_PropData, ZRSJZ_UpgradeFacilit
 import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
 import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
 import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
+import { CreateBattlePassState, ZRSJZ_BattlePassState } from './ZRSJZ_BattlePassConfig';
 
 /**
  * 游戏存档数据容器。
@@ -15,7 +16,7 @@ import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 21;//当前版本
+    public static readonly Versions = 23;//当前版本：战令进阶解锁与独立领取记录
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -150,6 +151,7 @@ export class ZRSJZ_GameData {
     public AchievementClaimed: string[] = [];
     public AchievementMilestonesClaimed: number[] = [];
     public AchievementEvacuationStreak: number = 0;
+    public BattlePass: ZRSJZ_BattlePassState = CreateBattlePassState();
 
     //#region 增强针
     BoosterShotData: { [Key: string]: number } = {};//增强针数据
