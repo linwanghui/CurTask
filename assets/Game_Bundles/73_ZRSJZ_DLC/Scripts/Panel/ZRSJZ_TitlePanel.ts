@@ -4,6 +4,7 @@ import { ZRSJZ_TITLE_CONFIG, ZRSJZ_PANEL } from '../../../73_ZRSJZ/Scripts/ZRSJZ
 import { ZRSJZ_TitleService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_TitleService';
 import { ZRSJZ_UIManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
+import { ZRSJZ_TitleShine } from '../../../73_ZRSJZ/Scripts/UI/ZRSJZ_TitleShine';
 const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_TitlePanel')
@@ -21,7 +22,10 @@ export class ZRSJZ_TitlePanel extends ZRSJZ_Panel {
         }, this);
         click(this.Panel.getChildByName('关闭'), () => ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.称号弹窗));
         for (const item of ZRSJZ_TITLE_CONFIG) {
-            click(this.content.getChildByName(item.name), () => { this.selected = item.name; this.Refresh(); });
+            const row = this.content.getChildByName(item.name);
+            const icon = row.getChildByName('图标');
+            if (icon && !icon.getComponent(ZRSJZ_TitleShine)) icon.addComponent(ZRSJZ_TitleShine);
+            click(row, () => { this.selected = item.name; this.Refresh(); });
         }
         click(this.Panel.getChildByName('使用'), () => {
             if (!ZRSJZ_TitleService.IsOwned(this.selected)) {
