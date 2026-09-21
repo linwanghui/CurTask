@@ -62,7 +62,6 @@ export enum ZRSJZ_PANEL {
     神秘商人弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/神秘商人弹窗",
     成就界面 = "73_ZRSJZ_DLC/Prefabs/Panel/成就界面",
     头像框弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/头像框弹窗",
-    称号弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/称号弹窗",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
 }
 
@@ -92,6 +91,7 @@ export const ZRSJZ_PANEL_PATH_CONFIG: Map<string, string> = new Map([
     ["行动补给", "主页-行动补给"],
     ["神秘商人", "主页-神秘商人"],
     ["成就界面", "主页-成就界面"],
+    ["曼德尔箱界面", "主页-曼德尔箱界面"],
 ])
 
 //物理层级

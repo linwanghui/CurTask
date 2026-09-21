@@ -32,10 +32,14 @@ export class ZRSJZ_ProfileAppearance {
             if (button) button.clickEvents = [];
             const handler = (event: EventTouch) => {
                 event.propagationStopped = true;
-                const panel = name === '称号' ? ZRSJZ_PANEL.称号弹窗 : avatarPanel;
+                const panel = name === '称号' ? ZRSJZ_PANEL.头像框弹窗 : avatarPanel;
                 if (panel !== ZRSJZ_PANEL.等级弹窗 && !ZRSJZ_UIManager.ZRSJZ_DLC) return;
                 ZRSJZ_AudioManager.Instance?.PlaySound('点击');
-                ZRSJZ_UIManager.Instance.ShowPanel(panel);
+                if (panel === ZRSJZ_PANEL.头像框弹窗) {
+                    ZRSJZ_UIManager.Instance.ShowPanel(panel, name === '称号' ? 'title' : 'avatar');
+                } else {
+                    ZRSJZ_UIManager.Instance.ShowPanel(panel);
+                }
             };
             node.on(Node.EventType.TOUCH_END, handler, this);
             this.clicks.push({ node, handler });

@@ -212,7 +212,7 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.等级弹窗);
                 break;
             case "称号":
-                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.称号弹窗);
+                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.头像框弹窗, 'title');
                 break;
             case "邮件":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.邮件界面);
