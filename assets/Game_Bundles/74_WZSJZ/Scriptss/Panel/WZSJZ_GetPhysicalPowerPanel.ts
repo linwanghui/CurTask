@@ -12,10 +12,10 @@ const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_GetPhysicalPowerPanel')
 export class WZSJZ_GetPhysicalPowerPanel extends PanelBase {
-    private _isRequestingAd: boolean = false;
+    private _lastVideoClick: number = 0;
 
     Show(): void {
-        this._isRequestingAd = false;
+        this._lastVideoClick = 0;
         super.Show(this.node.getChildByName("Panel"));
         const quantity = this.node.getChildByPath("Panel/弹版/数量")?.getComponent(Label);
         if (quantity) {
@@ -29,10 +29,9 @@ export class WZSJZ_GetPhysicalPowerPanel extends PanelBase {
                 WZSJZ_UIManager.Instance.HidePanel(WZSJZ_Constant.Panel.GetPhysicalPowerPanel);
                 break;
             case "获得": {
-                if (this._isRequestingAd) return;
-                this._isRequestingAd = true;
+                if (Date.now() - this._lastVideoClick < 1000) return;
+                this._lastVideoClick = Date.now();
                 Banner.Instance.ShowVideoAd(() => {
-                    this._isRequestingAd = false;
                     const added = WZSJZ_GameData.Instance.AddPhysicalPower(
                         WZSJZ_Constant.HomeResource.PhysicalPowerAdReward,
                     );

@@ -22,7 +22,7 @@ export class WZSJZ_RecruitCardSystem extends Component {
     private _preparationCells: WZSJZ_Cell[] = [];
     private _economySystem: WZSJZ_EconomySystem = null;
     private _createRecruit: CreateRecruitCallback = null;
-    private _isRequestingAd: boolean = false;
+    private _lastVideoClick: number = 0;
 
     protected onLoad(): void {
         this.node.on(WZSJZ_EventManager.招募卡变动, this.RefreshView, this);
@@ -81,10 +81,9 @@ export class WZSJZ_RecruitCardSystem extends Component {
     };
 
     private WatchVideoForRecruitCard(): void {
-        if (this._isRequestingAd || this.CardCount > 0) return;
-        this._isRequestingAd = true;
+        if (this.CardCount > 0 || Date.now() - this._lastVideoClick < 1000) return;
+        this._lastVideoClick = Date.now();
         Banner.Instance.ShowVideoAd(() => {
-            this._isRequestingAd = false;
             const added = WZSJZ_GameData.Instance.AddRecruitCards(
                 WZSJZ_Constant.RecruitCard.VideoReward,
             );

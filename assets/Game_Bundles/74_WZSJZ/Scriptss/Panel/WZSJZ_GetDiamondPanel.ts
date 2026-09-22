@@ -12,10 +12,10 @@ const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_GetDiamondPanel')
 export class WZSJZ_GetDiamondPanel extends PanelBase {
-    private _isRequestingAd: boolean = false;
+    private _lastVideoClick: number = 0;
 
     Show(): void {
-        this._isRequestingAd = false;
+        this._lastVideoClick = 0;
         super.Show(this.node.getChildByName("Panel"));
         const quantity = this.node.getChildByPath("Panel/弹版/数量")?.getComponent(Label);
         if (quantity) quantity.string = `X${WZSJZ_Constant.HomeResource.DiamondAdReward}`;
@@ -27,10 +27,9 @@ export class WZSJZ_GetDiamondPanel extends PanelBase {
                 WZSJZ_UIManager.Instance.HidePanel(WZSJZ_Constant.Panel.GetDiamondPanel);
                 break;
             case "获得": {
-                if (this._isRequestingAd) return;
-                this._isRequestingAd = true;
+                if (Date.now() - this._lastVideoClick < 1000) return;
+                this._lastVideoClick = Date.now();
                 Banner.Instance.ShowVideoAd(() => {
-                    this._isRequestingAd = false;
                     const added = WZSJZ_GameData.Instance.AddDiamond(
                         WZSJZ_Constant.HomeResource.DiamondAdReward,
                     );

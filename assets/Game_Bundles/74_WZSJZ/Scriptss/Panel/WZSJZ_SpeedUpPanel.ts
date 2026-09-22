@@ -12,10 +12,10 @@ const { ccclass, property } = _decorator;
 
 @ccclass('WZSJZ_SpeedUpPanel')
 export class WZSJZ_SpeedUpPanel extends PanelBase {
-    private _isWatchingVideo: boolean = false;
+    private _lastVideoClick: number = 0;
 
     Show(): void {
-        this._isWatchingVideo = false;
+        this._lastVideoClick = 0;
         const panel = this.node.getChildByName("Panel");
         const watched = WZSJZ_GameData.Instance.SpeedUpVideoWatchCount;
         const required = WZSJZ_Constant.SpeedUp.PermanentUnlockVideoCount;
@@ -39,10 +39,9 @@ export class WZSJZ_SpeedUpPanel extends PanelBase {
     }
 
     private WatchSpeedUpVideo(): void {
-        if (this._isWatchingVideo) return;
-        this._isWatchingVideo = true;
+        if (Date.now() - this._lastVideoClick < 1000) return;
+        this._lastVideoClick = Date.now();
         Banner.Instance.ShowVideoAd(() => {
-            this._isWatchingVideo = false;
             WZSJZ_EventManager.EmitScene(WZSJZ_EventManager.加速视频完成);
         });
     }
