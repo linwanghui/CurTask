@@ -30,7 +30,8 @@ assert.equal(Box.Animation(guarantee), '2chuanshuo');
 assert.equal(Box.Animation(Box.Roll(10, () => .99)), '3shenhua');
 const oldBalance = Box.Balance;
 Box.Begin(10);
-assert.equal(Box.Balance, oldBalance - 10);
+assert.equal(Box.Balance, oldBalance);
+assert.equal(Box.CanFreeTen(), false);
 assert.throws(() => Box.Begin(1));
 Data.Instance = JSON.parse(saved); // Simulate process exit during animation.
 assert.equal(Box.Pending.names.length, 10);
@@ -40,17 +41,28 @@ Box.Materialize();
 assert.deepEqual(Object.keys(Data.Instance.PropData), ids);
 assert.equal(ids.length, 10);
 Box.Complete();
+Box.Begin(10);
+assert.equal(Box.Balance, oldBalance - 10);
+Box.Complete();
 Data.Instance.MandellBricks = 0;
 assert.throws(() => Box.Begin(1));
+assert.throws(() => Box.Begin(10));
+Data.Instance.MandellFreeTenDate = '2000-1-1';
+assert.equal(Box.CanFreeTen(), true);
+Box.Begin(10);assert.equal(Box.Balance, 0);
+Data.Instance = JSON.parse(saved);assert.equal(Box.CanFreeTen(), false);
+assert.equal(Box.Pending.names.length, 10);Box.Complete();
+const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+assert.equal(Box.CanFreeTen(tomorrow), true);
 assert.equal(Box.Balance, 0);
 const reward = Box.VideoReward();
 assert.equal(reward(), true); assert.equal(reward(), false);
 assert.equal(Box.Balance, 5);
 assert.equal(Box.VideoReward()(), true); assert.equal(Box.VideoReward()(), true);
-assert.equal(Box.VideoReward()(), false); assert.equal(Box.Balance, 15);
-Data.Instance.MandellFreeDate = '2000-1-1';
-assert.equal(Box.Remaining(), 3);
-console.log('PASS: real prize pools, 75/18/7 boundaries, ten-pull guarantee, debit, interrupted draw recovery, idempotent rewards, daily videos.');
+assert.equal(Box.VideoReward()(), true); assert.equal(Box.Balance, 20);
+for (let i = 0; i < 20; i++) assert.equal(Box.VideoReward()(), true);
+assert.equal(Box.Balance, 120);
+console.log('PASS: prize pools, daily free ten-pull including zero balance/restart/next day, paid follow-up, unlimited videos and duplicate callback protection.');
 
 const prefab = JSON.parse(fs.readFileSync(path.resolve(root, '../73_ZRSJZ_DLC/Prefabs/Panel/曼德尔箱界面.prefab'), 'utf8'));
 function checkRefs(v) { if (!v || typeof v !== 'object') return; if ('__id__' in v) assert.ok(prefab[v.__id__], 'Broken reference ' + v.__id__); for (const x of Object.values(v)) checkRefs(x); }
@@ -76,11 +88,17 @@ for (const popup of ['免费获得弹窗', '奖品一览弹窗']) {
     assert.ok(board._components.some(c => prefab[c.__id__].__type__ === 'cc.BlockInputEvents'));
 }
 console.log('PASS: serialized prefab paths, ownership and unique IDs.');
+Data.Versions = 25;
+const defaults = load('Scripts/Service/ZRSJZ_GameDataDefaults.ts', id => id.includes('GameData') ? { ZRSJZ_GameData: Data } : id.includes('Constant') ? config : {}).ZRSJZ_GameDataDefaults;
+const legacy = { Versions: 24, MandellBricks: 77, MandellPending: { names: ['金条'], propIDs: [], granted: false }, PropData: {}, OwnedTitles: ['勇者'], EquippedTitle: '勇者', OwnedAvatarFrames: ['1'], CurrentAvatarFrame: '1' };
+defaults.Migrate(legacy, JSON.parse(JSON.stringify(legacy)));
+assert.equal(legacy.Versions, 25); assert.equal(legacy.MandellFreeTenDate, ''); assert.equal(legacy.MandellBricks, 77); assert.equal(legacy.MandellPending.names[0], '金条');
+legacy.MandellFreeTenDate = '2026-9-22'; defaults.Migrate(legacy, JSON.parse(JSON.stringify(legacy))); assert.equal(legacy.MandellFreeTenDate, '2026-9-22');
 
 (async () => {
     const noopDecorator = () => target => target;
     const cc = { _decorator: { ccclass: noopDecorator, property: () => () => {} }, Enum: x => x, isValid: () => true, sp: { Skeleton: class {} }, Label: class {}, Button: class { static EventType = { CLICK: 'click' }; }, Node: { EventType: { TOUCH_END: 'touch-end' } } };
-    let delivered = false, shown = false, hidden = false;
+    let delivered = false, shown = false, hidden = false, openingSounds = 0;
     const ui = {
         ReceiveExistingProps: async () => { delivered = true; return []; },
         HidePanel: () => { hidden = true; }, ShowTip: () => {},
@@ -97,7 +115,7 @@ console.log('PASS: serialized prefab paths, ownership and unique IDs.');
         if (id.includes('MandellService')) return { ZRSJZ_MandellService: Box };
         if (id.includes('ZRSJZ_Panel')) return { ZRSJZ_Panel: class {} };
         if (id.includes('UIManager')) return { ZRSJZ_UIManager: { Instance: ui } };
-        if (id.includes('AudioManager')) return { ZRSJZ_AudioManager: { Instance: { PlaySound() {} } } };
+        if (id.includes('AudioManager')) return { ZRSJZ_AudioManager: { Instance: { PlaySound(name) { if (name === '曼德尔开箱') openingSounds++; } } } };
         if (id.includes('GameData')) return { ZRSJZ_GameData: Data };
         if (id.includes('Constant')) return config;
         return {};
@@ -110,9 +128,11 @@ console.log('PASS: serialized prefab paths, ownership and unique IDs.');
     panel.ClosePopups = () => {}; panel.Refresh = () => {};
     panel.SetOpening = value => { panel.opening = value; };
     const promise = panel.Open(10);
+    assert.equal(openingSounds, 1);
     const balance = Box.Balance;
     assert.equal(panel.CanClose, false);
     await panel.Open(1);
+    assert.equal(openingSounds, 1);
     panel.Action('返回');
     assert.equal(hidden, false); assert.equal(Box.Balance, balance);
     assert.equal(delivered, false); assert.equal(shown, false);
@@ -126,11 +146,11 @@ console.log('PASS: serialized prefab paths, ownership and unique IDs.');
     panel.initialized = true;
     Data.Instance.MandellFreeCount = 3;
     Panel.prototype.Refresh.call(panel);
-    assert.equal(giftButton.active, false);
+    assert.equal(giftButton.active, true);
     Data.Instance.MandellFreeDate = '2000-1-1';
     Panel.prototype.Refresh.call(panel);
     assert.equal(giftButton.active, true);
-    console.log('PASS: third daily claim hides gift entry; next day restores it.');
+    console.log('PASS: gift entry stays visible regardless of old daily quota.');
 
     // Load the user's current prefab hierarchy into a lightweight node fixture.
     // This catches missing-node errors in Initialize/Refresh, not just compile errors.
@@ -154,6 +174,12 @@ console.log('PASS: serialized prefab paths, ownership and unique IDs.');
     current.Panel = current.node.getChildByName('Panel');
     current.Initialize(); current.Initialize();
     current.ClosePopups(); current.SetOpening(false); current.Refresh();
+    assert.equal(current.Panel.getChildByPath('十连抽/消耗').getComponent(cc.Label).string, '×10');
+    Data.Instance.MandellFreeTenDate = '';
+    current.Refresh();
+    assert.equal(current.Panel.getChildByPath('十连抽/消耗').getComponent(cc.Label).string, '免费');
+    assert.equal(current.Panel.getChildByPath('十连抽/标题').getComponent(cc.Label).string, '今日免费十连');
+    assert.equal(current.Panel.getChildByPath('十连抽/砖').active, false);
     const popup = current.Panel.getChildByName('免费获得弹窗');
     assert.equal(popup.active, false);
     assert.equal(current.Panel.getChildByName('奖品一览').active, true);

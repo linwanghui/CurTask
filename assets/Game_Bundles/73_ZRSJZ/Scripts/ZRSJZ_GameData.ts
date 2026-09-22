@@ -16,7 +16,7 @@ import { CreateBattlePassState, ZRSJZ_BattlePassState } from './ZRSJZ_BattlePass
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 23;//当前版本：战令进阶解锁与独立领取记录
+    public static readonly Versions = 25;//当前版本：曼德尔箱每日免费十连
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -88,9 +88,13 @@ export class ZRSJZ_GameData {
     public MerchantPurchaseCount: number = 0;
     public NoticeClosedDate: string = '';
     public ActivityExtractionValue: number = 0;
+    public MidAutumn: import('./Service/ZRSJZ_MidAutumnService').MidAutumnState = {
+        cakes: 0, date: '', videos: 0, offers: [], pending: null,
+    };
     public ActivityTaskClaimed: number[] = [];
     public ActivityRewardClaimed: number[] = [];
     public MandellBricks: number = 0;
+    public MandellFreeTenDate: string = '';
     public MandellFreeDate: string = '';
     public MandellFreeCount: number = 0;
     public MandellPending: { names: string[]; propIDs: string[]; granted: boolean } = null;

@@ -4,6 +4,7 @@ import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_ActivityService as Activity } from '../Service/ZRSJZ_ActivityService';
+import { ZRSJZ_MidAutumnPage } from '../UI/ZRSJZ_MidAutumnPage';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_ActivityPanel')
@@ -14,6 +15,11 @@ export class ZRSJZ_ActivityPanel extends ZRSJZ_Panel {
     private rewards: Node[] = [];
     private page: Node;
     private busy = false;
+    private moon: ZRSJZ_MidAutumnPage;
+    public get CanClose(): boolean { return !this.busy && !this.moon?.busy; }
+    protected onEnable(): void { this.schedule(this.RefreshMoon, 1); }
+    protected onDisable(): void { this.unschedule(this.RefreshMoon); }
+    private RefreshMoon(): void { this.moon?.Render(); }
 
     Show(): void {
         this.Panel = this.node.getChildByName('Panel');
@@ -24,9 +30,12 @@ export class ZRSJZ_ActivityPanel extends ZRSJZ_Panel {
             return;
         }
         this.Initialize();
+        if (!this.moon) this.moon = new ZRSJZ_MidAutumnPage(this.Panel.getChildByPath('右栏/月满金秋'));
         super.Show();
         this.SelectActivity('战备冲刺', false);
         this.Render();
+        this.moon.Render();
+        void this.moon.Exchange();
         this.scheduleOnce(() => this.page.getChildByName('任务列表').getComponent(ScrollView).scrollToTop(0), 0);
     }
 
@@ -102,6 +111,8 @@ export class ZRSJZ_ActivityPanel extends ZRSJZ_Panel {
             tween(selected).to(0.2, { position: tab.position.clone() }, { easing: 'quadOut' }).start();
         } else selected.setPosition(tab.position);
         for (const page of this.Panel.getChildByName('右栏').children) page.active = page.name === name;
+        this.Panel.getChildByName('中秋背景').active = name === '月满金秋';
+        this.moon?.Render();
     }
 
     private Text(root: Node, name: string, value: string): void {

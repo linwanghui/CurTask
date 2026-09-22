@@ -174,6 +174,10 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["地图", { Name: "地图", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 5400, MaxCount: 1 }],
     ["苹果", { Name: "苹果", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 4400, MaxCount: 1 }],
     ["量子U盘", { Name: "量子U盘", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 5600, MaxCount: 1 }],
+    ["大米", { Name: "大米", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 6000, MaxCount: 1 }],
+    ["油", { Name: "油", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 6000, MaxCount: 1 }],
+    ["莲子", { Name: "莲子", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 6000, MaxCount: 1 }],
+    ["鸡蛋", { Name: "鸡蛋", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 6000, MaxCount: 1 }],
     //1x1 --  蓝
     ["手套", { Name: "手套", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 12000, MaxCount: 1 }],
     ["无线便携电钻", { Name: "无线便携电钻", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 11000, MaxCount: 1 }],
@@ -197,6 +201,7 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
 
 
     //1x1 --  红
+    ["炫彩月饼", { Name: "炫彩月饼", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 1000000, MaxCount: 1 }],
     ["纵横", { Name: "纵横", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 250000, MaxCount: 1 }],
     ["金条", { Name: "金条", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 220000, MaxCount: 1 }],
     ["高速阵列", { Name: "高速阵列", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 210000, MaxCount: 1 }],
@@ -398,6 +403,11 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
 
 // 道具描述：结合道具名称及图标外观，用于详情、商店和仓库界面展示。
 export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
+    ["大米", "一袋大米，可以用于制作月饼材料。"],
+    ["油", "一桶食用油，可以用于制作月饼材料。"],
+    ["莲子", "一把莲子，可以用于制作月饼材料。"],
+    ["鸡蛋", "可以用于制作月饼材料。"],
+    ["炫彩月饼", "流光溢彩的珍藏月饼，酥皮映出绚丽月华，馅心凝聚金秋的甜蜜。可在中秋活动中兑换，是值得收入收藏室的节庆珍品。"],
     ["宠物碎片", "用于解锁宠物和宠物皮肤。结算时保留下来的碎片直接计入宠物碎片余额，不进入仓库。"],
     ["英雄碎片", "用于解锁角色和角色皮肤。结算时保留下来的碎片直接计入英雄碎片余额，不进入仓库。"],
     ["核桃", "掌间文玩核桃，棱角已被岁月磨圆，转动的每一声轻响，都藏着时光的回音。"],
