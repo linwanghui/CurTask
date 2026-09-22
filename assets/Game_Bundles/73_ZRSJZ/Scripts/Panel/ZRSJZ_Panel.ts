@@ -18,7 +18,7 @@ export class ZRSJZ_Panel extends Component {
         tween(this.Panel)
             .to(0.3, { scale: this.GetPanelScale() }, { easing: 'backOut' })
             .call(() => {
-                if (args.length > 0) args[0]();
+                if (typeof args[0] === 'function') args[0]();
             })
             .start();
     }
@@ -29,7 +29,7 @@ export class ZRSJZ_Panel extends Component {
         tween(this.Panel)
             .to(0, { scale: v3(0, 0, 0) }, { easing: 'backOut' })
             .call(() => {
-                if (args.length > 0) args[0]();
+                if (typeof args[0] === 'function') args[0]();
                 this.node.active = false;
             })
             .start();
