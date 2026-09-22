@@ -1,4 +1,4 @@
-import { _decorator, Button, Enum, EventTouch, isValid, Label, Node, sp } from 'cc';
+import { _decorator, Button, Enum, EventTouch, instantiate, isValid, Label, Node, ScrollView, sp, Sprite, UITransform } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
@@ -14,6 +14,7 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
     PanelName: ZRSJZ_PANEL = ZRSJZ_PANEL.曼德尔箱界面;
     private opening = false;
     private initialized = false;
+    private previewReady = false;
     private generation = 0;
     private lastAdClick = 0;
     private animationCancel: (() => void) | null = null;
@@ -45,16 +46,16 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
     private Initialize(): void {
         if (this.initialized) return;
         this.initialized = true;
-        for (const name of ['返回', '单抽', '十连抽', '免费获得']) {
+        for (const name of ['返回', '单抽', '十连抽', '免费获得', '奖品一览']) {
             this.Bind(this.Panel.getChildByName(name), () => this.Action(name));
         }
-        // 对应弹窗已从预制体移除，隐藏残留入口，不再构建奖品列表。
-        const previewButton = this.Panel.getChildByName('奖品一览');
-        if (previewButton) previewButton.active = false;
-        const popup = this.Panel.getChildByName('免费获得弹窗');
-        const close = () => { if (!this.opening) popup.active = false; };
-        this.Bind(popup.getChildByName('关闭'), close);
-        popup.getChildByName('遮罩').on(Node.EventType.TOUCH_END, close, this);
+        this.Panel.getChildByName('奖品一览').active = true;
+        for (const name of ['免费获得弹窗', '奖品一览弹窗']) {
+            const popup = this.Panel.getChildByName(name);
+            const close = () => { if (!this.opening) popup.active = false; };
+            this.Bind(popup.getChildByName('关闭'), close);
+            popup.getChildByName('遮罩').on(Node.EventType.TOUCH_END, close, this);
+        }
         this.Bind(this.Panel.getChildByPath('免费获得弹窗/领取'), () => this.WatchVideo());
         const skeleton = this.Panel.getChildByName('动画').getComponent(sp.Skeleton);
         skeleton.clearTracks();
@@ -75,6 +76,11 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
     private Action(name: string): void {
         if (this.opening) return;
         switch (name) {
+            case '奖品一览':
+                this.ClosePopups();
+                this.Panel.getChildByName('奖品一览弹窗').active = true;
+                this.ShowPrizePreview();
+                break;
             case '返回': ZRSJZ_UIManager.Instance.HidePanel(this.PanelName); break;
             case '单抽': void this.Open(1); break;
             case '十连抽': void this.Open(10); break;
@@ -156,7 +162,7 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
         this.Panel.getChildByName('动画').active = value;
         this.Panel.getChildByName('宝箱').active = !value;
         this.Panel.getChildByName('开启提示').active = value;
-        for (const name of ['返回', '单抽', '十连抽', '免费获得']) {
+        for (const name of ['返回', '单抽', '十连抽', '免费获得', '奖品一览']) {
             this.Panel.getChildByName(name).getComponent(Button).interactable = !value;
         }
     }
@@ -190,6 +196,47 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
 
     private ClosePopups(): void {
         this.Panel.getChildByName('免费获得弹窗').active = false;
+        this.Panel.getChildByName('奖品一览弹窗').active = false;
+    }
+
+    /** 公示直接读取实际奖池，使用预制体道具格模板，不执行发奖。 */
+    private ShowPrizePreview(): void {
+        const scroll = this.Panel.getChildByPath('奖品一览弹窗/列表').getComponent(ScrollView);
+        if (!this.previewReady) {
+            const content = scroll.content;
+            const template = content.getChildByName('道具框模板');
+            template.active = false;
+            const pool = Box.Pool().sort((a, b) =>
+                Box.Rates.findIndex(r => r.quality === b.Quality) - Box.Rates.findIndex(r => r.quality === a.Quality)
+                || b.UnitPrice - a.UnitPrice);
+            const width = content.getComponent(UITransform).width;
+            const columns = 6;
+            pool.forEach((prop, index) => {
+                const item = instantiate(template);
+                item.name = '奖品' + index;
+                item.parent = content;
+                item.active = true;
+                item.setPosition(-width / 2 + width / columns * (index % columns + .5), -75 - Math.floor(index / columns) * 158);
+                item.getChildByName('名称').getComponent(Label).string = prop.Name;
+                const frame = item.getChildByName('品质框').getComponent(Sprite);
+                const icon = item.getChildByName('图标').getComponent(Sprite);
+                ZRSJZ_UIManager.Instance.GetPropGridUI(prop.Quality + '1_1')?.then(asset => {
+                    if (isValid(frame)) frame.spriteFrame = asset;
+                }).catch(error => console.warn('[曼德尔箱] 公示品质框加载失败', error));
+                ZRSJZ_UIManager.Instance.GetPropUI(prop.Name)?.then(asset => {
+                    if (!asset || !isValid(icon)) return;
+                    icon.spriteFrame = asset;
+                    icon.sizeMode = Sprite.SizeMode.CUSTOM;
+                    const size = asset.originalSize;
+                    const scale = Math.min(96 / Math.max(1, size.width), 96 / Math.max(1, size.height));
+                    icon.getComponent(UITransform).setContentSize(size.width * scale, size.height * scale);
+                }).catch(error => console.warn('[曼德尔箱] 公示图标加载失败', error));
+                this.Bind(item, () => ZRSJZ_UIManager.Instance.ShowPlayerPanel(ZRSJZ_PANEL.道具弹窗, 0, prop.Name, 0));
+            });
+            content.getComponent(UITransform).height = Math.max(scroll.node.getComponent(UITransform).height, Math.ceil(pool.length / columns) * 158);
+            this.previewReady = true;
+        }
+        this.scheduleOnce(() => { if (isValid(scroll)) scroll.scrollToTop(0); }, 0);
     }
 }
 

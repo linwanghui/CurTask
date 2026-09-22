@@ -13,9 +13,9 @@ export class ZRSJZ_MandellService {
     public static get Balance(): number { return Math.max(0, Math.floor(ZRSJZ_GameData.Instance.MandellBricks || 0)); }
     public static get Pending() { return ZRSJZ_GameData.Instance.MandellPending; }
     public static Pool(quality?: Quality) {
-        const equipmentTypes = new Set(['枪', '刀', '头盔', '防弹衣', '背包']);
+        const excludedTypes = new Set(['枪', '刀', '头盔', '防弹衣', '背包', '弹药']);
         return Array.from(ZRSJZ_PROP_CONFIG.values()).filter(p => p.UnitPrice > 0
-            && !equipmentTypes.has(p.PropType)
+            && !excludedTypes.has(p.PropType)
             && this.Rates.some(r => r.quality === p.Quality) && (!quality || p.Quality === quality));
     }
     public static Roll(count: number, random: () => number = Math.random): string[] {
