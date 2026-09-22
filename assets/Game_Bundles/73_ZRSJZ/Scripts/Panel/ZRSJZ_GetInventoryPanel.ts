@@ -15,7 +15,7 @@ export class ZRSJZ_GetInventoryPanel extends ZRSJZ_Panel {
     private _warehouseName: string = "";
     private _inventory: ZRSJZ_INVENTORY = null;
     private _onUnlocked: () => void = null;
-    private _isWatchingAd: boolean = false;
+    private _lastVideoClick: number = 0;
 
     protected onLoad(): void {
         this._nameLabel = find("Panel/PropName", this.node)?.getComponent(Label) ?? null;
@@ -31,7 +31,7 @@ export class ZRSJZ_GetInventoryPanel extends ZRSJZ_Panel {
         this._warehouseName = warehouseName;
         this._inventory = inventory;
         this._onUnlocked = onUnlocked ?? null;
-        this._isWatchingAd = false;
+        this._lastVideoClick = 0;
         const displayName = `${warehouseName}仓库`;
         if (this._nameLabel) this._nameLabel.string = displayName;
         if (this._tipLabel) this._tipLabel.string = `是否观看视频解锁${displayName}？`;
@@ -47,20 +47,19 @@ export class ZRSJZ_GetInventoryPanel extends ZRSJZ_Panel {
             case "否":
             case "关闭":
             case "Mask":
-                if (!this._isWatchingAd) this.Close();
+                this.Close();
                 break;
         }
     }
 
     private UnlockByVideo(): void {
-        if (this._isWatchingAd || !this._inventory) return;
+        if (!this._inventory || Date.now() - this._lastVideoClick < 1000) return;
         if (ZRSJZ_InventoryService.IsWarehouseUnlocked(this._inventory)) {
             this.CompleteUnlock();
             return;
         }
-        this._isWatchingAd = true;
+        this._lastVideoClick = Date.now();
         Banner.Instance.ShowVideoAd(() => {
-            this._isWatchingAd = false;
             const unlocked = ZRSJZ_InventoryService.UnlockWarehouse(this._inventory);
             if (!unlocked && !ZRSJZ_InventoryService.IsWarehouseUnlocked(this._inventory)) {
                 ZRSJZ_UIManager.Instance.ShowTip(`${this._warehouseName}仓库解锁失败`);

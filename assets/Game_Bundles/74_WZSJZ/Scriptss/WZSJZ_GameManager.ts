@@ -117,7 +117,7 @@ export class WZSJZ_GameManager extends Component {
     private _isKeyPointerDown: boolean = false;
     private _hasKeyPointerMoved: boolean = false;
     private _isDraggingKey: boolean = false;
-    private _isRequestingKeyAd: boolean = false;
+    private _lastKeyVideoClick: number = 0;
     private _keyUnlockHintNodes: Node[] = [];
     private _wallBehavior: WZSJZ_Wall = null;
     private _combatSystem: WZSJZ_CombatSystem = null;
@@ -833,12 +833,11 @@ export class WZSJZ_GameManager extends Component {
     }
 
     private WatchVideoForKey(): void {
-        if (this._isRequestingKeyAd || this.KeyCount > 0) {
+        if (this.KeyCount > 0 || Date.now() - this._lastKeyVideoClick < 1000) {
             return;
         }
-        this._isRequestingKeyAd = true;
+        this._lastKeyVideoClick = Date.now();
         Banner.Instance.ShowVideoAd(() => {
-            this._isRequestingKeyAd = false;
             this.ChangeKeyCount(WZSJZ_Constant.ToolKey.VideoReward);
             WZSJZ_AudioManager.Play('奖励获得', 0.8);
             WZSJZ_UIManager.Instance.ShowText("获得一把钥匙！");
