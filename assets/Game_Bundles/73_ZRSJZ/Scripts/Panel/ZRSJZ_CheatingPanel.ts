@@ -10,6 +10,8 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
 import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 import { ZRSJZ_EnhancementService } from '../Service/ZRSJZ_EnhancementService';
+import { ZRSJZ_BattlePassService } from '../Service/ZRSJZ_BattlePassService';
+import { ZRSJZ_BATTLE_PASS_CONFIG } from '../ZRSJZ_BattlePassConfig';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_CheatingPanel')
@@ -118,6 +120,20 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             return;
         }
         switch (target) {
+            case '战令等级加10': {
+                ZRSJZ_BattlePassService.EnsurePeriods();
+                const before = ZRSJZ_BattlePassService.GetLevel();
+                const config = ZRSJZ_BATTLE_PASS_CONFIG;
+                if (before >= config.maxLevel) {
+                    void ZRSJZ_UIManager.Instance.ShowTip('战令已满级');
+                    break;
+                }
+                const state = ZRSJZ_GameData.Instance.BattlePass;
+                state.exp = Math.min(config.maxLevel * config.expPerLevel, state.exp + 10 * config.expPerLevel);
+                ZRSJZ_GameData.SaveData();
+                void ZRSJZ_UIManager.Instance.ShowTip(`战令等级 +${ZRSJZ_BattlePassService.GetLevel() - before}，当前 Lv.${ZRSJZ_BattlePassService.GetLevel()}`);
+                break;
+            }
             case '免费强化':
                 ZRSJZ_EnhancementService.FreeUpgradeEnabled = true;
                 void ZRSJZ_UIManager.Instance.ShowTip('本次游戏已开启免费强化：免材料、免金币');

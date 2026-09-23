@@ -1,8 +1,8 @@
 import { FormatMoney } from "../ZRSJZ_NumberFormat";
-import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame } from 'cc';
+import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame, Texture2D } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
-import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPON_SKIN } from '../ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
@@ -48,7 +48,7 @@ export class ZRSJZ_TaskAward extends Component {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_GET_PROP, this.GetShow, this);
     }
 
-    Init(propName: string, count: number, selectionKey: string = propName) {
+    Init(propName: string, count: number, selectionKey: string = propName, displayIcon?: SpriteFrame) {
         const refreshVersion = ++this._refreshVersion;
         if (!this._isInit) {
             this._isInit = true;
@@ -66,7 +66,29 @@ export class ZRSJZ_TaskAward extends Component {
         this._isGetCheck = false;
         this.ShowGetButton();
         this.Name.string = propName;
-        this.Count.string = propName === "钞票" ? FormatMoney(count) : count.toString();
+        this.Count.string = propName === "钞票" ? FormatMoney(count, true) : count.toString();
+        this.Icon.node.setScale(1, 1, 1);
+        const heroSkin = ZRSJZ_SKIN_CONFIG.get(propName);
+        const weaponSkin = [...ZRSJZ_WEAPON_SKIN.values()].flat().find(s => s.Name === propName);
+        if (displayIcon || heroSkin || (weaponSkin && !ZRSJZ_PROP_CONFIG.has(propName))) {
+            this.Icon.spriteFrame = displayIcon ?? null;
+            this.Bottom.spriteFrame = this.BottomSF;
+            const apply = (sf: SpriteFrame) => {
+                if (refreshVersion !== this._refreshVersion || !this.node.isValid) return;
+                this.Icon.spriteFrame = sf;
+                ZRSJZ_Tools.ScaleNodeToFit(this.Icon.node, 110, 110);
+            };
+            if (displayIcon) apply(displayIcon);
+            else if (heroSkin) void ZRSJZ_UIManager.Instance.GetHeroSkinIconUI(propName).then(apply).catch(console.error);
+            else void ZRSJZ_UIManager.Instance.GetWeaponryUI(propName).then((texture: Texture2D) => {
+                const frame = new SpriteFrame(); frame.texture = texture; apply(frame);
+            }).catch(console.error);
+            const quality = heroSkin?.Quality ?? weaponSkin?.Quality;
+            if (quality) void ZRSJZ_UIManager.Instance.GetPropGridUI(`${quality}1_1`).then(sf => {
+                if (refreshVersion === this._refreshVersion && this.node.isValid) this.Bottom.spriteFrame = sf;
+            }).catch(console.error);
+            return;
+        }
         if (propName.startsWith('仓库_') && propName.endsWith('扩容')) {
             this.Name.string = propName === '仓库_全部扩容'
                 ? '主库'

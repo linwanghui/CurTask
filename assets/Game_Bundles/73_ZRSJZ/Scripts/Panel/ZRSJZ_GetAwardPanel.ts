@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, find, Node } from 'cc';
+import { _decorator, Component, EventTouch, find, Node, SpriteFrame } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -9,8 +9,11 @@ import { ZRSJZ_AccountService } from '../Service/ZRSJZ_AccountService';
 import { ZRSJZ_GradeService } from '../Service/ZRSJZ_GradeService';
 const { ccclass, property } = _decorator;
 
+export interface ZRSJZ_AwardDisplayConfig extends ZRSJZ_MainTaskAwardConfig {
+    Icon?: SpriteFrame;
+}
 export interface ZRSJZ_GetAwardPanelOptions {
-    Awards: ZRSJZ_MainTaskAwardConfig[];
+    Awards: ZRSJZ_AwardDisplayConfig[];
     DisplayOnly: true;
 }
 
@@ -21,6 +24,7 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
 
     private _awards: ZRSJZ_MainTaskAwardConfig[] = [];
     private _displayOnly: boolean = false;
+    private _displayVersion = 0;
 
     protected onLoad(): void {
         this.Award = find("Panel/Award/View/Content", this.node);
@@ -38,16 +42,21 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
         this.ShowAward(...(options?.Awards ?? args));
     }
 
-    ShowAward(...args: ZRSJZ_MainTaskAwardConfig[]) {
+    ShowAward(...args: ZRSJZ_AwardDisplayConfig[]) {
+        const version = ++this._displayVersion;
         for (let i = this.Award.children.length - 1; i >= 0; i--) {
             ZRSJZ_PoolManager.Instance.PutNode(this.Award.children[i]);
         }
         this._awards = [...args];
         args.forEach(award => {
             ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/TaskAward").then(awardNode => {
+                if (version !== this._displayVersion || !this.node.isValid || !this.node.activeInHierarchy) {
+                    ZRSJZ_PoolManager.Instance.PutNode(awardNode);
+                    return;
+                }
                 awardNode.parent = this.Award;
                 awardNode.active = true;
-                awardNode.getComponent(ZRSJZ_TaskAward).Init(award.TaskAwardName, award.TaskAwardCount);
+                awardNode.getComponent(ZRSJZ_TaskAward).Init(award.TaskAwardName, award.TaskAwardCount, award.TaskAwardName, award.Icon);
             })
         })
     }
@@ -56,6 +65,7 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Mask":
+                ++this._displayVersion;
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.获取奖励弹窗);
                 if (this._displayOnly) {
                     this._awards = [];

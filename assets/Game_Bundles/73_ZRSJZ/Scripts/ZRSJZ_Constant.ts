@@ -955,7 +955,7 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
 export interface ZRSJZ_SkinConfig {
     Name: string,
     Quality: ZRSJZ_PROP_QUALITY,
-    UnlockType: "英雄碎片" | "签到解锁",
+    UnlockType: "英雄碎片" | "签到解锁" | "战令解锁",
     UnlockPrice: number,
     Skin: string,
     Headset: string[],
@@ -973,7 +973,7 @@ export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> 
 
     ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/左亚/w1", Headset: [], EntranceAnis: ["cc_w"] }],
     ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/左亚/w2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
-    ["黯祁", { Name: "黯祁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/左亚/w3", Headset: ["w3_0013_帽子"], EntranceAnis: ["cc_w"] }],
+    ["黯祁", { Name: "黯祁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "战令解锁", UnlockPrice: 0, Skin: "角色/左亚/w3", Headset: ["w3_0013_帽子"], EntranceAnis: ["cc_w"] }],
 
     ["沧戈", { Name: "沧戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/乌鲁鲁/乌鲁", Headset: ["乌鲁__头发"], EntranceAnis: ["cc_w"] }],
     ["狩荒", { Name: "狩荒", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁2", Headset: ["乌鲁2_0019_帽子前", "乌鲁2_0014_帽子后",], EntranceAnis: ["cc_w"] }],
@@ -1486,7 +1486,7 @@ export const ZRSJZ_ASSIST_FIGHTING_GIFT_CONFIG: ReadonlyMap<
 ]);
 
 const ZRSJZ_MAP_TIME_LIMITS: readonly number[] = [18, 16, 14, 13, 12, 11];
-const ZRSJZ_MAP_HP_MULTIPLIERS: readonly number[] = [1, 2, 4, 6, 8, 10];
+const ZRSJZ_MAP_HP_MULTIPLIERS: readonly number[] = [0.5, 2, 4, 6, 8, 10];
 const ZRSJZ_MAP_HARM_MULTIPLIERS: readonly number[] = [1, 1.3, 1.7, 2.2, 2.9, 3.8];
 const ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS: readonly number[] = [1.2, 1.6, 2.1, 2.8, 3.7, 4.8];
 const ZRSJZ_MAP_SPEED_MULTIPLIERS: readonly number[] = [0.95, 1, 1.05, 1.1, 1.15, 1.2];

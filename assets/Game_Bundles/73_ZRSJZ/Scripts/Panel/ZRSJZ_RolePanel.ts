@@ -279,7 +279,10 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         }
 
         const skinConfig = ZRSJZ_SKIN_CONFIG.get(this._curRoleData.Skin[this._curRoleSkinIndex]);
-        this._signInOnlyTip.active = skinConfig?.UnlockType === "签到解锁"
+        const exclusiveTip = skinConfig?.UnlockType === "签到解锁" ? "该皮肤只能签到获得"
+            : skinConfig?.UnlockType === "战令解锁" ? "该皮肤只能通过战令获得" : "";
+        this._signInOnlyTip.getComponent(Label).string = exclusiveTip;
+        this._signInOnlyTip.active = !!exclusiveTip
             && !ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]);
         this.VideoButton.active = false;
         if (!ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]) && skinConfig?.UnlockType == "英雄碎片") {
