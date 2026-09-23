@@ -232,9 +232,12 @@ export class ZRSJZ_Start extends Component {
             case "成就":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.成就界面);
                 break;
+            case "排行榜":
+                Banner.Instance.TikTokRankingListPush(ZRSJZ_GradeService.GetTotalAssetValue());
+                Banner.Instance.TikTokRankingListGet();
+                break;
             case "战令":
-                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.战令界面);
-                else ZRSJZ_UIManager.Instance.ShowTip('资源加载中，请稍后');
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.战令界面);
                 break;
             case "更多游戏":
                 UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("文字三角洲"), "WZSJZ_Start"]);
