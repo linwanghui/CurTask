@@ -3,7 +3,7 @@
 export const ZRSJZ_GRID_SIZE = 132;//格子大小
 export const ZRSJZ_GRID_INTERVAL = 5;//格子间隔
 // 单个弹药格最多可堆叠的子弹数量。
-export const ZRSJZ_AMMO_MAX_COUNT = 60;
+export const ZRSJZ_AMMO_MAX_COUNT = 300;
 
 
 
@@ -330,12 +330,12 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["高级房卡", { Name: "高级房卡", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "房卡", UnitPrice: 400000, MaxCount: 1 }],
 
     //子弹
-    ["1级子弹", { Name: "1级子弹", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 1200 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
-    ["2级子弹", { Name: "2级子弹", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 30000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
-    ["3级子弹", { Name: "3级子弹", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 50000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["1级子弹", { Name: "1级子弹", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 6000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["2级子弹", { Name: "2级子弹", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 24000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["3级子弹", { Name: "3级子弹", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 60000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
     ["4级子弹", { Name: "4级子弹", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 120000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
-    ["5级子弹", { Name: "5级子弹", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 220000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
-    ["6级子弹", { Name: "6级子弹", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 400000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["5级子弹", { Name: "5级子弹", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 480000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
+    ["6级子弹", { Name: "6级子弹", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "弹药", UnitPrice: 960000 / ZRSJZ_AMMO_MAX_COUNT, MaxCount: ZRSJZ_AMMO_MAX_COUNT }],
     //头盔
     ["一级头", { Name: "一级头", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 35000, MaxCount: 1 }],
     ["二级头", { Name: "二级头", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "头盔", UnitPrice: 78000, MaxCount: 1 }],
@@ -626,8 +626,8 @@ export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new M
     ["2级子弹", { "增伤": 8 }],
     ["3级子弹", { "增伤": 16 }],
     ["4级子弹", { "增伤": 24 }],
-    ["5级子弹", { "增伤": 32 }],
-    ["6级子弹", { "增伤": 40 }],
+    ["5级子弹", { "增伤": 42 }],
+    ["6级子弹", { "增伤": 60 }],
     //头盔
     ["一级头", { "护甲等级": 1, "减伤": 5, }],
     ["二级头", { "护甲等级": 2, "减伤": 10, }],
@@ -692,7 +692,7 @@ export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new M
 ])
 
 export const ZRSJZ_PROP_PROPERTY_MAX: Map<string, number> = new Map([
-    ["增伤", 40],
+    ["增伤", 60],
     ["背包等级", 8],
     ["容量", 60],
     ["护甲等级", 8],
