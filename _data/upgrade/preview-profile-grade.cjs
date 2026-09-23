@@ -18,7 +18,10 @@ const path = require('path');
  await page.waitForTimeout(15000);
  await page.waitForFunction(() => Array.from(System.entries()).some(([,m]) => m.ZRSJZ_UIManager?.Instance?.node?.isValid), null, { timeout: 45000 });
  await page.evaluate(() => {
-   const get = name => Array.from(System.entries()).map(([,m]) => m).find(m => m[name])?.[name];
+   const get = name => {
+     const candidates = Array.from(System.entries()).map(([,m]) => m[name]).filter(Boolean);
+     return candidates.find(value => value.Instance?.node?.isValid) ?? candidates[0];
+   };
    window.testProfile = { get, UI: get('ZRSJZ_UIManager'), Data: get('ZRSJZ_GameData') };
    const p = testProfile; p.UI.ZRSJZ_DLC = false; p.UI.Instance.CloseAllPanelsImmediately(); p.UI.Instance.ShowPanel('73_ZRSJZ/Prefabs/Panel/等级弹窗');
    const privacy = cc.js.getClassByName('PrivacyPanel'); if (privacy) for (const c of cc.director.getScene().getComponentsInChildren(privacy)) c.node.active = false;
@@ -41,6 +44,28 @@ const path = require('path');
    t.selector.SelectTab('avatar');
  });
  await page.waitForTimeout(4000);
+ if(process.env.PROFILE_VIDEO_ONLY==='1'){
+   await page.evaluate(()=>{
+     // Editor hot reload can retain multiple module generations; initialize the isolated fixture consistently.
+     for(const [,m] of System.entries())if(m.ZRSJZ_UIManager)m.ZRSJZ_UIManager.ZRSJZ_DLC=true;
+     testProfile.selector.SelectTab('frame');
+   });
+   await page.waitForTimeout(3000);
+   console.log('videoFrames',await page.evaluate(()=>{
+     const t=testProfile;
+     for(const id of ['9','10']){
+       const row=t.root.getChildByPath('外观列表/View/Content/'+id);
+       const sprite=row?.getChildByName('视频角标')?.getComponent('cc.Sprite');
+       if(!sprite?.spriteFrame||sprite.spriteFrame.name!=='视频角标白色'||!row.getChildByName('黑色遮罩')||row.getChildByName('锁'))throw Error('Video frame visual invalid '+JSON.stringify({id,tab:t.selector.tab,ready:t.selector.Ready(),children:row?.children.map(n=>n.name),image:sprite?.spriteFrame?.name}));
+     }
+     if(t.root.getChildByName('观看视频解锁'))throw Error('Text video button still exists');
+     t.root.getChildByName('外观列表').getComponent('cc.ScrollView').scrollToBottom(0);
+     return {ids:['9','10'],whiteVideoIcon:true,blackMask:true,noTextButton:true};
+   }));
+   await page.waitForTimeout(350);
+   await page.screenshot({path:path.join(__dirname,'profile-grade-video-frames.png')});
+   return;
+ }
  console.log('avatars', await page.evaluate(() => {
    const t = testProfile, nodes = t.root.getChildByPath('外观列表/View/Content').children;
    if (nodes.length !== 9 || nodes.slice(0,4).some(n => n.position.y !== nodes[0].position.y) || nodes[4].position.y === nodes[0].position.y) throw Error('Avatar filtering/grid invalid');
@@ -64,10 +89,18 @@ const path = require('path');
    if (hint.active || hint.getComponent(cc.Label).string !== '') throw Error('Owned item should not show hints');
    const lock = nodes.find(n => n.name === '2').getChildByName('锁');
    if (!lock?.getComponent(cc.Sprite)?.spriteFrame || lock.getComponent(cc.Label)) throw Error('Must use original lock sprite');
+   for (const id of ['9','10']) {
+     const row=nodes.find(n=>n.name===id);
+     if(row.getChildByName('锁')||!row.getChildByName('黑色遮罩')||!row.getChildByName('视频角标')?.getComponent(cc.Sprite)?.spriteFrame)throw Error('Video frame must have white video icon and black mask');
+   }
+   if(t.root.getChildByName('观看视频解锁')?.active)throw Error('Extra video text button must not be shown');
    for (const n of nodes) { const icon = n.getChildByName('图标'); if (!icon.getComponent(cc.Sprite)?.spriteFrame && !icon.getComponent('sp.Skeleton')?.skeletonData) throw Error('Frame art missing '+n.name); }
    return { count: nodes.length, columns: 4, animated: nodes.filter(n=>n.getChildByName('图标').getComponent('sp.Skeleton')).length };
  }));
  await page.screenshot({ path: path.join(__dirname, 'profile-grade-frames.png') });
+ await page.evaluate(()=>testProfile.root.getChildByName('外观列表').getComponent('cc.ScrollView').scrollToBottom(0));
+ await page.waitForTimeout(350);
+ await page.screenshot({ path: path.join(__dirname, 'profile-grade-video-frames.png') });
  await page.evaluate(() => testProfile.selector.SelectTab('title'));
  await page.waitForTimeout(2500);
  console.log('titles', await page.evaluate(() => {

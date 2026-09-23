@@ -20,7 +20,6 @@ export class ZRSJZ_ProfileSelector {
     private list: Node;
     private content: Node;
     private hint: Label;
-    private video: Node;
     private scroll: ScrollView;
     private version = 0;
     private signature = '';
@@ -50,10 +49,6 @@ export class ZRSJZ_ProfileSelector {
         this.scroll.horizontal = false;
         this.scroll.vertical = true;
         this.scroll.cancelInnerEvents = true;
-        this.video = this.Make(root, '观看视频解锁', 230, 40, 0, 112);
-        this.Text(this.video, '文字', '观看视频解锁', 230, 40, 0, 0, 24);
-        this.Click(this.video, () => this.UnlockVideo());
-        this.video.active = false;
         this.tabs.active = false;
         this.list.active = false;
         void this.LoadBase();
@@ -93,7 +88,6 @@ export class ZRSJZ_ProfileSelector {
             node.getChildByName('文字').getComponent(Label).color = selected ? new Color(143, 82, 0) : new Color(84, 87, 89);
         });
         this.hint.node.active = this.list.active;
-        this.video.active = false;
         if (!this.list.active) { ++this.version; this.signature = ''; return; }
         ZRSJZ_AvatarFrameService.SyncUnlocks();
         ZRSJZ_TitleService.SyncUnlocks();
@@ -117,7 +111,6 @@ export class ZRSJZ_ProfileSelector {
         if (!owned && this.tab === 'avatar') text = `解锁${ZRSJZ_ROLE_CONFIG.has(this.selected) ? '角色' : '皮肤'}${this.selected}获得`;
         this.hint.string = text.replace(/[\r\n]+/g, '');
         this.hint.node.active = !owned && !!this.hint.string;
-        this.video.active = !owned && this.tab === 'frame' && !!ZRSJZ_AVATAR_FRAME_UNLOCK[this.selected]?.video;
     }
     private Pick(name: string): void {
         if (!this.Ready()) return;
@@ -133,6 +126,7 @@ export class ZRSJZ_ProfileSelector {
             }
         }
         this.Refresh();
+        if (this.tab === 'frame' && !this.Owned(name) && ZRSJZ_AVATAR_FRAME_UNLOCK[name]?.video) this.UnlockVideo();
     }
     private UnlockVideo(): void {
         if (!this.Ready() || this.tab !== 'frame' || Date.now() - this.lastVideo < 1000) return;
@@ -196,8 +190,16 @@ export class ZRSJZ_ProfileSelector {
             if (!title && name === this.selected)
                 this.Decoration(row, '选中框', 'Sprites/头像框/选中框', width, height, 0, 0, request);
             if (!owned) {
-                this.Decoration(row, '锁', title ? 'Sprites/称号弹窗/锁' : 'Sprites/头像框/锁',
-                    title ? 48 : width, title ? 48 : height, title ? width / 2 - 28 : 0, title ? height / 2 - 26 : 0, request);
+                if (this.tab === 'frame' && ZRSJZ_AVATAR_FRAME_UNLOCK[name]?.video) {
+                    // 原锁图片把黑色遮罩和锁合在一起；视频框单独保留遮罩，再覆盖白色视频标识。
+                    const mask = this.Make(row, '黑色遮罩', width, height, 0, 0).addComponent(Graphics);
+                    mask.fillColor = new Color(0, 0, 0, 160);
+                    mask.roundRect(-width / 2, -height / 2, width, height, 18); mask.fill();
+                    this.Decoration(row, '视频角标', 'Sprites/UI/视频角标白色', 52, 52, 0, 0, request, '73_ZRSJZ');
+                } else {
+                    this.Decoration(row, '锁', title ? 'Sprites/称号弹窗/锁' : 'Sprites/头像框/锁',
+                        title ? 48 : width, title ? 48 : height, title ? width / 2 - 28 : 0, title ? height / 2 - 26 : 0, request);
+                }
             } else if (title) {
                 const d = ZRSJZ_GameData.Instance;
                 if (name === (title ? d.EquippedTitle : this.tab === 'avatar' ? d.CurrentAvatar : d.CurrentAvatarFrame))
@@ -206,24 +208,30 @@ export class ZRSJZ_ProfileSelector {
             this.Click(row, () => this.Pick(name));
         });
     }
-    private Decoration(parent: Node, name: string, path: string, w: number, h: number, x: number, y: number, request: number): void {
+    private Decoration(parent: Node, name: string, path: string, w: number, h: number, x: number, y: number, request: number, bundleName = '73_ZRSJZ_DLC'): void {
         const node = this.Make(parent, name, w, h, x, y);
         const sprite = node.addComponent(Sprite);
         sprite.sizeMode = Sprite.SizeMode.CUSTOM;
-        void this.LoadVisual(path, false).then(asset => {
+        void this.LoadVisual(path, false, bundleName).then(asset => {
             if (!asset || request !== this.version || !node.isValid || !this.Ready() || !this.root.activeInHierarchy) return;
             sprite.spriteFrame = asset as SpriteFrame;
+            if (name === '视频角标') {
+                sprite.sizeMode = Sprite.SizeMode.TRIMMED;
+                const rect = sprite.spriteFrame.rect, scale = Math.min(w / Math.max(1, rect.width), h / Math.max(1, rect.height));
+                node.setScale(scale, scale, 1);
+            }
         }).catch(error => console.warn('[玩家信息] 状态图片加载失败', path, error));
     }
-    private async LoadVisual(path: string, animated: boolean): Promise<SpriteFrame | sp.SkeletonData> {
-        if (this.cache.has(path)) return this.cache.get(path);
-        const bundle = assetManager.getBundle('73_ZRSJZ_DLC');
+    private async LoadVisual(path: string, animated: boolean, bundleName = '73_ZRSJZ_DLC'): Promise<SpriteFrame | sp.SkeletonData> {
+        const key = bundleName + '/' + path;
+        if (this.cache.has(key)) return this.cache.get(key);
+        const bundle = assetManager.getBundle(bundleName);
         if (!this.Ready() || !bundle) return null;
         const asset = await new Promise<SpriteFrame | sp.SkeletonData>((resolve, reject) => {
             if (animated) bundle.load(path, sp.SkeletonData, (e, a) => e ? reject(e) : resolve(a));
             else bundle.load(path + '/spriteFrame', SpriteFrame, (e, a) => e ? reject(e) : resolve(a));
         });
-        if (!this.disposed) this.cache.set(path, asset);
+        if (!this.disposed) this.cache.set(key, asset);
         return asset;
     }
     private async LoadBase(): Promise<void> {

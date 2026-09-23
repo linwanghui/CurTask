@@ -33,7 +33,9 @@ selector.tab = 'title'; selector.selected = '王者之姿'; selector.UpdateHint(
 globals.ZRSJZ_UIManager.ZRSJZ_DLC = false; selector.tab = 'avatar'; selector.Pick('威蓝'); assert.equal(data.CurrentAvatar, '夜喵');
 globals.ZRSJZ_UIManager.ZRSJZ_DLC = true; loaded = false; assert.equal(selector.Ready(), false); loaded = true;
 selector.tab = 'frame'; selector.selected = '9'; selector.root = { isValid: true, activeInHierarchy: true };
-selector.UnlockVideo(); assert.equal(awarded, 0); assert.equal(data.CurrentAvatarFrame, '1');
+selector.Pick('2'); assert.equal(ad, undefined, 'normal locked frame must not start video');
+selector.Pick('9'); assert.equal(typeof ad, 'function', 'clicking video frame must start video directly');
+assert.equal(awarded, 0); assert.equal(data.CurrentAvatarFrame, '1', 'cancel/no success must not grant or equip');
 selector.selected = '10'; ad(); ad(); assert.equal(awarded, 1); assert.equal(data.CurrentAvatarFrame, '9');
 console.log('PASS: config filtering, skin ownership, instant selection, locked selection, DLC gating, single-line hints and one-shot video reward');
 
