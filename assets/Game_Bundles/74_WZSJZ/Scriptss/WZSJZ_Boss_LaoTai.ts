@@ -315,7 +315,7 @@ export class WZSJZ_Boss_LaoTai extends WZSJZ_Boss {
     }
 
     private RecycleAllTanks(): void {
-        const tanks = [...this._activeTanks];
+        const tanks = Array.from(this._activeTanks);
         this._activeTanks.clear();
         for (const tank of tanks) this.RecycleOwnedTank(tank);
     }

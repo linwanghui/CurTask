@@ -158,6 +158,7 @@ const defaults = load('Service/ZRSJZ_GameDataDefaults.ts', {
     '../ZRSJZ_GameData': { ZRSJZ_GameData: { Versions: 23 } },
     '../ZRSJZ_TaskLines': { ZRSJZ_SIDE_TASK_LINES: [] },
     '../ZRSJZ_EnhancementConfig': { MigrateLegacyEnhancement() {} },
+    './ZRSJZ_MidAutumnService': { CreateMidAutumnState() { return {}; } },
     '../ZRSJZ_BattlePassConfig': configModule,
 }).ZRSJZ_GameDataDefaults;
 const legacy = { Versions: 21, Gold: 12345, OwnedTitles: ['勇者'], EquippedTitle: '勇者', OwnedAvatarFrames: ['1'], CurrentAvatarFrame: '1', PropData: {} };

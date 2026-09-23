@@ -101,7 +101,7 @@ export class ZRSJZ_GameDataDefaults {
             const legacyNames: Record<string, string> = {
                 '王者之师': '王者之姿', '战场精英': '不败战神', '万能兵王': '荣耀之巅',
             };
-            data.OwnedTitles = [...new Set((data.OwnedTitles ?? []).map(name => legacyNames[name] ?? name))];
+            data.OwnedTitles = Array.from(new Set((data.OwnedTitles ?? []).map(name => legacyNames[name] ?? name)));
             data.EquippedTitle = legacyNames[data.EquippedTitle] ?? data.EquippedTitle ?? '';
         }
         while (data.Versions < ZRSJZ_GameData.Versions) {

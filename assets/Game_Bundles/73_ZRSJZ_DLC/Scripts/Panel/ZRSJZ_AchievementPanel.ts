@@ -3,7 +3,7 @@ import { EDITOR } from 'cc/env';
 import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
 import { ZRSJZ_AchievementService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_AchievementService';
 import { ZRSJZ_AudioManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
-import { ZRSJZ_PANEL, ZRSJZ_AchievementConfig, ZRSJZ_ACHIEVEMENT_CONFIG } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
+import { ZRSJZ_PANEL, ZRSJZ_AchievementConfig, ZRSJZ_AchievementReward, ZRSJZ_ACHIEVEMENT_CONFIG, ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
 const { ccclass, property } = _decorator;
@@ -26,6 +26,7 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
     private filter: 'all' | 'completed' = 'all';
     private bound = false;
     private normalBackground: SpriteFrame = null;
+    private goldRewardFrame: SpriteFrame = null;
     private interactiveRows = new WeakSet<Node>();
 
     protected onLoad(): void { this.Bind(); }
@@ -50,6 +51,7 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
         this.rowTemplate = this.content.getChildByName('成就条目模板')
             ?? this.content.children.find(row => row.name.startsWith('成就-'));
         if (!this.rowTemplate) throw new Error('成就列表缺少成就条目，请重新导入成就界面预制体');
+        this.goldRewardFrame = this.content.getChildByName('成就-初入战场')?.getChildByName('奖励图标')?.getComponent(Sprite)?.spriteFrame;
         if (this.rowTemplate.name === '成就条目模板') this.rowTemplate.active = false;
         const normalRow = this.content.children.find(row => row.getChildByName('前往')?.active);
         this.normalBackground = (normalRow ?? this.rowTemplate).getComponent(Sprite).spriteFrame;
@@ -72,8 +74,9 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
         this.Click(this.Panel.getChildByName('宝箱'), () =>
             this.ClaimMilestone(ZRSJZ_AchievementService.GetNextMilestone()));
         this.Click(this.claimAll, () => {
-            const count = ZRSJZ_AchievementService.ClaimAll();
-            ZRSJZ_UIManager.Instance.ShowTip(count ? '已领取' + count + '份奖励' : '暂无可领取奖励');
+            const result = ZRSJZ_AchievementService.ClaimAllRewards();
+            if (result.count) this.ShowRewards(result.rewards);
+            else ZRSJZ_UIManager.Instance.ShowTip('暂无可领取奖励');
             this.Refresh();
         });
         this.bound = true;
@@ -85,7 +88,7 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
         } else if (state === 'locked') {
             ZRSJZ_UIManager.Instance.ShowTip('完成度不足');
         } else if (ZRSJZ_AchievementService.ClaimMilestone(percent)) {
-            ZRSJZ_UIManager.Instance.ShowTip('奖励领取成功');
+            this.ShowRewards(ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG.find(item => item.percent === percent).rewards);
             this.Refresh();
         } else ZRSJZ_UIManager.Instance.ShowTip('奖励配置错误');
     }
@@ -108,6 +111,39 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
             ZRSJZ_AchievementService.IsCompleted(item), data.AchievementClaimed.includes(item.id), true));
         this.Panel.getChildByName('暂无成就').active = items.length === 0;
         this.ResetList(items.length);
+    }
+    private ShowRewards(rewards: readonly ZRSJZ_AchievementReward[]): void {
+        const data = ZRSJZ_GameData.Instance;
+        const merged = new Map<string, { TaskAwardName: string; TaskAwardCount: number; Icon?: SpriteFrame }>();
+        for (const reward of rewards) {
+            // Cosmetic rewards still obey their existing unlock rules.
+            if (reward.type === '称号' && !data.OwnedTitles?.includes(reward.name)) continue;
+            if (reward.type === '头像框' && !data.OwnedAvatarFrames?.includes(reward.id)) continue;
+            const name = reward.type === '钞票' ? '钞票' : reward.type === '道具' ? reward.name
+                : reward.type === '称号' ? '称号·' + reward.name : '头像框·' + reward.id;
+            const count = 'count' in reward ? reward.count : 1;
+            const existing = merged.get(name);
+            if (existing) existing.TaskAwardCount += count;
+            else merged.set(name, {
+                TaskAwardName: name, TaskAwardCount: count,
+                Icon: reward.type === '称号' || reward.type === '头像框' ? this.milestoneReachedFrame : undefined
+            });
+        }
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.获取奖励弹窗, { Awards: Array.from(merged.values()), DisplayOnly: true });
+    }
+    private async UpdateRewardIcon(row: Node, item: ZRSJZ_AchievementConfig): Promise<void> {
+        const reward = item.rewards.find(r => r.type === '道具' || r.type === '钞票');
+        if (!reward || (reward.type !== '道具' && reward.type !== '钞票')) return;
+        const sprite = row.getChildByName('奖励图标')?.getComponent(Sprite);
+        if (!sprite) return;
+        try {
+            const frame = reward.type === '钞票' ? this.goldRewardFrame : await ZRSJZ_UIManager.Instance.GetPropUI(reward.name);
+            if (!frame || !row.isValid) return;
+            sprite.sizeMode = Sprite.SizeMode.TRIMMED;
+            sprite.spriteFrame = frame;
+            const scale = Math.min(200 / frame.rect.width, 80 / frame.rect.height, 1);
+            sprite.node.setScale(scale, scale, 1);
+        } catch (error) { console.error('[Achievement] 奖励图标加载失败', item.id, error); }
     }
     /** 填充、里程碑坐标和数字共用同一完成比例，避免美术摆位与实际进度不一致。 */
     private UpdateProgress(completed: number, total: number, claimed: readonly number[] = []): number {
@@ -142,7 +178,7 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
         this.scroll.stopAutoScroll();
         const viewHeight = this.scroll.node.getComponent(UITransform).height;
         this.content.getComponent(UITransform).setContentSize(1430, Math.max(viewHeight, count * 184));
-        this.content.setPosition(0, viewHeight / 2);
+        this.content.setPosition(0, 0);
     }
     private AddRow(item: ZRSJZ_AchievementConfig, index: number, progress: number, completed: boolean, claimed: boolean, interactive: boolean): void {
         let row = this.content.getChildByName('成就-' + item.id);
@@ -169,6 +205,7 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
         row.getChildByName('名称').getComponent(Label).string = '【' + item.id + '】';
         row.getChildByName('描述').getComponent(Label).string = item.description;
         row.getChildByName('奖励数值').getComponent(Label).string = ZRSJZ_AchievementService.DescribeRewards(item.rewards, '\n');
+        if (!EDITOR) void this.UpdateRewardIcon(row, item);
         row.getChildByName('进度').getComponent(Label).string = '(' + (completed ? item.target : Math.min(item.target, Math.floor(progress))) + '/' + item.target + ')';
         const claim = row.getChildByName('领取奖励');
         const go = row.getChildByName('前往');
@@ -183,7 +220,7 @@ export class ZRSJZ_AchievementPanel extends ZRSJZ_Panel {
         this.Click(row.getChildByName('已领取'), () => ZRSJZ_UIManager.Instance.ShowTip('奖励已领取'));
         this.Click(claim, () => {
             if (ZRSJZ_AchievementService.Claim(item.id)) {
-                ZRSJZ_UIManager.Instance.ShowTip('获得' + ZRSJZ_AchievementService.DescribeRewards(item.rewards));
+                this.ShowRewards(item.rewards);
                 this.Refresh();
             }
         });

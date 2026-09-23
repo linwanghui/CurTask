@@ -1,14 +1,17 @@
-import { Button, EventTouch, Node, Sprite, SpriteFrame, sp, UITransform, isValid } from 'cc';
+import { Button, EventTouch, Node, Sprite, SpriteFrame, sp, isValid } from 'cc';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_AvatarFrameFit } from './ZRSJZ_AvatarFrameFit';
 
 /** 主包仅持有默认资源；DLC 外观通过就绪后的 bundle.load 获取。 */
 export class ZRSJZ_ProfileAppearance {
     private avatar: Sprite;
     private frame: Sprite;
+    private frameBaseY = 0;
+    private spineFrameID = '';
     private title: Sprite;
     private spineNode: Node;
     private defaults: Array<{ sprite: Sprite; frame: SpriteFrame }>;
@@ -18,9 +21,11 @@ export class ZRSJZ_ProfileAppearance {
     private disposed = false;
     private clicks: Array<{ node: Node; handler: (event: EventTouch) => void }> = [];
 
-    constructor(private root: Node, avatarPanel = ZRSJZ_PANEL.头像框弹窗) {
+    constructor(private root: Node, avatarPanel = ZRSJZ_PANEL.等级弹窗,
+        selectTab?: (tab: 'avatar' | 'frame' | 'title') => void) {
         this.avatar = root.getChildByName('头像')?.getComponent(Sprite);
         this.frame = root.getChildByName('头像框Icon')?.getComponent(Sprite);
+        this.frameBaseY = this.frame?.node.position.y ?? 0;
         this.title = root.getChildByName('称号')?.getComponent(Sprite);
         this.spineNode = root.getChildByName('头像框Spine');
         this.defaults = [this.avatar, this.frame, this.title].filter(Boolean)
@@ -32,27 +37,45 @@ export class ZRSJZ_ProfileAppearance {
             if (button) button.clickEvents = [];
             const handler = (event: EventTouch) => {
                 event.propagationStopped = true;
-                const panel = name === '称号' ? ZRSJZ_PANEL.头像框弹窗 : avatarPanel;
+                const tab = name === '称号' ? 'title' : name === '头像' ? 'avatar' : 'frame';
+                if (selectTab) {
+                    if (ZRSJZ_UIManager.ZRSJZ_DLC) { ZRSJZ_AudioManager.Instance?.PlaySound('点击'); selectTab(tab); }
+                    return;
+                }
+                const panel = avatarPanel;
                 if (panel !== ZRSJZ_PANEL.等级弹窗 && !ZRSJZ_UIManager.ZRSJZ_DLC) return;
                 ZRSJZ_AudioManager.Instance?.PlaySound('点击');
                 if (panel === ZRSJZ_PANEL.头像框弹窗) {
-                    ZRSJZ_UIManager.Instance.ShowPanel(panel, name === '称号' ? 'title' : 'avatar');
+                    ZRSJZ_UIManager.Instance.ShowPanel(panel, tab);
                 } else {
-                    ZRSJZ_UIManager.Instance.ShowPanel(panel);
+                    ZRSJZ_UIManager.Instance.ShowPanel(panel, name === '称号' ? 'title' : 'info');
                 }
             };
             node.on(Node.EventType.TOUCH_END, handler, this);
             this.clicks.push({ node, handler });
         }
         this.Reset();
+        this.avatar?.node.on(Node.EventType.SIZE_CHANGED, this.RefitSpine, this);
+        this.avatar?.node.on(Node.EventType.TRANSFORM_CHANGED, this.RefitSpine, this);
+    }
+    private RefitSpine(): void {
+        if (this.disposed || !this.spineFrameID || !isValid(this.spineNode, true) || !this.spineNode.active) return;
+        const skeleton = this.spineNode.getComponent(sp.Skeleton);
+        if (skeleton?.skeletonData) ZRSJZ_AvatarFrameFit.AroundAvatar(skeleton, this.spineFrameID, this.avatar?.node);
     }
     private Reset(): void {
         if (this.disposed || !isValid(this.root, true)) return;
+        this.spineFrameID = '';
         for (const item of this.defaults) {
             if (!isValid(item.sprite, true) || !isValid(item.sprite.node, true)) continue;
             item.sprite.enabled = true;
             item.sprite.node.active = true;
+            if (item.sprite === this.avatar || item.sprite === this.frame) item.sprite.sizeMode = Sprite.SizeMode.TRIMMED;
             item.sprite.spriteFrame = item.frame;
+        }
+        if (isValid(this.frame?.node, true)) {
+            const node = this.frame.node;
+            node.setPosition(node.position.x, this.frameBaseY, node.position.z);
         }
         if (isValid(this.spineNode, true)) {
             this.spineNode.active = false;
@@ -67,6 +90,10 @@ export class ZRSJZ_ProfileAppearance {
         // 销毁时只失效请求、解除监听，不再重置可能已销毁的子节点。
         ++this.version;
         this.keys = {};
+        if (isValid(this.avatar?.node, true)) {
+            this.avatar.node.off(Node.EventType.SIZE_CHANGED, this.RefitSpine, this);
+            this.avatar.node.off(Node.EventType.TRANSFORM_CHANGED, this.RefitSpine, this);
+        }
         for (const { node, handler } of this.clicks) if (isValid(node, true)) node.off(Node.EventType.TOUCH_END, handler, this);
         this.clicks = [];
         this.defaults = [];
@@ -85,6 +112,7 @@ export class ZRSJZ_ProfileAppearance {
             if (!ready) this.Reset();
         }
         if (!ready) return;
+        this.RefitSpine();
         if (this.keys.avatar === avatar && this.keys.frame === frame && this.keys.title === title) return;
         const bundle = BundleManager.GetBundle('73_ZRSJZ_DLC');
         if (!bundle) return;
@@ -101,15 +129,21 @@ export class ZRSJZ_ProfileAppearance {
             bundle.load(path + '/spriteFrame', SpriteFrame, (error, asset) => {
                 if (!current(slot, value) || !isValid(target, true) || !isValid(target.node, true)) return;
                 if (error || !asset) { delete this.keys[slot]; return; }
-                target.sizeMode = Sprite.SizeMode.CUSTOM;
+                target.sizeMode = slot === 'title' ? Sprite.SizeMode.CUSTOM : Sprite.SizeMode.TRIMMED;
                 target.spriteFrame = asset;
                 target.enabled = true;
                 target.node.active = true;
+                if (slot === 'frame') {
+                    // 最后两个静态头像框仅上移，不改变尺寸；切换其他框时恢复基准，避免累加。
+                    target.node.setPosition(target.node.position.x, this.frameBaseY + (value === '4' || value === '5' ? 10 : 0), target.node.position.z);
+                }
                 if (slot === 'frame' && isValid(this.spineNode, true)) {
+                    this.spineFrameID = '';
                     this.spineNode.active = false;
                     const skeleton = this.spineNode.getComponent(sp.Skeleton);
                     if (skeleton) { skeleton.clearTracks(); skeleton.skeletonData = null; }
                 }
+                if (slot === 'avatar') this.RefitSpine();
             });
         };
         sprite('avatar', avatar, this.avatar, 'Sprites/头像框/头像/' + avatar);
@@ -124,14 +158,11 @@ export class ZRSJZ_ProfileAppearance {
                 if (oldSprite) oldSprite.enabled = false;
                 const skeleton = this.spineNode.getComponent(sp.Skeleton) ?? this.spineNode.addComponent(sp.Skeleton);
                 skeleton.skeletonData = asset;
+                this.spineFrameID = frame;
                 skeleton.enabled = true;
                 skeleton.paused = false;
                 const runtime = asset.getRuntimeData();
-                const size = this.frame?.node.getComponent(UITransform);
-                if (size && runtime?.width > 0 && runtime?.height > 0) {
-                    const scale = Math.min(size.width / runtime.width, size.height / runtime.height);
-                    this.spineNode.setScale(scale, scale, 1);
-                }
+                ZRSJZ_AvatarFrameFit.AroundAvatar(skeleton, frame, this.avatar?.node);
                 const animation = runtime?.animations?.find(item => item.name === 'animation') ?? runtime?.animations?.[0];
                 if (animation) skeleton.setAnimation(0, animation.name, true);
                 this.spineNode.active = true;

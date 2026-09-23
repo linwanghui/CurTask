@@ -1,0 +1,21 @@
+const {chromium}=require('C:/Users/Administrator/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Users/Administrator/AppData/Local/Google/Chrome/Bin/chrome.exe'});try{
+const context=await browser.newContext({viewport:{width:1560,height:720}});await context.route('**/*',r=>['localhost','127.0.0.1'].includes(new URL(r.request().url()).hostname)?r.continue():r.abort());
+const page=await context.newPage();await page.goto('http://localhost:7456');await page.waitForFunction(()=>typeof cc!=='undefined'&&cc.director?.getScene());
+await page.evaluate(async()=>{const b=await new Promise((res,rej)=>cc.assetManager.loadBundle('73_ZRSJZ',(e,b)=>e?rej(e):res(b)));const s=await new Promise((res,rej)=>b.loadScene('ZRSJZ_Start',(e,s)=>e?rej(e):res(s)));cc.director.runSceneImmediate(s);});
+await page.waitForTimeout(15000);
+await page.evaluate(async()=>{const get=n=>Array.from(System.entries()).map(([,m])=>m).find(m=>m[n])?.[n];window.test={UI:get('ZRSJZ_UIManager'),Data:get('ZRSJZ_GameData'),Game:get('ZRSJZ_Game'),Guide:get('ZRSJZ_TutorialPanel'),Task:get('ZRSJZ_TaskService')};
+const ui=test.UI.Instance;if(ui.node.getChildByName('Pass')?.active)throw Error('Pass visible at home');ui.CloseAllPanelsImmediately();const d=test.Data.Instance;d.IsTutorial=false;d.CurMap='新手村';d.CurMainTask={TaskName:'初入禁区',TaskTargetName:'完成新手教程',CurCount:0};
+const b=cc.assetManager.getBundle('73_ZRSJZ'),s=await new Promise((res,rej)=>b.loadScene('ZRSJZ_Tutorial',(e,s)=>e?rej(e):res(s)));cc.director.runSceneImmediate(s);});
+await page.waitForTimeout(4000);
+console.log('skipBinding',await page.evaluate(()=>{const pass=test.UI.Instance.node.getChildByName('Pass'),button=pass?.getChildByName('跳过新手教程');if(!pass?.activeInHierarchy||!button?.hasEventListener(cc.Button.EventType.CLICK))throw Error('Skip not bound/visible');if(button.layer!==pass.layer)throw Error('Wrong render layer');return{visible:true,bound:true};}));
+await page.evaluate(()=>{test.UI.Instance.CloseAllPanelsImmediately();test.UI.Instance.ShowPanel('73_ZRSJZ/Prefabs/Panel/物资弹窗',[]);});
+await page.waitForFunction(()=>test.UI.Instance.node.getComponentsInChildren(cc.js.getClassByName('ZRSJZ_GoodsPanel')).some(p=>p.node.activeInHierarchy));
+await page.evaluate(async()=>{const p=test.UI.Instance.node.getComponentsInChildren(cc.js.getClassByName('ZRSJZ_GoodsPanel')).find(p=>p.node.activeInHierarchy);test.goods=p;test.Guide.IsTipShowing=true;test.UI.Dragging=true;await p.OnButtonClick({getCurrentTarget:()=>({name:'Mask'})});});
+await page.waitForTimeout(500);
+console.log('goodsClose',await page.evaluate(()=>{if(test.goods.node.activeInHierarchy||test.UI.Dragging||test.Guide.IsTipShowing)throw Error('Goods remained locked');return{closed:true,guideCleared:true,dragCleared:true};}));
+await page.screenshot({path:__dirname+'/tutorial-skip.png'});
+await page.evaluate(()=>{const n=test.UI.Instance.node.getChildByPath('Pass/跳过新手教程');n.emit(cc.Button.EventType.CLICK);n.emit(cc.Button.EventType.CLICK);});
+await page.waitForFunction(()=>cc.director.getScene().name==='ZRSJZ_Start',null,{timeout:45000});
+console.log('returnedHome',await page.evaluate(()=>{const d=test.Data.Instance;if(!d.IsTutorial||d.CurMap==='新手村'||d.CurMainTask?.CurCount!==1)throw Error('Tutorial task not complete exactly once');if(test.UI.Instance.node.getChildByName('Pass').active)throw Error('Pass stayed visible');return{scene:cc.director.getScene().name,task:d.CurMainTask,passHidden:true};}));
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

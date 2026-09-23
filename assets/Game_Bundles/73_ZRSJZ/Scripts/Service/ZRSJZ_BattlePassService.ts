@@ -144,7 +144,7 @@ export class ZRSJZ_BattlePassService {
         if (!props.length) return;
         const counts = new Map<string, number>();
         for (const prop of props) counts.set(prop.PropName, (counts.get(prop.PropName) ?? 0) + prop.Count);
-        const awards = [...counts].map(([PropName, Count]) => ({ PropName, Count }));
+        const awards = Array.from(counts).map(([PropName, Count]) => ({ PropName, Count }));
         const receiver = ZRSJZ_UIManager.Instance;
         if (receiver?.ReceivePropAwards) {
             // One popup is one delivery batch: all overflow becomes a single mail.

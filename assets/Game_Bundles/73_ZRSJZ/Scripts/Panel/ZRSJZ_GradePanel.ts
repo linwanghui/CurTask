@@ -8,11 +8,13 @@ import { ZRSJZ_GradeService } from '../Service/ZRSJZ_GradeService';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_ProfileAppearance } from '../UI/ZRSJZ_ProfileAppearance';
 import { ZRSJZ_TitleShine } from '../UI/ZRSJZ_TitleShine';
+import { ZRSJZ_ProfileSelector, ZRSJZ_ProfileTab } from '../UI/ZRSJZ_ProfileSelector';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_GradePanel')
 export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
     private _appearance: ZRSJZ_ProfileAppearance = null;
+    private _selector: ZRSJZ_ProfileSelector = null;
     private _roleName: Label = null;
     private _grade: Label = null;
     private _progress: Sprite = null;
@@ -24,7 +26,9 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
     private _optimumEvacuation: Label = null;
 
     protected onLoad(): void {
-        this._appearance = new ZRSJZ_ProfileAppearance(this.node.getChildByName('Panel'));
+        const panel = this.node.getChildByName('Panel');
+        this._selector = new ZRSJZ_ProfileSelector(panel);
+        this._appearance = new ZRSJZ_ProfileAppearance(panel, ZRSJZ_PANEL.等级弹窗, tab => this._selector.SelectTab(tab));
         const title = find('Panel/称号', this.node);
         if (title && !title.getComponent(ZRSJZ_TitleShine)) title.addComponent(ZRSJZ_TitleShine);
         this._roleName = find("Panel/RoleName", this.node)?.getComponent(Label) ?? null;
@@ -61,6 +65,7 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshAssets, this);
         this.unschedule(this.Refresh);
         this._appearance?.Suspend();
+        this._selector?.Suspend();
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.Refresh, this);
         ZRSJZ_EventManager.OffPersist(
             ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE,
@@ -76,6 +81,7 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
 
     public Show(...args: any[]): void {
         super.Show(...args);
+        this._selector?.SelectTab(['avatar', 'frame', 'title'].includes(args[0]) ? args[0] as ZRSJZ_ProfileTab : 'info');
         this.Refresh();
     }
 
@@ -93,7 +99,7 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
         }
         this.RefreshAssets();
         if (this._totalGames) {
-            this._totalGames.string = Math.max(0, Math.floor(data.TotalGamePlayed ?? 0)).toString();
+            this._totalGames.string = Math.max(0, Math.floor(data.TotalGamePlayed ?? 0)).toString() + '场';
         }
         if (this._evacuationRate) {
             this._evacuationRate.string = ZRSJZ_GradeService.FormatEvacuationRate(
@@ -102,7 +108,7 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
             );
         }
         if (this._playTime) {
-            this._playTime.string = ZRSJZ_GradeService.FormatPlayTime(data.TotalTimePlayed);
+            this._playTime.string = ZRSJZ_GradeService.FormatPlayTime(data.TotalTimePlayed).replace('h', '小时').replace('m', '分钟');
         }
         if (this._optimumEvacuation) {
             this._optimumEvacuation.string = ZRSJZ_GradeService.FormatAssetValue(
@@ -110,9 +116,10 @@ export class ZRSJZ_GradePanel extends ZRSJZ_Panel {
             );
         }
         this._appearance?.Refresh();
+        this._selector?.Refresh();
     }
 
-    protected onDestroy(): void { this._appearance?.Dispose(); }
+    protected onDestroy(): void { this._appearance?.Dispose(); this._selector?.Dispose(); }
 
     private RefreshAssets(): void {
         if (!this._totalAssets) return;

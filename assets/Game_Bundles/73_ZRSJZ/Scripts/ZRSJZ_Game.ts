@@ -27,6 +27,7 @@ import { ZRSJZ_PetService } from './Service/ZRSJZ_PetService';
 import { ZRSJZ_OnlineService } from './Service/ZRSJZ_OnlineService';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ProjectEvent, ProjectEventManager } from 'db://assets/Scripts/Framework/Managers/ProjectEventManager';
+import Banner from 'db://assets/Scripts/Banner';
 const { ccclass, property } = _decorator;
 
 interface ZRSJZ_MiniMapTaskMarker {
@@ -195,6 +196,14 @@ export class ZRSJZ_Game extends Component {
     private _isGameFinished: boolean = false;
     /** 结算一旦开始，本局不再接收受击、死亡、复活和引导恢复操作。 */
     public get IsGameFinished(): boolean { return this._isGameFinished; }
+    /** 跳过教程不计作死亡或正式对局撤离，但立即阻止旧战斗回调继续运行。 */
+    public StopTutorialForExit(): void {
+        if (!this.IsTutorial) return;
+        this._isGameFinished = true;
+        this._battleStarted = false;
+        this._isEvacuating = false;
+        this.GamePaused = true;
+    }
     private _battleStatisticsStarted: boolean = false;
     private _battleStatisticsFinalized: boolean = false;
     private _evacuationMethod: string = "固定撤离点";
@@ -984,6 +993,32 @@ export class ZRSJZ_Game extends Component {
                 .start();
             checked.active = false;
         }
+
+        //抖音访客进入直接进入场景
+        if (Banner.IS_BYTEDANCE_MINI_GAME && Banner.OpenWinTheCustomer) {
+            Banner.Instance.DYLoginInfo(() => {//登入
+                if (window[`tt`]) { //获客直流
+                    var options = window[`tt`].getLaunchOptionsSync();
+                    console.log("获客直流判断1:" + options);
+                    const scene = options.scene;
+                    if (scene.substring(scene.length - 4) == "3041") {
+                        console.log("3041");
+                        //获客启动，直接进入关卡
+                        if (!Banner.WinTheCustomerIsOver) {
+                            //默认直接进入第一个关卡，需要修改手动修改
+                            Banner.Instance.TTuploading();
+                        }
+                    } else {
+                        //非获客场景进入
+                    }
+
+
+                }
+            }, () => {
+
+            });
+        }
+
     }
 
     /** 预制体挂具体子类；新增宠物无需在主战斗脚本增加宠物名称分支。 */
@@ -1984,7 +2019,7 @@ export class ZRSJZ_Game extends Component {
         ZRSJZ_AchievementService.EnemyKilled(Math.floor(count), weapon,
             ZRSJZ_GameData.Instance.CurMap.includes('极北'),
             !!(killer ?? this.CurPlayer) && !(killer ?? this.CurPlayer).IsDead
-                && (killer ?? this.CurPlayer).CurHP < (killer ?? this.CurPlayer).MaxHP * 0.1);
+            && (killer ?? this.CurPlayer).CurHP < (killer ?? this.CurPlayer).MaxHP * 0.1);
         const guns = this.Players.filter(player => !player.IsDead).map(player => {
             const gunID = ZRSJZ_InventoryService.GetWeaponryIDs(player.PlayerIndex)[0];
             return ZRSJZ_GameData.Instance.PropData[gunID]?.Name;
@@ -2077,10 +2112,14 @@ export class ZRSJZ_Game extends Component {
         if (!ZRSJZ_OnlineService.Battle || !ZRSJZ_OnlineService.BattleHost || this._onlineOperationRun <= 0) return;
         if (this._specialOperationState !== '进行中') ZRSJZ_OnlineService.CompletedTaskPoints.add(this._onlineOperationPoint);
         const center = this._specialOperationBombCenter;
-        ZRSJZ_OnlineService.Send('operation', { packet: { kind: 'state', run: this._onlineOperationRun,
-            point: this._onlineOperationPoint, state: this._specialOperationState,
-            elapsed: Math.max(0, this._elapsedGameTime - this._specialOperationStartTime),
-            target: this._onlineOperationTarget, x: center.x, y: center.y } });
+        ZRSJZ_OnlineService.Send('operation', {
+            packet: {
+                kind: 'state', run: this._onlineOperationRun,
+                point: this._onlineOperationPoint, state: this._specialOperationState,
+                elapsed: Math.max(0, this._elapsedGameTime - this._specialOperationStartTime),
+                target: this._onlineOperationTarget, x: center.x, y: center.y
+            }
+        });
     }
 
     /** 同一时刻只允许执行一个特别行动；完成或失败后可以接取剩余任务点。 */

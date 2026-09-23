@@ -365,6 +365,9 @@ export class ZRSJZ_Player extends Component {
         this.CurSpeed *= 1 + ZRSJZ_FacilityService.GetGymMoveSpeedBonusRate();
         this.WeaponType = hasGun ? "枪" : (hasKnife ? "刀" : "");
         this.PlayerSkeleton.IsKnife = this.WeaponType === "刀";
+        // Spine.onEnable 早于玩家 start，之前可能按默认持枪状态隐藏了刀。
+        // 确定初始武器后同步外观，保证无枪入场时刀具附件可见。
+        this.PlayerSkeleton.RefreshEquipmentAppearance();
         if (hasGun) {
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
         } else {

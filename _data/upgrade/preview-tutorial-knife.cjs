@@ -1,0 +1,14 @@
+const {chromium}=require('C:/Users/Administrator/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{const browser=await chromium.launch({headless:true,executablePath:'C:/Users/Administrator/AppData/Local/Google/Chrome/Bin/chrome.exe'});try{
+const context=await browser.newContext({viewport:{width:1560,height:720}});await context.route('**/*',r=>['localhost','127.0.0.1'].includes(new URL(r.request().url()).hostname)?r.continue():r.abort());
+const page=await context.newPage();await page.goto('http://localhost:7456');await page.waitForFunction(()=>typeof cc!=='undefined'&&cc.director?.getScene());
+await page.evaluate(async()=>{const b=await new Promise((res,rej)=>cc.assetManager.loadBundle('73_ZRSJZ',(e,b)=>e?rej(e):res(b)));const s=await new Promise((res,rej)=>b.loadScene('ZRSJZ_Start',(e,s)=>e?rej(e):res(s)));cc.director.runSceneImmediate(s);});
+await page.waitForTimeout(15000);
+console.log('startup',await page.evaluate(()=>({scene:cc.director.getScene().name,startClass:!!cc.js.getClassByName('ZRSJZ_Start'),components:cc.director.getScene().getComponentsInChildren(cc.Component).filter(c=>c.InitTutorial).map(c=>c.node.name)})));
+await page.evaluate(()=>{const get=n=>Array.from(System.entries()).map(([,m])=>m).find(m=>m[n])?.[n];window.test={UI:get('ZRSJZ_UIManager'),Data:get('ZRSJZ_GameData'),Game:get('ZRSJZ_Game'),Inventory:get('ZRSJZ_InventoryService')};test.UI.Instance.CloseAllPanelsImmediately();test.Data.Instance.IsTutorial=false;test.Data.Instance.WeaponryID[4]='missing-knife-test';get('ZRSJZ_Start').prototype.InitTutorial.call({});});
+await page.waitForTimeout(4000);
+await page.waitForFunction(()=>cc.director.getScene().name==='ZRSJZ_Tutorial'&&test.Game.Instance?.CurPlayer?.PlayerSkeleton?.Skeleton?.findSlot('dao')?.getAttachment(),null,{timeout:45000});
+console.log('tutorialKnife',await page.evaluate(()=>{const p=test.Game.Instance.CurPlayer,s=p.PlayerSkeleton,d=test.Data.Instance,knife=d.PropData[d.WeaponryID[4]];if(p.WeaponType!=='刀'||!s.IsKnife||knife.PropType!=='刀'||d.WeaponryID[0])throw Error('Invalid tutorial weapon');return{weapon:p.WeaponType,knife:knife.Name,attachment:s.Skeleton.findSlot('dao').getAttachment().name};}));
+await page.screenshot({path:__dirname+'/tutorial-knife.png'});
+console.log('gunSwitch',await page.evaluate(async()=>{const p=test.Game.Instance.CurPlayer,s=p.PlayerSkeleton,d=test.Data.Instance;d.WeaponryID[0]=test.Inventory.AddPropByName('CN8-突击步枪');p.SwitchWeapon('枪',0);await new Promise(r=>setTimeout(r,1000));if(p.WeaponType!=='枪'||s.IsKnife||!s.GunType||!s.Skeleton.findSlot(s.GunType)?.getAttachment())throw Error('Gun switch failed');p.SwitchWeapon('刀',0);await new Promise(r=>setTimeout(r,500));if(p.WeaponType!=='刀'||!s.Skeleton.findSlot('dao')?.getAttachment())throw Error('Knife switch failed');return{gunVisible:true,knifeSwitchBack:true};}));
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

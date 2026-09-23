@@ -50400,7 +50400,14 @@
     },
     "fileId": "72iT9Si0JHQIDTmjxGyarT",
     "instance": null,
-    "targetOverrides": [],
+    "targetOverrides": [
+      {
+        "__id__": 2860
+      },
+      {
+        "__id__": 2863
+      }
+    ],
     "nestedPrefabInstanceRoots": [
       {
         "__id__": 1469
@@ -50636,6 +50643,66 @@
       {
         "__id__": 208
       }
+    ]
+  },
+  {
+    "__type__": "cc.TargetOverrideInfo",
+    "source": {
+      "__id__": 1054
+    },
+    "sourceInfo": {
+      "__id__": 2861
+    },
+    "propertyPath": [
+      "HighValueTargetPoint"
+    ],
+    "target": {
+      "__id__": 1054
+    },
+    "targetInfo": {
+      "__id__": 2862
+    }
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "22wC68ObpPr52tjWOhpqwX"
+    ]
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "d3iXNDvdhF6rWXU8WFo5Ek"
+    ]
+  },
+  {
+    "__type__": "cc.TargetOverrideInfo",
+    "source": {
+      "__id__": 1140
+    },
+    "sourceInfo": {
+      "__id__": 2864
+    },
+    "propertyPath": [
+      "HighValueTargetPoint"
+    ],
+    "target": {
+      "__id__": 1140
+    },
+    "targetInfo": {
+      "__id__": 2865
+    }
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "22wC68ObpPr52tjWOhpqwX"
+    ]
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "d3iXNDvdhF6rWXU8WFo5Ek"
     ]
   }
 ]

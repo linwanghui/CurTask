@@ -1,5 +1,5 @@
 import { FormatMoney } from "../ZRSJZ_NumberFormat";
-import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame, Texture2D } from 'cc';
+import { _decorator, Component, EventTouch, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPON_SKIN } from '../ZRSJZ_Constant';
@@ -69,20 +69,21 @@ export class ZRSJZ_TaskAward extends Component {
         this.Count.string = propName === "钞票" ? FormatMoney(count, true) : count.toString();
         this.Icon.node.setScale(1, 1, 1);
         const heroSkin = ZRSJZ_SKIN_CONFIG.get(propName);
-        const weaponSkin = [...ZRSJZ_WEAPON_SKIN.values()].flat().find(s => s.Name === propName);
+        const weaponSkin = Array.from(ZRSJZ_WEAPON_SKIN.values()).flat().find(s => s.Name === propName);
         if (displayIcon || heroSkin || (weaponSkin && !ZRSJZ_PROP_CONFIG.has(propName))) {
             this.Icon.spriteFrame = displayIcon ?? null;
             this.Bottom.spriteFrame = this.BottomSF;
             const apply = (sf: SpriteFrame) => {
-                if (refreshVersion !== this._refreshVersion || !this.node.isValid) return;
+                if (!sf || refreshVersion !== this._refreshVersion || !this.node.isValid) return;
+                // 称号、头像框等自定义图不能沿用池中旧图的尺寸，否则会拉伸或越界。
+                this.Icon.sizeMode = Sprite.SizeMode.TRIMMED;
                 this.Icon.spriteFrame = sf;
-                ZRSJZ_Tools.ScaleNodeToFit(this.Icon.node, 110, 110);
+                const scale = Math.min(110 / Math.max(1, sf.rect.width), 110 / Math.max(1, sf.rect.height), 1);
+                this.Icon.node.setScale(scale, scale, 1);
             };
             if (displayIcon) apply(displayIcon);
             else if (heroSkin) void ZRSJZ_UIManager.Instance.GetHeroSkinIconUI(propName).then(apply).catch(console.error);
-            else void ZRSJZ_UIManager.Instance.GetWeaponryUI(propName).then((texture: Texture2D) => {
-                const frame = new SpriteFrame(); frame.texture = texture; apply(frame);
-            }).catch(console.error);
+            else void ZRSJZ_UIManager.Instance.GetWeaponryIconUI(propName).then(apply).catch(console.error);
             const quality = heroSkin?.Quality ?? weaponSkin?.Quality;
             if (quality) void ZRSJZ_UIManager.Instance.GetPropGridUI(`${quality}1_1`).then(sf => {
                 if (refreshVersion === this._refreshVersion && this.node.isValid) this.Bottom.spriteFrame = sf;

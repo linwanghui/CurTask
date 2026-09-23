@@ -17,7 +17,7 @@ export class ZRSJZ_AvatarFrameService {
                 || (!!rule.pet && !!rule.skin && ZRSJZ_PetService.CheckPetSkin(rule.pet, rule.skin));
             if (unlocked && !owned.has(id)) { owned.add(id); changed = true; }
         }
-        if (changed) data.OwnedAvatarFrames = [...owned];
+        if (changed) data.OwnedAvatarFrames = Array.from(owned);
         if (!owned.has(data.CurrentAvatarFrame) || !ZRSJZ_AVATAR_FRAME_UNLOCK[data.CurrentAvatarFrame]) {
             data.CurrentAvatarFrame = '1'; changed = true;
         }

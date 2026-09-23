@@ -1,7 +1,9 @@
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_AccountService } from './ZRSJZ_AccountService';
-import { ZRSJZ_ACHIEVEMENT_CONFIG, ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG, ZRSJZ_AchievementConfig, ZRSJZ_AchievementReward, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
-import { ZRSJZ_InventoryService } from './ZRSJZ_InventoryService';
+import { ZRSJZ_ACHIEVEMENT_CONFIG, ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG, ZRSJZ_AchievementConfig, ZRSJZ_AchievementReward, ZRSJZ_PROP_CONFIG, ZRSJZ_MAIL_TYPE } from '../ZRSJZ_Constant';
+import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_MailService } from './ZRSJZ_MailService';
+import { FormatMoney } from '../ZRSJZ_NumberFormat';
 import { ZRSJZ_TitleService } from './ZRSJZ_TitleService';
 import { ZRSJZ_AvatarFrameService } from './ZRSJZ_AvatarFrameService';
 import { ZRSJZ_BattlePassService } from './ZRSJZ_BattlePassService';
@@ -62,22 +64,43 @@ export class ZRSJZ_AchievementService {
     }
 
     public static Claim(id: string): boolean {
+        return this.ClaimRewards([id]).count > 0;
+    }
+    private static ClaimRewards(ids: readonly string[]): { count: number; rewards: ZRSJZ_AchievementReward[] } {
         this.SyncCompleted();
-        const item = this.Items.find(config => config.id === id);
         const data = ZRSJZ_GameData.Instance;
-        if (!item || !this.IsCompleted(item) || data.AchievementClaimed?.includes(id)
-            || !this.ValidateRewards(item.rewards)) return false;
         data.AchievementClaimed ??= [];
-        data.AchievementClaimed.push(id);
-        this.GrantRewards(item.rewards);
-        return true;
+        const rewards: ZRSJZ_AchievementReward[] = [];
+        let count = 0;
+        for (const id of ids) {
+            const item = this.Items.find(config => config.id === id);
+            if (!item || !this.IsCompleted(item) || data.AchievementClaimed.includes(id)
+                || !this.ValidateRewards(item.rewards)) continue;
+            data.AchievementClaimed.push(id);
+            rewards.push(...item.rewards);
+            count++;
+        }
+        if (count) this.GrantRewards(rewards);
+        return { count, rewards };
     }
 
     public static ClaimAll(): number {
-        let count = 0;
-        for (const item of this.Items) if (this.Claim(item.id)) count++;
-        // 里程碑由宝箱逐档领取，避免一键领取让宝箱跨过多个阶段。
-        return count;
+        return this.ClaimAllRewards().count;
+    }
+    public static ClaimAllRewards(): { count: number; rewards: ZRSJZ_AchievementReward[] } {
+        // Milestones are still claimed separately, one chest stage at a time.
+        return this.ClaimRewards(this.Items.map(item => item.id));
+    }
+    /** Cheat panel only: complete conditions without granting or resetting any rewards. */
+    public static DebugCompleteAll(): void {
+        const data = ZRSJZ_GameData.Instance;
+        data.AchievementProgress ??= {};
+        data.AchievementCompleted ??= [];
+        for (const item of this.Items) {
+            data.AchievementProgress[item.id] = Math.max(data.AchievementProgress[item.id] || 0, item.target);
+            if (!data.AchievementCompleted.includes(item.id)) data.AchievementCompleted.push(item.id);
+        }
+        ZRSJZ_GameData.SaveData();
     }
 
     public static ClaimMilestone(percent: number): boolean {
@@ -106,7 +129,7 @@ export class ZRSJZ_AchievementService {
     public static DescribeRewards(rewards: readonly ZRSJZ_AchievementReward[], separator = '、'): string {
         return rewards.map(reward => {
             switch (reward.type) {
-                case '钞票': return reward.count + '钞票';
+                case '钞票': return FormatMoney(reward.count, true) + '钞票';
                 case '道具': return reward.name + '×' + reward.count;
                 case '称号': return '称号·' + reward.name;
                 case '头像框': return '头像框·' + reward.id;
@@ -129,10 +152,11 @@ export class ZRSJZ_AchievementService {
     private static GrantRewards(rewards: readonly ZRSJZ_AchievementReward[]): void {
         const data = ZRSJZ_GameData.Instance;
         data.OwnedAvatarFrames ??= ['1'];
+        const props = new Map<string, number>();
         for (const reward of rewards) {
             switch (reward.type) {
                 case '钞票': ZRSJZ_AccountService.ChangeGold(reward.count); break;
-                case '道具': ZRSJZ_InventoryService.AddPropsToWarehouseByName(reward.name, reward.count); break;
+                case '道具': props.set(reward.name, (props.get(reward.name) ?? 0) + reward.count); break;
                 case '称号': break; // 领取记录写入后，由统一条件检查解锁。
                 case '头像框': break; // 头像框按统一条件解锁，不绕过 Boss/视频条件。
             }
@@ -140,6 +164,15 @@ export class ZRSJZ_AchievementService {
         ZRSJZ_TitleService.SyncUnlocks(false);
         ZRSJZ_AvatarFrameService.SyncUnlocks(false);
         ZRSJZ_GameData.SaveData();
+        if (props.size) {
+            const awards = Array.from(props).map(([PropName, Count]) => ({ PropName, Count }));
+            if (ZRSJZ_UIManager.Instance?.ReceivePropAwards) {
+                void ZRSJZ_UIManager.Instance.ReceivePropAwards(awards, ZRSJZ_MAIL_TYPE.仓库已满).catch(error => {
+                    console.error('[Achievement] 奖励入库失败，已改发邮件', error);
+                    ZRSJZ_MailService.AddMail(ZRSJZ_MAIL_TYPE.仓库已满, awards);
+                });
+            } else ZRSJZ_MailService.AddMail(ZRSJZ_MAIL_TYPE.仓库已满, awards);
+        }
     }
 
     private static Add(id: string, amount = 1): void {

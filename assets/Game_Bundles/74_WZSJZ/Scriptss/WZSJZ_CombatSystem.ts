@@ -976,7 +976,7 @@ export class WZSJZ_CombatSystem extends Component {
             return;
         }
         this._ownerMines.delete(owner);
-        for (const mine of [...mines]) {
+        for (const mine of Array.from(mines)) {
             this._mineOwners.delete(mine);
             // 回收行为由池管理器统一执行，不依赖地雷组件上的公开方法。
             this.RecycleMine(mine);

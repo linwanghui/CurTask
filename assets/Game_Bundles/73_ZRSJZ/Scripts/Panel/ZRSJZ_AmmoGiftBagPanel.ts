@@ -2,7 +2,7 @@ import { _decorator, EventTouch, find, Label, Sprite } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
@@ -39,7 +39,8 @@ export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
         this._playerIndex = this.PlayerIndex >= 0
             ? (this.PlayerIndex === 1 ? 1 : 0)
             : (argPlayerIndex === 1 ? 1 : 0);
-        this._ammoNames = this.GetAmmoNamesByDifficulty();
+        // this._ammoNames = this.GetAmmoNamesByDifficulty();
+        this._ammoNames = ["1级子弹", "1级子弹", "1级子弹"];
         this._isClaiming = false;
         super.Show(() => void this.RefreshGift());
     }
@@ -73,7 +74,7 @@ export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
         const showVersion = ++this._showVersion;
         for (let index = 0; index < 3; index++) {
             if (this._names[index]) this._names[index].string = this._ammoNames[index];
-            if (this._counts[index]) this._counts[index].string = `${ZRSJZ_AmmoGiftBagPanel.AMMO_COUNT}`;
+            if (this._counts[index]) this._counts[index].string = `${ZRSJZ_AMMO_MAX_COUNT * 2}`;
         }
 
         const spriteFrames = await Promise.all(
@@ -91,7 +92,7 @@ export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
         const replacedPropIDs: string[] = [];
         const success = ZRSJZ_InventoryService.ApplyAmmoGift(
             this._ammoNames,
-            ZRSJZ_AmmoGiftBagPanel.AMMO_COUNT,
+            ZRSJZ_AMMO_MAX_COUNT,
             this._playerIndex,
             replacedPropIDs,
         );

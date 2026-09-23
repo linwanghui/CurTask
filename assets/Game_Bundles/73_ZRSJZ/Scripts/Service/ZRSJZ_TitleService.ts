@@ -18,11 +18,11 @@ export class ZRSJZ_TitleService {
                 case 'evacuations': unlocked = data.TotalEvacuation >= rule.count; break;
                 case 'kills': unlocked = (data.AchievementProgress?.['火力覆盖'] ?? 0) >= rule.count; break;
                 case 'allBosses': unlocked = ZRSJZ_BOSS_CONFIG.size > 0
-                    && [...ZRSJZ_BOSS_CONFIG.keys()].every(name => data.DefeatedTitleBosses?.includes(name)); break;
+                    && Array.from(ZRSJZ_BOSS_CONFIG.keys()).every(name => data.DefeatedTitleBosses?.includes(name)); break;
             }
             if (unlocked && !owned.has(item.name)) { owned.add(item.name); changed = true; }
         }
-        if (changed) data.OwnedTitles = [...owned];
+        if (changed) data.OwnedTitles = Array.from(owned);
         if (!owned.has(data.EquippedTitle) || !this.Normalize(data.EquippedTitle)) {
             data.EquippedTitle = '勇者';
             changed = true;

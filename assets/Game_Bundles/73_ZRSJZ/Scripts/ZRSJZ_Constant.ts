@@ -62,7 +62,6 @@ export enum ZRSJZ_PANEL {
     行动补给弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/行动补给弹窗",
     神秘商人弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/神秘商人弹窗",
     成就界面 = "73_ZRSJZ_DLC/Prefabs/Panel/成就界面",
-
     战令界面 = "73_ZRSJZ_DLC/Prefabs/Panel/战令界面",
     头像框弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/头像框弹窗",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -95,6 +94,8 @@ export const ZRSJZ_PANEL_PATH_CONFIG: Map<string, string> = new Map([
     ["神秘商人", "主页-神秘商人"],
     ["成就界面", "主页-成就界面"],
     ["曼德尔箱界面", "主页-曼德尔箱界面"],
+    ["战令界面", "主页-战令界面"],
+    ["活动界面", "主页-活动界面"],
 ])
 
 //物理层级
@@ -985,17 +986,17 @@ export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> 
     ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/左亚/w2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
     ["黯祁", { Name: "黯祁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "战令解锁", UnlockPrice: 0, Skin: "角色/左亚/w3", Headset: ["w3_0013_帽子"], EntranceAnis: ["cc_w"] }],
 
-    ["沧戈", { Name: "沧戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/乌鲁鲁/乌鲁", Headset: ["乌鲁__头发"], EntranceAnis: ["cc_w"] }],
-    ["狩荒", { Name: "狩荒", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁2", Headset: ["乌鲁2_0019_帽子前", "乌鲁2_0014_帽子后",], EntranceAnis: ["cc_w"] }],
-    ["煌罡", { Name: "煌罡", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁3", Headset: ["乌鲁3_0012_皇冠"], EntranceAnis: ["cc_w"] }],
+    // ["沧戈", { Name: "沧戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/乌鲁鲁/乌鲁", Headset: ["乌鲁__头发"], EntranceAnis: ["cc_w"] }],
+    // ["狩荒", { Name: "狩荒", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁2", Headset: ["乌鲁2_0019_帽子前", "乌鲁2_0014_帽子后",], EntranceAnis: ["cc_w"] }],
+    // ["煌罡", { Name: "煌罡", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁3", Headset: ["乌鲁3_0012_皇冠"], EntranceAnis: ["cc_w"] }],
 
-    ["霁锋", { Name: "霁锋", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蜂医/蜂医1", Headset: [], EntranceAnis: ["cc_w"] }],
-    ["赤骁", { Name: "赤骁", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医2", Headset: ["蓝狼3_0012_左角"], EntranceAnis: ["cc_w"] }],
-    ["鸦暝", { Name: "鸦暝", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医3", Headset: ["蜂医3_0013_帽子", "蜂医3_0014_羽毛", "蜂医3_0017_嘴"], EntranceAnis: ["cc_w"] }],
+    // ["霁锋", { Name: "霁锋", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蜂医/蜂医1", Headset: [], EntranceAnis: ["cc_w"] }],
+    // ["赤骁", { Name: "赤骁", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医2", Headset: ["蓝狼3_0012_左角"], EntranceAnis: ["cc_w"] }],
+    // ["鸦暝", { Name: "鸦暝", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医3", Headset: ["蜂医3_0013_帽子", "蜂医3_0014_羽毛", "蜂医3_0017_嘴"], EntranceAnis: ["cc_w"] }],
 
-    ["浅燎", { Name: "浅燎", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/露娜/露娜1", Headset: ["露娜1_0019_墨镜"], EntranceAnis: ["cc_w"] }],
-    ["鸢铠", { Name: "鸢铠", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜2", Headset: [], EntranceAnis: ["cc_w"] }],
-    ["凌魇", { Name: "凌魇", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜3", Headset: [], EntranceAnis: ["cc_w"] }],
+    // ["浅燎", { Name: "浅燎", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/露娜/露娜1", Headset: ["露娜1_0019_墨镜"], EntranceAnis: ["cc_w"] }],
+    // ["鸢铠", { Name: "鸢铠", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜2", Headset: [], EntranceAnis: ["cc_w"] }],
+    // ["凌魇", { Name: "凌魇", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜3", Headset: [], EntranceAnis: ["cc_w"] }],
 ])
 
 //玩家动画
@@ -1438,12 +1439,12 @@ export interface ZRSJZ_MapConfig {
  * 权重随模式提高持续向高品质倾斜；箱子生成时会按这些权重进行加权随机。
  */
 const ZRSJZ_MAP_LOOT_WEIGHTS: readonly (readonly number[])[] = [
-    [60, 25, 10, 4, 0.8, 0.2],
-    [48, 28, 15, 6, 2.3, 0.7],
+    [60, 25, 10, 3.5, 1, 0.5],
+    [48, 28, 15, 6, 2, 1],
     [36, 28, 20, 10, 4.5, 1.5],
-    [26, 25, 23, 15, 8, 3],
-    [17, 21, 25, 20, 12, 5],
-    [10, 15, 22, 24, 19, 10],
+    [26, 25, 23, 15, 9, 2],
+    [17, 21, 25, 20, 14.5, 2.5],
+    [10, 15, 22, 24, 26, 3],
 ];
 
 const ZRSJZ_MAP_REQUIRED_VALUES: readonly number[] = [
@@ -2685,7 +2686,7 @@ export const ZRSJZ_TITLE_CONFIG: readonly {
         { name: '超凡勇士', unlock: { type: 'achievement', id: '萌宠相伴' }, unlockCondition: { text: '通过成就获取', keyword: '成就' } },
         { name: '不败战神', unlock: { type: 'evacuations', count: 10 }, unlockCondition: { text: '成功撤离10次', keyword: '10' } },
         { name: '枪神', unlock: { type: 'kills', count: 100 }, unlockCondition: { text: '击杀100个敌人', keyword: '100' } },
-        { name: '王者之姿', unlock: { type: 'milestone', percent: 100 }, unlockCondition: { text: '领取成就里程碑宝箱完成度100%获得', keyword: '100%' } },
+        { name: '王者之姿', unlock: { type: 'milestone', percent: 100 }, unlockCondition: { text: '领取成就里程碑\n宝箱完成度100%获得', keyword: '100%' } },
         { name: '荣耀之巅', unlock: { type: 'allBosses' }, unlockCondition: { text: '打败所有Boss', keyword: 'Boss' } },
     ];
 
@@ -2706,35 +2707,35 @@ export interface ZRSJZ_AchievementConfig {
 
 /** 成就条件与奖励配置；界面和记录逻辑共用。 */
 export const ZRSJZ_ACHIEVEMENT_CONFIG: readonly ZRSJZ_AchievementConfig[] = [
-    { id: '初入战场', description: '完成第1场对局', target: 1, rewards: [{ type: '钞票', count: 1000 }] },
-    { id: '枪火洗礼', description: '在一局战斗中存活并成功撤离', target: 1, rewards: [{ type: '钞票', count: 1500 }] },
-    { id: '战地医师', description: '累计治疗100次', target: 100, rewards: [{ type: '钞票', count: 3000 }] },
-    { id: '枪械入门', description: '使用任意武器累计击败20名敌人', target: 20, rewards: [{ type: '钞票', count: 2000 }, { type: '道具', name: '1级子弹', count: 60 }] },
-    { id: '有惊无险', description: '生命值低于10%时成功撤离', target: 1, rewards: [{ type: '钞票', count: 3000 }] },
-    { id: '搜刮专家', description: '累计搜索200个容器', target: 200, rewards: [{ type: '钞票', count: 3000 }] },
-    { id: '火力覆盖', description: '累计击败100名敌人', target: 100, rewards: [{ type: '钞票', count: 5000 }] },
-    { id: '无人能挡', description: '单局连续击败5名敌人且期间不倒地', target: 5, rewards: [{ type: '钞票', count: 3000 }] },
-    { id: '刀尖起舞', description: '累计完成50次近战击败', target: 50, rewards: [{ type: '钞票', count: 4000 }] },
-    { id: '绝地反击', description: '生命值低于10%时连续击败3名敌人', target: 3, rewards: [{ type: '钞票', count: 5000 }] },
-    { id: '赏金猎人', description: '累计完成50个特殊任务', target: 50, rewards: [{ type: '钞票', count: 5000 }] },
-    { id: '百万撤离', description: '单局撤离物资总价值达到100万', target: 1000000, rewards: [{ type: '钞票', count: 10000 }] },
-    { id: '雷区舞者', description: '触发轰炸区并规避10次轰炸', target: 10, rewards: [{ type: '钞票', count: 4000 }] },
-    { id: '火力压制', description: '使用散弹枪击败100名敌人', target: 100, rewards: [{ type: '钞票', count: 6000 }] },
-    { id: '战场主宰', description: '累计击败1000名敌人', target: 1000, rewards: [{ type: '钞票', count: 15000 }] },
-    { id: '近战大师', description: '使用近战武器击败100人', target: 100, rewards: [{ type: '钞票', count: 7000 }] },
-    { id: '沙漠之狼', description: '在沙漠地图累计战斗5小时', target: 18000, rewards: [{ type: '钞票', count: 8000 }] },
-    { id: '雪域幽灵', description: '在雪地地图中完成100次击杀', target: 100, rewards: [{ type: '钞票', count: 6000 }] },
-    { id: '不灭传说', description: '连续20场成功撤离', target: 20, rewards: [{ type: '钞票', count: 12000 }] },
-    { id: '万能兵王', description: '解锁80%以上成就', target: 17, rewards: [{ type: '钞票', count: 15000 }] },
-    { id: '萌宠相伴', description: '解锁一只宠物', target: 1, rewards: [{ type: '钞票', count: 1500 }, { type: '称号', name: '超凡勇士' }], destination: 'pets' },
-    { id: '甜蜜双排', description: '双人组队完成一次对局', target: 1, rewards: [{ type: '钞票', count: 2000 }] },
+    { id: '初入战场', description: '完成第1场对局', target: 1, rewards: [{ type: '道具', name: '金条', count: 1 }] },
+    { id: '枪火洗礼', description: '在一局战斗中存活并成功撤离', target: 1, rewards: [{ type: '道具', name: '英雄碎片', count: 5 }] },
+    { id: '甜蜜双排', description: '双人组队完成一次对局', target: 1, rewards: [{ type: '道具', name: '军用地图匣', count: 1 }] },
+    { id: '萌宠相伴', description: '解锁一只宠物', target: 1, rewards: [{ type: '道具', name: '宠物碎片', count: 10 }], destination: 'pets' },
+    { id: '枪械入门', description: '使用任意武器累计击败20名敌人', target: 20, rewards: [{ type: '道具', name: '显卡', count: 1 }] },
+    { id: '无人能挡', description: '单局连续击败5名敌人且期间不倒地', target: 5, rewards: [{ type: '道具', name: '英雄碎片', count: 5 }] },
+    { id: '火力覆盖', description: '累计击败100名敌人', target: 100, rewards: [{ type: '道具', name: '动力电池组', count: 1 }] },
+    { id: '战地医师', description: '累计治疗100次', target: 100, rewards: [{ type: '道具', name: '宠物碎片', count: 15 }] },
+    { id: '刀尖起舞', description: '累计完成50次近战击败', target: 50, rewards: [{ type: '道具', name: '卫星锅', count: 1 }] },
+    { id: '有惊无险', description: '生命值低于10%时成功撤离', target: 1, rewards: [{ type: '道具', name: '英雄碎片', count: 15 }] },
+    { id: '绝地反击', description: '生命值低于10%时连续击败3名敌人', target: 3, rewards: [{ type: '道具', name: '摄影机', count: 1 }] },
+    { id: '搜刮专家', description: '累计搜索200个容器', target: 200, rewards: [{ type: '道具', name: '宠物碎片', count: 15 }] },
+    { id: '雷区舞者', description: '触发轰炸区并规避10次轰炸', target: 10, rewards: [{ type: '道具', name: '黄金鳄鱼头', count: 1 }] },
+    { id: '百万撤离', description: '单局撤离物资总价值达到100万', target: 1000000, rewards: [{ type: '道具', name: '英雄碎片', count: 10 }] },
+    { id: '火力压制', description: '使用散弹枪击败100名敌人', target: 100, rewards: [{ type: '道具', name: 'KK41-霰弹枪', count: 1 }] },
+    { id: '近战大师', description: '使用近战武器击败100人', target: 100, rewards: [{ type: '道具', name: '宠物碎片', count: 20 }] },
+    { id: '赏金猎人', description: '累计完成50个特殊任务', target: 50, rewards: [{ type: '道具', name: '印象派名画', count: 1 }] },
+    { id: '战场主宰', description: '累计击败1000名敌人', target: 1000, rewards: [{ type: '道具', name: '英雄碎片', count: 50 }] },
+    { id: '雪域幽灵', description: '在雪地地图中完成100次击杀', target: 100, rewards: [{ type: '道具', name: '绿龙甲', count: 1 }] },
+    { id: '不灭传说', description: '连续20场成功撤离', target: 20, rewards: [{ type: '道具', name: '宠物碎片', count: 20 }] },
+    { id: '沙漠之狼', description: '在沙漠地图累计战斗5小时', target: 18000, rewards: [{ type: '道具', name: '弑神盔', count: 1 }] },
+    { id: '万能兵王', description: '解锁80%以上成就', target: 17, rewards: [{ type: '道具', name: '霜月狼', count: 1 }] },
 ];
-/** 左侧阶段奖励；percent 为完成百分比，rewards 支持混合奖励。 */
+/** 左侧阶段奖励；percent 为完成百分比，每阶段只发放一种碎片。 */
 export const ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG: readonly {
     percent: number; rewards: readonly ZRSJZ_AchievementReward[];
 }[] = [
-        { percent: 20, rewards: [{ type: '钞票', count: 3000 }, { type: '道具', name: '1级子弹', count: 60 }] },
-        { percent: 50, rewards: [{ type: '钞票', count: 8000 }, { type: '头像框', id: '7' }] },
-        { percent: 80, rewards: [{ type: '钞票', count: 15000 }] },
-        { percent: 100, rewards: [{ type: '钞票', count: 25000 }, { type: '称号', name: '王者之姿' }, { type: '头像框', id: '8' }] },
+        { percent: 20, rewards: [{ type: '道具', name: '英雄碎片', count: 10 }, { type: '道具', name: '宠物碎片', count: 10 }] },
+        { percent: 50, rewards: [{ type: '头像框', id: '7' }] },
+        { percent: 80, rewards: [{ type: '道具', name: '英雄碎片', count: 20 }, { type: '道具', name: '宠物碎片', count: 20 }] },
+        { percent: 100, rewards: [{ type: '称号', name: '王者之姿' }, { type: '头像框', id: '8' }] },
     ];

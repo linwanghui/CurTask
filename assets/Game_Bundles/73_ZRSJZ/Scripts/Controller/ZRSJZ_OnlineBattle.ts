@@ -283,7 +283,7 @@ export class ZRSJZ_OnlineBattle extends Component {
                     if (last && !last.dead) Online.CombatStates.set(id, { ...last, removed: true });
                 }
             }
-            const states = [...Online.CombatStates.values()];
+            const states = Array.from(Online.CombatStates.values());
             for (let i = 0; i < states.length; i += 16) Online.Combat({ kind: 'states', states: states.slice(i, i + 16) });
         } else {
             for (const state of Online.CombatStates.values()) {

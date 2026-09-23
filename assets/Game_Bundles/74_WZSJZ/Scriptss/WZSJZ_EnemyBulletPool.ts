@@ -70,7 +70,7 @@ export class WZSJZ_EnemyBulletPool {
 
     /** 战斗结束或撤离时清掉已发射但尚未命中的敌方子弹。 */
     public static RecycleAll(): void {
-        for (const bullet of [...this._active]) {
+        for (const bullet of Array.from(this._active)) {
             // 统一由对象池回收，不依赖组件上的公开方法。
             // Web 发布构建中如果活动集合残留了已失效的组件实例，直接调用实例方法
             // 会抛出异常并中断 GameManager.start() 后续所有系统的初始化。

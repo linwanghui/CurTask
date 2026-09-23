@@ -171,14 +171,21 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     }
 
     async OnButtonClick(event: EventTouch): Promise<void> {
-        if (ZRSJZ_UIManager.Dragging) return;
+        const action = event.getCurrentTarget().name;
+        // 退出始终可用，即使广告中断后残留了引导或拖拽状态。
+        if (action === "Mask") {
+            ZRSJZ_UIManager.Dragging = false;
+            ZRSJZ_UIManager.DraggingPlayerIndex = -1;
+            ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CANCEL_PROP_DRAG);
+            if (ZRSJZ_TutorialPanel.IsTipShowing) {
+                ZRSJZ_TutorialPanel.IsTipShowing = false;
+                ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.新手引导弹窗);
+            }
+        } else if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
-        switch (event.getCurrentTarget().name) {
+        switch (action) {
             case "Mask":
-                if (ZRSJZ_TutorialPanel.IsTipShowing) {
-                    ZRSJZ_UIManager.Instance.ShowTip("请先完成新手引导");
-                    return
-                } else if (ZRSJZ_GameData.Instance.CurMap == "新手村") {
+                if (ZRSJZ_GameData.Instance.CurMap == "新手村") {
                     ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_TUTORIAL, 4);
                 }
                 ZRSJZ_UIManager.Instance.HidePlayerPanel(ZRSJZ_PANEL.物资弹窗, this._playerIndex);

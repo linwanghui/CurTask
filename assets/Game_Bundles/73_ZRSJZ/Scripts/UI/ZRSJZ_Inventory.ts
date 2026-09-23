@@ -82,7 +82,7 @@ export class ZRSJZ_Inventory extends Component {
                 height: Math.max(...cells.map(c => c.y)) - Math.min(...cells.map(c => c.y)) + 1 };
         };
         const origin = bounds(source, id);
-        const ignored = new Set([id, ...occupants]);
+        const ignored = new Set([id, ...Array.from(occupants)]);
         const plan: ZRSJZ_SwapPlacement[] = [{ inventory: this, id, gridX, gridY, width, height, isRotate }];
         if (!this.CanPlaceForSwap(plan[0], ignored, [])) return null;
         // 先完整校验所有被覆盖道具，再决定回填布局。
@@ -93,7 +93,7 @@ export class ZRSJZ_Inventory extends Component {
         }
         if (source === this && origin.x < gridX + width && origin.x + origin.width > gridX
             && origin.y < gridY + height && origin.y + origin.height > gridY) {
-            return this.FillVacatedSwapCells(plan, [...occupants], origin, ignored) ? plan : null;
+            return this.FillVacatedSwapCells(plan, Array.from(occupants), origin, ignored) ? plan : null;
         }
         for (const targetID of occupants) {
             const occupied = bounds(this, targetID);
@@ -164,7 +164,7 @@ export class ZRSJZ_Inventory extends Component {
         const failed = new Set<string>();
         const place = (index: number): boolean => {
             if (index === candidates.length) return true;
-            const key = `${index}:${[...used].sort().join(';')}`;
+            const key = `${index}:${Array.from(used).sort().join(';')}`;
             if (failed.has(key)) return false;
             for (const choice of candidates[index]) {
                 if (choice.cells.some(cell => used.has(cell))) continue;

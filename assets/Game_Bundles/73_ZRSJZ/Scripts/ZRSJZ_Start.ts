@@ -58,43 +58,81 @@ export class ZRSJZ_Start extends Component {
     @property(Node)
     UIPanel: Node = null;
 
+    @property(Node)
+    RankingListBtn: Node = null;
+
     protected start(): void {
         ZRSJZ_BattlePassService.EnsurePeriods();
         ZRSJZ_MerchantService.EnterHome();
 
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
+        this.RankingListBtn.active = Banner.IS_BYTEDANCE_MINI_GAME;
         const cb: Function = () => {
-            if (!ZRSJZ_GameData.Instance.IsTutorial) {
-                if (Banner.Mode != BannerMode.测试包 && !sys.isBrowser) {
-                    this.InitTutorial();
-                    return;
-                } else {
-                    ZRSJZ_GameData.Instance.IsTutorial = true;
-                    ZRSJZ_GameData.Instance.CurMap = "五号小镇_机密行动";
-                    ZRSJZ_TaskService.CompleteTask("完成新手教程");
+            const startGame = () => {
+                if (!ZRSJZ_GameData.Instance.IsTutorial) {
+                    // if (Banner.Mode == BannerMode.测试包) {
+                    if (Banner.Mode != BannerMode.测试包 && !sys.isBrowser) {
+                        this.InitTutorial();
+                        return;
+                    } else {
+                        ZRSJZ_GameData.Instance.IsTutorial = true;
+                        ZRSJZ_GameData.Instance.CurMap = "五号小镇_机密行动";
+                        ZRSJZ_TaskService.CompleteTask("完成新手教程");
+                    }
                 }
-            }
-            //关闭所有面板
-            ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
-            this.showRedTaskTip();
-            this.showMoreGameBtnAni();
-            this.LoadPanel.active = false;
-            this._noticeHomeReady = true;
-            this.UIPanel.setScale(this.GetPanelScale());
+                //关闭所有面板
+                ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
+                this.showRedTaskTip();
+                this.showMoreGameBtnAni();
+                this.LoadPanel.active = false;
+                this._noticeHomeReady = true;
+                this.UIPanel.setScale(this.GetPanelScale());
 
-            if (ZRSJZ_AccountService.CanClaimSignInReward()) {
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
-            }
-            this.SignBtn.active = !ZRSJZ_AccountService.IsSignInCompleted();
-            ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
-            this.ModelSwitch();
-            this.RefreshMainTaskTip();
-            this.RefreshMailTip();
-            this.RefreshMainReminders();
-            // 对局经验只在回到大厅、等级 UI 已注册事件后统一发放。
-            ZRSJZ_GradeService.ClaimPendingExperience();
+                if (ZRSJZ_AccountService.CanClaimSignInReward()) {
+                    ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.签到弹窗);
+                }
+                this.SignBtn.active = !ZRSJZ_AccountService.IsSignInCompleted();
+                ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
+                this.ModelSwitch();
+                this.RefreshMainTaskTip();
+                this.RefreshMailTip();
+                this.RefreshMainReminders();
+                // 对局经验只在回到大厅、等级 UI 已注册事件后统一发放。
+                ZRSJZ_GradeService.ClaimPendingExperience();
 
-            this.GetCombinationGameData();
+                this.GetCombinationGameData();
+            }
+
+            //抖音访客进入直接进入场景
+            if (Banner.IS_BYTEDANCE_MINI_GAME && Banner.OpenWinTheCustomer) {
+                Banner.Instance.DYLoginInfo(() => {//登入
+                    if (window[`tt`]) { //获客直流
+                        var options = window[`tt`].getLaunchOptionsSync();
+                        console.log("获客直流判断1:" + options);
+                        const scene = options.scene;
+                        if (scene.substring(scene.length - 4) == "3041") {
+                            console.log("3041");
+                            //获客启动，直接进入关卡
+                            if (!Banner.WinTheCustomerIsOver) {
+                                //默认直接进入第一个关卡，需要修改手动修改
+                                this.InitOpenWinTheCustomer();
+                            } else {
+                                startGame();
+                            }
+                        } else {
+                            //非获客场景进入
+                            startGame();
+                        }
+
+
+                    }
+                }, () => {
+
+                });
+            } else {
+                startGame();
+            }
+
         }
 
         if (ZRSJZ_UIManager.ZRSJZ_UI) cb();
@@ -218,7 +256,7 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.等级弹窗);
                 break;
             case "称号":
-                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.头像框弹窗, 'title');
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.等级弹窗, 'title');
                 break;
             case "邮件":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.邮件界面);
@@ -256,7 +294,8 @@ export class ZRSJZ_Start extends Component {
             ZRSJZ_GameData.Instance.WeaponryID[0] = "";
         }
 
-        if (ZRSJZ_GameData.Instance.WeaponryID[4] === "") {
+        const tutorialKnifeID = ZRSJZ_GameData.Instance.WeaponryID[4];
+        if (ZRSJZ_GameData.Instance.PropData[tutorialKnifeID]?.PropType !== "刀") {
             ZRSJZ_GameDataDefaults.InitializePlayerKnife(ZRSJZ_GameData.Instance, 0);
         }
 
@@ -276,6 +315,40 @@ export class ZRSJZ_Start extends Component {
         }
         // director.loadScene("ZRSJZ_Tutorial");
         ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.加载界面, "ZRSJZ_Tutorial");
+    }
+
+
+    InitOpenWinTheCustomer() {
+        ZRSJZ_GameData.Instance.CurMap = "五号小镇_机密行动";
+
+        //初始化装备
+        if (ZRSJZ_GameData.Instance.WeaponryID[0] === "") {
+            ZRSJZ_GameData.Instance.WeaponryID[0] = ZRSJZ_InventoryService.AddPropByName("CN8-突击步枪");
+        }
+
+        //初始化弹药
+        if (ZRSJZ_GameData.Instance.AmmoID[0] == "") {
+            let propId = ZRSJZ_InventoryService.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            ZRSJZ_GameData.Instance.AmmoID[0] = propId;
+            ZRSJZ_InventoryService.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        } else if (ZRSJZ_GameData.Instance.AmmoID[1] == "") {
+            let propId = ZRSJZ_InventoryService.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            ZRSJZ_GameData.Instance.AmmoID[1] = propId;
+            ZRSJZ_InventoryService.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        } else if (ZRSJZ_GameData.Instance.AmmoID[2] == "") {
+            let propId = ZRSJZ_InventoryService.AddPropByName("1级子弹", ZRSJZ_AMMO_MAX_COUNT);
+            ZRSJZ_GameData.Instance.AmmoID[2] = propId;
+            ZRSJZ_InventoryService.MovePropToInventory(propId, ZRSJZ_INVENTORY.弹药, 1, 0, 0);
+        }
+
+        //跳过新手教程
+        if (!ZRSJZ_GameData.Instance.IsTutorial) {
+            ZRSJZ_GameData.Instance.IsTutorial = true;
+            ZRSJZ_GameData.Instance.CurMap = "五号小镇_机密行动";
+            ZRSJZ_TaskService.CompleteTask("完成新手教程");
+        }
+
+        director.loadScene("ZRSJZ_Game");
     }
 
     private _petPreviewKey = '';

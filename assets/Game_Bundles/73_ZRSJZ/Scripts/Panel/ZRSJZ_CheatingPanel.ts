@@ -4,13 +4,15 @@ import { _decorator, Component, EditBox, EventTouch, Node, Label, instantiate, B
 import { ZRSJZ_LevelProgressService } from '../Service/ZRSJZ_LevelProgressService';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
-import { ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG, ZRSJZ_AVATAR_FRAME_UNLOCK, ZRSJZ_TITLE_CONFIG } from '../ZRSJZ_Constant';
+import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
 import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 import { ZRSJZ_EnhancementService } from '../Service/ZRSJZ_EnhancementService';
 import { ZRSJZ_BattlePassService } from '../Service/ZRSJZ_BattlePassService';
+import { ZRSJZ_AchievementService } from '../Service/ZRSJZ_AchievementService';
 import { ZRSJZ_BATTLE_PASS_CONFIG } from '../ZRSJZ_BattlePassConfig';
 const { ccclass, property } = _decorator;
 
@@ -120,6 +122,10 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             return;
         }
         switch (target) {
+            case '完成全部成就':
+                ZRSJZ_AchievementService.DebugCompleteAll();
+                void ZRSJZ_UIManager.Instance.ShowTip('全部成就已完成，请前往成就界面领取奖励');
+                break;
             case '战令等级加10': {
                 ZRSJZ_BattlePassService.EnsurePeriods();
                 const before = ZRSJZ_BattlePassService.GetLevel();
@@ -171,6 +177,15 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
                     ? "超级高爆已开启：红色物资爆率提升至50倍"
                     : "超级高爆已关闭");
                 break;
+            case "获得所有头像框和称号": {
+                const data = ZRSJZ_GameData.Instance;
+                data.OwnedAvatarFrames = Array.from(new Set([...(data.OwnedAvatarFrames ?? []), ...Object.keys(ZRSJZ_AVATAR_FRAME_UNLOCK)]));
+                data.OwnedTitles = Array.from(new Set([...(data.OwnedTitles ?? []), ...ZRSJZ_TITLE_CONFIG.map(item => item.name)]));
+                ZRSJZ_GameData.SaveData();
+                ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE);
+                ZRSJZ_UIManager.Instance.ShowTip('已获得所有头像框和称号');
+                break;
+            }
             case "金币加1000W":
                 ZRSJZ_AccountService.ChangeGold(10000000);
                 break;

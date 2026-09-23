@@ -85,6 +85,8 @@ export class ZRSJZ_UIManager extends Component {
     BoxSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     RoleSkinIconSFMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     WeaponryTextureMap: Map<string, Texture2D> = new Map<string, Texture2D>();
+    /** UI 必须保留原始裁剪、旋转和 UV；Texture 仍供 Spine 等原有调用使用。 */
+    WeaponrySpriteFrameMap: Map<string, SpriteFrame> = new Map<string, SpriteFrame>();
     InventoryMap: Map<string, Node> = new Map<string, Node>();
     private _discardArea: Node = null;
     private _discardSprite: Sprite = null;
@@ -135,6 +137,9 @@ export class ZRSJZ_UIManager extends Component {
         }
         this._panelNode = this.node.getChildByName("Panel");
         this.PropParent = this.node.getChildByName("PropParent");
+        // 常驻节点只在教程场景中由 ZRSJZ_Tutorial 显示并绑定。
+        const pass = this.node.getChildByName("Pass");
+        if (pass) pass.active = false;
     }
 
     /**
@@ -209,10 +214,10 @@ export class ZRSJZ_UIManager extends Component {
         }
 
         const cachedNodes = new Set<Node>([
-            ...this._panelMap.values(),
-            ...this._playerPanelMap.values(),
-            ...this.InventoryMap.values(),
-            ...this._playerInventoryMap.values(),
+            ...Array.from(this._panelMap.values()),
+            ...Array.from(this._playerPanelMap.values()),
+            ...Array.from(this.InventoryMap.values()),
+            ...Array.from(this._playerInventoryMap.values()),
         ]);
         for (const cachedNode of cachedNodes) {
             if (cachedNode?.isValid) cachedNode.destroy();
@@ -235,6 +240,7 @@ export class ZRSJZ_UIManager extends Component {
         this.BoxSFMap.clear();
         this.RoleSkinIconSFMap.clear();
         this.WeaponryTextureMap.clear();
+        this.WeaponrySpriteFrameMap.clear();
 
         const audioManager = ZRSJZ_AudioManager.Instance;
         if (audioManager?.isValid && audioManager.node === this.node) {
@@ -328,7 +334,10 @@ export class ZRSJZ_UIManager extends Component {
         //初始化武器UI
         ZRSJZ_Tools.LoadSprites("Sprites/Weaponry").then((sfs: SpriteFrame[]) => {
             if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
-            sfs.forEach(sf => instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D));
+            sfs.forEach(sf => {
+                instance.WeaponryTextureMap.set(sf.name, sf.texture as Texture2D);
+                instance.WeaponrySpriteFrameMap.set(sf.name, sf);
+            });
             loadCompleted()
         });
         //初始化箱子
@@ -471,8 +480,21 @@ export class ZRSJZ_UIManager extends Component {
             if (panelNode) {
                 panelNode.setSiblingIndex(99);
                 panelNode.getComponent(ZRSJZ_Panel).Show(...args);
-                if (panelName === "暂停界面" && !Banner.IS_BYTEDANCE_MINI_GAME) {
-                    ProjectEventManager.emit(ProjectEvent.暂停窗口, "真人三角洲");
+
+
+                if (!Banner.IS_BYTEDANCE_MINI_GAME) {
+                    const needShowVideoPanel: string[] = [
+                        "曼德尔箱界面", "活动界面", "公告界面", "选关界面", "商店界面",
+                        "仓库界面", "角色界面", "强化界面", "签到弹窗", "设置界面", "主线任务界面",
+                        "等级弹窗", "增强针弹窗", "邮件界面", "收藏室界面", "盲盒界面", "锻造界面",
+                        "宠物界面", "神秘商人弹窗", "成就界面", "战令界面",
+                    ]
+
+                    if (panelName === "暂停界面") {
+                        ProjectEventManager.emit(ProjectEvent.暂停窗口, "真人三角洲");
+                    } else if (needShowVideoPanel.includes(panelName)) {
+                        ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
+                    }
                 } else {
                     ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
                 }
@@ -786,6 +808,13 @@ export class ZRSJZ_UIManager extends Component {
 
         console.error("没找到武器ui:", propName);
         return Promise.resolve(null);
+    }
+
+    public async GetWeaponryIconUI(propName: string): Promise<SpriteFrame> {
+        // 与原有纹理加载共用就绪等待，但不从整张图集纹理重新创建 SpriteFrame。
+        await this.GetWeaponryUI(propName);
+        if (!this.IsAvailable()) return null;
+        return this.WeaponrySpriteFrameMap.get(propName) ?? null;
     }
 
     //获取玩家Icon

@@ -10,11 +10,12 @@ import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleMana
 import { ZRSJZ_AudioManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_AvatarFrameService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_AvatarFrameService';
 import Banner from 'db://assets/Scripts/Banner';
+import { ZRSJZ_ProfileSelector } from '../../../73_ZRSJZ/Scripts/UI/ZRSJZ_ProfileSelector';
 const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_AvatarFramePanel')
 export class ZRSJZ_AvatarFramePanel extends ZRSJZ_Panel {
-    private readonly avatars = ['威蓝', '泠汐', '凌魇', '夜喵', '黯祁', '鸦暝', '鸢铠', '霁锋', '赤骁', '绯朔', '狩荒', '煌罡', '烬猎', '灼戈', '浅燎', '沧戈', '星栗', '弑岚'];
+    private get avatars(): string[] { return ZRSJZ_ProfileSelector.AvatarNames(); }
     private readonly frames = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
     private readonly frameUnlock = ZRSJZ_AVATAR_FRAME_UNLOCK;
     private lastVideoClick = 0;
@@ -169,7 +170,7 @@ export class ZRSJZ_AvatarFramePanel extends ZRSJZ_Panel {
 
     private IsOwned(name: string, isAvatar: boolean): boolean {
         const data = ZRSJZ_GameData.Instance;
-        if (isAvatar) return data.HaveRole?.includes(name) ?? false;
+        if (isAvatar) return ZRSJZ_ProfileSelector.OwnsAvatar(name);
         return ZRSJZ_AvatarFrameService.IsOwned(name);
     }
 
@@ -239,7 +240,7 @@ export class ZRSJZ_AvatarFramePanel extends ZRSJZ_Panel {
         if (!condition) return;
         const richText = node.getComponent(RichText) ?? node.addComponent(RichText);
         richText.fontColor = Color.WHITE;
-        richText.string = `<outline color=#20242B width=2>${ZRSJZ_AvatarFramePanel.HighlightKeyword(condition.text, condition.keyword)}</outline>`;
+        richText.string = `<outline color=#20242B width=2>${ZRSJZ_AvatarFramePanel.HighlightKeyword(condition.text.replace(/[\r\n]+/g, ''), condition.keyword)}</outline>`;
     }
 
     private OnClick(event: EventTouch): void {

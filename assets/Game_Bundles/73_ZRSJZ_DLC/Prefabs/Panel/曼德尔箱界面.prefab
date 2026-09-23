@@ -28,17 +28,17 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 269
+        "__id__": 359
       },
       {
-        "__id__": 271
+        "__id__": 361
       },
       {
-        "__id__": 273
+        "__id__": 363
       }
     ],
     "_prefab": {
-      "__id__": 275
+      "__id__": 365
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -314,23 +314,26 @@
         "__id__": 186
       },
       {
-        "__id__": 276
+        "__id__": 262
+      },
+      {
+        "__id__": 342
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 262
+        "__id__": 352
       },
       {
-        "__id__": 264
+        "__id__": 354
       },
       {
-        "__id__": 266
+        "__id__": 356
       }
     ],
     "_prefab": {
-      "__id__": 268
+      "__id__": 358
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -6544,179 +6547,6 @@
     "nestedPrefabInstanceRoots": null
   },
   {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 12
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 263
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 2340,
-      "height": 1080
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "noticeC25"
-  },
-  {
-    "__type__": "cc.UIOpacity",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 12
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 265
-    },
-    "_opacity": 255,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "noticeC27"
-  },
-  {
-    "__type__": "cc.BlockInputEvents",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 12
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 267
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "noticeC31"
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "noticeN23",
-    "instance": null,
-    "targetOverrides": null,
-    "nestedPrefabInstanceRoots": null
-  },
-  {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 270
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 2340,
-      "height": 1080
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "noticeC3"
-  },
-  {
-    "__type__": "cc.Widget",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 272
-    },
-    "_alignFlags": 45,
-    "_target": null,
-    "_left": 0,
-    "_right": 0,
-    "_top": 0,
-    "_bottom": 0,
-    "_horizontalCenter": 0,
-    "_verticalCenter": 0,
-    "_isAbsLeft": true,
-    "_isAbsRight": true,
-    "_isAbsTop": true,
-    "_isAbsBottom": true,
-    "_isAbsHorizontalCenter": true,
-    "_isAbsVerticalCenter": true,
-    "_originalWidth": 100,
-    "_originalHeight": 100,
-    "_alignMode": 2,
-    "_lockFlags": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "noticeC5"
-  },
-  {
-    "__type__": "31115r4KmdGAITCjUAFV3Rh",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 274
-    },
-    "PanelName": "73_ZRSJZ_DLC/Prefabs/Panel/曼德尔箱界面",
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "27GkcQTL5Ccq+Hzqf/t8H8"
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "noticeN1",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
     "__type__": "cc.Node",
     "_name": "奖品一览弹窗",
     "_objFlags": 0,
@@ -6726,35 +6556,35 @@
     },
     "_children": [
       {
-        "__id__": 282
+        "__id__": 263
       },
       {
-        "__id__": 288
+        "__id__": 269
       },
       {
-        "__id__": 296
+        "__id__": 277
       },
       {
-        "__id__": 308
+        "__id__": 289
       },
       {
-        "__id__": 314
+        "__id__": 295
       },
       {
-        "__id__": 350
+        "__id__": 331
       }
     ],
     "_active": false,
     "_components": [
       {
-        "__id__": 278
+        "__id__": 337
       },
       {
-        "__id__": 280
+        "__id__": 339
       }
     ],
     "_prefab": {
-      "__id__": 277
+      "__id__": 341
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -6784,64 +6614,6 @@
       "z": 0
     },
     "_id": ""
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN276",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 276
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 279
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 2340,
-      "height": 1080
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC278"
-  },
-  {
-    "__type__": "cc.BlockInputEvents",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 276
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 281
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC280"
   },
   {
     "__type__": "cc.Node",
@@ -6849,20 +6621,20 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 276
+      "__id__": 262
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 284
+        "__id__": 264
       },
       {
-        "__id__": 286
+        "__id__": 266
       }
     ],
     "_prefab": {
-      "__id__": 283
+      "__id__": 268
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -6894,28 +6666,16 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN282",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 282
+      "__id__": 263
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 285
+      "__id__": 265
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -6939,11 +6699,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 282
+      "__id__": 263
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 287
+      "__id__": 267
     },
     "_customMaterial": null,
     "_srcBlendFactor": 2,
@@ -6979,28 +6739,41 @@
     "fileId": "mandellPreviewC286"
   },
   {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN282",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
     "__type__": "cc.Node",
     "_name": "弹版",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 276
+      "__id__": 262
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 290
+        "__id__": 270
       },
       {
-        "__id__": 292
+        "__id__": 272
       },
       {
-        "__id__": 294
+        "__id__": 274
       }
     ],
     "_prefab": {
-      "__id__": 289
+      "__id__": 276
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -7032,28 +6805,16 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN288",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 288
+      "__id__": 269
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 291
+      "__id__": 271
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -7077,11 +6838,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 288
+      "__id__": 269
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 293
+      "__id__": 273
     },
     "_customMaterial": null,
     "_srcBlendFactor": 2,
@@ -7122,11 +6883,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 288
+      "__id__": 269
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 295
+      "__id__": 275
     },
     "_id": ""
   },
@@ -7135,29 +6896,42 @@
     "fileId": "mandellPreviewC294"
   },
   {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN288",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
     "__type__": "cc.Node",
     "_name": "关闭",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 276
+      "__id__": 262
     },
     "_children": [
       {
-        "__id__": 302
+        "__id__": 278
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 298
+        "__id__": 284
       },
       {
-        "__id__": 300
+        "__id__": 286
       }
     ],
     "_prefab": {
-      "__id__": 297
+      "__id__": 288
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -7189,16 +6963,54 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
+    "__type__": "cc.Node",
+    "_name": "关闭图标",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "_parent": {
+      "__id__": 277
     },
-    "asset": {
-      "__id__": 0
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 279
+      },
+      {
+        "__id__": 281
+      }
+    ],
+    "_prefab": {
+      "__id__": 283
     },
-    "fileId": "mandellPreviewN296",
-    "instance": null,
-    "targetOverrides": null
+    "_lpos": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_lrot": {
+      "__type__": "cc.Quat",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "w": 1
+    },
+    "_lscale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_mobility": 0,
+    "_layer": 1,
+    "_euler": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_id": ""
   },
   {
     "__type__": "cc.UITransform",
@@ -7206,11 +7018,97 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 296
+      "__id__": 278
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 299
+      "__id__": 280
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 52,
+      "height": 52
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC304"
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 278
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 282
+    },
+    "_customMaterial": null,
+    "_srcBlendFactor": 2,
+    "_dstBlendFactor": 4,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_spriteFrame": {
+      "__uuid__": "7d6d0357-692f-4283-ba89-6113b3c8998f@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "_type": 0,
+    "_fillType": 0,
+    "_sizeMode": 1,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_useGrayscale": false,
+    "_atlas": null,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC306"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN302",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 277
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 285
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -7234,11 +7132,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 296
+      "__id__": 277
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 301
+      "__id__": 287
     },
     "clickEvents": [],
     "_interactable": true,
@@ -7278,63 +7176,13 @@
     "_duration": 0.1,
     "_zoomScale": 1.04,
     "_target": {
-      "__id__": 296
+      "__id__": 277
     },
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "mandellPreviewC300"
-  },
-  {
-    "__type__": "cc.Node",
-    "_name": "关闭图标",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "_parent": {
-      "__id__": 296
-    },
-    "_children": [],
-    "_active": true,
-    "_components": [
-      {
-        "__id__": 304
-      },
-      {
-        "__id__": 306
-      }
-    ],
-    "_prefab": {
-      "__id__": 303
-    },
-    "_lpos": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_lrot": {
-      "__type__": "cc.Quat",
-      "x": 0,
-      "y": 0,
-      "z": 0,
-      "w": 1
-    },
-    "_lscale": {
-      "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
-      "z": 1
-    },
-    "_mobility": 0,
-    "_layer": 1,
-    "_euler": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_id": ""
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -7344,82 +7192,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "mandellPreviewN302",
+    "fileId": "mandellPreviewN296",
     "instance": null,
-    "targetOverrides": null
-  },
-  {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 302
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 305
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 52,
-      "height": 52
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC304"
-  },
-  {
-    "__type__": "cc.Sprite",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 302
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 307
-    },
-    "_customMaterial": null,
-    "_srcBlendFactor": 2,
-    "_dstBlendFactor": 4,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_spriteFrame": {
-      "__uuid__": "7d6d0357-692f-4283-ba89-6113b3c8998f@f9941",
-      "__expectedType__": "cc.SpriteFrame"
-    },
-    "_type": 0,
-    "_fillType": 0,
-    "_sizeMode": 1,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_useGrayscale": false,
-    "_atlas": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC306"
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
@@ -7427,20 +7203,20 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 276
+      "__id__": 262
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 310
+        "__id__": 290
       },
       {
-        "__id__": 312
+        "__id__": 292
       }
     ],
     "_prefab": {
-      "__id__": 309
+      "__id__": 294
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -7472,28 +7248,16 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN308",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 308
+      "__id__": 289
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 311
+      "__id__": 291
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -7517,11 +7281,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 308
+      "__id__": 289
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 313
+      "__id__": 293
     },
     "_customMaterial": null,
     "_srcBlendFactor": 2,
@@ -7583,32 +7347,45 @@
     "fileId": "mandellPreviewC312"
   },
   {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN308",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
     "__type__": "cc.Node",
     "_name": "列表",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 276
+      "__id__": 262
     },
     "_children": [
       {
-        "__id__": 318
+        "__id__": 296
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 316
-      },
-      {
-        "__id__": 322
-      },
-      {
         "__id__": 324
+      },
+      {
+        "__id__": 326
+      },
+      {
+        "__id__": 328
       }
     ],
     "_prefab": {
-      "__id__": 315
+      "__id__": 330
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -7640,66 +7417,26 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN314",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 314
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 317
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 850,
-      "height": 494
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC316"
-  },
-  {
     "__type__": "cc.Node",
     "_name": "content",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 314
+      "__id__": 295
     },
     "_children": [
       {
-        "__id__": 326
+        "__id__": 297
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 320
+        "__id__": 321
       }
     ],
     "_prefab": {
-      "__id__": 319
+      "__id__": 323
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -7731,128 +7468,35 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN318",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 318
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 321
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 850,
-      "height": 494
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 1
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC320"
-  },
-  {
-    "__type__": "cc.ScrollView",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "_enabled": true,
-    "_id": "",
-    "node": {
-      "__id__": 314
-    },
-    "__prefab": {
-      "__id__": 323
-    },
-    "bounceDuration": 0.3,
-    "brake": 0.6,
-    "elastic": true,
-    "inertia": true,
-    "horizontal": false,
-    "vertical": true,
-    "cancelInnerEvents": true,
-    "scrollEvents": [],
-    "_content": {
-      "__id__": 318
-    },
-    "_horizontalScrollBar": null,
-    "_verticalScrollBar": null
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC322"
-  },
-  {
-    "__type__": "cc.Mask",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "_enabled": true,
-    "_id": "",
-    "_type": 0,
-    "_inverted": false,
-    "_segments": 64,
-    "_alphaThreshold": 0.1,
-    "node": {
-      "__id__": 314
-    },
-    "__prefab": {
-      "__id__": 325
-    }
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC324"
-  },
-  {
     "__type__": "cc.Node",
     "_name": "道具框模板",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 318
+      "__id__": 296
     },
     "_children": [
       {
-        "__id__": 332
+        "__id__": 298
       },
       {
-        "__id__": 338
+        "__id__": 304
       },
       {
-        "__id__": 344
+        "__id__": 310
       }
     ],
     "_active": false,
     "_components": [
       {
-        "__id__": 328
+        "__id__": 316
       },
       {
-        "__id__": 330
+        "__id__": 318
       }
     ],
     "_prefab": {
-      "__id__": 327
+      "__id__": 320
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -7884,123 +7528,25 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN326",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 326
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 329
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 132,
-      "height": 148
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC328"
-  },
-  {
-    "__type__": "cc.Button",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 326
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 331
-    },
-    "clickEvents": [],
-    "_interactable": true,
-    "_transition": 0,
-    "_normalColor": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_hoverColor": {
-      "__type__": "cc.Color",
-      "r": 211,
-      "g": 211,
-      "b": 211,
-      "a": 255
-    },
-    "_pressedColor": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_disabledColor": {
-      "__type__": "cc.Color",
-      "r": 124,
-      "g": 124,
-      "b": 124,
-      "a": 255
-    },
-    "_normalSprite": null,
-    "_hoverSprite": null,
-    "_pressedSprite": null,
-    "_disabledSprite": null,
-    "_duration": 0.1,
-    "_zoomScale": 1.04,
-    "_target": {
-      "__id__": 326
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "mandellPreviewC330"
-  },
-  {
     "__type__": "cc.Node",
     "_name": "品质框",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 326
+      "__id__": 297
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 334
+        "__id__": 299
       },
       {
-        "__id__": 336
+        "__id__": 301
       }
     ],
     "_prefab": {
-      "__id__": 333
+      "__id__": 303
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -8032,28 +7578,16 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN332",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 332
+      "__id__": 298
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 335
+      "__id__": 300
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -8077,11 +7611,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 332
+      "__id__": 298
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 337
+      "__id__": 302
     },
     "_customMaterial": null,
     "_srcBlendFactor": 2,
@@ -8117,25 +7651,38 @@
     "fileId": "mandellPreviewC336"
   },
   {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN332",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
     "__type__": "cc.Node",
     "_name": "图标",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 326
+      "__id__": 297
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 340
+        "__id__": 305
       },
       {
-        "__id__": 342
+        "__id__": 307
       }
     ],
     "_prefab": {
-      "__id__": 339
+      "__id__": 309
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -8167,28 +7714,16 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN338",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 338
+      "__id__": 304
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 341
+      "__id__": 306
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -8212,11 +7747,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 338
+      "__id__": 304
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 343
+      "__id__": 308
     },
     "_customMaterial": null,
     "_srcBlendFactor": 2,
@@ -8249,25 +7784,38 @@
     "fileId": "mandellPreviewC342"
   },
   {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN338",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
     "__type__": "cc.Node",
     "_name": "名称",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 326
+      "__id__": 297
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 346
+        "__id__": 311
       },
       {
-        "__id__": 348
+        "__id__": 313
       }
     ],
     "_prefab": {
-      "__id__": 345
+      "__id__": 315
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -8299,28 +7847,16 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN344",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 344
+      "__id__": 310
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 347
+      "__id__": 312
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -8344,11 +7880,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 344
+      "__id__": 310
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 349
+      "__id__": 314
     },
     "_customMaterial": null,
     "_srcBlendFactor": 2,
@@ -8410,25 +7946,272 @@
     "fileId": "mandellPreviewC348"
   },
   {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN344",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 297
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 317
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 132,
+      "height": 148
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC328"
+  },
+  {
+    "__type__": "cc.Button",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 297
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 319
+    },
+    "clickEvents": [],
+    "_interactable": true,
+    "_transition": 0,
+    "_normalColor": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_hoverColor": {
+      "__type__": "cc.Color",
+      "r": 211,
+      "g": 211,
+      "b": 211,
+      "a": 255
+    },
+    "_pressedColor": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_disabledColor": {
+      "__type__": "cc.Color",
+      "r": 124,
+      "g": 124,
+      "b": 124,
+      "a": 255
+    },
+    "_normalSprite": null,
+    "_hoverSprite": null,
+    "_pressedSprite": null,
+    "_disabledSprite": null,
+    "_duration": 0.1,
+    "_zoomScale": 1.04,
+    "_target": {
+      "__id__": 297
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC330"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN326",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 296
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 322
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 850,
+      "height": 494
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 1
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC320"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN318",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 295
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 325
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 850,
+      "height": 494
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC316"
+  },
+  {
+    "__type__": "cc.ScrollView",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 295
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 327
+    },
+    "bounceDuration": 0.3,
+    "brake": 0.6,
+    "elastic": true,
+    "inertia": true,
+    "horizontal": false,
+    "vertical": true,
+    "cancelInnerEvents": true,
+    "scrollEvents": [],
+    "_content": {
+      "__id__": 296
+    },
+    "_horizontalScrollBar": null,
+    "_verticalScrollBar": null,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC322"
+  },
+  {
+    "__type__": "cc.Mask",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 295
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 329
+    },
+    "_type": 0,
+    "_inverted": false,
+    "_segments": 64,
+    "_alphaThreshold": 0.1,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC324"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN314",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
     "__type__": "cc.Node",
     "_name": "说明",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 276
+      "__id__": 262
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 352
+        "__id__": 332
       },
       {
-        "__id__": 354
+        "__id__": 334
       }
     ],
     "_prefab": {
-      "__id__": 351
+      "__id__": 336
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -8460,28 +8243,16 @@
     "_id": ""
   },
   {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "mandellPreviewN350",
-    "instance": null,
-    "targetOverrides": null
-  },
-  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 350
+      "__id__": 331
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 353
+      "__id__": 333
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -8505,11 +8276,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 350
+      "__id__": 331
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 355
+      "__id__": 335
     },
     "_customMaterial": null,
     "_srcBlendFactor": 2,
@@ -8569,5 +8340,471 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "mandellPreviewC354"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN350",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 262
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 338
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 2340,
+      "height": 1080
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC278"
+  },
+  {
+    "__type__": "cc.BlockInputEvents",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 262
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 340
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "mandellPreviewC280"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "mandellPreviewN276",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "Path",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "_parent": {
+      "__id__": 12
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 343
+      },
+      {
+        "__id__": 345
+      },
+      {
+        "__id__": 347
+      },
+      {
+        "__id__": 349
+      }
+    ],
+    "_prefab": {
+      "__id__": 351
+    },
+    "_lpos": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 478.11100000000005,
+      "z": 0
+    },
+    "_lrot": {
+      "__type__": "cc.Quat",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "w": 1
+    },
+    "_lscale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_mobility": 0,
+    "_layer": 1,
+    "_euler": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 342
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 344
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 92.91996765136719,
+      "height": 54.4
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "7b3mcmmTVBlafvDyGk+F2e"
+  },
+  {
+    "__type__": "cc.Label",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 342
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 346
+    },
+    "_customMaterial": null,
+    "_srcBlendFactor": 2,
+    "_dstBlendFactor": 4,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_string": "path",
+    "_horizontalAlign": 1,
+    "_verticalAlign": 1,
+    "_actualFontSize": 40,
+    "_fontSize": 40,
+    "_fontFamily": "Arial",
+    "_lineHeight": 40,
+    "_overflow": 0,
+    "_enableWrapText": true,
+    "_font": {
+      "__uuid__": "7dab8514-b7c5-474c-a721-598a51503397",
+      "__expectedType__": "cc.TTFFont"
+    },
+    "_isSystemFontUsed": false,
+    "_spacingX": 0,
+    "_isItalic": false,
+    "_isBold": false,
+    "_isUnderline": false,
+    "_underlineHeight": 2,
+    "_cacheMode": 0,
+    "_enableOutline": true,
+    "_outlineColor": {
+      "__type__": "cc.Color",
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 255
+    },
+    "_outlineWidth": 2,
+    "_enableShadow": false,
+    "_shadowColor": {
+      "__type__": "cc.Color",
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 255
+    },
+    "_shadowOffset": {
+      "__type__": "cc.Vec2",
+      "x": 2,
+      "y": 2
+    },
+    "_shadowBlur": 2,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "08EsJ7E91E5rAFWSCm6dGP"
+  },
+  {
+    "__type__": "cc.Widget",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 342
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 348
+    },
+    "_alignFlags": 17,
+    "_target": null,
+    "_left": 0,
+    "_right": 0,
+    "_top": 34.688999999999965,
+    "_bottom": 0,
+    "_horizontalCenter": 0,
+    "_verticalCenter": 0,
+    "_isAbsLeft": true,
+    "_isAbsRight": true,
+    "_isAbsTop": true,
+    "_isAbsBottom": true,
+    "_isAbsHorizontalCenter": true,
+    "_isAbsVerticalCenter": true,
+    "_originalWidth": 0,
+    "_originalHeight": 0,
+    "_alignMode": 2,
+    "_lockFlags": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "7fcWp44UZEqqJ6csy4r+Ut"
+  },
+  {
+    "__type__": "9e3c0ZlsMNPs4YnFP66dGsH",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 342
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 350
+    },
+    "Path": "曼德尔箱界面",
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "bbBJMxsx5B/atJHsGBVem/"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "f86aIN08xGLYDAR13vVgBS",
+    "nestedPrefabInstanceRoots": null
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 12
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 353
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 2340,
+      "height": 1080
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "noticeC25"
+  },
+  {
+    "__type__": "cc.UIOpacity",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 12
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 355
+    },
+    "_opacity": 255,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "noticeC27"
+  },
+  {
+    "__type__": "cc.BlockInputEvents",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 12
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 357
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "noticeC31"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "noticeN23",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 360
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 2340,
+      "height": 1080
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "noticeC3"
+  },
+  {
+    "__type__": "cc.Widget",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 362
+    },
+    "_alignFlags": 45,
+    "_target": null,
+    "_left": 0,
+    "_right": 0,
+    "_top": 0,
+    "_bottom": 0,
+    "_horizontalCenter": 0,
+    "_verticalCenter": 0,
+    "_isAbsLeft": true,
+    "_isAbsRight": true,
+    "_isAbsTop": true,
+    "_isAbsBottom": true,
+    "_isAbsHorizontalCenter": true,
+    "_isAbsVerticalCenter": true,
+    "_originalWidth": 100,
+    "_originalHeight": 100,
+    "_alignMode": 2,
+    "_lockFlags": 0,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "noticeC5"
+  },
+  {
+    "__type__": "31115r4KmdGAITCjUAFV3Rh",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 364
+    },
+    "PanelName": "73_ZRSJZ_DLC/Prefabs/Panel/曼德尔箱界面",
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "27GkcQTL5Ccq+Hzqf/t8H8"
+  },
+  {
+    "__type__": "cc.PrefabInfo",
+    "root": {
+      "__id__": 1
+    },
+    "asset": {
+      "__id__": 0
+    },
+    "fileId": "noticeN1",
+    "instance": null,
+    "targetOverrides": null
   }
 ]

@@ -1,4 +1,4 @@
-import { _decorator, Button, Color, find, Label, Node, ScrollView, Sprite, SpriteFrame, Texture2D, UITransform } from 'cc';
+import { _decorator, Button, Color, find, Label, Node, ScrollView, Sprite, SpriteFrame, UITransform } from 'cc';
 import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
 import { ZRSJZ_BATTLE_PASS_CONFIG as Config, ZRSJZ_BattlePassReward, ZRSJZ_BattlePassTrack, ZRSJZ_BattlePassPeriod } from '../../../73_ZRSJZ/Scripts/ZRSJZ_BattlePassConfig';
@@ -212,7 +212,7 @@ export class ZRSJZ_BattlePassPanel extends ZRSJZ_Panel {
                 Icon: reward.type === 'heroSkin' ? this.Get('资源')?.getChildByName(reward.name)?.getComponent(Sprite)?.spriteFrame : undefined,
             });
         }
-        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.获取奖励弹窗, { Awards: [...merged.values()], DisplayOnly: true });
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.获取奖励弹窗, { Awards: Array.from(merged.values()), DisplayOnly: true });
     }
     private OnScroll(): void {
         // 以视口左端所在等级确定对应的十级大奖；列宽跟随预制体。
@@ -249,8 +249,7 @@ export class ZRSJZ_BattlePassPanel extends ZRSJZ_Panel {
         const cached = this.Get('资源')?.getChildByName(name)?.getComponent(Sprite)?.spriteFrame;
         if (cached) frame = cached;
         else if (type === 'weaponSkin') {
-            const texture: Texture2D = await ZRSJZ_UIManager.Instance?.GetWeaponryUI?.(name);
-            if (texture) { frame = new SpriteFrame(); frame.texture = texture; }
+            frame = await ZRSJZ_UIManager.Instance?.GetWeaponryIconUI?.(name);
         } else if (type === 'heroSkin') frame = await ZRSJZ_UIManager.Instance?.GetHeroSkinIconUI?.(name);
         else frame = await ZRSJZ_UIManager.Instance?.GetPropUI?.(name);
         // 异步返回时节点可能已滚动复用，只给仍显示同一奖励的格子赋值。
@@ -306,8 +305,8 @@ export class ZRSJZ_BattlePassPanel extends ZRSJZ_Panel {
             for (const reward of Service.Rewards(track)) this.SetReward(`奖励列表/View/Content/等级${reward.level}/${track}`, reward.level, track);
         this.Get('进阶解锁').active = !data.advancedUnlocked;
         this.Get('进阶模式/锁').active = !data.advancedUnlocked;
-        this.Text('进阶解锁/文字', '解锁进阶 ▶');
-        this.Text('购买等级/文字', Service.GetLevel() >= Config.maxLevel ? '已满级' : '购买等级 ▶');
+        this.Text('进阶解锁/文字', '解锁进阶');
+        this.Text('购买等级/文字', Service.GetLevel() >= Config.maxLevel ? '已满级' : '购买等级');
         this.RefreshSpecial();
     }
 }
