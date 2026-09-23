@@ -1,0 +1,54 @@
+// Original procedural SFX: latch clicks, energy rise, opening impact and crystal tail.
+// Rebuild with Node.js. No external samples or dependencies.
+const fs = require('fs'), path = require('path'), assert = require('assert/strict');
+const rate = 44100, duration = 2.5, frames = Math.round(rate * duration);
+const channels = [new Float64Array(frames), new Float64Array(frames)];
+let seed = 73917;
+function noise() { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 2147483648 - 1; }
+const tau = Math.PI * 2;
+function add(t, length, pan, render) {
+    const start = Math.round(t * rate), count = Math.round(length * rate);
+    const gains = [Math.cos((pan + 1) * Math.PI / 4), Math.sin((pan + 1) * Math.PI / 4)];
+    for (let n = 0; n < count && start + n < frames; n++) {
+        const fade = Math.min(1, n / 100, (count - n - 1) / 250);
+        const value = render(n / rate, n / count) * Math.max(0, fade);
+        channels.forEach((c, i) => c[start + n] += value * gains[i]);
+    }
+}
+for (const [t, pan] of [[0.025,-.3],[.17,.3],[.34,0]]) {
+    let low = 0;
+    add(t,.28,pan,(s)=> {
+        const w = noise(); low += .22 * (w - low);
+        return .32 * Math.exp(-s*42)*(w-low) + .22*Math.exp(-s*21)*
+            (Math.sin(tau*320*s)+.42*Math.sin(tau*857*s)+.2*Math.sin(tau*1463*s));
+    });
+}
+let phase = 0, airy = 0;
+add(.22,1.22,0,(s,x)=> {
+    phase += tau*(95+420*x*x)/rate;
+    const n=noise(); airy += .07*(n-airy);
+    return Math.pow(Math.sin(Math.PI*x),.8)*(.1*Math.sin(phase)+.045*Math.sin(phase*2.01)
+        +.10*airy)*(0.7+.3*Math.sin(tau*(8*s+9*s*s)));
+});
+add(1.28,.63,0,(s)=> .48*Math.exp(-s*10)*Math.sin(tau*(78*s-28*s*s)));
+let air = 0;
+add(1.28,.6,.1,(s)=> { const w=noise();air+=.1*(w-air);return .32*Math.exp(-s*13)*air; });
+for (const [i, freq] of [659.25,830.61,987.77,1318.51].entries()) {
+    add(1.34+i*.067,1.1,(-.45+i*.3),(s)=> .09*Math.exp(-s*4.4)*
+        (Math.sin(tau*freq*s)+.22*Math.exp(-s*6)*Math.sin(tau*freq*2.756*s)));
+}
+// Short diffuse reflections rather than a long ringing tail.
+channels.forEach(c=>{for(let n=c.length-1;n>=0;n--){if(n>rate*.061)c[n]+=.16*c[n-Math.round(rate*.061)];if(n>rate*.103)c[n]+=.09*c[n-Math.round(rate*.103)];}});
+let peak=0;channels.forEach(c=>c.forEach(v=>peak=Math.max(peak,Math.abs(v))));
+const wav=Buffer.alloc(44+frames*4);wav.write('RIFF');wav.writeUInt32LE(wav.length-8,4);wav.write('WAVEfmt ',8);
+wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(2,22);wav.writeUInt32LE(rate,24);
+wav.writeUInt32LE(rate*4,28);wav.writeUInt16LE(4,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(frames*4,40);
+let energy=0;
+for(let i=0;i<frames;i++)for(let ch=0;ch<2;ch++){
+    const tail=Math.min(1,(frames-i-1)/(rate*.13));
+    const value=channels[ch][i]/peak*.79*tail;
+    assert.ok(Number.isFinite(value)&&Math.abs(value)<1);energy+=value*value;
+    wav.writeInt16LE(Math.round(value*32767),44+(i*2+ch)*2);
+}
+const target=path.resolve(__dirname,'../Audios/曼德尔开箱.wav');fs.writeFileSync(target,wav);
+console.log(JSON.stringify({target,seconds:duration,channels:2,rate,bytes:wav.length,peakDB:-2.05,rmsDB:20*Math.log10(Math.sqrt(energy/(frames*2)))}));

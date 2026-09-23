@@ -127,7 +127,6 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
             });
             if (mail.length) ZRSJZ_UIManager.Instance.ShowTip('仓库空间不足，部分奖励已发至邮箱');
         } catch (error) {
-            console.error('[曼德尔箱]', error);
             if (isValid(this.node) && this.node.activeInHierarchy) {
                 ZRSJZ_UIManager.Instance.ShowTip(Box.Pending ? '奖励已保留，重新打开可继续领取' : (error as Error).message);
             }
@@ -153,6 +152,9 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
                 skeleton.setToSetupPose();
                 skeleton.timeScale = 1;
                 if (!skeleton.setAnimation(0, animation, false)) throw new Error('宝箱动画启动失败');
+                // 三种品质动画均为2.5秒；十连也只伴随本次动画播放一次。
+                try { ZRSJZ_AudioManager.Instance.PlaySound('曼德尔开箱', 0.8); }
+                catch (error) { console.warn('[曼德尔箱] 开箱音效播放失败', error); }
             } catch (error) { finished = true; clean(); reject(error); }
         });
     }
@@ -170,16 +172,18 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
     private Refresh(): void {
         if (!this.Panel || !this.initialized) return;
         this.Panel.getChildByName('货币数量').getComponent(Label).string = String(Box.Balance);
-        const remaining = Box.Remaining();
-        this.Panel.getChildByName('免费获得').active = remaining > 0;
-        this.Panel.getChildByPath('免费获得/剩余次数').getComponent(Label).string = '剩余次数：' + remaining;
-        this.Panel.getChildByPath('免费获得弹窗/次数').getComponent(Label).string = '今日剩余 ' + remaining + '/' + Box.DailyLimit + ' 次';
-        this.Panel.getChildByPath('免费获得弹窗/领取').getComponent(Button).interactable = remaining > 0;
+        this.Panel.getChildByName('免费获得').active = true;
+        this.Panel.getChildByPath('免费获得/剩余次数').active = false;
+        this.Panel.getChildByPath('免费获得弹窗/次数').getComponent(Label).string = '每次获得5个曼德尔砖';
+        this.Panel.getChildByPath('免费获得弹窗/领取').getComponent(Button).interactable = !this.opening;
+        const free = Box.CanFreeTen();
+        this.Panel.getChildByPath('十连抽/消耗').getComponent(Label).string = free ? '免费' : '×10';
+        this.Panel.getChildByPath('十连抽/标题').getComponent(Label).string = free ? '今日免费十连' : '开启10次';
+        this.Panel.getChildByPath('十连抽/砖').active = !free;
     }
 
     private WatchVideo(): void {
         if (this.opening) return;
-        if (Box.Remaining() <= 0) { ZRSJZ_UIManager.Instance.ShowTip('今日免费次数已用完'); return; }
         if (Date.now() - this.lastAdClick < 1200) return;
         this.lastAdClick = Date.now();
         const grant = Box.VideoReward();
@@ -239,5 +243,3 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
         this.scheduleOnce(() => { if (isValid(scroll)) scroll.scrollToTop(0); }, 0);
     }
 }
-
-

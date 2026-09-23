@@ -1,0 +1,27 @@
+
+GAP_Lobby_SunFX.png
+size: 201,154
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Sun
+  rotate: false
+  xy: 95, 48
+  size: 104, 104
+  orig: 104, 104
+  offset: 0, 0
+  index: -1
+Sun_2
+  rotate: true
+  xy: 2, 2
+  size: 150, 91
+  orig: 160, 103
+  offset: 0, 12
+  index: -1
+particle_texture
+  rotate: false
+  xy: 95, 17
+  size: 29, 29
+  orig: 32, 32
+  offset: 1, 2
+  index: -1

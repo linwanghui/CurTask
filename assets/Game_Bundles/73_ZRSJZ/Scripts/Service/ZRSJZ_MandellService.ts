@@ -3,7 +3,6 @@ import { ZRSJZ_GridData, ZRSJZ_INVENTORY, ZRSJZ_PropData, ZRSJZ_PROP_CONFIG, ZRS
 
 /** 曼德尔砖是独立抽奖余额，与仓库中的红色战利品“曼德尔”无关。 */
 export class ZRSJZ_MandellService {
-    public static readonly DailyLimit = 3;
     public static readonly FreeCount = 5;
     public static readonly Rates = [
         { quality: Quality.紫色, rate: 0.75, animation: '1shishi' },
@@ -30,10 +29,16 @@ export class ZRSJZ_MandellService {
     }
     public static Begin(count: number): void {
         if (this.Pending) throw new Error('请先领取上次开启的奖励');
-        if ((count !== 1 && count !== 10) || this.Balance < count) throw new Error('曼德尔砖不足');
+        if (count !== 1 && count !== 10) throw new Error('开启次数无效');
+        const today = this.Day();
+        const free = count === 10 && ZRSJZ_GameData.Instance.MandellFreeTenDate !== today;
+        const cost = free ? 0 : count;
+        if (this.Balance < cost) throw new Error('曼德尔砖不足');
         const names = this.Roll(count);
         const data = ZRSJZ_GameData.Instance;
-        data.MandellBricks = this.Balance - count;
+        data.MandellBricks = this.Balance - cost;
+        // 与待领奖励一起保存，中断重开不会再次使用免费资格或重复扣砖。
+        if (free) data.MandellFreeTenDate = today;
         data.MandellPending = { names, propIDs: [], granted: false };
         ZRSJZ_GameData.SaveData();
     }
@@ -64,21 +69,19 @@ export class ZRSJZ_MandellService {
         const rank = names.reduce((max, name) => Math.max(max, this.Rates.findIndex(r => r.quality === ZRSJZ_PROP_CONFIG.get(name)?.Quality)), 0);
         return this.Rates[rank].animation;
     }
-    public static Remaining(): number {
-        const now = new Date();
-        const date = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-        const data = ZRSJZ_GameData.Instance;
-        if (data.MandellFreeDate !== date) { data.MandellFreeDate = date; data.MandellFreeCount = 0; ZRSJZ_GameData.SaveData(); }
-        return Math.max(0, this.DailyLimit - data.MandellFreeCount);
+    private static Day(now = new Date()): string {
+        return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    }
+    public static CanFreeTen(now = new Date()): boolean {
+        return ZRSJZ_GameData.Instance.MandellFreeTenDate !== this.Day(now);
     }
     public static VideoReward(): () => boolean {
         let used = false;
         return () => {
-            if (used || this.Remaining() <= 0) return false;
+            if (used) return false;
             used = true;
             const data = ZRSJZ_GameData.Instance;
             data.MandellBricks = this.Balance + this.FreeCount;
-            data.MandellFreeCount++;
             ZRSJZ_GameData.SaveData();
             return true;
         };
