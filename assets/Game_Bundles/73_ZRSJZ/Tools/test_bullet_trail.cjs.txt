@@ -1,0 +1,19 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+class V {constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z});}set(p){Object.assign(this,{x:p.x,y:p.y,z:p.z});}}
+const online={Paused:false},game={Instance:{GamePaused:false}},out={};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('Scripts/Effect/ZRSJZ_BulletTrail.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText,{exports:out,require:id=>id==='cc'?{_decorator:{ccclass:()=>x=>x},Component:class{},Vec3:V,Color:class{}}:id.includes('Online')?{ZRSJZ_OnlineService:online}:{ZRSJZ_Game:game}});
+const trail=new out.ZRSJZ_BulletTrail(),alphas=[];
+trail.node={parent:{},active:true,setWorldPosition(){},destroy(){this.destroyed=true;}};
+trail.Draw=()=>alphas.push(trail.OpacityAt(1));
+trail.origin.set(new V(10,20));trail.Push(new V(300,20));trail.update(.2);
+assert.equal(trail.origin.x,10);assert.equal(trail.head.x,300);assert.equal(trail.clock,.2);
+trail.Push(new V(800,40));assert.equal(trail.origin.x,10);assert.equal(trail.head.x,800);
+assert.ok(trail.OpacityAt(0)<trail.OpacityAt(.5));assert.ok(trail.OpacityAt(.5)<trail.OpacityAt(1));
+const tailAlpha=trail.OpacityAt(0);
+trail.Finish();assert.equal(trail.OpacityAt(0),tailAlpha);
+trail.update(.15);assert.equal(trail.OpacityAt(0),0);assert.ok(trail.OpacityAt(1)>0);
+trail.Finish();const time=trail.clock;
+online.Paused=true;trail.update(1);assert.equal(trail.clock,time);online.Paused=false;
+trail.update(.2);assert.equal(alphas.at(-1),0);assert.equal(trail.node.active,false);
+console.log('PASS: oldest tail fades first during flight, finish retains age, head fades last, pause and recycling supported.');

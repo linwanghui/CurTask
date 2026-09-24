@@ -328,7 +328,7 @@ export class ZRSJZ_OnlineBattle extends Component {
         if (Online.BattleHost && ['hit', 'stun', 'pull'].includes(packet.kind)) {
             const enemy = ZRSJZ_EnemyBase.OnlineEnemies.get(packet.id);
             if (!enemy?.isValid || !enemy.node.activeInHierarchy || enemy.IsDead) return;
-            if (packet.kind === 'hit') enemy.BeHit(packet.harm);
+            if (packet.kind === 'hit') enemy.BeHit(packet.harm, packet.hitX || 0, packet.hitY || 0);
             else if (packet.kind === 'stun') enemy.ApplyPetStun(packet.duration);
             else enemy.ApplyPetPull(new Vec3(packet.x, packet.y), packet.distance);
             return;

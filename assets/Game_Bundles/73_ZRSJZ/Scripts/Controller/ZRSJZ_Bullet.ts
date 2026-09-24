@@ -1,6 +1,7 @@
 import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
 import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, v2, Vec3 } from 'cc';
+import { ZRSJZ_BulletTrail } from '../Effect/ZRSJZ_BulletTrail';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_TIER } from '../ZRSJZ_Constant';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
@@ -30,6 +31,7 @@ export class ZRSJZ_Bullet extends Component {
     private _isFlying: boolean = false;
     private _harm: number = 0;
     private _isRemove = false;
+    private _trail: ZRSJZ_BulletTrail = null;
     private readonly _initialScale: Vec3 = new Vec3(1, 1, 1);
 
     Init() {
@@ -47,6 +49,13 @@ export class ZRSJZ_Bullet extends Component {
     }
 
     Show(worldPos: Vec3, dirX: number, dirY: number, range: number, harm: number = 0, bulletLevel: number = 1, replay = false) {
+        // 本地枪弹只随机一次；联机广播最终方向，回放不再次散射。
+        if (!replay && (this.node.name === 'PlayerBullet' || this.node.name === 'EnemyBullet')) {
+            const angle = (Math.random() * 6 - 3) * Math.PI / 180;
+            const x = dirX * Math.cos(angle) - dirY * Math.sin(angle);
+            dirY = dirX * Math.sin(angle) + dirY * Math.cos(angle);
+            dirX = x;
+        }
         if (!replay && Online.Battle && (this.node.name === 'PlayerBullet' || (this.node.name === 'EnemyBullet' && Online.BattleHost))) {
             Online.Combat({ kind: this.node.name === 'EnemyBullet' ? 'shot' : 'player_shot', x: worldPos.x, y: worldPos.y,
                 dx: dirX, dy: dirY, range, harm, speed: this.MoveSpeed });
@@ -59,6 +68,8 @@ export class ZRSJZ_Bullet extends Component {
         }
         // 节点停用后 scheduleOnce 会暂停而不是自动丢弃；清掉上一轮可能残留的回收回调。
         this.unscheduleAllCallbacks();
+        this._trail?.Finish();
+        this._trail = ZRSJZ_BulletTrail.Begin(this.node.parent, this.node.layer, worldPos);
         this._isRemove = false;
         this._isFlying = false;
         this._maxRange = 0;
@@ -131,7 +142,7 @@ export class ZRSJZ_Bullet extends Component {
             // this.Recycle();
         } else if (otherCollider.group === ZRSJZ_TIER.敌人 && otherCollider.node.getComponent(ZRSJZ_EnemyBase)) {
             this._isRemove = true;
-            otherCollider.node.getComponent(ZRSJZ_EnemyBase).BeHit(this._harm);
+            otherCollider.node.getComponent(ZRSJZ_EnemyBase).BeHit(this._harm, this._dirX, this._dirY);
             this.CreateEffect2();
             this.scheduleOnce(() => {
                 this.Recycle();
@@ -143,6 +154,7 @@ export class ZRSJZ_Bullet extends Component {
 
     protected update(dt: number): void {
         if (Online.Paused) return;
+        if (this._isRemove) return;
         if (!this._isFlying) {
             this.Recycle();
             return;
@@ -156,6 +168,7 @@ export class ZRSJZ_Bullet extends Component {
             worldPos.y += this._dirY * moveDistance;
             this.node.setWorldPosition(worldPos);
             this._curRange += moveDistance;
+            this._trail?.Push(worldPos);
         }
 
         if (this._curRange >= this._maxRange || moveDistance <= 0) {
@@ -166,6 +179,8 @@ export class ZRSJZ_Bullet extends Component {
     private Recycle() {
         if (!this.node.active) return;
         this.unscheduleAllCallbacks();
+        this._trail?.Finish();
+        this._trail = null;
         this._isFlying = false;
         this._maxRange = 0;
         this._curRange = 0;
@@ -178,6 +193,11 @@ export class ZRSJZ_Bullet extends Component {
             this._rigidBody.angularVelocity = 0;
         }
         ZRSJZ_PoolManager.Instance.PutNode(this.node);
+    }
+
+    protected onDisable(): void {
+        this._trail?.Finish();
+        this._trail = null;
     }
 
     async CreateEffect(): Promise<void> {

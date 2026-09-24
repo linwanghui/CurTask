@@ -1,0 +1,38 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=require('path');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const root=path.resolve(__dirname,'..');
+let now=10000,scene={};
+const exportsPanel={};
+const source=fs.readFileSync(path.join(root,'Scripts/Panel/ZRSJZ_KillTipPanel.ts'),'utf8');
+vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText,{exports:exportsPanel,Date:{now:()=>now},console,require:id=>{
+ if(id==='cc')return {_decorator:{ccclass:()=>x=>x},director:{getScene:()=>scene}};
+ if(id.includes('UIManager'))return {ZRSJZ_UIManager:{Instance:{ShowPanel(){}}}};
+ if(id.includes('Constant'))return {ZRSJZ_PANEL:{击败弹窗:'kill'}};
+ return {ZRSJZ_Panel:class{}};
+}});
+const K=exportsPanel.ZRSJZ_KillTipPanel;
+K.NotifyKill();assert.equal(K._pendingKillCount,1);
+now+=4999;K.NotifyKill();assert.equal(K._pendingKillCount,2);
+now+=5000;K.NotifyKill();assert.equal(K._pendingKillCount,3);
+now+=5001;K.NotifyKill();assert.equal(K._pendingKillCount,1);
+scene={};now++;K.NotifyKill();assert.equal(K._pendingKillCount,1);
+const instance={node:{isValid:true,active:true},AddKill(){this.count=K._streak;}};
+K._activeInstance=instance;now+=4000;K.NotifyKill();assert.equal(instance.count,2);
+K._activeInstance=null;now+=4000;K.NotifyKill();assert.equal(K._pendingKillCount,3);
+console.log('PASS: combo continues after UI disappears, inclusive 5-second boundary, timeout and new-scene reset.');
+const bullet=fs.readFileSync(path.join(root,'Scripts/Controller/ZRSJZ_Bullet.ts'),'utf8');
+const start=bullet.indexOf('        // 本地枪弹'),end=bullet.indexOf('        if (!replay && Online.Battle',start);
+const spread=new Function('dirX','dirY','replay','Math',bullet.slice(start,end)+'return [dirX,dirY];');
+for(const random of [0,.25,.5,.75,1]){
+ const [x,y]=spread.call({node:{name:'PlayerBullet'}},1,0,false,{...Math,random:()=>random,PI:Math.PI,cos:Math.cos,sin:Math.sin});
+ assert.ok(Math.abs(Math.atan2(y,x)*180/Math.PI)<=3.000001);assert.ok(Math.abs(Math.hypot(x,y)-1)<1e-10);
+}
+assert.deepEqual(spread.call({node:{name:'PlayerBullet'}},.6,.8,true,Math),[.6,.8]);
+assert.ok(bullet.indexOf('Math.random() * 6 - 3')<bullet.indexOf('Online.Combat('));
+console.log('PASS: spread <=3 degrees, normalized speed unchanged, transmitted after spread, replay unchanged.');
+const enemy=fs.readFileSync(path.join(root,'Scripts/Controller/ZRSJZ_EnemyBase.ts'),'utf8');
+assert.ok(enemy.includes('this._recoilCooldown = 0.22'));assert.ok(enemy.includes('this.CanPatrolTo(target)'));
+assert.ok(enemy.includes('this._hitSlow = 0.16'));assert.ok(enemy.includes('speed *= 0.8'));
+const effect=fs.readFileSync(path.join(root,'Spine/受击泛白.effect'),'utf8');
+assert.ok(effect.includes('mix(o.rgb, vec3(o.a), 0.4)'));assert.ok(effect.includes('ALPHA_TEST(o)'));
+console.log('PASS: recoil cooldown/wall guard, slowdown limits and alpha-preserving flash shader present (static checks).');

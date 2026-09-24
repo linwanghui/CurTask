@@ -1,4 +1,4 @@
-import { _decorator, Collider2D, BoxCollider2D, CircleCollider2D, PolygonCollider2D, Intersection2D, Color, Component, Node, PhysicsSystem2D, Rect, RigidBody2D, tween, Tween, v3, Vec2, Vec3 } from 'cc';
+import { _decorator, Collider2D, BoxCollider2D, CircleCollider2D, PolygonCollider2D, Intersection2D, Component, Node, PhysicsSystem2D, Rect, RigidBody2D, tween, Tween, v3, Vec2, Vec3, Material, EffectAsset, assetManager } from 'cc';
 import {
     ZRSJZ_ANI,
     ZRSJZ_BoxConfig,
@@ -96,6 +96,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (!this.onlinePosition || state.dead || Vec3.distance(this.node.worldPosition, target) > 1200) this.node.setWorldPosition(target);
         this.onlinePosition = target;
         this.node.setScale(state.sx, state.sy, 1);
+        if (state.hp < this._health && !state.dead) this.beHitEffect();
         this._health = state.hp;
         this.HP?.Show(this._health);
         if (state.dead) { this.Die(); return; }
@@ -205,6 +206,16 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     private _lastStuckPosition: Vec3 = new Vec3();
     private _avoidanceSide: number = 1;
     private _curScale: number = 0.5;
+    private _hitSlow = 0;
+    private _recoilCooldown = 0;
+    private _pendingRecoil = new Vec2();
+    private _recoilOffset = new Vec2();
+    private _recoilHold = 0;
+    private _recoilReturnRemaining = 0;
+    private static _whiteMaterial: Material = null;
+    private static _whiteLoading = false;
+    private _beforeFlash: Material = null;
+    private _flashing = false;
 
     public get State(): ZRSJZ_ENEMY_STATE {
         return this._state;
@@ -249,6 +260,19 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected start(): void {
+        if (!ZRSJZ_EnemyBase._whiteMaterial && !ZRSJZ_EnemyBase._whiteLoading) {
+            const bundle = assetManager.getBundle('73_ZRSJZ');
+            if (bundle) {
+                ZRSJZ_EnemyBase._whiteLoading = true;
+                bundle.load('Spine/受击泛白', EffectAsset, (error, effect) => {
+                    ZRSJZ_EnemyBase._whiteLoading = false;
+                    if (error) { console.warn('[受击泛白] 材质加载失败', error); return; }
+                    const material = new Material();
+                    material.initialize({ effectAsset: effect });
+                    ZRSJZ_EnemyBase._whiteMaterial = material;
+                });
+            }
+        }
         this.onlineStarted = true;
         this._patrolCenter.set(this.node.worldPosition);
         this.SelectNextPatrolPoint();
@@ -281,6 +305,10 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (this.IsDead) {
             return;
         }
+
+        this._hitSlow = Math.max(0, this._hitSlow - dt);
+        this._recoilCooldown = Math.max(0, this._recoilCooldown - dt);
+        this.ApplyPendingRecoil(dt);
 
         if (this.IsPetStunned) {
             this._petStunRemaining = Math.max(0, this._petStunRemaining - dt);
@@ -332,6 +360,12 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected onDisable(): void {
+        this.unschedule(this.changeColor);
+        this.changeColor();
+        this._hitSlow = this._recoilCooldown = 0;
+        this._pendingRecoil.set(0, 0);
+        this._recoilOffset.set(0, 0);
+        this._recoilHold = this._recoilReturnRemaining = 0;
         this.SetTaskTargetMarker(false);
         this._petStunRemaining = 0;
         this._petStunSources.clear();
@@ -469,9 +503,9 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.TryAttack();
     }
 
-    BeHit(harm: number) {
+    BeHit(harm: number, hitX = 0, hitY = 0) {
         if (this.IsDead || !Number.isFinite(harm) || harm <= 0 || Coop.Stopped) return;
-        if (Coop.Replica) { if (this.OnlineID) Online.Combat({ kind: 'hit', id: this.OnlineID, harm }); return; }
+        if (Coop.Replica) { if (this.OnlineID) Online.Combat({ kind: 'hit', id: this.OnlineID, harm, hitX, hitY }); return; }
         const harmRequestGame = ZRSJZ_Game.Instance;
         const harmWorldPosition = this.node.worldPosition.clone();
         this._health -= harm;
@@ -481,6 +515,17 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         } else {
             ZRSJZ_AudioManager.Instance.PlaySound("受击");
             this.beHitEffect();
+            const length = Math.hypot(hitX, hitY);
+            if (length > 0 && Number.isFinite(length)) {
+                this._hitSlow = 0.16;
+                if (this._recoilCooldown <= 0 && this._recoilOffset.x === 0 && this._recoilOffset.y === 0) {
+                    this._recoilCooldown = 0.22;
+                    const step = 12;
+                    // BeHit 可能在 Box2D 碰撞回调内调用，此时物理世界锁定。
+                    // 这里只记录位移，不能修改节点/刚体变换；下一次 update 再执行。
+                    this._pendingRecoil.set(hitX / length * step, hitY / length * step);
+                }
+            }
         }
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
             if (!effect?.isValid) return;
@@ -502,11 +547,57 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.HP.Show(this._health);
     }
 
+    private ApplyPendingRecoil(dt = 0): void {
+        // 在正常移动的位置上回补，而不是拉回受击前的世界坐标，保留追击位移。
+        // 未回补完不接受新的击退；回补遇墙时保留欠量，避免连续命中累积后退。
+        if (this._recoilOffset.x !== 0 || this._recoilOffset.y !== 0) {
+            const elapsed = Math.max(0, dt);
+            const returnDt = Math.max(0, elapsed - this._recoilHold);
+            this._recoilHold = Math.max(0, this._recoilHold - elapsed);
+            if (returnDt > 0) {
+                const fraction = this._recoilReturnRemaining > 0
+                    ? Math.min(1, returnDt / this._recoilReturnRemaining) : 1;
+                const corrected = this.node.worldPosition.clone();
+                corrected.x -= this._recoilOffset.x * fraction;
+                corrected.y -= this._recoilOffset.y * fraction;
+                if (this.CanPatrolTo(corrected)) {
+                    this.node.setWorldPosition(corrected);
+                    const body = this.RigidBody?.impl as { syncPositionToPhysics?: () => void };
+                    body?.syncPositionToPhysics?.();
+                    this._recoilOffset.set(this._recoilOffset.x * (1 - fraction), this._recoilOffset.y * (1 - fraction));
+                    this._recoilReturnRemaining = Math.max(0, this._recoilReturnRemaining - returnDt);
+                }
+            }
+        }
+        if (this._pendingRecoil.x === 0 && this._pendingRecoil.y === 0) return;
+        const target = this.node.worldPosition.clone();
+        target.x += this._pendingRecoil.x;
+        target.y += this._pendingRecoil.y;
+        // 用执行时的位置重新检查墙体，且每个待执行击退只消费一次。
+        if (!this.CanPatrolTo(target)) {
+            this._pendingRecoil.set(0, 0);
+            return;
+        }
+        this._recoilOffset.set(this._pendingRecoil.x, this._pendingRecoil.y);
+        this._recoilHold = 0.04;
+        this._recoilReturnRemaining = 0.14;
+        this._pendingRecoil.set(0, 0);
+        this.node.setWorldPosition(target);
+        const body = this.RigidBody?.impl as { syncPositionToPhysics?: () => void };
+        body?.syncPositionToPhysics?.();
+    }
+
     /** 死亡行为接口。重复调用不会重复触发死亡逻辑。 */
     public Die(): void {
+        this._pendingRecoil.set(0, 0);
+        this._recoilOffset.set(0, 0);
+        this._recoilHold = this._recoilReturnRemaining = 0;
         if (this.IsDead) {
             return;
         }
+
+        this.unschedule(this.changeColor);
+        this.changeColor();
 
         this._health = 0;
         this.SetTaskTargetMarker(false);
@@ -529,6 +620,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             this.EnemySkeleton.HasDirection = false;
         }
         this.OnDeath();
+        // 致命一击也使用与普通受击一致的泛白反馈。
+        this.beHitEffect();
         ZRSJZ_AudioManager.Instance.PlaySound("击杀");
         ZRSJZ_KillTipPanel.NotifyKill();
         ZRSJZ_TaskService.CompleteTask(`击杀[${ZRSJZ_GameData.Instance.CurMap}]中的敌人`, 1);
@@ -970,6 +1063,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         const directionX = offsetX / distance;
         const directionY = offsetY / distance;
+        if (this._hitSlow > 0) speed *= 0.8;
         this._moveVelocity.set(directionX * speed * dt, directionY * speed * dt);
 
         if (this.RigidBody && this.RigidBody.enabledInHierarchy) {
@@ -1071,8 +1165,15 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
     private beHitEffect() {
         this.unschedule(this.changeColor);
-        this.EnemySkeleton.Skeleton.color = new Color(255, 0, 0, 255);
-        this.scheduleOnce(this.changeColor, 0.04);
+        const skeleton = this.EnemySkeleton?.Skeleton;
+        if (!skeleton) return;
+        // 独立Spine材质保留透明轮廓，不依赖资源是否开启双颜色槽位。
+        if (!this._flashing && ZRSJZ_EnemyBase._whiteMaterial) {
+            this._beforeFlash = skeleton.customMaterial;
+            skeleton.customMaterial = ZRSJZ_EnemyBase._whiteMaterial;
+            this._flashing = true;
+        }
+        this.scheduleOnce(this.changeColor, 0.07);
         Tween.stopAllByTarget(this.node);
         tween(this.node)
             .to(0.02, { scale: v3(this._curScale + 0.03, this._curScale + 0.03, 1) }, { easing: 'linear' })
@@ -1081,6 +1182,10 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     private changeColor() {
-        this.EnemySkeleton.Skeleton.color = new Color(255, 255, 255, 255);
+        if (this._flashing && this.EnemySkeleton?.Skeleton?.isValid) {
+            this.EnemySkeleton.Skeleton.customMaterial = this._beforeFlash;
+        }
+        this._beforeFlash = null;
+        this._flashing = false;
     }
 }

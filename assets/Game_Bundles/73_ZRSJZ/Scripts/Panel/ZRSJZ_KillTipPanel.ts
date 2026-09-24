@@ -1,15 +1,18 @@
-import { _decorator, find, Label, sp } from 'cc';
+import { _decorator, director, find, Label, sp } from 'cc';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 
 const { ccclass } = _decorator;
 
-/** 击败提示：弹窗显示期间的连续击败会合并计数，并重新播放提示动画。 */
+/** 连杀独立于提示动画：上次击杀后5秒内可续接，切换场景重置。 */
 @ccclass('ZRSJZ_KillTipPanel')
 export class ZRSJZ_KillTipPanel extends ZRSJZ_Panel {
     private static _pendingKillCount: number = 0;
     private static _activeInstance: ZRSJZ_KillTipPanel = null;
+    private static _lastKillTime = 0;
+    private static _streak = 0;
+    private static _scene: object = null;
 
     private _spine: sp.Skeleton = null;
     private _countLabel: Label = null;
@@ -18,13 +21,19 @@ export class ZRSJZ_KillTipPanel extends ZRSJZ_Panel {
 
     /** 敌人死亡时统一调用；预制体尚在异步加载时也不会漏掉连续击败。 */
     public static NotifyKill(): void {
+        const now = Date.now();
+        const scene = director.getScene();
+        this._streak = scene === this._scene && now >= this._lastKillTime && now - this._lastKillTime <= 5000
+            ? this._streak + 1 : 1;
+        this._scene = scene;
+        this._lastKillTime = now;
+        this._pendingKillCount = this._streak;
         const instance = this._activeInstance;
         if (instance?.node?.isValid && instance.node.active) {
             instance.AddKill();
             return;
         }
 
-        this._pendingKillCount++;
         ZRSJZ_UIManager.Instance?.ShowPanel(ZRSJZ_PANEL.击败弹窗);
     }
 
@@ -55,8 +64,8 @@ export class ZRSJZ_KillTipPanel extends ZRSJZ_Panel {
     }
 
     private AddKill(): void {
-        if (this._isFinishing) return;
-        this._killCount++;
+        this._isFinishing = false;
+        this._killCount = ZRSJZ_KillTipPanel._streak;
         this.RefreshCount();
         this.PlayAnimation();
     }
