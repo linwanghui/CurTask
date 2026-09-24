@@ -1,0 +1,33 @@
+const fs = require('fs'), vm = require('vm'), assert = require('assert/strict');
+const ts = require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const pending = new Map(); let starts = 0;
+const Tween = { stopAllByTarget: target => pending.delete(target) };
+const tween = target => ({ to(seconds, props) { this.props = props; assert.equal(seconds, .7); return this; }, start() { starts++; pending.set(target, this.props); } });
+function load(source) {
+    const output = {};
+    vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, experimentalDecorators: true } }).outputText,
+        { exports: output, Tween, tween, require: () => ({ _decorator: { ccclass: () => c => c }, Component: class {}, Sprite: class {}, Label: class {}, Tween, tween }) });
+    return output;
+}
+const HP = load(fs.readFileSync('Scripts/UI/ZRSJZ_HP.ts', 'utf8')).ZRSJZ_HP;
+const main = { fillRange: 0 }, delayed = { fillRange: 0 }, label = {};
+const hp = new HP();
+hp.node = { active: true, get activeInHierarchy() { return this.active; }, getChildByName(name) { return { getComponent: () => ({ '进度': main, '进度0': delayed, Num: label })[name] }; } };
+hp.Init(100); assert.equal(delayed.fillRange, 1);
+hp.Show(70); assert.equal(main.fillRange, .7); assert.equal(delayed.fillRange, 1); assert.equal(pending.get(delayed).fillRange, .7);
+const count = starts; hp.Show(70); assert.equal(starts, count);
+hp.Show(40); assert.equal(main.fillRange, .4); assert.equal(pending.get(delayed).fillRange, .4);
+hp.Show(80); assert.equal(main.fillRange, .8); assert.equal(pending.get(delayed).fillRange, .8);
+hp.Show(0); assert.equal(main.fillRange, 0); assert.equal(delayed.fillRange, 0); assert.equal(pending.has(delayed), false);
+hp.Init(200); assert.equal(main.fillRange, 1); assert.equal(delayed.fillRange, 1);
+hp.Show(100); hp.onDisable(); assert.equal(pending.has(delayed), false); assert.equal(delayed.fillRange, .5);
+const player = fs.readFileSync('Scripts/Controller/ZRSJZ_Player.ts', 'utf8');
+const method = player.slice(player.indexOf('    private RefreshBulletProgress()'), player.indexOf('    public CanReload()'));
+const Probe = load('export class Probe {\n' + method + '\n}').Probe;
+const p = new Probe(); Object.assign(p, { _bulletProgressNode: { active: true, activeInHierarchy: true }, _bulletProgressSprite: main, _bulletDelayedSprite: delayed, _bulletTargetFill: -1, MagazineCapacity: 10, MagazineAmmoCount: 10, IsDead: false });
+p.RefreshBulletProgress(); assert.equal(main.fillRange, 1); assert.equal(delayed.fillRange, 1);
+p.MagazineAmmoCount = 8; p.RefreshBulletProgress(); assert.equal(main.fillRange, .8); assert.equal(delayed.fillRange, 1);
+const bulletStarts = starts; for (let i = 0; i < 60; i++) p.RefreshBulletProgress(); assert.equal(starts, bulletStarts);
+p.MagazineAmmoCount = 0; p.RefreshBulletProgress(); assert.equal(main.fillRange, 0); assert.equal(pending.get(delayed).fillRange, 0);
+p.MagazineAmmoCount = 10; p.RefreshBulletProgress(); assert.equal(main.fillRange, 1); assert.equal(pending.get(delayed).fillRange, 1);
+console.log('PASS: immediate primary HP/ammo, tween-only secondary, repeated refresh, rapid damage, healing, empty/reload, initialization and cleanup.');
