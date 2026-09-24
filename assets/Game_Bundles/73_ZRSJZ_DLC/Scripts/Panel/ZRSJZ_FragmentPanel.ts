@@ -34,7 +34,7 @@ export class ZRSJZ_FragmentPanel extends ZRSJZ_Panel {
 
     public OnButtonClick(event: EventTouch): void {
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
-        if (event.getCurrentTarget().name === '关闭') {
+        if (event.getCurrentTarget().name === '关闭' || event.getCurrentTarget().name === 'Mask') {
             ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.宠物碎片弹窗);
             return;
         }

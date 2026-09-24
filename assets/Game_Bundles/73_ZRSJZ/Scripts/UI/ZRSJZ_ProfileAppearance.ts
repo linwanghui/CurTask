@@ -1,4 +1,4 @@
-import { Button, EventTouch, Node, Sprite, SpriteFrame, sp, isValid } from 'cc';
+import { Button, EventTouch, Node, Sprite, SpriteFrame, sp, isValid, UITransform } from 'cc';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
@@ -13,6 +13,8 @@ export class ZRSJZ_ProfileAppearance {
     private frameBaseY = 0;
     private spineFrameID = '';
     private title: Sprite;
+    private titleWidth = 0;
+    private titleHeight = 0;
     private spineNode: Node;
     private defaults: Array<{ sprite: Sprite; frame: SpriteFrame }>;
     private version = 0;
@@ -27,6 +29,11 @@ export class ZRSJZ_ProfileAppearance {
         this.frame = root.getChildByName('头像框Icon')?.getComponent(Sprite);
         this.frameBaseY = this.frame?.node.position.y ?? 0;
         this.title = root.getChildByName('称号')?.getComponent(Sprite);
+        const titleTransform = this.title?.node.getComponent(UITransform);
+        if (titleTransform) {
+            this.titleWidth = titleTransform.width * Math.abs(this.title.node.scale.x);
+            this.titleHeight = titleTransform.height * Math.abs(this.title.node.scale.y);
+        }
         this.spineNode = root.getChildByName('头像框Spine');
         this.defaults = [this.avatar, this.frame, this.title].filter(Boolean)
             .map(sprite => ({ sprite, frame: sprite.spriteFrame }));
@@ -63,6 +70,14 @@ export class ZRSJZ_ProfileAppearance {
         const skeleton = this.spineNode.getComponent(sp.Skeleton);
         if (skeleton?.skeletonData) ZRSJZ_AvatarFrameFit.AroundAvatar(skeleton, this.spineFrameID, this.avatar?.node);
     }
+    private RefitTitle(): void {
+        if (!isValid(this.title?.node, true) || !this.title.spriteFrame) return;
+        const rect = this.title.spriteFrame.rect;
+        if (rect.width <= 0 || rect.height <= 0 || this.titleWidth <= 0 || this.titleHeight <= 0) return;
+        // 保留图片裁剪后的原始尺寸，只通过等比缩放适配编辑器配置的显示范围。
+        const scale = Math.min(this.titleWidth / rect.width, this.titleHeight / rect.height);
+        this.title.node.setScale(scale, scale, this.title.node.scale.z);
+    }
     private Reset(): void {
         if (this.disposed || !isValid(this.root, true)) return;
         this.spineFrameID = '';
@@ -70,9 +85,10 @@ export class ZRSJZ_ProfileAppearance {
             if (!isValid(item.sprite, true) || !isValid(item.sprite.node, true)) continue;
             item.sprite.enabled = true;
             item.sprite.node.active = true;
-            if (item.sprite === this.avatar || item.sprite === this.frame) item.sprite.sizeMode = Sprite.SizeMode.TRIMMED;
+            item.sprite.sizeMode = Sprite.SizeMode.TRIMMED;
             item.sprite.spriteFrame = item.frame;
         }
+        this.RefitTitle();
         if (isValid(this.frame?.node, true)) {
             const node = this.frame.node;
             node.setPosition(node.position.x, this.frameBaseY, node.position.z);
@@ -129,8 +145,9 @@ export class ZRSJZ_ProfileAppearance {
             bundle.load(path + '/spriteFrame', SpriteFrame, (error, asset) => {
                 if (!current(slot, value) || !isValid(target, true) || !isValid(target.node, true)) return;
                 if (error || !asset) { delete this.keys[slot]; return; }
-                target.sizeMode = slot === 'title' ? Sprite.SizeMode.CUSTOM : Sprite.SizeMode.TRIMMED;
+                target.sizeMode = Sprite.SizeMode.TRIMMED;
                 target.spriteFrame = asset;
+                if (slot === 'title') this.RefitTitle();
                 target.enabled = true;
                 target.node.active = true;
                 if (slot === 'frame') {
