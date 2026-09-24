@@ -54,6 +54,8 @@ export class ZRSJZ_Player extends Component {
     Loading: Sprite = null;
     private _bulletProgressNode: Node = null;
     private _bulletProgressSprite: Sprite = null;
+    private _bulletDelayedSprite: Sprite = null;
+    private _bulletTargetFill = -1;
     private readonly _nearbySpecialOperations = new Set<ZRSJZ_SpecialOperationsTaskIcon>();
 
     private _moveX: number = 0;
@@ -246,7 +248,9 @@ export class ZRSJZ_Player extends Component {
 
         // Bullet 只负责常驻显示当前弹匣数量 / 弹匣容量。
         this._bulletProgressNode = this.node.getChildByName("Bullet");
-        const bulletProgressChild = this._bulletProgressNode?.getChildByName("Progress")
+        this._bulletDelayedSprite = this._bulletProgressNode?.getChildByName("进度0")?.getComponent(Sprite) ?? null;
+        const bulletProgressChild = this._bulletProgressNode?.getChildByName("进度")
+            ?? this._bulletProgressNode?.getChildByName("Progress")
             ?? this._bulletProgressNode?.getChildByName("Loading");
         const bulletProgressRootSprite = this._bulletProgressNode?.getComponent(Sprite);
         this._bulletProgressSprite = bulletProgressChild?.getComponent(Sprite)
@@ -254,7 +258,7 @@ export class ZRSJZ_Player extends Component {
                 ? bulletProgressRootSprite
                 : null)
             ?? this._bulletProgressNode?.getComponentsInChildren(Sprite).find(
-                sprite => sprite.type === Sprite.Type.FILLED,
+                sprite => sprite.type === Sprite.Type.FILLED && sprite !== this._bulletDelayedSprite,
             )
             ?? null;
         if (this._bulletProgressNode) this._bulletProgressNode.active = true;
@@ -298,6 +302,8 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected onDisable(): void {
+        if (this._bulletDelayedSprite) Tween.stopAllByTarget(this._bulletDelayedSprite);
+        this._bulletTargetFill = -1;
         this.ClearPetHealing();
         this._petShields.clear();
         this.CancelGunAttackState();
@@ -391,6 +397,7 @@ export class ZRSJZ_Player extends Component {
         this.PlayerSkeleton.HasDirection = this.WeaponType !== "枪";
         this._gunDirectionReleaseRemaining = 0;
         if (this._bulletProgressNode) this._bulletProgressNode.active = true;
+        this._bulletTargetFill = -1;
         this.RefreshBulletProgress();
         this.FillInitialMagazineWhenReady();
 
@@ -1145,9 +1152,20 @@ export class ZRSJZ_Player extends Component {
         if (this._bulletProgressNode) this._bulletProgressNode.active = !this.IsDead;
         if (!this._bulletProgressSprite) return;
         const capacity = this.MagazineCapacity;
-        this._bulletProgressSprite.fillRange = capacity > 0
+        const fill = capacity > 0
             ? Math.min(1, Math.max(0, this.MagazineAmmoCount / capacity))
             : 0;
+        this._bulletProgressSprite.fillRange = fill;
+        // 每帧都会刷新，只有真实数值变化才重启动画，避免 Tween 一直被打断。
+        if (this._bulletDelayedSprite && fill !== this._bulletTargetFill) {
+            Tween.stopAllByTarget(this._bulletDelayedSprite);
+            if (this._bulletTargetFill < 0 || !this._bulletProgressNode.activeInHierarchy) {
+                this._bulletDelayedSprite.fillRange = fill;
+            } else {
+                tween(this._bulletDelayedSprite).to(0.7, { fillRange: fill }).start();
+            }
+        }
+        this._bulletTargetFill = fill;
     }
 
     public CanReload(): boolean {

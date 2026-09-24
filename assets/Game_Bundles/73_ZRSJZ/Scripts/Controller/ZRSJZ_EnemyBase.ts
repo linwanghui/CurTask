@@ -520,7 +520,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
                 this._hitSlow = 0.16;
                 if (this._recoilCooldown <= 0 && this._recoilOffset.x === 0 && this._recoilOffset.y === 0) {
                     this._recoilCooldown = 0.22;
-                    const step = 12;
+                    const step = 24;
                     // BeHit 可能在 Box2D 碰撞回调内调用，此时物理世界锁定。
                     // 这里只记录位移，不能修改节点/刚体变换；下一次 update 再执行。
                     this._pendingRecoil.set(hitX / length * step, hitY / length * step);

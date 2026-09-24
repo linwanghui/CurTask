@@ -15,19 +15,19 @@ Object.assign(enemy,{IsDead:false,_health:100,EnemyConfig:{ChaseSpeed:560},_reco
  node:{worldPosition:pos,setWorldPosition(p){assert.equal(locked,false);moved++;Object.assign(pos,p);}},
  RigidBody:{impl:{syncPositionToPhysics(){assert.equal(locked,false);sync++;}}},CanPatrolTo:()=>passable});
 enemy.BeHit(1,1,0);enemy.BeHit(1,1,0);
-assert.equal(sync,0);assert.equal(moved,0);assert.equal(enemy._pendingRecoil.x,12);
-locked=false;enemy.ApplyPendingRecoil();assert.equal(sync,1);assert.equal(pos.x,22);
+assert.equal(sync,0);assert.equal(moved,0);assert.equal(enemy._pendingRecoil.x,24);
+locked=false;enemy.ApplyPendingRecoil();assert.equal(sync,1);assert.equal(pos.x,34);
 enemy.ApplyPendingRecoil();assert.equal(sync,1);
-enemy.ApplyPendingRecoil(.02);assert.equal(pos.x,22);
+enemy.ApplyPendingRecoil(.02);assert.equal(pos.x,34);
 // Normal pursuit continues independently; return must preserve its displacement.
-pos.x+=5;enemy.ApplyPendingRecoil(.09);assert.ok(Math.abs(pos.x-21)<1e-8);
+pos.x+=5;enemy.ApplyPendingRecoil(.09);assert.ok(Math.abs(pos.x-27)<1e-8);
 enemy._recoilCooldown=0;locked=true;enemy.BeHit(1,1,0);
 assert.equal(enemy._pendingRecoil.x,0);locked=false;
 enemy.ApplyPendingRecoil(.08);assert.ok(Math.abs(pos.x-15)<1e-8);assert.equal(enemy._recoilOffset.x,0);
 // Many full hit/return cycles cannot accumulate displacement, even at low frame rates.
 for(let i=0;i<10;i++){
  enemy._recoilCooldown=0;locked=true;enemy.BeHit(1,1,0);locked=false;
- enemy.ApplyPendingRecoil();assert.ok(Math.abs(pos.x-27)<1e-8);
+ enemy.ApplyPendingRecoil();assert.ok(Math.abs(pos.x-39)<1e-8);
  enemy.ApplyPendingRecoil(.3);assert.ok(Math.abs(pos.x-15)<1e-8);
 }
 const beforeBlocked=sync;
@@ -35,11 +35,11 @@ enemy._recoilCooldown=0;locked=true;enemy.BeHit(1,0,1);passable=false;locked=fal
 assert.equal(sync,beforeBlocked);assert.equal(enemy._pendingRecoil.y,0);
 // A blocked correction keeps its outstanding offset and prevents stacking.
 passable=true;enemy._recoilCooldown=0;enemy.BeHit(1,0,1);enemy.ApplyPendingRecoil();
-passable=false;enemy.ApplyPendingRecoil(.3);assert.equal(enemy._recoilOffset.y,12);
+passable=false;enemy.ApplyPendingRecoil(.3);assert.equal(enemy._recoilOffset.y,24);
 enemy._recoilCooldown=0;enemy.BeHit(1,0,1);assert.equal(enemy._pendingRecoil.y,0);
 passable=true;enemy.ApplyPendingRecoil(.3);assert.equal(pos.y,20);assert.equal(enemy._recoilOffset.y,0);
 assert.ok(source.includes('this._pendingRecoil.set(0, 0);'));
 const bullet=fs.readFileSync('Scripts/Controller/ZRSJZ_Bullet.ts','utf8');
 const recycle=bullet.slice(bullet.indexOf('    private Recycle()'),bullet.indexOf('    protected onDisable()'));
 assert.ok(recycle.includes('this._trail?.Finish()'));assert.ok(!recycle.includes('.clear()'));
-console.log('PASS: collision-safe 12px recoil; progressive return preserves movement; repeated hits do not drift; wall guards prevent stacking; trail pooling retained.');
+console.log('PASS: collision-safe 24px recoil; progressive return preserves movement; repeated hits do not drift; wall guards prevent stacking; trail pooling retained.');
