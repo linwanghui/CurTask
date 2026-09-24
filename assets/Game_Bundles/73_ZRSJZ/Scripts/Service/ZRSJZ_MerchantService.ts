@@ -1,4 +1,4 @@
-import { ZRSJZ_PROP_CONFIG, ZRSJZ_PROP_QUALITY } from '../ZRSJZ_Constant';
+import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_PROP_CONFIG, ZRSJZ_PROP_QUALITY } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 
 export interface ZRSJZ_MerchantGoods {
@@ -78,7 +78,7 @@ export class ZRSJZ_MerchantService {
                 const index = normal.findIndex(p => p.Name === item.Name);
                 if (index >= 0) normal.splice(index, 1);
             }
-            const count = item.PropType === '弹药' ? Math.min(60, item.MaxCount) : 1;
+            const count = item.PropType === '弹药' ? ZRSJZ_AMMO_MAX_COUNT : 1;
             result.push({ Name: item.Name, Count: count, Price: Math.max(1, Math.ceil(item.UnitPrice * count * 0.75)), Sold: false, Buying: false });
         };
         // 10% 的到访带来一件高级装备，普通商品同批不重复。
