@@ -969,7 +969,8 @@ export class ZRSJZ_Game extends Component {
             }
             this.LoadUI();
             void this.LoadBattlePets();
-            ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
+            // ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.加载界面);
+            ZRSJZ_UIManager.Instance.CloseAllPanelsImmediately();
             ZRSJZ_AudioManager.Instance.PlayMusic("战斗BGM");
         }).catch(error => console.error("[ZRSJZ_Game] 玩家预制体加载失败", error))
     }
