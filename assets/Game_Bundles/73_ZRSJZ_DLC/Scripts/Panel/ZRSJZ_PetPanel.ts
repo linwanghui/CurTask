@@ -8,6 +8,7 @@ import { ZRSJZ_PANEL, ZRSJZ_PET_CONFIG, ZRSJZ_PET_SKIN_CONFIG } from '../../../7
 import { ZRSJZ_GameData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
 import { ZRSJZ_PetService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_PetService';
 import { ZRSJZ_PetItem } from '../ZRSJZ_PetItem';
+import { ZRSJZ_Guidance } from '../ZRSJZ_Guidance';
 import { ZRSJZ_Tools } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Tools';
 import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_FragmentService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_FragmentService';
@@ -78,8 +79,20 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
         this._eventNode = null;
     }
 
-    Show(): void {
-        super.Show();
+    Show(options?: { firstUnlock?: boolean }): void {
+        // 等面板展开动画结束再读取世界坐标，避免缩放过程导致引导错位。
+        super.Show(() => {
+            if (!this.node.activeInHierarchy || !options?.firstUnlock
+                || !ZRSJZ_UIManager.Instance.IsCurrentPanel(this.node)
+                || ZRSJZ_GameData.Instance.StartedFeatureGuides?.['宠物']) return;
+            const region = find('Panel/指导区域', this.node);
+            const steps = region?.getComponentsInChildren(ZRSJZ_Guidance)
+                .filter(step => step.IsConfigured) ?? [];
+            if (steps.length) {
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.界面引导弹窗,
+                    { steps, owner: this.node, feature: '宠物' });
+            }
+        });
         this.CloseSkillInfo();
         this.BuildItems();
         this._petPlayerIndex = ZRSJZ_InventoryService.GetActivePlayerIndex();

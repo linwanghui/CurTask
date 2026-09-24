@@ -147,6 +147,10 @@ export class ZRSJZ_GameData {
 
     //#region 等级系统
     public Grade: number = 1;//等级（1～60）
+    /** 已点击查看的侧边栏功能；首次解锁提醒跨场景、重启仅出现一次。 */
+    public ViewedSidebarFeatures: Record<string, boolean> = {};
+    /** 首次进入时已开始过的界面引导，避免重复播放。 */
+    public StartedFeatureGuides: Record<string, boolean> = {};
     public CurExp: number = 0;//当前等级内经验
     public PendingExperience: number = 0;//战局结算后、返回大厅时待发放的经验
     public TotalGamePlayed: number = 0;//正式对局开始次数

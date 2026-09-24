@@ -32,6 +32,7 @@ import {
     ZRSJZ_ForgeRecipe,
 } from '../ZRSJZ_ForgeConstant';
 import { ZRSJZ_ForgeService, ZRSJZ_ForgeTask } from '../Service/ZRSJZ_ForgeService';
+import { ZRSJZ_GuidanceService } from '../Service/ZRSJZ_GuidanceService';
 
 const { ccclass, property } = _decorator;
 
@@ -128,7 +129,7 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
 
     public Show(...args: any[]): void {
         this.PlayerIndex = args[0] === 1 ? 1 : 0;
-        super.Show();
+        super.Show(() => ZRSJZ_GuidanceService.ShowFirstEntry(this.node, '锻造台', args[0]?.firstUnlock === true));
         this.InitializeRuntime().then(() => this.RefreshAll());
     }
 

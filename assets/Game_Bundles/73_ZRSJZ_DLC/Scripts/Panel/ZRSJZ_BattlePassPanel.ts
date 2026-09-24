@@ -1,6 +1,7 @@
 import { _decorator, Button, Color, find, Label, Node, ScrollView, Sprite, SpriteFrame, UITransform } from 'cc';
 import Banner from 'db://assets/Scripts/Banner';
 import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
+import { ZRSJZ_GuidanceService } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_GuidanceService';
 import { ZRSJZ_BATTLE_PASS_CONFIG as Config, ZRSJZ_BattlePassReward, ZRSJZ_BattlePassTrack, ZRSJZ_BattlePassPeriod } from '../../../73_ZRSJZ/Scripts/ZRSJZ_BattlePassConfig';
 import { FormatMoney } from '../../../73_ZRSJZ/Scripts/ZRSJZ_NumberFormat';
 import { ZRSJZ_BattlePassService as Service } from '../../../73_ZRSJZ/Scripts/Service/ZRSJZ_BattlePassService';
@@ -71,9 +72,11 @@ export class ZRSJZ_BattlePassPanel extends ZRSJZ_Panel {
     }
     protected onEnable(): void { this.schedule(this.Tick, 1); }
     protected onDisable(): void { this.unschedule(this.Tick); this.refreshKey = ''; }
-    public Show(restore = false): void {
+    public Show(restoreOrOptions: boolean | { firstUnlock?: boolean } = false): void {
+        const restore = restoreOrOptions === true;
+        const firstUnlock = typeof restoreOrOptions === 'object' && restoreOrOptions?.firstUnlock === true;
         Service.EnsurePeriods();
-        super.Show();
+        super.Show(() => ZRSJZ_GuidanceService.ShowFirstEntry(this.node, '战令', firstUnlock));
         this.page = 'rewards';
         if (!restore) {
             this.scroll.scrollToLeft(0);

@@ -1,5 +1,6 @@
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
+import { ZRSJZ_GradeService } from "../Service/ZRSJZ_GradeService";
 import { _decorator, Component, EditBox, EventTouch, Node, Label, instantiate, Button } from 'cc';
 import { ZRSJZ_LevelProgressService } from '../Service/ZRSJZ_LevelProgressService';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
@@ -122,6 +123,14 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             return;
         }
         switch (target) {
+            case '经验加100':
+                if (ZRSJZ_GradeService.GetGradeInfo().IsMaxLevel) {
+                    void ZRSJZ_UIManager.Instance.ShowTip('玩家已满级');
+                    break;
+                }
+                ZRSJZ_GradeService.AddExperience(100);
+                void ZRSJZ_UIManager.Instance.ShowTip('经验 +100');
+                break;
             case '完成全部成就':
                 ZRSJZ_AchievementService.DebugCompleteAll();
                 void ZRSJZ_UIManager.Instance.ShowTip('全部成就已完成，请前往成就界面领取奖励');

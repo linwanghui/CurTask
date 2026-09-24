@@ -287,16 +287,16 @@ export class ZRSJZ_SearchPropEffect extends Component {
             case ZRSJZ_PROP_QUALITY.红色:
                 if (Math.random() < 0.8) ZRSJZ_AudioManager.Instance?.PlaySoleSound("哇金色传说");
                 break;
-            case ZRSJZ_PROP_QUALITY.金色:
-                if (Math.random() < 0.5) ZRSJZ_AudioManager.Instance?.PlaySoleSound("一般");
-                break;
-            case ZRSJZ_PROP_QUALITY.紫色:
-                if (Math.random() < 0.2) ZRSJZ_AudioManager.Instance?.PlaySoleSound("一般");
-                break;
-            default:
-                // 白、绿、蓝品质统一使用普通开出音效。
-                if (Math.random() < 0.3) ZRSJZ_AudioManager.Instance?.PlaySoleSound("难过");
-                break;
+            // case ZRSJZ_PROP_QUALITY.金色:
+            //     if (Math.random() < 0.5) ZRSJZ_AudioManager.Instance?.PlaySoleSound("一般");
+            //     break;
+            // case ZRSJZ_PROP_QUALITY.紫色:
+            //     if (Math.random() < 0.2) ZRSJZ_AudioManager.Instance?.PlaySoleSound("一般");
+            //     break;
+            // default:
+            //     // 白、绿、蓝品质统一使用普通开出音效。
+            //     if (Math.random() < 0.3) ZRSJZ_AudioManager.Instance?.PlaySoleSound("难过");
+            //     break;
         }
     }
 

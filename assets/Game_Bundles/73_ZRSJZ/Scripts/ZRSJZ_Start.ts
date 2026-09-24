@@ -27,6 +27,66 @@ const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Start')
 export class ZRSJZ_Start extends Component {
+    @property({ tooltip: '锻造解锁等级', min: 1, step: 1 })
+    ForgeUnlockLevel: number = 5;
+    @property({ tooltip: '宠物解锁等级', min: 1, step: 1 })
+    PetUnlockLevel: number = 2;
+    @property({ tooltip: '曼德尔箱解锁等级', min: 1, step: 1 })
+    MandellBoxUnlockLevel: number = 8;
+    @property({ tooltip: '战令解锁等级', min: 1, step: 1 })
+    BattlePassUnlockLevel: number = 6;
+    @property({ tooltip: '活动解锁等级', min: 1, step: 1 })
+    ActivityUnlockLevel: number = 6;
+
+    private GetUnlockLevel(name: string): number {
+        return ({ 锻造台: this.ForgeUnlockLevel, 宠物: this.PetUnlockLevel,
+            曼德尔箱: this.MandellBoxUnlockLevel, 战令: this.BattlePassUnlockLevel,
+            活动: this.ActivityUnlockLevel })[name] ?? 0;
+    }
+
+    private HasFirstUnlockReminder(name: string): boolean {
+        return this.GetUnlockLevel(name) > 0
+            && ZRSJZ_GradeService.GetGradeInfo().Level >= this.GetUnlockLevel(name)
+            && ZRSJZ_GameData.Instance.ViewedSidebarFeatures?.[name] !== true;
+    }
+
+    private RefreshSidebarUnlocks(): void {
+        if (!isValid(this.UIPanel, true)) return;
+        const buttons = this.UIPanel.getComponentsInChildren(Button);
+        const template = buttons.filter(button => this.GetUnlockLevel(button.node.name) > 0)
+            .map(button => button.node.getChildByName('红点')).find(node => !!node);
+        const level = ZRSJZ_GradeService.GetGradeInfo().Level;
+        for (const button of buttons) {
+            const target = button.node;
+            const requiredLevel = this.GetUnlockLevel(target.name);
+            if (!requiredLevel) continue;
+            const locked = level < requiredLevel;
+            const sprite = target.getComponent(Sprite);
+            if (sprite) sprite.grayscale = locked;
+            const lockTip = target.getChildByName('等级解锁');
+            if (lockTip) {
+                lockTip.active = locked;
+                const label = lockTip.getComponent(Label) ?? lockTip.getComponentInChildren(Label);
+                if (label) label.string = `${requiredLevel}级解锁`;
+            }
+            let firstTip = target.getChildByName('第一次解锁红点');
+            if (!firstTip && template) {
+                firstTip = instantiate(target.getChildByName('红点') ?? template);
+                firstTip.name = '第一次解锁红点';
+                firstTip.setParent(target);
+                firstTip.setScale(1, 1, 1);
+            }
+            const firstVisible = this.HasFirstUnlockReminder(target.name);
+            if (firstTip) firstTip.active = firstVisible;
+            const rewardTip = target.getChildByName('红点');
+            if (rewardTip && (locked || firstVisible)) {
+                Tween.stopAllByTarget(rewardTip);
+                rewardTip.setScale(1, 1, 1);
+                rewardTip.active = false;
+            }
+        }
+    }
+
     @property(Node)
     SupplyButton: Node = null;
     @property(Node)
@@ -143,6 +203,8 @@ export class ZRSJZ_Start extends Component {
     }
 
     protected onEnable(): void {
+        this.RefreshSidebarUnlocks();
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE, this.RefreshMainReminders, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT, () => {
             ZRSJZ_AudioManager.Instance.PlayMusic("BGM", true, 0.3);
         })
@@ -156,6 +218,7 @@ export class ZRSJZ_Start extends Component {
     }
 
     protected onDisable(): void {
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE, this.RefreshMainReminders, this);
         this.unschedule(this.RefreshMainReminders);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SUPPLIES_CHANGE, this.RefreshMainReminders, this);
         for (const tip of this._mainReminderNodes.values()) {
@@ -178,6 +241,27 @@ export class ZRSJZ_Start extends Component {
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
+        const name = event.getCurrentTarget().name;
+        const requiredLevel = this.GetUnlockLevel(name);
+        const firstUnlock = this.HasFirstUnlockReminder(name);
+        if (requiredLevel > 0) {
+            if (ZRSJZ_GradeService.GetGradeInfo().Level < requiredLevel) {
+                ZRSJZ_UIManager.Instance.ShowTip(`${requiredLevel}级解锁`);
+                return;
+            }
+            // 资源未就绪的点击不消耗首次解锁提醒。
+            if (!ZRSJZ_UIManager.ZRSJZ_UI || !ZRSJZ_UIManager.ZRSJZ_DLC) {
+                ZRSJZ_UIManager.Instance.ShowTip('功能资源正在加载，请稍后再试');
+                return;
+            }
+            if (this.HasFirstUnlockReminder(name)) {
+                const data = ZRSJZ_GameData.Instance;
+                if (!data.ViewedSidebarFeatures) data.ViewedSidebarFeatures = {};
+                data.ViewedSidebarFeatures[name] = true;
+                ZRSJZ_GameData.SaveData();
+                this.RefreshMainReminders();
+            }
+        }
         switch (event.getCurrentTarget().name) {
             case "活动":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.活动界面);
@@ -227,7 +311,7 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.收藏室界面);
                 break;
             case "曼德尔箱":
-                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.曼德尔箱界面);
+                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.曼德尔箱界面, { firstUnlock });
                 else ZRSJZ_UIManager.Instance.ShowTip('曼德尔箱资源正在加载，请稍后再试');
                 break;
             case "盲盒":
@@ -262,10 +346,10 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.邮件界面);
                 break;
             case "锻造台":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.锻造界面);
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.锻造界面, { firstUnlock });
                 break;
             case "宠物":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.宠物界面);
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.宠物界面, { firstUnlock });
                 break;
             case "成就":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.成就界面);
@@ -275,7 +359,7 @@ export class ZRSJZ_Start extends Component {
                 Banner.Instance.TikTokRankingListGet();
                 break;
             case "战令":
-                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.战令界面);
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.战令界面, { firstUnlock });
                 break;
             case "更多游戏":
                 UIManager.ShowPanel(Panel.LoadingPanel, [DataManager.GetGameData("文字三角洲"), "WZSJZ_Start"]);
@@ -417,6 +501,7 @@ export class ZRSJZ_Start extends Component {
     private _mainReminderNodes = new Map<string, Node>();
 
     private RefreshMainReminders(): void {
+        this.RefreshSidebarUnlocks();
         if (this._noticeHomeReady && !this._noticeRequested && ZRSJZ_UIManager.ZRSJZ_UI
             && ZRSJZ_NoticeService.ShouldShow(ZRSJZ_UIManager.ZRSJZ_DLC)
             && !ZRSJZ_UIManager.Dragging && !ZRSJZ_UIManager.Instance.HasOpenPanels) {
@@ -446,7 +531,9 @@ export class ZRSJZ_Start extends Component {
         const reminders = ZRSJZ_MainReminderService.GetReminders(ZRSJZ_UIManager.ZRSJZ_DLC);
         for (const [name, tip] of this._mainReminderNodes) {
             if (!isValid(tip, true)) continue;
-            const visible = reminders[name] === true;
+            const visible = reminders[name] === true
+                && ZRSJZ_GradeService.GetGradeInfo().Level >= this.GetUnlockLevel(name)
+                && !this.HasFirstUnlockReminder(name);
             if (tip.active === visible) continue;
             Tween.stopAllByTarget(tip);
             tip.setScale(1, 1, 1);

@@ -5,6 +5,7 @@ import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_MandellService as Box } from '../Service/ZRSJZ_MandellService';
+import { ZRSJZ_GuidanceService } from '../Service/ZRSJZ_GuidanceService';
 import Banner from 'db://assets/Scripts/Banner';
 const { ccclass, property } = _decorator;
 
@@ -20,15 +21,18 @@ export class ZRSJZ_MandellBoxPanel extends ZRSJZ_Panel {
     private animationCancel: (() => void) | null = null;
     public get CanClose(): boolean { return !this.opening; }
 
-    Show(): void {
+    Show(options?: { firstUnlock?: boolean }): void {
         if (this.opening) return;
         this.Panel = this.node.getChildByName('Panel');
         this.Initialize();
         this.ClosePopups();
         this.Refresh();
         this.SetOpening(false);
-        super.Show();
-        if (Box.Pending) void this.Open(0);
+        super.Show(async () => {
+            // 有未完成的抽奖时，先恢复抽奖再展示指引。
+            if (Box.Pending) await this.Open(0);
+            ZRSJZ_GuidanceService.ShowFirstEntry(this.node, '曼德尔箱', options?.firstUnlock === true);
+        });
     }
 
     Hide(...args: any[]): void {

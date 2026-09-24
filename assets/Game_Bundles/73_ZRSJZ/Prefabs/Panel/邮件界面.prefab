@@ -28,17 +28,17 @@
     "_active": true,
     "_components": [
       {
+        "__id__": 247
+      },
+      {
         "__id__": 249
       },
       {
         "__id__": 251
-      },
-      {
-        "__id__": 253
       }
     ],
     "_prefab": {
-      "__id__": 255
+      "__id__": 253
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -303,13 +303,10 @@
       },
       {
         "__id__": 244
-      },
-      {
-        "__id__": 246
       }
     ],
     "_prefab": {
-      "__id__": 248
+      "__id__": 246
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -5739,42 +5736,6 @@
     "fileId": "96nW5SZQlGMIDYnKmYt+fx"
   },
   {
-    "__type__": "cc.Widget",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 12
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 245
-    },
-    "_alignFlags": 45,
-    "_target": null,
-    "_left": 0,
-    "_right": 0,
-    "_top": 0,
-    "_bottom": 0,
-    "_horizontalCenter": 0,
-    "_verticalCenter": 0,
-    "_isAbsLeft": true,
-    "_isAbsRight": true,
-    "_isAbsTop": true,
-    "_isAbsBottom": true,
-    "_isAbsHorizontalCenter": true,
-    "_isAbsVerticalCenter": true,
-    "_originalWidth": 2340,
-    "_originalHeight": 1080,
-    "_alignMode": 2,
-    "_lockFlags": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "e5LnW51txP9LelpYxi9sDj"
-  },
-  {
     "__type__": "cc.UIOpacity",
     "_name": "",
     "_objFlags": 0,
@@ -5784,7 +5745,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 247
+      "__id__": 245
     },
     "_opacity": 255,
     "_id": ""
@@ -5816,7 +5777,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 250
+      "__id__": 248
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -5844,7 +5805,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 252
+      "__id__": 250
     },
     "_alignFlags": 45,
     "_target": null,
@@ -5880,7 +5841,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 254
+      "__id__": 252
     },
     "MailItemPrefab": {
       "__uuid__": "4f1a46bd-9e3b-496c-b63d-96d481052781",
