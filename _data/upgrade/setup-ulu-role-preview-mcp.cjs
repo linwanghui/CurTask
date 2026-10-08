@@ -1,0 +1,26 @@
+const fs = require('fs');
+const { call } = require('./mcp.cjs');
+(async () => {
+    const script = 'assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_SkinSkeleton.ts';
+    await call('assetAdvanced_asset_operations', { action: 'save', url: 'db://' + script, content: fs.readFileSync(script, 'utf8') });
+    const missileScript = 'assets/Game_Bundles/73_ZRSJZ/Scripts/Skill/ZRSJZ_UluMissile.ts';
+    await call('assetAdvanced_asset_operations', { action: 'save', url: 'db://' + missileScript, content: fs.readFileSync(missileScript, 'utf8') });
+    const missilePrefab = 'assets/Game_Bundles/73_ZRSJZ_DLC/Prefabs/Effect/技能_乌鲁.prefab';
+    const missileData = JSON.parse(fs.readFileSync(missilePrefab, 'utf8'));
+    const mapLayer = JSON.parse(fs.readFileSync('settings/v2/packages/project.json', 'utf8')).layer.find(x => x.name === 'Map').value;
+    for (const entry of missileData) if (entry.__type__ === 'cc.Node') entry._layer = mapLayer;
+    await call('assetAdvanced_asset_operations', { action: 'save', url: 'db://' + missilePrefab, content: JSON.stringify(missileData, null, 2) });
+    const prefab = 'assets/Game_Bundles/73_ZRSJZ/Prefabs/Panel/角色界面.prefab';
+    const data = JSON.parse(fs.readFileSync(prefab, 'utf8'));
+    const skin = data.findIndex(x => x.__type__ === 'cc.Node' && x._name === 'Skin');
+    const targets = data.findIndex(x => x.__type__ === 'cc.Node' && x._name === '乌鲁鲁技能落点');
+    const component = data[skin]._components.map(r => data[r.__id__]).find(c => c.__type__.startsWith('1bd1e'));
+    if (!component || targets < 0) throw Error('Role preview nodes missing');
+    component.UluLuluSkillPoint = { __id__: targets };
+    delete component.UluSkillPrefab;
+    component.UluSkillPath = 'Prefabs/Effect/技能_乌鲁';
+    component.UluEffectScale = 0.65;
+    component.UluArcHeight = 140;
+    await call('assetAdvanced_asset_operations', { action: 'save', url: 'db://' + prefab, content: JSON.stringify(data, null, 2) });
+    console.log(JSON.stringify(await call('prefab_prefab_browse', { action: 'validate', prefabPath: 'db://' + prefab })));
+})().catch(e => { console.error(e); process.exitCode = 1; });

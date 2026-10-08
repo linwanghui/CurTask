@@ -4,7 +4,7 @@ import { ZRSJZ_BoxroomService } from "../Service/ZRSJZ_BoxroomService";
 import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
 import { ZRSJZ_PetService } from "../Service/ZRSJZ_PetService";
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
-import { _decorator, isValid, Label, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, Sprite, tween, Tween, v2, v3, Vec2, Vec3 } from 'cc';
+import { _decorator, instantiate, isValid, Label, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, Sprite, tween, Tween, v2, v3, Vec2, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_PET_HEAL_CONFIG, ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
@@ -27,6 +27,9 @@ import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Mailbox } from '../Unit/ZRSJZ_Mailbox';
 import { ZRSJZ_BoosterShotService } from "../Service/ZRSJZ_BoosterShotService";
 import { ZRSJZ_Laser } from "../Skill/ZRSJZ_Laser";
+import { ZRSJZ_UluSkill } from '../Skill/ZRSJZ_UluSkill';
+import { assetManager, Prefab, sp } from 'cc';
+import { ZRSJZ_FENGYI_HEAL_CONFIG } from '../ZRSJZ_Constant';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Player')
@@ -40,6 +43,93 @@ export class ZRSJZ_Player extends Component {
     WeaponType: string = "";
 
     PlayerSkeleton: ZRSJZ_PlayerSkeleton = null;
+    private _uluCastVersion = 0;
+    private _uluCastLoading = false;
+    private _refreshUluTarget: (() => void) = null;
+    private _fengYiVersion = 0;
+    private _fengYiLoading = false;
+    private _fengYiHeal: { node: Node; spine: sp.Skeleton; game: ZRSJZ_Game; duration: number; elapsed: number; total: number; delivered: number } = null;
+
+    public CanCastFengYi(showTip = true): boolean {
+        const game = ZRSJZ_Game.Instance;
+        if (!this.CanUseAsyncResult(game) || game.GamePaused || game.IsGameFinished || this.IsDead) return false;
+        if (this.CurHP >= this.MaxHP) {
+            if (showTip) ZRSJZ_UIManager.Instance.ShowTip('当前生命值已满');
+            return false;
+        }
+        return !this._fengYiLoading && !this._fengYiHeal;
+    }
+
+    private ClearFengYi(): void {
+        this._fengYiVersion++;
+        this._fengYiLoading = false;
+        if (this._fengYiHeal && isValid(this._fengYiHeal.node, true)) this._fengYiHeal.node.destroy();
+        this._fengYiHeal = null;
+    }
+
+    private async CastFengYi(): Promise<void> {
+        if (!this.CanCastFengYi()) return;
+        const game = ZRSJZ_Game.Instance;
+        const version = ++this._fengYiVersion;
+        this._fengYiLoading = true;
+        let effect: Node = null;
+        try {
+            const bundle = assetManager.getBundle('73_ZRSJZ_DLC') ?? await new Promise<ReturnType<typeof assetManager.getBundle>>((resolve, reject) => {
+                assetManager.loadBundle('73_ZRSJZ_DLC', (error, loaded) => error ? reject(error) : resolve(loaded));
+            });
+            const prefab = await new Promise<Prefab>((resolve, reject) => {
+                bundle.load('Prefabs/Effect/技能_蜂医', Prefab, (error, loaded) => error ? reject(error) : resolve(loaded));
+            });
+            if (version !== this._fengYiVersion || !this.CanUseAsyncResult(game) || game.IsGameFinished || this.IsDead || this.CurHP >= this.MaxHP) return;
+            const parent = game.CurMap?.BulletParent ?? this.node.parent;
+            if (!isValid(parent, true)) return;
+            effect = instantiate(prefab);
+            parent.addChild(effect);
+            const setLayer = (node: Node): void => { node.layer = parent.layer; node.children.forEach(setLayer); };
+            setLayer(effect);
+            effect.setWorldPosition(this.node.worldPosition);
+            const spine = effect.getComponentInChildren(sp.Skeleton);
+            const animation = spine?.findAnimation('in');
+            if (!animation || animation.duration <= 0) throw new Error('技能_蜂医缺少有效的 in 动画');
+            spine.setAnimation(0, 'in', false);
+            spine.timeScale = game.GamePaused ? 0 : 1;
+            this._fengYiHeal = {
+                node: effect, spine, game, duration: animation.duration, elapsed: 0,
+                total: Math.round(this.MaxHP * ZRSJZ_FENGYI_HEAL_CONFIG.HealMaxHPRate), delivered: 0
+            };
+        } catch (error) {
+            if (isValid(effect, true)) effect.destroy();
+            console.error('[ZRSJZ_Player] 蜂医技能释放失败:', error);
+        } finally {
+            if (version === this._fengYiVersion) this._fengYiLoading = false;
+        }
+    }
+
+    private UpdateFengYi(dt: number): void {
+        const heal = this._fengYiHeal;
+        if (!heal) return;
+        if (!this.CanUseAsyncResult(heal.game) || heal.game.IsGameFinished || this.IsDead || !isValid(heal.node, true)) {
+            this.ClearFengYi();
+            return;
+        }
+        heal.node.setWorldPosition(this.node.worldPosition);
+        heal.spine.timeScale = heal.game.GamePaused ? 0 : 1;
+        if (heal.game.GamePaused) return;
+        heal.elapsed = Math.min(heal.duration, heal.elapsed + Math.max(0, dt));
+        const steps = Math.max(1, Math.round(heal.duration / Math.max(0.05, ZRSJZ_FENGYI_HEAL_CONFIG.TickInterval)));
+        const step = heal.elapsed >= heal.duration ? steps : Math.floor(heal.elapsed / heal.duration * steps + 1e-8);
+        const delivered = Math.round(heal.total * step / steps);
+        const firstHeal = heal.delivered === 0;
+        const amount = Math.max(0, Math.min(delivered - heal.delivered, this.MaxHP - this.CurHP));
+        heal.delivered = delivered;
+        if (amount > 0) {
+            if (firstHeal) ZRSJZ_AchievementService.HealUsed();
+            this.CurHP += amount;
+            this.HP?.Show(this.CurHP);
+            void this.ShowPetHealNumber(amount);
+        }
+        if (heal.elapsed >= heal.duration) this.ClearFengYi();
+    }
     HP: ZRSJZ_HP = null;
     Other: Node = null;
 
@@ -122,7 +212,9 @@ export class ZRSJZ_Player extends Component {
             const setLayer = (child: Node) => { child.layer = parent.layer; child.children.forEach(setLayer); };
             setLayer(node);
             node.setWorldPosition(origin);
-            const label = node.getChildByName('Num')?.getComponent(Label);
+            const label = node.getChildByName('Harm')?.getComponent(Label)
+                ?? node.getChildByName('Num')?.getComponent(Label)
+                ?? node.getComponentInChildren(Label);
             if (label) label.string = '+' + amount;
             this._healNumbers.push({ node, elapsed: 0, origin });
         } catch (error) { console.warn('[宠物治疗] 血量恢复预制体加载失败', error); }
@@ -302,6 +394,8 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected onDisable(): void {
+        this.ClearFengYi();
+        this.CancelUluSkill();
         if (this._bulletDelayedSprite) Tween.stopAllByTarget(this._bulletDelayedSprite);
         this._bulletTargetFill = -1;
         this.ClearPetHealing();
@@ -321,6 +415,9 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected update(dt: number): void {
+        this.UpdateFengYi(dt);
+        this._refreshUluTarget?.();
+        if (!this._uluCastLoading && !this.PlayerSkeleton?.IsUluSkillPlaying) this._refreshUluTarget = null;
         this.RefreshBulletProgress();
         this.UpdatePetHealing(dt);
         if (this.IsDead || ZRSJZ_Game.Instance.IsGameFinished) this._petShields.clear();
@@ -412,6 +509,15 @@ export class ZRSJZ_Player extends Component {
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        if (skillName === '蜂医' || skillName === '医疗') {
+            void this.CastFengYi();
+            return;
+        }
+        // 乌鲁使用独立技能轨道，释放时不取消或阻塞正在进行的射击和移动。
+        if (skillName === '乌鲁' || skillName === '导弹') {
+            void this.CastUluSkill();
+            return;
+        }
         if (this._isSlide || this._gunAttackAnimationActive || this._isLaserCasting) return;
         this.CancelGunAttackState();
         this.CancelKnifeAttackState();
@@ -518,6 +624,75 @@ export class ZRSJZ_Player extends Component {
                 })
                 break;
         }
+    }
+
+    private async CastUluSkill(): Promise<void> {
+        if (this._uluCastLoading || this.PlayerSkeleton?.IsUluSkillPlaying) return;
+        const game = ZRSJZ_Game.Instance;
+        const target = this.TargetEnemy;
+        const enemy = target?.getComponent(ZRSJZ_EnemyBase);
+        if (!this.CanUseAsyncResult(game) || game.GamePaused || game.IsGameFinished || this.IsDead
+            || !isValid(target, true) || !target.activeInHierarchy || !enemy || enemy.IsDead) return;
+        const targetPosition = target.worldPosition.clone();
+        const lastSeenPosition = targetPosition.clone();
+        // 一旦丢失目标便冻结最后有效位置，不能读取已销毁或对象池复用后的节点。
+        let targetLost = false;
+        const refreshTarget = (): void => {
+            if (targetLost) return;
+            if (!isValid(target, true) || !target.activeInHierarchy || !isValid(enemy, true) || enemy.IsDead) {
+                targetLost = true;
+                targetPosition.set(lastSeenPosition);
+                return;
+            }
+            lastSeenPosition.set(target.worldPosition);
+            // 小幅移动只记录位置；累计偏离落点超过 50 才重新瞄准。
+            if (Vec3.squaredDistance(lastSeenPosition, targetPosition) > 50 * 50) {
+                targetPosition.set(lastSeenPosition);
+            }
+        };
+        this._refreshUluTarget = refreshTarget;
+        const version = ++this._uluCastVersion;
+        this._uluCastLoading = true;
+        try {
+            const prefab = await ZRSJZ_UluSkill.LoadPrefab();
+            if (version !== this._uluCastVersion || !this.CanUseAsyncResult(game)
+                || game.GamePaused || game.IsGameFinished || this.IsDead) return;
+            const parent = game.CurMap?.BulletParent ?? this.node.parent?.parent;
+            if (!isValid(parent, true) || !parent.activeInHierarchy) return;
+            const canContinue = (): boolean => {
+                refreshTarget();
+                return version === this._uluCastVersion && this.CanUseAsyncResult(game)
+                    && !game.IsGameFinished && !this.IsDead && isValid(parent, true) && parent.activeInHierarchy;
+            };
+            const played = this.PlayerSkeleton.PlayUluSkill((_name, start, direction) => {
+                if (!canContinue() || game.GamePaused) return;
+                const effect = instantiate(prefab);
+                try {
+                    const skill = effect.getComponent(ZRSJZ_UluSkill);
+                    if (!skill) throw new Error('技能_乌鲁缺少 ZRSJZ_UluSkill');
+                    parent.addChild(effect);
+                    skill.Launch(start, direction, targetPosition.clone(), () => {
+                        refreshTarget();
+                        return targetPosition;
+                    });
+                } catch (error) {
+                    effect.destroy();
+                    console.error('[ZRSJZ_Player] 乌鲁导弹发射失败:', error);
+                }
+            }, canContinue, () => game.GamePaused);
+            if (!played) console.warn('[ZRSJZ_Player] 当前玩家骨骼无法播放 技能_乌鲁');
+        } catch (error) {
+            console.error('[ZRSJZ_Player] 乌鲁技能释放失败:', error);
+        } finally {
+            if (version === this._uluCastVersion) this._uluCastLoading = false;
+        }
+    }
+
+    private CancelUluSkill(): void {
+        this._uluCastVersion++;
+        this._uluCastLoading = false;
+        this._refreshUluTarget = null;
+        this.PlayerSkeleton?.ClearUluSkill();
     }
 
     private FinishLaserCasting(restoreKnife: boolean): void {
@@ -1033,6 +1208,7 @@ export class ZRSJZ_Player extends Component {
             this.HP?.Show(0);
             this.RefreshBulletProgress();
             if (!game.IsTutorial) {
+                this.CancelUluSkill();
                 this.CancelGunAttackState();
                 this.CancelKnifeAttackState();
                 this._isStop = true;

@@ -890,8 +890,17 @@ export class ZRSJZ_UIManager extends Component {
                         return;
                     }
                     if (err) {
-                        reject(err);
-                        console.error(`加载 ${SkinName} 失败`);
+                        BundleManager.GetBundle("73_ZRSJZ_DLC").load(`Sprites/角色界面/皮肤Icon/${SkinName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {
+                            if (err) {
+                                reject(err);
+                                console.error(`加载 ${SkinName} 失败`);
+                            } else {
+                                this.RoleSkinIconSFMap.set(sf.name, sf);
+                                resolve && resolve(sf);
+                            }
+                        });
+                        // reject(err);
+                        // console.error(`加载 ${SkinName} 失败`);
                     } else {
                         this.RoleSkinIconSFMap.set(sf.name, sf);
                         resolve && resolve(sf);

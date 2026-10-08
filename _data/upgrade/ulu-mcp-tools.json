@@ -1,0 +1,2119 @@
+[
+  {
+    "name": "scene_scene_management",
+    "description": "SCENE MANAGEMENT: Core scene operations for project workflow. COMMON TASKS: get_current for active scene info, get_list to see all scenes, open to switch scenes, save to persist changes, create for new scenes. WORKFLOW: Always save before switching scenes to avoid data loss.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "get_current",
+            "get_list",
+            "open",
+            "save",
+            "create",
+            "save_as",
+            "close"
+          ],
+          "description": "Scene operation: \"get_current\" = active scene details | \"get_list\" = all project scenes | \"open\" = switch to scene (requires scenePath) | \"save\" = save current changes | \"create\" = new scene file (requires sceneName+savePath) | \"save_as\" = copy scene (requires path) | \"close\" = close active scene"
+        },
+        "scenePath": {
+          "type": "string",
+          "description": "Scene file path to open (REQUIRED for open action). Use Cocos asset URLs. Examples: \"db://assets/scenes/Game.scene\", \"db://assets/levels/Level1.scene\". Get paths from get_list action first."
+        },
+        "sceneName": {
+          "type": "string",
+          "description": "New scene name (REQUIRED for create action). Use descriptive names without extension. Examples: \"MainMenu\", \"GameLevel1\", \"Settings\". System adds .scene extension automatically."
+        },
+        "savePath": {
+          "type": "string",
+          "description": "Save location for new scene (REQUIRED for create action). Must include .scene extension. Examples: \"db://assets/scenes/Tutorial.scene\", \"db://assets/levels/BossLevel.scene\"."
+        },
+        "path": {
+          "type": "string",
+          "description": "Destination path for scene copy (REQUIRED for save_as action). Creates duplicate of current scene. Examples: \"db://assets/scenes/GameBackup.scene\", \"db://assets/versions/v1_Game.scene\"."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "scene_scene_hierarchy",
+    "description": "SCENE HIERARCHY: Get the complete hierarchy of current scene with optional component information. Use this to inspect scene structure.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "includeComponents": {
+          "type": "boolean",
+          "description": "Show component details in hierarchy output. true = full information including component types and properties (detailed but verbose), false = basic structure only (faster, cleaner output). Recommended: false for overview, true for analysis.",
+          "default": false
+        }
+      }
+    }
+  },
+  {
+    "name": "scene_scene_execution_control",
+    "description": "EXECUTION CONTROL: Execute component methods, scene scripts, or restore prefab instances. Use this for running custom logic and managing prefab synchronization.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "execute_component_method",
+            "execute_scene_script",
+            "restore_prefab"
+          ],
+          "description": "Action: \"execute_component_method\" = call method on component | \"execute_scene_script\" = run scene plugin method | \"restore_prefab\" = sync prefab instance"
+        },
+        "uuid": {
+          "type": "string",
+          "description": "Component UUID to execute method on (execute_component_method action only). Get from component tools."
+        },
+        "name": {
+          "type": "string",
+          "description": "Method name to execute. For execute_component_method: component method name. For execute_scene_script: plugin name"
+        },
+        "method": {
+          "type": "string",
+          "description": "Script method name to call (execute_scene_script action only)"
+        },
+        "args": {
+          "type": "array",
+          "description": "Arguments to pass to the method. Each element will be passed as a parameter to the method call.",
+          "default": []
+        },
+        "nodeUuid": {
+          "type": "string",
+          "description": "Prefab instance node UUID (restore_prefab action only). The node that should be synchronized with its prefab."
+        },
+        "assetUuid": {
+          "type": "string",
+          "description": "Prefab asset UUID (restore_prefab action only). The source prefab to restore from."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "scene_scene_state_management",
+    "description": "STATE MANAGEMENT: Create snapshots, manage undo/redo operations, and control scene reload. Use this for version control and state tracking.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "create_snapshot",
+            "abort_snapshot",
+            "begin_undo",
+            "end_undo",
+            "cancel_undo",
+            "soft_reload"
+          ],
+          "description": "Action: \"create_snapshot\" = save scene state | \"abort_snapshot\" = cancel snapshot | \"begin_undo\" = start recording | \"end_undo\" = finish recording | \"cancel_undo\" = cancel recording | \"soft_reload\" = reload scene"
+        },
+        "nodeUuid": {
+          "type": "string",
+          "description": "Node UUID to record for undo (begin_undo action only). Changes to this node will be tracked."
+        },
+        "undoId": {
+          "type": "string",
+          "description": "Undo recording ID from begin_undo operation (end_undo/cancel_undo actions only). Used to identify which recording to complete or cancel."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "scene_scene_query_system",
+    "description": "QUERY SYSTEM: Get scene status, available classes/components, and find nodes by asset usage. Use this for scene inspection and analysis.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "check_ready",
+            "check_dirty",
+            "list_classes",
+            "list_components",
+            "check_script",
+            "find_nodes_by_asset"
+          ],
+          "description": "Action: \"check_ready\" = is scene ready | \"check_dirty\" = has unsaved changes | \"list_classes\" = get registered classes | \"list_components\" = get available components | \"check_script\" = verify script exists | \"find_nodes_by_asset\" = find nodes using asset"
+        },
+        "extends": {
+          "type": "string",
+          "description": "Filter classes that extend this base class (list_classes action only). Example: \"cc.Component\" shows all component classes"
+        },
+        "className": {
+          "type": "string",
+          "description": "Script class name to verify (check_script action only). Example: \"PlayerController\""
+        },
+        "assetUuid": {
+          "type": "string",
+          "description": "Asset UUID to search for usage (find_nodes_by_asset action only). Get UUID from asset tools."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "node_node_query",
+    "description": "NODE SEARCH & INFORMATION: Essential tool for finding and inspecting scene nodes. CRITICAL WORKFLOW: Always use this FIRST to get node UUIDs before any modifications. Use \"find\" for partial name search, \"find_by_name\" for exact match, \"info\" for detailed node data, \"list_all\" to see entire scene structure.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "info",
+            "find",
+            "find_by_name",
+            "list_all",
+            "detect_type",
+            "tree"
+          ],
+          "description": "Search/query operation: \"info\" = get complete node details (requires uuid) | \"find\" = search by partial name match (requires pattern) | \"find_by_name\" = find exact name (requires name) | \"list_all\" = get all scene nodes | \"detect_type\" = determine 2D/3D type (requires uuid) | \"tree\" = get hierarchical structure (optional uuid for subtree)"
+        },
+        "uuid": {
+          "type": "string",
+          "description": "Target node UUID (REQUIRED for info/detect_type actions). For tree action: root node UUID (optional, defaults to scene root). IMPORTANT: Get UUID from find/find_by_name/list_all first! Format: \"12345678-abcd-1234-5678-123456789abc\""
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Name search pattern (REQUIRED for find action). Supports partial matching. Examples: \"Player\" finds \"Player\", \"PlayerController\", \"EnemyPlayer\". Case-insensitive unless exactMatch=true."
+        },
+        "name": {
+          "type": "string",
+          "description": "Exact node name (REQUIRED for find_by_name action). Must match perfectly including case and spaces. Examples: \"MainCamera\", \"UI Root\", \"Background Image\". Use find action for partial matches."
+        },
+        "exactMatch": {
+          "type": "boolean",
+          "description": "Match mode for find action. false (default) = partial matching (\"btn\" finds \"btnClose\", \"submitBtn\"), true = exact matching (\"btn\" finds only \"btn\"). Recommended: false for discovery, true for precision.",
+          "default": false
+        },
+        "maxDepth": {
+          "type": "number",
+          "description": "Maximum tree depth to traverse. Use with action=\"tree\". Controls how deep to traverse the node hierarchy.",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 20
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "node_node_lifecycle",
+    "description": "NODE CREATION & DELETION: Create new nodes or delete existing ones. CRITICAL WORKFLOW for create: 1) Use node_query to find parent UUID, 2) Provide parentUuid (scene root if omitted), 3) Add components or instantiate from prefab. Delete only needs node UUID.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "create",
+            "delete"
+          ],
+          "description": "Lifecycle operation: \"create\" = add new node to scene (requires name, optional parentUuid/components/assetPath) | \"delete\" = remove node from scene (requires uuid from node_query)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Node name (REQUIRED for create action). Choose descriptive names. Examples: \"PlayerSprite\" for game character, \"MainMenuButton\" for UI element, \"BackgroundMusic\" for audio node."
+        },
+        "parentUuid": {
+          "type": "string",
+          "description": "Parent node UUID for new node placement (create action). WORKFLOW: Use node_query to find parent UUID first. If omitted, creates under scene root. Examples: Canvas UUID for UI elements, Scene root UUID for game objects."
+        },
+        "nodeType": {
+          "type": "string",
+          "enum": [
+            "Node",
+            "2DNode",
+            "3DNode"
+          ],
+          "description": "Node type (for create)",
+          "default": "Node"
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Component types to attach (create action). Common combinations: [\"cc.Sprite\"] for images, [\"cc.Label\"] for text, [\"cc.Button\", \"cc.Sprite\"] for clickable images. Format: [\"cc.ComponentName\"]"
+        },
+        "assetUuid": {
+          "type": "string",
+          "description": "Prefab asset UUID for instantiation (create action). Use asset_query to find prefab UUID first. Creates complete prefab instance with all children and components. Alternative to components parameter."
+        },
+        "assetPath": {
+          "type": "string",
+          "description": "Prefab asset path for instantiation (create action). Alternative to assetUuid. Examples: \"db://assets/prefabs/Player.prefab\", \"db://assets/ui/MenuPanel.prefab\". System resolves path to UUID automatically."
+        },
+        "unlinkPrefab": {
+          "type": "boolean",
+          "description": "Unlink from prefab after creation",
+          "default": false
+        },
+        "initialTransform": {
+          "type": "object",
+          "properties": {
+            "position": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                }
+              }
+            },
+            "rotation": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                }
+              }
+            },
+            "scale": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "z": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "description": "Initial transform (for create)"
+        },
+        "uuid": {
+          "type": "string",
+          "description": "Target node UUID for deletion (REQUIRED for delete action). WORKFLOW: Use node_query to find UUID first. WARNING: Deletes node and all children permanently. Format: \"12345678-abcd-1234-5678-123456789abc\""
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "node_node_transform",
+    "description": "MODIFY NODE PROPERTIES: Use this to change node name, visibility, position, rotation, scale, or other properties. Automatically handles 2D/3D differences. ALWAYS provide uuid (get from node_query first).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "REQUIRED: UUID of node to modify. Get this from node_query first! Without UUID, cannot modify node."
+        },
+        "name": {
+          "type": "string",
+          "description": "Change node name. Example: \"PlayerSprite\" → \"EnemySprite\""
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Show/hide node. true = visible, false = hidden. Hidden nodes and their children don't render"
+        },
+        "layer": {
+          "type": "number",
+          "description": "Node layer"
+        },
+        "mobility": {
+          "type": "number",
+          "description": "Node mobility setting"
+        },
+        "position": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "z": {
+              "type": "number",
+              "description": "Z coordinate (ignored for 2D nodes)"
+            }
+          },
+          "description": "Set node position {x, y, z}. For 2D nodes: only x,y matter (z auto-set to 0). Example: {x: 100, y: 200}"
+        },
+        "rotation": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "X rotation (ignored for 2D nodes)"
+            },
+            "y": {
+              "type": "number",
+              "description": "Y rotation (ignored for 2D nodes)"
+            },
+            "z": {
+              "type": "number",
+              "description": "Z rotation (main axis for 2D nodes)"
+            }
+          },
+          "description": "Set node rotation {x, y, z} in degrees. For 2D nodes: only z matters (x,y ignored). Example 2D: {z: 45}, 3D: {x: 30, y: 45, z: 0}"
+        },
+        "scale": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "z": {
+              "type": "number",
+              "description": "Z scale (usually 1 for 2D nodes)"
+            }
+          },
+          "description": "Set node scale {x, y, z}. For 2D nodes: z typically stays 1. Example: {x: 2, y: 2} doubles size"
+        },
+        "customProperties": {
+          "type": "object",
+          "description": "Other properties as key-value pairs"
+        }
+      },
+      "required": [
+        "uuid"
+      ]
+    }
+  },
+  {
+    "name": "node_node_hierarchy",
+    "description": "MOVE OR COPY NODES: Use this to change node parent (move in hierarchy) or duplicate nodes. For move: changes which node is the parent. For duplicate: creates a copy of the node.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "move",
+            "duplicate"
+          ],
+          "description": "Choose action: \"move\" = change node's parent | \"duplicate\" = create a copy of node"
+        },
+        "nodeUuid": {
+          "type": "string",
+          "description": "UUID of node to move. Use with action=\"move\". Get UUID from node_query first!"
+        },
+        "newParentUuid": {
+          "type": "string",
+          "description": "UUID of new parent node. Use with action=\"move\". The node will become a child of this parent"
+        },
+        "siblingIndex": {
+          "type": "number",
+          "description": "Sibling index in new parent",
+          "default": -1
+        },
+        "uuid": {
+          "type": "string",
+          "description": "UUID of node to copy. Use with action=\"duplicate\". Creates an exact copy with new UUID"
+        },
+        "includeChildren": {
+          "type": "boolean",
+          "description": "Include children when duplicating",
+          "default": true
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "node_node_clipboard",
+    "description": "CLIPBOARD OPERATIONS: Copy, paste, cut nodes and manage node clipboard operations. Use this for duplicating and moving nodes within the scene hierarchy.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "copy",
+            "paste",
+            "cut"
+          ],
+          "description": "Action: \"copy\" = copy nodes to clipboard | \"paste\" = paste nodes from clipboard to target parent | \"cut\" = cut nodes (copy + mark for move)"
+        },
+        "uuids": {
+          "type": [
+            "string",
+            "array"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "Node UUID(s) to copy or cut. Can be a single string UUID or array of UUIDs. Get UUIDs from node_query tool first!"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target parent node UUID for paste operation. The copied/cut nodes will become children of this node."
+        },
+        "keepWorldTransform": {
+          "type": "boolean",
+          "description": "Preserve world coordinates when pasting (paste action only). true = keep world position, false = use local position",
+          "default": false
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "node_node_property_management",
+    "description": "PROPERTY MANAGEMENT: Reset node properties, transform values, or component settings to defaults. Use this to restore original values and clean up modifications.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "reset_property",
+            "reset_transform",
+            "reset_component"
+          ],
+          "description": "Action: \"reset_property\" = reset specific node property | \"reset_transform\" = reset position/rotation/scale | \"reset_component\" = reset component to defaults"
+        },
+        "uuid": {
+          "type": "string",
+          "description": "Node UUID for reset_property/reset_transform actions, or Component UUID for reset_component action. Get UUID from appropriate query tools."
+        },
+        "path": {
+          "type": "string",
+          "description": "Property path to reset (reset_property action only). Examples: \"position\", \"rotation\", \"scale\", \"active\", \"layer\""
+        }
+      },
+      "required": [
+        "action",
+        "uuid"
+      ]
+    }
+  },
+  {
+    "name": "node_node_array_management",
+    "description": "ARRAY MANAGEMENT: Move or remove elements in node array properties like component lists. Use this for reordering components or removing array items.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "move_element",
+            "remove_element"
+          ],
+          "description": "Action: \"move_element\" = change array element position | \"remove_element\" = delete array element at index"
+        },
+        "uuid": {
+          "type": "string",
+          "description": "Node UUID that contains the array property. Get UUID from node_query tool."
+        },
+        "path": {
+          "type": "string",
+          "description": "Array property path. Common examples: \"__comps__\" (components), \"children\" (child nodes)"
+        },
+        "index": {
+          "type": "number",
+          "description": "Target array index to operate on. 0-based indexing (remove_element action only)"
+        },
+        "target": {
+          "type": "number",
+          "description": "Original index of element to move (move_element action only)"
+        },
+        "offset": {
+          "type": "number",
+          "description": "Position offset to move by (move_element action only). Positive = move down, negative = move up"
+        }
+      },
+      "required": [
+        "action",
+        "uuid",
+        "path"
+      ]
+    }
+  },
+  {
+    "name": "node_node_script_management",
+    "description": "NODE SCRIPT MANAGEMENT: Attach or remove custom TypeScript/JavaScript components to/from nodes. WORKFLOW: 1) Use \"attach\" with scriptPath for new scripts, 2) Use component_query from component-tools to see attached scripts, 3) Use \"remove\" with scriptCid to detach. Scripts are node-based components with UUID-format CIDs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "attach",
+            "remove"
+          ],
+          "description": "Script operation: \"attach\" = add custom script to node (requires nodeUuid+scriptPath) | \"remove\" = detach script from node (requires nodeUuid+scriptCid from component_query)"
+        },
+        "nodeUuid": {
+          "type": "string",
+          "description": "Target node UUID (REQUIRED). Get from node_query tool first. Format: \"12345678-abcd-1234-5678-123456789abc\". Script will be attached to/removed from this node."
+        },
+        "scriptPath": {
+          "type": "string",
+          "description": "Script file path (REQUIRED for attach action). Must be valid Cocos asset path. Examples: \"db://assets/scripts/PlayerController.ts\", \"db://assets/game/GameManager.js\". Use asset_query to find script paths."
+        },
+        "scriptCid": {
+          "type": "string",
+          "description": "Script component ID (REQUIRED for remove action). UUID-like format from component_query list. Example: \"9b4a7ueT9xD6aRE+AlOusy1\". Cannot remove script without exact CID - use component_query from component-tools first!"
+        }
+      },
+      "required": [
+        "action",
+        "nodeUuid"
+      ]
+    }
+  },
+  {
+    "name": "component_component_manage",
+    "description": "COMPONENT MANAGEMENT: Add or remove built-in Cocos Creator components (cc.Sprite, cc.Button, etc.). WORKFLOW: 1) Use node_query to get nodeUuid, 2) Add components with componentType, 3) Use component_query to verify. For custom scripts use node_script_management from node-tools instead.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "add",
+            "remove"
+          ],
+          "description": "Component operation: \"add\" = attach built-in component(s) to node (requires componentType) | \"remove\" = detach specific component from node (requires exact CID from component_query)"
+        },
+        "nodeUuid": {
+          "type": "string",
+          "description": "Target node UUID (REQUIRED). WORKFLOW: Use node_query tool to find node UUID first. Format: \"12345678-abcd-1234-5678-123456789abc\". Cannot add/remove components without valid node UUID."
+        },
+        "componentType": {
+          "type": [
+            "string",
+            "array"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "Component type(s) (REQUIRED). ADD: Built-in types like \"cc.Sprite\", \"cc.Button\", \"cc.Label\", \"cc.RichText\". Can be string or array. REMOVE: Must use exact CID from component_query list (format: \"cc.Sprite@12345\"). Common types: cc.Sprite (images), cc.Label (text), cc.Button (clickable)."
+        }
+      },
+      "required": [
+        "action",
+        "nodeUuid",
+        "componentType"
+      ]
+    }
+  },
+  {
+    "name": "component_component_query",
+    "description": "COMPONENT QUERY: Get component information, list all components on node, or get available component types. Use this FIRST to find component CIDs before removing!",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "list",
+            "info",
+            "available_types"
+          ],
+          "description": "Action: \"list\" = get all components on node | \"info\" = get specific component details | \"available_types\" = get all available component types"
+        },
+        "nodeUuid": {
+          "type": "string",
+          "description": "Node UUID (required for \"list\" and \"info\" actions). Get from node tools first!"
+        },
+        "componentType": {
+          "type": "string",
+          "description": "Component type to get info for (required for \"info\" action). Use exact CID from list results."
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "all",
+            "renderer",
+            "ui",
+            "physics",
+            "animation",
+            "audio"
+          ],
+          "default": "all",
+          "description": "Component category filter for available_types action"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "component_set_component_property",
+    "description": "COMPONENT PROPERTY SETTER: Set component properties with strict type validation. CRITICAL WORKFLOW: 1) Use component_query to get exact componentType AND inspect property types, 2) Set properties with MANDATORY propertyType specification, 3) Verify results. SUPPORTS: All Cocos Creator built-in components (cc.Label, cc.Sprite, cc.Button) and custom script components. ⚠️ IMPORTANT: propertyType is REQUIRED - no automatic detection!",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nodeUuid": {
+          "type": "string",
+          "description": "Target node UUID (REQUIRED). Get from node_query tool first. Format: \"12345678-abcd-1234-5678-123456789abc\". Must be valid scene node UUID."
+        },
+        "componentType": {
+          "type": "string",
+          "description": "Component type identifier (REQUIRED). BUILT-IN: \"cc.Label\", \"cc.Sprite\", \"cc.Button\", \"cc.UITransform\". SCRIPTS: Use compressed UUID format like \"3b6be0raOhG54eGN2c5M4cN\" (get from component_query). CRITICAL: Use exact type string from component_query list action!"
+        },
+        "property": {
+          "type": "string",
+          "description": "Property name for single property setting. Examples: \"string\" (Label text), \"fontSize\" (Label size), \"spriteFrame\" (Sprite image), \"color\" (visual color), \"player\" (script node reference). Check component_query for available properties."
+        },
+        "propertyType": {
+          "type": "string",
+          "description": "Property data type (REQUIRED for single property setting). Use component_query to inspect the property and determine its exact type. CRITICAL: Must match actual property type exactly or setting will fail! No automatic detection available.",
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "integer",
+            "float",
+            "color",
+            "vec2",
+            "vec3",
+            "size",
+            "node",
+            "component",
+            "spriteFrame",
+            "prefab",
+            "asset",
+            "nodeArray",
+            "colorArray",
+            "numberArray",
+            "stringArray"
+          ]
+        },
+        "value": {
+          "description": "Property value - format depends on propertyType. STRING: \"Hello World\", NUMBER: 42, BOOLEAN: true/false, COLOR: {\"r\":255,\"g\":0,\"b\":0,\"a\":255} or \"#FF0000\", VEC2: {\"x\":100,\"y\":50}, SIZE: {\"width\":200,\"height\":100}, NODE/ASSET: \"uuid-string\", ARRAYS: [...values]. See examples in properties description."
+        },
+        "properties": {
+          "type": "object",
+          "description": "BATCH PROPERTY SETTING: Set multiple properties simultaneously for efficiency. Each property MUST specify exact type and value. CRITICAL: Property names must match exactly (case-sensitive), types must be accurate. Use component_query to inspect property types first!\n\n📝 FORMAT:\n{\n  \"propertyName\": {\"type\": \"exactPropertyType\", \"value\": actualValue}\n}\n\n🎯 EXAMPLES BY TYPE:\n• TEXT: {\"string\": {\"type\": \"string\", \"value\": \"Hello World\"}}\n• NUMBERS: {\"fontSize\": {\"type\": \"number\", \"value\": 28}}\n• COLORS: {\"color\": {\"type\": \"color\", \"value\": {\"r\":255,\"g\":100,\"b\":50,\"a\":255}}}\n• BOOLEANS: {\"isBold\": {\"type\": \"boolean\", \"value\": true}}\n• VECTORS: {\"anchorPoint\": {\"type\": \"vec2\", \"value\": {\"x\":0.5,\"y\":1.0}}}\n• SIZES: {\"contentSize\": {\"type\": \"size\", \"value\": {\"width\":200,\"height\":80}}}\n• NODE REFS: {\"player\": {\"type\": \"node\", \"value\": \"node-uuid-here\"}}\n• ASSETS: {\"bulletPrefab\": {\"type\": \"prefab\", \"value\": \"prefab-uuid-here\"}}\n• SPRITES: {\"spriteFrame\": {\"type\": \"spriteFrame\", \"value\": \"sprite-uuid-here\"}}\n\n⚠️ IMPORTANT: 1) Get UUIDs from asset_query and node_query tools first! 2) Use component_query to inspect exact property types - type mismatches will cause failures!",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "integer",
+                  "float",
+                  "color",
+                  "vec2",
+                  "vec3",
+                  "size",
+                  "node",
+                  "component",
+                  "spriteFrame",
+                  "prefab",
+                  "asset",
+                  "nodeArray",
+                  "colorArray",
+                  "numberArray",
+                  "stringArray"
+                ]
+              },
+              "value": {}
+            },
+            "required": [
+              "type",
+              "value"
+            ]
+          }
+        }
+      },
+      "required": [
+        "nodeUuid",
+        "componentType"
+      ]
+    }
+  },
+  {
+    "name": "component_configure_click_event",
+    "description": "Configure or remove click events for Button components. Supports adding new events, removing specific events, or clearing all events.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "nodeUuid": {
+          "type": "string",
+          "description": "Target node UUID that has a Button component"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "add",
+            "modify",
+            "remove",
+            "clear"
+          ],
+          "description": "Operation type: \"add\" to add new event, \"modify\" to modify existing event, \"remove\" to remove specific event by index, \"clear\" to remove all events",
+          "default": "add"
+        },
+        "targetNodeUuid": {
+          "type": "string",
+          "description": "Target node UUID that contains the script component with the callback method (required for \"add\" operation)"
+        },
+        "componentName": {
+          "type": "string",
+          "description": "Name of the script component on target node (required for \"add\" operation)"
+        },
+        "handlerName": {
+          "type": "string",
+          "description": "Method name to call when button is clicked (required for \"add\" operation)"
+        },
+        "customEventData": {
+          "type": "string",
+          "description": "Optional custom event data to pass to the handler (for \"add\" operation)"
+        },
+        "eventIndex": {
+          "type": "number",
+          "description": "Index of the specific event to remove (0-based, required for \"remove\" operation)"
+        }
+      },
+      "required": [
+        "nodeUuid"
+      ]
+    }
+  },
+  {
+    "name": "prefab_prefab_browse",
+    "description": "PREFAB BROWSER: Query and analyze prefab files in your project. WORKFLOW: Use \"list\" to discover all prefabs → \"info\" to get detailed prefab data → \"validate\" to check file integrity. Essential for prefab management and debugging. Common use: finding prefabs before instantiation.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "list",
+            "info",
+            "validate"
+          ],
+          "description": "Browse operation: \"list\" = get all prefabs in folder (optional folder parameter) | \"info\" = get detailed prefab data (requires prefabPath) | \"validate\" = check prefab file integrity (requires prefabPath)"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Search directory for prefabs (list action). Default: \"db://assets\" searches entire project. Examples: \"db://assets/prefabs\" for main prefabs, \"db://assets/ui\" for UI prefabs. Use specific folders for focused searches.",
+          "default": "db://assets"
+        },
+        "prefabPath": {
+          "type": "string",
+          "description": "Prefab file path (REQUIRED for info/validate actions). Must be valid Cocos asset path ending in .prefab. Examples: \"db://assets/prefabs/Player.prefab\", \"db://assets/ui/MenuPanel.prefab\". Get paths from list action first."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "prefab_prefab_lifecycle",
+    "description": "PREFAB LIFECYCLE: Create prefabs from existing nodes or delete prefab files. WORKFLOW: For create → select source node → specify name and save path → creates reusable prefab. For delete → specify prefab path → removes file permanently. Use with caution for delete operations.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "create",
+            "delete"
+          ],
+          "description": "Lifecycle operation: \"create\" = convert scene node into reusable prefab (requires nodeUuid+prefabName+savePath) | \"delete\" = permanently remove prefab file (requires prefabPath - WARNING: irreversible)"
+        },
+        "nodeUuid": {
+          "type": "string",
+          "description": "Source node UUID for prefab creation (REQUIRED for create action). Use node_query to find target node UUID first. The node and all its children will be converted into a prefab. Format: \"12345678-abcd-1234-5678-123456789abc\""
+        },
+        "prefabName": {
+          "type": "string",
+          "description": "New prefab name (REQUIRED for create action). Choose descriptive names without .prefab extension. Examples: \"PlayerCharacter\", \"UIButton\", \"EnemyTank\". System adds .prefab extension automatically."
+        },
+        "savePath": {
+          "type": "string",
+          "description": "Destination path for new prefab (REQUIRED for create action). Must include .prefab extension. Examples: \"db://assets/prefabs/Player.prefab\", \"db://assets/ui/CustomButton.prefab\". Ensure parent folder exists."
+        },
+        "prefabPath": {
+          "type": "string",
+          "description": "Prefab file to delete (REQUIRED for delete action). WARNING: This permanently removes the prefab file. Examples: \"db://assets/prefabs/OldPlayer.prefab\". Use prefab_browse list to find exact paths first."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "prefab_prefab_instance",
+    "description": "PREFAB INSTANCES: Manage prefab instances in the scene. WORKFLOW: \"instantiate\" to create instances → modify as needed → \"apply\" to save changes back to prefab OR \"unlink\" to break connection OR \"revert\" to restore original. Critical for prefab-based development.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "instantiate",
+            "unlink",
+            "apply",
+            "revert"
+          ],
+          "description": "Instance operation: \"instantiate\" = create prefab instance in scene (requires prefabPath+parentUuid) | \"unlink\" = break prefab connection, make independent (requires nodeUuid) | \"apply\" = save instance changes to prefab (requires nodeUuid) | \"revert\" = restore to prefab state (requires nodeUuid)"
+        },
+        "prefabPath": {
+          "type": "string",
+          "description": "Prefab file path (REQUIRED for instantiate action). Must be valid .prefab file. Examples: \"db://assets/prefabs/Player.prefab\", \"db://assets/ui/MenuPanel.prefab\". Use prefab_browse to find available prefabs."
+        },
+        "parentUuid": {
+          "type": "string",
+          "description": "Parent node UUID for new instance (REQUIRED for instantiate action). Use node_query to find parent node first. The prefab instance will be created as a child of this node. Format: \"12345678-abcd-1234-5678-123456789abc\""
+        },
+        "position": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "z": {
+              "type": "number"
+            }
+          },
+          "description": "Starting position for new instance (instantiate action). Sets initial transform after creation. Example: {\"x\": 100, \"y\": 200, \"z\": 0}. Optional - defaults to prefab's original position if omitted."
+        },
+        "nodeUuid": {
+          "type": "string",
+          "description": "Prefab instance node UUID (REQUIRED for unlink/apply/revert actions). Must be a node that was created from a prefab. Use node_query to find prefab instance nodes. Format: \"12345678-abcd-1234-5678-123456789abc\""
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "prefab_prefab_edit",
+    "description": "PREFAB EDIT WORKFLOW: Edit prefab content in dedicated editing mode. CRITICAL WORKFLOW: 1) \"enter\" edit mode (switches to prefab scene) → 2) make modifications using other tools → 3) \"save\" changes → 4) \"exit\" back to main scene. IMPORTANT: Always save before exit to persist changes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "enter",
+            "save",
+            "exit",
+            "test"
+          ],
+          "description": "Edit operation: \"enter\" = start editing prefab in dedicated scene (requires prefabPath) | \"save\" = persist current changes to prefab file | \"exit\" = return to main scene (REMEMBER to save first) | \"test\" = create test instance to verify changes (requires parentUuid)"
+        },
+        "prefabPath": {
+          "type": "string",
+          "description": "Prefab file path (REQUIRED for enter/save/exit actions). Must be valid .prefab file. Examples: \"db://assets/prefabs/Player.prefab\". For enter: opens prefab for editing. For save/exit: specifies which prefab to save/close."
+        },
+        "parentUuid": {
+          "type": "string",
+          "description": "Parent node for test instance (test action only). Use node_query to find parent UUID. Creates temporary instance to verify prefab changes work correctly. Format: \"12345678-abcd-1234-5678-123456789abc\""
+        }
+      },
+      "required": [
+        "action",
+        "prefabPath"
+      ]
+    }
+  },
+  {
+    "name": "project_project_manage",
+    "description": "PROJECT MANAGEMENT: Core project operations and configuration. COMMON WORKFLOWS: get_info for project details, run for preview testing, build for deployment preparation, get_settings for configuration inspection. Note: Build operations require manual interaction due to API limitations.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "run",
+            "build",
+            "get_info",
+            "get_settings"
+          ],
+          "description": "Project operation: \"run\" = start preview/testing (requires platform) | \"build\" = prepare for deployment (requires buildPlatform) | \"get_info\" = project metadata and paths | \"get_settings\" = configuration by category (requires category)"
+        },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "browser",
+            "simulator",
+            "preview"
+          ],
+          "description": "Preview platform (run action). \"browser\" = web preview (most common), \"simulator\" = device simulation, \"preview\" = editor preview. Recommended: browser for quick testing.",
+          "default": "browser"
+        },
+        "buildPlatform": {
+          "type": "string",
+          "enum": [
+            "web-mobile",
+            "web-desktop",
+            "ios",
+            "android",
+            "windows",
+            "mac"
+          ],
+          "description": "Target deployment platform (REQUIRED for build action). \"web-mobile\" = mobile web, \"web-desktop\" = desktop web, \"ios\" = iPhone/iPad, \"android\" = Android devices, \"windows\" = Windows desktop, \"mac\" = macOS desktop."
+        },
+        "debug": {
+          "type": "boolean",
+          "description": "Build configuration (build action). true = development build with debug info and source maps (larger size, easier debugging), false = optimized production build (smaller size, harder debugging). Recommended: true for testing.",
+          "default": true
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "general",
+            "physics",
+            "render",
+            "assets"
+          ],
+          "description": "Configuration category (get_settings action). \"general\" = basic project settings, \"physics\" = physics engine config, \"render\" = rendering settings, \"assets\" = asset processing. Default: general for basic info.",
+          "default": "general"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "project_project_build_system",
+    "description": "BUILD SYSTEM: Control build panel, check builder status, and manage preview servers. Use this for build-related operations and preview management.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "get_build_settings",
+            "open_build_panel",
+            "check_builder_status"
+          ],
+          "description": "Build system action to perform"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "debug_debug_console",
+    "description": "CONSOLE MANAGEMENT: Get console logs or clear console. Use this for monitoring editor output and debugging messages.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "get_logs",
+            "clear"
+          ],
+          "description": "Action: \"get_logs\" = retrieve recent console messages | \"clear\" = clear console history"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Number of recent logs to retrieve (get_logs action only)",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "filter": {
+          "type": "string",
+          "description": "Filter logs by type (get_logs action only)",
+          "enum": [
+            "all",
+            "log",
+            "warn",
+            "error",
+            "info"
+          ],
+          "default": "all"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "debug_debug_logs",
+    "description": "PROJECT LOG ANALYSIS: Read, search, and analyze project log files. Use this for troubleshooting errors and monitoring system activity.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "read",
+            "search",
+            "info"
+          ],
+          "description": "Action: \"read\" = get recent log entries | \"search\" = find specific patterns/errors | \"info\" = get log file information"
+        },
+        "lines": {
+          "type": "number",
+          "description": "Number of recent lines to read (read action only)",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "filterKeyword": {
+          "type": "string",
+          "description": "Filter logs containing specific keyword (read action only)"
+        },
+        "logLevel": {
+          "type": "string",
+          "description": "Filter by log level (read action only)",
+          "enum": [
+            "ERROR",
+            "WARN",
+            "INFO",
+            "DEBUG",
+            "TRACE",
+            "ALL"
+          ],
+          "default": "ALL"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Search pattern - supports regex (search action only)"
+        },
+        "maxResults": {
+          "type": "number",
+          "description": "Maximum number of search results (search action only)",
+          "default": 20,
+          "minimum": 1,
+          "maximum": 100
+        },
+        "contextLines": {
+          "type": "number",
+          "description": "Context lines around each match (search action only)",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "debug_debug_system",
+    "description": "SYSTEM INFORMATION: Get editor version, project details, memory usage, and performance stats. Use this for environment debugging and system monitoring.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "editor_info",
+            "performance"
+          ],
+          "description": "Action: \"editor_info\" = get editor and project information | \"performance\" = get performance statistics"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "preferences_preferences_manage",
+    "description": "PREFERENCES MANAGEMENT: Configure Cocos Creator editor settings and open preferences panel. WORKFLOW: open_panel to access GUI settings, get_config to read current values, set_config to modify settings, reset_config to restore defaults. Supports global/local/default scopes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "open_panel",
+            "get_config",
+            "set_config",
+            "reset_config"
+          ],
+          "description": "Preference operation: \"open_panel\" = launch preferences GUI (optional tab parameter) | \"get_config\" = read configuration values (requires category+path) | \"set_config\" = modify settings (requires category+path+value) | \"reset_config\" = restore defaults (requires category)"
+        },
+        "tab": {
+          "type": "string",
+          "enum": [
+            "general",
+            "external-tools",
+            "data-editor",
+            "laboratory",
+            "extensions",
+            "preview",
+            "console",
+            "native",
+            "builder"
+          ],
+          "description": "Preferences tab to display (open_panel action). Available tabs: \"general\" (basic settings), \"external-tools\" (editor tools), \"data-editor\" (data editing), \"laboratory\" (experimental features), \"extensions\" (plugins), \"preview\" (preview settings), \"console\" (console config), \"native\" (native build), \"builder\" (build settings)."
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "general",
+            "external-tools",
+            "data-editor",
+            "laboratory",
+            "extensions",
+            "preview",
+            "console",
+            "native",
+            "builder"
+          ],
+          "description": "Configuration category (REQUIRED for get_config/set_config/reset_config). Categories match preferences tabs. \"general\" = basic editor settings, \"external-tools\" = tool integration, \"data-editor\" = data editing preferences. Default: general for common settings.",
+          "default": "general"
+        },
+        "path": {
+          "type": "string",
+          "description": "Setting path within category (REQUIRED for get_config/set_config). Use dot notation for nested values. Examples: \"editor.fontSize\" for editor text size, \"preview.autoRefresh\" for auto-refresh setting. Check available paths with get_all action first."
+        },
+        "value": {
+          "description": "New setting value (REQUIRED for set_config). Type depends on setting: string for paths/names, number for sizes/delays, boolean for on/off options, object for complex settings. Examples: 14 for fontSize, true for autoSave, \"/usr/bin/code\" for editor path."
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "global",
+            "local",
+            "default"
+          ],
+          "description": "Setting scope level. \"global\" = applies to all projects (most common), \"local\" = current project only (overrides global), \"default\" = factory settings (read-only for comparison). Recommended: global for general preferences, local for project-specific overrides.",
+          "default": "global"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "preferences_preferences_query",
+    "description": "PREFERENCES QUERY: Get all available preferences, list categories, or search for specific preference settings. Use this for preference discovery and inspection.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "get_all",
+            "list_categories",
+            "search_settings"
+          ],
+          "description": "Query action: \"get_all\" = retrieve all preference configurations | \"list_categories\" = get available preference categories | \"search_settings\" = find settings by keyword"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "global",
+            "local",
+            "default"
+          ],
+          "description": "Configuration scope to query (get_all action only)",
+          "default": "global"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "general",
+              "external-tools",
+              "data-editor",
+              "laboratory",
+              "extensions",
+              "preview",
+              "console",
+              "native",
+              "builder"
+            ]
+          },
+          "description": "Specific categories to include (get_all action only). If not specified, all categories are included."
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Search keyword for finding settings (search_settings action only)"
+        },
+        "includeValues": {
+          "type": "boolean",
+          "description": "Include current values in search results (search_settings action only)",
+          "default": true
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "preferences_preferences_backup",
+    "description": "PREFERENCES BACKUP: Export current preferences to JSON format or prepare for backup operations. Use this for preference backup and restore workflows.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "export",
+            "validate_backup"
+          ],
+          "description": "Backup action: \"export\" = export preferences to JSON | \"validate_backup\" = check backup file format"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "general",
+              "external-tools",
+              "data-editor",
+              "laboratory",
+              "extensions",
+              "preview",
+              "console",
+              "native",
+              "builder"
+            ]
+          },
+          "description": "Categories to export (export action only). If not specified, all categories are exported."
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "global",
+            "local"
+          ],
+          "description": "Configuration scope to export (export action only)",
+          "default": "global"
+        },
+        "includeDefaults": {
+          "type": "boolean",
+          "description": "Include default values in export (export action only)",
+          "default": false
+        },
+        "backupData": {
+          "type": "object",
+          "description": "Backup data to validate (validate_backup action only)"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "server_server_information",
+    "description": "SERVER INFORMATION: Get Cocos Creator editor server network details and status. USAGE: Essential for network configuration, debugging connection issues, and understanding server setup. Use \"get_ip_list\" to see available network interfaces, \"get_port\" for current server port.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "get_ip_list",
+            "get_sorted_ip_list",
+            "get_port",
+            "get_comprehensive_status"
+          ],
+          "description": "Information query: \"get_ip_list\" = all available network IP addresses | \"get_sorted_ip_list\" = IPs sorted by priority/type | \"get_port\" = current editor server port number | \"get_comprehensive_status\" = complete server status with IPs, port, and system info"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "server_server_connectivity",
+    "description": "SERVER CONNECTIVITY: Test and diagnose network connectivity for the Cocos Creator editor server. USAGE: \"test_connectivity\" to verify server accessibility with custom timeout, \"get_network_interfaces\" for detailed network adapter information. Critical for troubleshooting connection problems.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "test_connectivity",
+            "get_network_interfaces"
+          ],
+          "description": "Connectivity operation: \"test_connectivity\" = verify server connection and response time (optional timeout parameter) | \"get_network_interfaces\" = detailed network adapter and interface information (no parameters needed)"
+        },
+        "timeout": {
+          "type": "number",
+          "description": "Connection timeout duration (test_connectivity action). Milliseconds to wait for server response. Examples: 1000 for quick test, 5000 for standard check, 10000 for slow networks. Default: 5000ms provides good balance between speed and reliability.",
+          "default": 5000,
+          "minimum": 1000,
+          "maximum": 30000
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "broadcast_broadcast_log_management",
+    "description": "BROADCAST LOG MANAGEMENT: Monitor Cocos Creator internal messages for debugging and system monitoring. USAGE: get_log to view recent events, clear_log to reset history. DEBUGGING: Use messageType filter to focus on specific events like \"scene:ready\" or \"asset-db:asset-add\".",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "get_log",
+            "clear_log"
+          ],
+          "description": "Log operation: \"get_log\" = retrieve recent broadcast messages (supports limit+messageType filters) | \"clear_log\" = clear all stored message history (no parameters needed)"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Maximum messages to return (get_log action). Controls output size. Examples: 10 for recent events, 100 for comprehensive history, 500 for deep debugging. Default: 50 for balanced view.",
+          "default": 50,
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "messageType": {
+          "type": "string",
+          "description": "Message type filter (get_log action). Show only specific event types. Common filters: \"scene:ready\" (scene loaded), \"asset-db:asset-add\" (asset imported), \"build-worker:ready\" (build system). Leave empty for all messages."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "broadcast_broadcast_listener_management",
+    "description": "BROADCAST LISTENER MANAGEMENT: Control which Cocos Creator events to monitor in real-time. WORKFLOW: start_listening to begin monitoring events → get_active_listeners to see current monitors → stop_listening to end monitoring. Useful for debugging workflows and system monitoring.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "start_listening",
+            "stop_listening",
+            "get_active_listeners"
+          ],
+          "description": "Listener operation: \"start_listening\" = begin monitoring events (requires messageType) | \"stop_listening\" = stop monitoring events (requires messageType) | \"get_active_listeners\" = list current monitors (no parameters needed)"
+        },
+        "messageType": {
+          "type": "string",
+          "description": "Event type to monitor (REQUIRED for start_listening/stop_listening). Critical events: \"scene:ready\" (scene changes), \"asset-db:asset-add\" (imports), \"asset-db:asset-change\" (modifications), \"build-worker:ready\" (build status). Case-sensitive exact match required."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "sceneView_scene_view_gizmo_management",
+    "description": "GIZMO MANAGEMENT: Control scene manipulation tools and transformation handles. USAGE: Change between position/rotation/scale tools, switch coordinate systems (local/global), adjust pivot points. Essential for precise scene editing and object manipulation in the editor.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Gizmo operation to perform. Query actions get current state, change actions modify settings.",
+          "enum": [
+            "change_tool",
+            "query_tool",
+            "change_pivot",
+            "query_pivot",
+            "change_coordinate",
+            "query_coordinate",
+            "query_view_mode"
+          ]
+        },
+        "toolName": {
+          "type": "string",
+          "description": "Transformation tool type (REQUIRED for change_tool action). \"position\" = move objects, \"rotation\" = rotate objects, \"scale\" = resize objects, \"rect\" = 2D rect transform. Choose based on desired editing operation.",
+          "enum": [
+            "position",
+            "rotation",
+            "scale",
+            "rect"
+          ]
+        },
+        "pivotName": {
+          "type": "string",
+          "description": "Transform pivot point (REQUIRED for change_pivot action). \"pivot\" = use object's pivot point (local center), \"center\" = use geometric center (bounding box center). Affects rotation and scaling behavior.",
+          "enum": [
+            "pivot",
+            "center"
+          ]
+        },
+        "coordinateType": {
+          "type": "string",
+          "description": "Coordinate system reference (REQUIRED for change_coordinate action). \"local\" = relative to object's orientation, \"global\" = relative to world axes. Local useful for object-oriented editing, global for world-aligned operations.",
+          "enum": [
+            "local",
+            "global"
+          ]
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "sceneView_scene_view_mode_control",
+    "description": "VIEW MODE CONTROL: Switch scene editor between 2D and 3D modes and control visual aids. USAGE: Toggle 2D/3D perspective for different editing contexts, show/hide grid for alignment reference. 2D mode for UI/sprite editing, 3D mode for 3D scene construction.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "View control operation. Change actions modify view state, query actions get current state.",
+          "enum": [
+            "change_2d_3d",
+            "query_2d_3d",
+            "set_grid",
+            "query_grid"
+          ]
+        },
+        "is2D": {
+          "type": "boolean",
+          "description": "View mode setting (REQUIRED for change_2d_3d action). true = 2D orthographic view (for UI, sprites, 2D games), false = 3D perspective view (for 3D scenes, spatial editing). Choose based on content type."
+        },
+        "gridVisible": {
+          "type": "boolean",
+          "description": "Grid display state (REQUIRED for set_grid action). true = show alignment grid (helpful for positioning), false = hide grid (cleaner view for final preview). Grid aids in precise object placement and alignment."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "sceneView_scene_view_icon_gizmo",
+    "description": "ICON GIZMO CONTROL: Configure visual representation of scene nodes and components. USAGE: Adjust icon display mode (2D/3D) and size for better visibility. Useful for managing visual clutter and improving scene navigation when working with many objects.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Icon gizmo operation. Set actions modify appearance, query actions get current settings.",
+          "enum": [
+            "set_3d_mode",
+            "query_3d_mode",
+            "set_size",
+            "query_size"
+          ]
+        },
+        "is3D": {
+          "type": "boolean",
+          "description": "Icon display mode (REQUIRED for set_3d_mode action). true = 3D icons (spatial representation), false = 2D icons (flat representation). 3D mode for spatial awareness, 2D mode for reduced visual complexity."
+        },
+        "size": {
+          "type": "number",
+          "description": "Icon size scale (REQUIRED for set_size action). Range: 10-100. Smaller values = less visual noise, larger values = easier selection. Recommended: 20-30 for dense scenes, 40-60 for sparse scenes. Adjust based on scene complexity.",
+          "minimum": 10,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "sceneView_scene_view_camera_control",
+    "description": "CAMERA CONTROL: Navigate and position the scene view camera for better editing workflow. USAGE: Focus on specific objects, align camera angles, and synchronize view positions. Essential for efficient scene navigation and precise editing of complex scenes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Camera operation: \"focus_on_nodes\" = center view on specific nodes (requires nodeUuids) | \"align_camera_with_view\" = sync camera to current view | \"align_view_with_node\" = position view to match node orientation.",
+          "enum": [
+            "focus_on_nodes",
+            "align_camera_with_view",
+            "align_view_with_node"
+          ]
+        },
+        "nodeUuids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Node UUIDs to focus on (REQUIRED for focus_on_nodes action). Array of node UUIDs to center in view. Use node_query to get UUIDs first. Examples: [\"node-uuid-1\", \"node-uuid-2\"]. Empty array [] focuses on all scene nodes. Format: array of UUID strings."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "sceneView_scene_view_status_management",
+    "description": "STATUS MANAGEMENT: Monitor scene view configuration and restore default settings. USAGE: \"get_status\" for comprehensive view state information, \"reset_view\" to restore default camera position and settings. Useful for troubleshooting view issues and standardizing editor state.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Status operation: \"get_status\" = retrieve current scene view configuration and settings | \"reset_view\" = restore scene view to default camera position and settings (no parameters needed).",
+          "enum": [
+            "get_status",
+            "reset_view"
+          ]
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "referenceImage_reference_image_management",
+    "description": "REFERENCE IMAGE MANAGEMENT: Manage overlay reference images in the scene editor for design guidance. WORKFLOW: \"add\" images from file paths → \"switch\" between multiple references → \"remove\" when no longer needed OR \"clear_all\" to reset. Essential for UI design and scene layout matching.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "add",
+            "remove",
+            "switch",
+            "clear_all"
+          ],
+          "description": "Management operation: \"add\" = add reference images from file paths (requires paths array) | \"remove\" = remove specific images (requires removePaths array) | \"switch\" = change active reference (requires path) | \"clear_all\" = remove all references (no parameters)"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Image file paths to add (REQUIRED for add action). Array of absolute paths to image files. Supported formats: PNG, JPG, JPEG, GIF. Examples: [\"/Users/username/Desktop/mockup.png\", \"/path/to/ui-design.jpg\"]. Files must exist and be readable."
+        },
+        "removePaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Image paths to remove (remove action). Array of absolute paths matching previously added images. If empty array [], removes current active reference. Examples: [\"/path/to/old-mockup.png\"]. Use exact paths from previous add operations."
+        },
+        "path": {
+          "type": "string",
+          "description": "Target reference image path (REQUIRED for switch action). Absolute path to previously added reference image. Must match exactly with previously added image path. Example: \"/Users/username/Desktop/design-mockup.png\"."
+        },
+        "sceneUUID": {
+          "type": "string",
+          "description": "Scene UUID for switch operation (switch action, optional). Specifies which scene to switch reference in. If omitted, uses current active scene. Format: \"12345678-abcd-1234-5678-123456789abc\". Rarely needed unless working with multiple scenes."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "referenceImage_reference_image_query",
+    "description": "REFERENCE IMAGE QUERY: Inspect current reference image state and configuration. USAGE: \"get_config\" for system settings, \"get_current\" for active image details, \"list_all\" for inventory of added images. Essential for understanding current reference setup and debugging display issues.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "get_config",
+            "get_current",
+            "list_all"
+          ],
+          "description": "Query operation: \"get_config\" = system configuration and settings | \"get_current\" = active reference image details (path, position, scale, opacity) | \"list_all\" = complete inventory of added reference images"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "referenceImage_reference_image_transform",
+    "description": "REFERENCE IMAGE TRANSFORM: Adjust reference image display properties for better design alignment. USAGE: Fine-tune position, scale, and opacity to overlay images properly with scene content. Essential for precise UI design matching and layout guidance.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "set_position",
+            "set_scale",
+            "set_opacity",
+            "set_data"
+          ],
+          "description": "Transform operation: \"set_position\" = adjust image position (requires x, y) | \"set_scale\" = resize image (requires sx, sy) | \"set_opacity\" = change transparency (requires opacity) | \"set_data\" = modify any property (requires key, value)"
+        },
+        "x": {
+          "type": "number",
+          "description": "Horizontal position offset (REQUIRED for set_position). Pixels from center. Positive = right, negative = left. Examples: 100 moves right, -50 moves left. Use for precise image alignment with scene elements."
+        },
+        "y": {
+          "type": "number",
+          "description": "Vertical position offset (REQUIRED for set_position). Pixels from center. Positive = up, negative = down. Examples: 200 moves up, -100 moves down. Coordinate system follows Cocos Creator convention."
+        },
+        "sx": {
+          "type": "number",
+          "description": "Horizontal scale multiplier (REQUIRED for set_scale). Range: 0.1-10.0. 1.0 = original size, 0.5 = half size, 2.0 = double size. Examples: 0.8 for smaller overlay, 1.2 for slightly larger reference.",
+          "minimum": 0.1,
+          "maximum": 10
+        },
+        "sy": {
+          "type": "number",
+          "description": "Vertical scale multiplier (REQUIRED for set_scale). Range: 0.1-10.0. 1.0 = original size, 0.5 = half size, 2.0 = double size. Usually matches sx for proportional scaling. Set different values for aspect ratio adjustment.",
+          "minimum": 0.1,
+          "maximum": 10
+        },
+        "opacity": {
+          "type": "number",
+          "description": "Transparency level (REQUIRED for set_opacity). Range: 0.0-1.0. 0.0 = invisible, 1.0 = fully opaque, 0.5 = semi-transparent. Recommended: 0.3-0.7 for subtle overlay, 0.8-1.0 for clear reference.",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "key": {
+          "type": "string",
+          "description": "Property name to modify (REQUIRED for set_data). Available keys: \"path\" (image file), \"x\" (horizontal position), \"y\" (vertical position), \"sx\" (horizontal scale), \"sy\" (vertical scale), \"opacity\" (transparency). Use for programmatic property updates.",
+          "enum": [
+            "path",
+            "x",
+            "y",
+            "sx",
+            "sy",
+            "opacity"
+          ]
+        },
+        "value": {
+          "description": "Property value to assign (REQUIRED for set_data). Type varies by key: string for \"path\" (file path), number for position/scale/opacity. Examples: \"/new/path.png\" for path, 150 for x/y, 1.5 for sx/sy, 0.7 for opacity."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "referenceImage_reference_image_display",
+    "description": "REFERENCE IMAGE DISPLAY: Update and refresh reference image rendering in the scene view. USAGE: \"refresh\" to force display update after changes or when images appear corrupted. Use when reference images don't display correctly or after system changes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "refresh"
+          ],
+          "description": "Display operation: \"refresh\" = force update reference image rendering and visibility (no parameters needed). Use when images don't appear or display incorrectly."
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "assetAdvanced_asset_manage",
+    "description": "ASSET MANAGEMENT: Import, delete, save metadata, or generate URLs for assets. Use this for all asset creation/deletion/modification operations. WORKFLOW: First use asset_query to find assets, then perform operations. Import requires sourcePath+targetUrl, delete needs urls array, save_meta needs urlOrUUID+content, generate_url needs url parameter.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "import",
+            "delete",
+            "save_meta",
+            "generate_url"
+          ],
+          "description": "Choose operation: \"import\" = batch import external files into project (requires assets array) | \"delete\" = batch remove assets from project (requires urls array) | \"save_meta\" = update asset metadata (requires urlOrUUID+content) | \"generate_url\" = create unique URL for asset (requires url)"
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourcePath": {
+                "type": "string",
+                "description": "Source file path"
+              },
+              "targetUrl": {
+                "type": "string",
+                "description": "Target asset URL"
+              }
+            },
+            "required": [
+              "sourcePath",
+              "targetUrl"
+            ]
+          },
+          "description": "Array of import operations (REQUIRED for import action). Each item must have sourcePath (external file) and targetUrl (destination in project). Example: [{\"sourcePath\":\"/path/to/image.png\", \"targetUrl\":\"db://assets/images/hero.png\"}]"
+        },
+        "overwrite": {
+          "type": "boolean",
+          "description": "Whether to overwrite existing assets (import action only)",
+          "default": false
+        },
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Array of asset URLs to remove (REQUIRED for delete action). Use Cocos asset URLs like \"db://assets/images/hero.png\". Get URLs from asset_query tool first. Example: [\"db://assets/images/old1.png\", \"db://assets/scenes/test.scene\"]"
+        },
+        "urlOrUUID": {
+          "type": "string",
+          "description": "Asset identifier (REQUIRED for save_meta action). Can be asset URL like \"db://assets/image.png\" or UUID like \"12345678-abcd-1234-5678-123456789abc\". Get from asset_query tool."
+        },
+        "content": {
+          "type": "string",
+          "description": "Serialized metadata content (REQUIRED for save_meta action). Must be valid JSON string containing asset metadata. Format depends on asset type. Example: \"{\"importer\":\"image\",\"settings\":{\"format\":\"png\"}}\""
+        },
+        "url": {
+          "type": "string",
+          "description": "Asset URL to generate available URL for (generate_url action only)"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "assetAdvanced_asset_analyze",
+    "description": "ASSET ANALYSIS: Get dependencies or export manifests. Use this to understand asset relationships and generate project reports. WORKFLOW: Use dependencies to trace asset usage, use manifest to export inventory. LIMITATIONS: Reference validation and unused asset detection are disabled due to API constraints.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "dependencies",
+            "manifest"
+          ],
+          "description": "Analysis type: \"dependencies\" = trace which assets this asset depends on (requires url parameter) | \"manifest\" = generate complete asset inventory report for folder (optional folder parameter, outputs JSON/CSV/XML format)"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Target folder path to analyze (both actions). Default: \"db://assets\" analyzes entire project. Examples: \"db://assets/scenes\" for scenes only, \"db://assets/textures\" for textures only.",
+          "default": "db://assets"
+        },
+        "url": {
+          "type": "string",
+          "description": "Asset URL to analyze dependencies for (REQUIRED for dependencies action). Must be valid Cocos asset URL like \"db://assets/scenes/Game.scene\" or \"db://assets/prefabs/Player.prefab\". Get URL from asset_query tool first."
+        },
+        "deep": {
+          "type": "boolean",
+          "description": "Include indirect dependencies (dependencies action only). true = show all nested dependencies recursively, false = show only direct dependencies. Recommended: true for complete analysis.",
+          "default": true
+        },
+        "includeSubfolders": {
+          "type": "boolean",
+          "description": "Whether to include subfolders (unused action only)",
+          "default": true
+        },
+        "format": {
+          "type": "string",
+          "description": "Output format for manifest (manifest action only). \"json\" = structured data for APIs, \"csv\" = spreadsheet compatible, \"xml\" = legacy system integration.",
+          "enum": [
+            "json",
+            "csv",
+            "xml"
+          ],
+          "default": "json"
+        },
+        "includeMetadata": {
+          "type": "boolean",
+          "description": "Include detailed metadata in manifest (manifest action only). true = full asset information including import settings, false = basic info only (name, path, type, UUID). Note: Currently limited by API availability.",
+          "default": false
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "assetAdvanced_asset_system",
+    "description": "ASSET SYSTEM: Check asset database status, refresh assets, or open assets with external programs. Use this for system-level asset operations.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "check_ready",
+            "open_external",
+            "refresh"
+          ],
+          "description": "Action: \"check_ready\" = check if asset database is ready | \"open_external\" = open asset with external program | \"refresh\" = refresh asset database"
+        },
+        "url": {
+          "type": "string",
+          "description": "Asset URL to open (open_external action only)"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Specific folder to refresh (refresh action only)"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "assetAdvanced_asset_query",
+    "description": "ASSET QUERY: Search, get information, and find assets by various criteria. Use this for asset discovery and detailed information retrieval.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "get_info",
+            "get_assets",
+            "find_by_name",
+            "get_details",
+            "query_path",
+            "query_uuid",
+            "query_url"
+          ],
+          "description": "Query action to perform"
+        },
+        "assetPath": {
+          "type": "string",
+          "description": "Asset path (get_info/get_details actions only)"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "all",
+            "scene",
+            "prefab",
+            "script",
+            "texture",
+            "material",
+            "mesh",
+            "audio",
+            "animation",
+            "effect",
+            "chunk"
+          ],
+          "description": "Asset type filter (get_assets action only). Supports Cocos built-in types like effect and chunk.",
+          "default": "all"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Search scope (get_assets/find_by_name actions). Options: \"db://assets\" = user assets only, \"db://internal\" = built-in assets only, \"all\" = both user and built-in assets. Default searches both user and built-in.",
+          "default": "db://assets"
+        },
+        "name": {
+          "type": "string",
+          "description": "Asset name to search for (find_by_name action only)"
+        },
+        "exactMatch": {
+          "type": "boolean",
+          "description": "Whether to use exact name matching (find_by_name action only)",
+          "default": false
+        },
+        "assetType": {
+          "type": "string",
+          "enum": [
+            "all",
+            "scene",
+            "prefab",
+            "script",
+            "texture",
+            "material",
+            "mesh",
+            "audio",
+            "animation",
+            "spriteFrame"
+          ],
+          "description": "Filter by asset type (find_by_name action only)",
+          "default": "all"
+        },
+        "maxResults": {
+          "type": "number",
+          "description": "Maximum number of results (find_by_name action only)",
+          "default": 20
+        },
+        "includeSubAssets": {
+          "type": "boolean",
+          "description": "Include sub-assets like spriteFrame (get_details action only)",
+          "default": true
+        },
+        "url": {
+          "type": "string",
+          "description": "Asset URL (query_path/query_uuid actions only)"
+        },
+        "uuid": {
+          "type": "string",
+          "description": "Asset UUID (query_url action only)"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "assetAdvanced_asset_operations",
+    "description": "ASSET OPERATIONS: Create, copy, move, delete, save, and import assets. Use this for all asset file operations and modifications.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "create",
+            "copy",
+            "move",
+            "delete",
+            "save",
+            "reimport",
+            "import"
+          ],
+          "description": "Asset operation to perform"
+        },
+        "url": {
+          "type": "string",
+          "description": "Asset URL (create/delete/save/reimport actions)"
+        },
+        "content": {
+          "type": "string",
+          "description": "File content - null for folder (create/save actions)"
+        },
+        "overwrite": {
+          "type": "boolean",
+          "description": "Overwrite existing file (create/copy/move actions)",
+          "default": false
+        },
+        "source": {
+          "type": "string",
+          "description": "Source asset URL (copy/move actions)"
+        },
+        "target": {
+          "type": "string",
+          "description": "Target location URL (copy/move actions)"
+        },
+        "sourcePath": {
+          "type": "string",
+          "description": "Source file path (import action only)"
+        },
+        "targetFolder": {
+          "type": "string",
+          "description": "Target folder in assets (import action only)"
+        }
+      },
+      "required": [
+        "action"
+      ]
+    }
+  },
+  {
+    "name": "validation_validate_json_params",
+    "description": "JSON PARAMETER VALIDATION: Validate and auto-fix JSON strings before sending to other tools. USAGE: Paste malformed JSON and get corrected version. Handles common issues like unescaped quotes, trailing commas, missing brackets. Essential for ensuring tool parameters are properly formatted.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "jsonString": {
+          "type": "string",
+          "description": "JSON string to validate and repair (REQUIRED). Can be malformed - tool will attempt automatic fixes. Examples: missing quotes, trailing commas, unescaped characters. Paste your JSON here for validation and correction."
+        },
+        "expectedSchema": {
+          "type": "object",
+          "description": "Expected JSON structure for validation (optional). Provides schema-based validation beyond syntax checking. Useful for ensuring JSON matches specific tool requirements. Leave empty for syntax-only validation."
+        }
+      },
+      "required": [
+        "jsonString"
+      ]
+    }
+  },
+  {
+    "name": "validation_safe_string_value",
+    "description": "STRING SAFETY: Convert text into JSON-safe format by escaping special characters. USAGE: When you have strings with quotes, newlines, or special characters that break JSON. Automatically handles escaping and formatting for safe JSON inclusion.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "description": "Text to make JSON-safe (REQUIRED). Can contain quotes, newlines, special characters. Examples: file paths with backslashes, text with quotes, multi-line strings. Tool will escape all problematic characters."
+        }
+      },
+      "required": [
+        "value"
+      ]
+    }
+  },
+  {
+    "name": "validation_format_mcp_request",
+    "description": "MCP REQUEST FORMATTING: Generate properly formatted MCP tool call request with correct JSON structure. USAGE: Provide tool name and arguments, get back complete MCP request ready to send. Handles all JSON escaping and protocol formatting automatically.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "toolName": {
+          "type": "string",
+          "description": "Target MCP tool name (REQUIRED). Must be exact tool name from available tools. Examples: \"node_query\", \"asset_manage\", \"scene_management\". Case-sensitive exact match required."
+        },
+        "arguments": {
+          "type": "object",
+          "description": "Tool parameters object (REQUIRED). Must be valid JSON object containing all required parameters for the specified tool. Example: {\"action\": \"info\", \"uuid\": \"node-uuid-here\"}. Use tool documentation for required fields."
+        }
+      },
+      "required": [
+        "toolName",
+        "arguments"
+      ]
+    }
+  }
+]

@@ -962,6 +962,30 @@ export const ZRSJZ_ROLE_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_RoleConfig>> 
         Skin: ["灼戈", "星栗", "黯祁"],
         SkillPath: "Prefabs/Controller/Shield",
     }],
+    ["沧戈", {
+        Name: "沧戈",
+        RoleDesc: "擅长重火力打击的爆破手，能够以导弹火力压制敌人。",
+        SkillName: "导弹",
+        SkillDesc: "发射导弹轰击目标，对爆炸范围内的敌人造成伤害。",
+        Skin: ["沧戈", "狩荒", "煌罡"],
+        SkillPath: "Prefabs/Controller/乌鲁",
+    }],
+    ["霁锋", {
+        Name: "霁锋",
+        RoleDesc: "精通战地救治的医疗支援角色，可以快速恢复状态。",
+        SkillName: "医疗",
+        SkillDesc: "施展战地医疗，恢复生命值，提高持续作战能力。",
+        Skin: ["霁锋", "赤骁", "鸦暝"],
+        SkillPath: "Prefabs/Controller/蜂医",
+    }],
+    ["浅燎", {
+        Name: "浅燎",
+        RoleDesc: "擅长作战的远程输出角色，能够以精准射击打击敌人。",
+        SkillName: "风翎",
+        SkillDesc: "朝前释放一个旋风，会拉扯敌人并造成伤害。",
+        Skin: ["浅燎", "鸢铠", "凌魇"],
+        SkillPath: "Prefabs/Controller/露娜",
+    }],
 ])
 
 export interface ZRSJZ_SkinConfig {
@@ -987,17 +1011,17 @@ export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> 
     ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/左亚/w2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
     ["黯祁", { Name: "黯祁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "战令解锁", UnlockPrice: 0, Skin: "角色/左亚/w3", Headset: ["w3_0013_帽子"], EntranceAnis: ["cc_w"] }],
 
-    // ["沧戈", { Name: "沧戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/乌鲁鲁/乌鲁", Headset: ["乌鲁__头发"], EntranceAnis: ["cc_w"] }],
-    // ["狩荒", { Name: "狩荒", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁2", Headset: ["乌鲁2_0019_帽子前", "乌鲁2_0014_帽子后",], EntranceAnis: ["cc_w"] }],
-    // ["煌罡", { Name: "煌罡", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁3", Headset: ["乌鲁3_0012_皇冠"], EntranceAnis: ["cc_w"] }],
+    ["沧戈", { Name: "沧戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/乌鲁鲁/乌鲁", Headset: ["乌鲁__头发"], EntranceAnis: ["cc_乌鲁"] }],
+    ["狩荒", { Name: "狩荒", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁2", Headset: ["乌鲁2_0019_帽子前", "乌鲁2_0014_帽子后",], EntranceAnis: ["cc_乌鲁"] }],
+    ["煌罡", { Name: "煌罡", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/乌鲁鲁/乌鲁3", Headset: ["乌鲁3_0012_皇冠"], EntranceAnis: ["cc_乌鲁"] }],
 
-    // ["霁锋", { Name: "霁锋", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蜂医/蜂医1", Headset: [], EntranceAnis: ["cc_w"] }],
-    // ["赤骁", { Name: "赤骁", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医2", Headset: ["蓝狼3_0012_左角"], EntranceAnis: ["cc_w"] }],
-    // ["鸦暝", { Name: "鸦暝", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医3", Headset: ["蜂医3_0013_帽子", "蜂医3_0014_羽毛", "蜂医3_0017_嘴"], EntranceAnis: ["cc_w"] }],
+    ["霁锋", { Name: "霁锋", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蜂医/蜂医1", Headset: [], EntranceAnis: ["cc_蜂医"] }],
+    ["赤骁", { Name: "赤骁", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蜂医/蜂医2", Headset: ["蓝狼3_0012_左角"], EntranceAnis: ["cc_蜂医"] }],
+    ["鸦暝", { Name: "鸦暝", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蜂医/蜂医3", Headset: ["蜂医3_0013_帽子", "蜂医3_0014_羽毛", "蜂医3_0017_嘴"], EntranceAnis: ["cc_蜂医"] }],
 
-    // ["浅燎", { Name: "浅燎", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/露娜/露娜1", Headset: ["露娜1_0019_墨镜"], EntranceAnis: ["cc_w"] }],
-    // ["鸢铠", { Name: "鸢铠", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜2", Headset: [], EntranceAnis: ["cc_w"] }],
-    // ["凌魇", { Name: "凌魇", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜3", Headset: [], EntranceAnis: ["cc_w"] }],
+    ["浅燎", { Name: "浅燎", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/露娜/露娜1", Headset: ["露娜1_0019_墨镜"], EntranceAnis: ["cc_露娜"] }],
+    ["鸢铠", { Name: "鸢铠", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/露娜/露娜2", Headset: ["露娜__0007_右耳朵", "露娜__0005_左耳朵"], EntranceAnis: ["cc_露娜"] }],
+    ["凌魇", { Name: "凌魇", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/露娜/露娜3", Headset: [], EntranceAnis: ["cc_露娜"] }],
 ])
 
 //玩家动画
@@ -2542,6 +2566,12 @@ export const ZRSJZ_PET_BATTLE_CONFIG = {
     SearchInterval: 0.2,
     TrailSampleDistance: 24, FollowStartDistance: 45, FollowStopDistance: 18,
     FollowResponse: 8, HoverHeight: 7, HoverFrequency: 2.4,
+};
+
+/** 蜂医：技能动画期间分次恢复，0.3 表示最大生命值的 30%。 */
+export const ZRSJZ_FENGYI_HEAL_CONFIG = {
+    HealMaxHPRate: 0.2,
+    TickInterval: 0.3,//回血及飘字间隔（秒）
 };
 
 export const ZRSJZ_PET_HEAL_CONFIG = {

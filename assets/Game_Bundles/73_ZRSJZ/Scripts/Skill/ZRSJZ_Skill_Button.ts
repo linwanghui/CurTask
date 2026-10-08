@@ -95,6 +95,8 @@ export class ZRSJZ_Skill_Button extends Component {
         if (!this.IsReady || !skillName) {
             return false;
         }
+        if ((skillName === '蜂医' || skillName === '医疗')
+            && !ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.CanCastFengYi()) return false;
 
         const directionLength = Math.sqrt(dirX * dirX + dirY * dirY);
         if (directionLength > 0) {
@@ -132,6 +134,9 @@ export class ZRSJZ_Skill_Button extends Component {
 
     private OnTouchStart(event: EventTouch): void {
         const player = ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex);
+        if (this.SkillName === '蜂医' || this.SkillName === '医疗') {
+            if (!player?.CanCastFengYi()) return;
+        } else
         if (this.IsNeedLock && !player?.IsLockEnemy) {
             ZRSJZ_UIManager.Instance.ShowTip("请先锁定目标！");
             return;

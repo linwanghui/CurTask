@@ -1,0 +1,133 @@
+const fs = require('fs');
+const boot = fs.readFileSync(__dirname + '/preview-enhancement-v2.cjs', 'utf8');
+const boss = fs.readFileSync(__dirname + '/preview-boss-motion.cjs', 'utf8');
+const prefix = boot.slice(0, boot.indexOf("  console.log('open',"));
+const launch = boss.slice(boss.indexOf("  console.log('launch',"), boss.indexOf("  console.log('runtime',"));
+eval(prefix + launch + String.raw`
+  console.log('ulu combat', await page.evaluate(async () => {
+    const game = t.get('ZRSJZ_Game').Instance;
+    const player = game.Players[0];
+    const Enemy = cc.js.getClassByName('ZRSJZ_EnemyBase');
+    const Skill = cc.js.getClassByName('ZRSJZ_UluSkill');
+    const Missile = cc.js.getClassByName('ZRSJZ_UluMissile');
+    const enemies = game.node.scene.getComponentsInChildren(Enemy).filter(e => !e.IsDead && e.node.activeInHierarchy);
+    if (!player || enemies.length < 6) throw Error('Missing runtime players/enemies');
+    t.UI.Instance.CloseAllPanelsImmediately();
+    game.GamePaused = false;
+    player.enabled = false;
+    player.CurHP = 1000;
+    player._isSlide = player._gunAttackAnimationActive = player._isLaserCasting = false;
+    enemies.forEach(e => { e.enabled = false; e.StopMoving(); });
+    const parent = game.CurMap.BulletParent;
+    const origin = player.node.worldPosition.clone();
+    origin.x += 500;
+    enemies.forEach((e, i) => e.node.setWorldPosition(origin.x + 10000 + i * 300, origin.y, 0));
+    const offsets = [0, 321, 322, 1000, 50, 50];
+    const hits = offsets.map(() => []);
+    offsets.forEach((x, i) => {
+      const enemy = enemies[i];
+      enemy.node.setWorldPosition(origin.x + x, origin.y, 0);
+      if (enemy.Other) enemy.Other.setWorldPosition(origin.x + (i === 3 ? 321 : x), origin.y, 0);
+      enemy._health = 10000;
+      const original = enemy.BeHit;
+      enemy.BeHit = function(damage) { hits[i].push(damage); return original.call(this, damage); };
+    });
+    enemies[4]._state = t.get('ZRSJZ_ENEMY_STATE').DEAD;
+    enemies[5].node.active = false;
+    const audio = t.get('ZRSJZ_AudioManager').Instance;
+    if (!audio.AudioClipMaps.has('轰炸')) throw Error('Explosion audio missing');
+    const sounds = [], shakes = [];
+    const sound = audio.PlaySound;
+    audio.PlaySound = function(name, volume) { if (name === '轰炸') sounds.push(volume); return sound.call(this, name, volume); };
+    const camera = game.Cameras[player.PlayerIndex], shake = camera.Shake;
+    camera.Shake = function(strength, duration) { shakes.push({ strength, duration }); return shake.call(this, strength, duration); };
+    const prefab = await Skill.LoadPrefab();
+    // 资源异步加载期间物理系统仍会运行；边界用例从当前帧重新摆放目标。
+    offsets.forEach((x, i) => {
+      const enemy = enemies[i];
+      enemy.node.setWorldPosition(origin.x + x, origin.y, 0);
+      if (enemy.Other) enemy.Other.setWorldPosition(origin.x + (i === 3 ? 321 : x), origin.y, 0);
+      enemy.getComponentsInChildren(cc.js.getClassByName('cc.Collider2D')).forEach(c => c.enabled = false);
+    });
+    const make = () => { const node = cc.instantiate(prefab); parent.addChild(node); return node.getComponent(Skill); };
+    const skill = make();
+    if (skill.ExplosionRadius !== 300 || skill.ExplosionDamage !== 50) throw Error('Prefab configuration missing');
+    skill.ExplosionRadius = 321;
+    skill.ExplosionDamage = 77;
+    const expectedDamage = t.get('ZRSJZ_EnhancementService').GetSkillDamage(77 * (1 + t.get('ZRSJZ_BoosterShotService').GetBooster('攻击针')));
+    skill.Launch(player.node.worldPosition.clone(), new cc.Vec3(1, 0), origin);
+    const missile = skill.getComponent(Missile);
+    game.GamePaused = true;
+    missile.update(10);
+    if (missile._elapsed !== 0 || hits.some(a => a.length)) throw Error('Paused missile advanced/damaged');
+    game.GamePaused = false;
+    missile.update(10);
+    missile.update(10);
+    skill.Explode(origin);
+    const expectedHits = [[expectedDamage], [expectedDamage], [], [expectedDamage], [], []];
+    if (JSON.stringify(hits) !== JSON.stringify(expectedHits)) throw Error('Boundary/dedup/liveness damage failed: ' + JSON.stringify(hits));
+    if (enemies[0].Health !== 10000 - expectedDamage) throw Error('Real enemy health did not decrease');
+    if (player.CurHP !== 1000) throw Error('Skill damaged caster');
+    if (sounds.length !== 1 || shakes.length !== 1 || shakes[0].strength <= 0 || camera._shakeRemaining <= 0) throw Error('Explosion feedback missing/duplicated');
+    const volume = Math.max(0, 1 - 500 / skill.FeedbackRadius);
+    if (Math.abs(sounds[0] - volume) > 0.001 || Math.abs(shakes[0].strength - skill.ShakeStrength * volume) > 0.001) throw Error('Distance feedback mismatch');
+    const preview = make(), previewMissile = preview.getComponent(Missile);
+    previewMissile.RecycleToPool = false;
+    previewMissile.Show(origin, new cc.Vec3(1, 0), origin);
+    previewMissile.update(10);
+    if (sounds.length !== 1 || hits[0].length !== 1) throw Error('Preview caused combat side effects');
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    if (cc.isValid(skill.node, true) || cc.isValid(preview.node, true)) throw Error('Completed effects not destroyed');
+
+    // 通过真实玩家 Skill 分支验证事件名、玩家索引、异步加载和发射落点。
+    const launches = [];
+    const originalLaunch = Skill.prototype.Launch;
+    Skill.prototype.Launch = function(start, direction, target) { launches.push(this); originalLaunch.call(this, start, direction, target); };
+    player.TargetEnemy = enemies[0].node;
+    const lockedPosition = player.TargetEnemy.worldPosition.clone();
+    player.Skill('乌鲁', 0, 0, 0, 1 - player.PlayerIndex);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    if (launches.length) throw Error('Wrong player handled skill');
+    player.Skill('乌鲁', 0, 0, 0, player.PlayerIndex);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    if (launches.length !== 1) throw Error('Player 乌鲁 skill did not launch');
+    const runtimeMissile = launches[0].getComponent(Missile);
+    if (cc.Vec3.distance(runtimeMissile._target, lockedPosition) > 0.001) throw Error('Wrong target snapshot');
+    runtimeMissile.update(10);
+    if (hits[0].length !== 2 || sounds.length !== 2) throw Error('Player launch did not explode');
+
+    // 资源返回之前玩家死亡：不再生成导弹。
+    const load = Skill.LoadPrefab;
+    let release;
+    Skill.LoadPrefab = () => new Promise(resolve => { release = resolve; });
+    player.Skill('乌鲁', 0, 0, 0, player.PlayerIndex);
+    if (!release) throw Error('Async request missing');
+    player.CurHP = 0;
+    release(prefab);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    Skill.LoadPrefab = load;
+    if (launches.length !== 1) throw Error('Dead player spawned stale missile');
+    player.CurHP = 1000;
+    player.TargetEnemy = null;
+    player.Skill('乌鲁', 0, 0, 0, player.PlayerIndex);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    if (launches.length !== 1) throw Error('Unlocked skill spawned missile');
+    const abandoned = make();
+    abandoned.Launch(origin, new cc.Vec3(1, 0), origin);
+    const beforeEnd = sounds.length;
+    game._isGameFinished = true;
+    abandoned.getComponent(Missile).update(10);
+    abandoned.update();
+    if (cc.isValid(abandoned.node, true) || sounds.length !== beforeEnd) throw Error('Finished battle retained/detonated missile');
+    game._isGameFinished = false;
+    game.GamePaused = true;
+    return { radius: 321, damage: expectedDamage, hits: expectedHits, realHealthReduced: true,
+      pausedFlight: true, previewIsolated: true, playerSkill: true, noFriendlyFire: true,
+      soundVolume: sounds[0], shake: shakes[0], asyncDeathGuard: true, cleanup: true };
+  }));
+  console.log('errors', errors);
+  fs.writeFileSync(path.join(__dirname, 'ulu-combat-errors.json'), JSON.stringify(errors, null, 2));
+  if (errors.some(e => /ZRSJZ_Ulu|技能_乌鲁/.test(e))) throw Error(errors.join('\n'));
+ } finally { await browser.close(); }
+})().catch(e => { console.error(e); process.exitCode = 1; });
+`);

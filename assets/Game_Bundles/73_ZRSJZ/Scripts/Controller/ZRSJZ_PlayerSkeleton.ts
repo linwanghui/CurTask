@@ -6,7 +6,7 @@ import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
 
-/** 玩家使用一套完整 Spine：Track 0 负责移动，Track 1 只叠加攻击。 */
+/** Track 0 移动，Track 1 攻击，Track 2 只叠加乌鲁炮架及发射特效。 */
 @ccclass('ZRSJZ_PlayerSkeleton')
 export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
@@ -29,6 +29,16 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     private _mzBone: sp.spine.Bone = null;
     private _baseScale = new Vec3();
     private readonly _trackCompleteCallbacks = new Map<number, Function>();
+    private _uluSkillEntry: sp.spine.TrackEntry = null;
+    private _uluSkillSerial = 0;
+    private _uluSkillCompleted = false;
+    private _uluLaunch: (name: string, start: Vec3, direction: Vec3) => void = null;
+    private _uluCanContinue: () => boolean = null;
+    private _uluPaused: () => boolean = null;
+    private readonly _pendingUluEvents: string[] = [];
+    private readonly _firedUluEvents = new Set<string>();
+
+    public get IsUluSkillPlaying(): boolean { return this._uluSkillEntry !== null; }
 
     protected GetEquippedWeaponryIDs(): string[] {
         // 外观刷新只应用当前持有的武器，避免先显示刀后被枪覆盖。
@@ -52,6 +62,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     }
 
     protected OnSkeletonDataChanged(): void {
+        this.ClearUluSkill();
         this._mzBone = this.Skeleton.findBone('mz');
         this.QKBone = this.GunType ? this.Skeleton.findBone(this.GunType + '枪口') : null;
         this.Skeleton.setCompleteListener(this.OnAnimationComplete);
@@ -69,6 +80,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
         this.ClearAttackAnimation();
+        this.ClearUluSkill();
         this._trackCompleteCallbacks.clear();
     }
 
@@ -89,6 +101,63 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     private OnLoadoutChanged(playerIndex: number): void {
         if (playerIndex !== this.CurPlayerIndex) return;
         this.RefreshEquipmentAppearance();
+    }
+
+    /** 技能动画只含炮架/特效时间线，不覆盖 Track 0/1 的人体和持枪姿势。 */
+    public PlayUluSkill(
+        launch: (name: string, start: Vec3, direction: Vec3) => void,
+        canContinue: () => boolean,
+        paused: () => boolean,
+    ): boolean {
+        if (!this.Skeleton?.findAnimation('技能_乌鲁') || this.IsUluSkillPlaying) return false;
+        this._uluLaunch = launch;
+        this._uluCanContinue = canContinue;
+        this._uluPaused = paused;
+        this._uluSkillCompleted = false;
+        this._pendingUluEvents.length = 0;
+        this._firedUluEvents.clear();
+        const entry = this.Skeleton.setAnimation(2, '技能_乌鲁', false);
+        this._uluSkillEntry = entry;
+        // WASM 每次回调可能返回新的 TrackEntry 包装对象，用施放序号识别同一轮。
+        const serial = ++this._uluSkillSerial;
+        this.Skeleton.setTrackEventListener(entry, (track, event) => {
+            if (serial !== this._uluSkillSerial || !this._uluSkillEntry || typeof event === 'number') return;
+            const name = event.data.name;
+            if (!/^p[1-4]$/.test(name) || this._firedUluEvents.has(name)) return;
+            this._firedUluEvents.add(name);
+            this._pendingUluEvents.push(name);
+        });
+        this.Skeleton.setTrackCompleteListener(entry, () => {
+            if (serial === this._uluSkillSerial && this._uluSkillEntry) this._uluSkillCompleted = true;
+        });
+        return true;
+    }
+
+    public ClearUluSkill(): void {
+        const hadSkill = this.IsUluSkillPlaying;
+        this._uluSkillSerial++;
+        this._uluSkillEntry = null;
+        this._uluLaunch = null;
+        this._uluCanContinue = null;
+        this._uluPaused = null;
+        this._uluSkillCompleted = false;
+        this._pendingUluEvents.length = 0;
+        this._firedUluEvents.clear();
+        if (!hadSkill || !this.Skeleton) return;
+        this.Skeleton.clearTrack(2);
+        // 中途打断时只复位技能自己的炮架和槽位，不能复位整个人物骨骼。
+        const json = this.Skeleton.skeletonData?.skeletonJson as {
+            animations?: { [name: string]: { slots?: object; bones?: object } };
+        };
+        const animation = json?.animations?.['技能_乌鲁'];
+        for (const name of Object.keys(animation?.slots ?? {})) this.Skeleton.findSlot(name)?.setToSetupPose();
+        for (const name of Object.keys(animation?.bones ?? {})) this.Skeleton.findBone(name)?.setToSetupPose();
+    }
+
+    protected update(): void {
+        if (!this._uluSkillEntry) return;
+        if (!this._uluCanContinue?.()) { this.ClearUluSkill(); return; }
+        this._uluSkillEntry.timeScale = this._uluPaused?.() ? 0 : 1;
     }
 
     /** Track 0：待机、移动、滑铲和死亡等基础全身状态。 */
@@ -187,6 +256,19 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         const attack = this._afterAimAttack;
         this._afterAimAttack = null;
         attack?.();
+        if (!this._uluSkillEntry) return;
+        if (!this._uluCanContinue?.()) { this.ClearUluSkill(); return; }
+        if (this._uluPaused?.()) return;
+        for (const name of this._pendingUluEvents.splice(0)) {
+            const bone = this.Skeleton.findBone(name);
+            if (!bone) continue;
+            const start = new Vec3(bone.worldX, bone.worldY, 0);
+            const forward = new Vec3(bone.worldX + bone.a, bone.worldY + bone.c, 0);
+            Vec3.transformMat4(start, start, this.node.worldMatrix);
+            Vec3.transformMat4(forward, forward, this.node.worldMatrix);
+            this._uluLaunch?.(name, start, Vec3.subtract(forward, forward, start));
+        }
+        if (this._uluSkillCompleted) this.ClearUluSkill();
     }
 
     private ApplyAimDirection(): void {
