@@ -1,0 +1,154 @@
+*** Begin Patch
+*** Update File: D:/project/GitProject/CurTask/assets/Game_Bundles/73_ZRSJZ_DLC/Scripts/Service/ZRSJZ_MatrixService.ts
+@@
+-import { ZRSJZ_INVENTORY } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
++import { ZRSJZ_INVENTORY, ZRSJZ_PROP_CONFIG, ZRSJZ_PropData, ZRSJZ_GridData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
+@@
+         s.cards = this.Int(s.cards, MATRIX_CONFIG.maxCards);
++        s.slots = Array.from({ length: MATRIX_CONFIG.maxCards }, (_, i) =>
++            Array.isArray(s.slots) ? s.slots[i] === true : i < s.cards);
++        s.cards = s.slots.filter(Boolean).length;
+@@
+-    public static Install(now = Date.now()): string {
++    public static Install(now = Date.now(), slot = -1): string {
+@@
+         if (s.cards >= MATRIX_CONFIG.maxCards) return '显卡已装满（20/20）';
++        if (slot < 0) slot = s.slots.indexOf(false);
++        if (!Number.isInteger(slot) || slot >= MATRIX_CONFIG.maxCards || s.slots[slot]) return '该槽位已安装显卡';
+@@
+         s.cards++;
++        s.slots[slot] = true;
+@@
+     public static Claim(now = Date.now()): number {
+@@
+         return amount;
+     }
++    /** 先保存仓库实例与拆卡结果，再由 UI 进行格子摆放/邮件兜底，不二次生成道具。 */
++    public static Remove(slot: number, now = Date.now()): { error: string; id: string } {
++        const s = this.Settle(now);
++        if (!Number.isInteger(slot) || slot < 0 || slot >= MATRIX_CONFIG.maxCards || !s.slots[slot])
++            return { error: '该槽位没有显卡', id: '' };
++        const config = ZRSJZ_PROP_CONFIG.get('显卡');
++        if (!config) return { error: '显卡配置不存在', id: '' };
++        const data = ZRSJZ_GameData.Instance, prop = new ZRSJZ_PropData();
++        data.PropID = Math.max(0, data.PropID || 0);
++        do { prop.InstanceID = `ZRSJZ_PropID_${++data.PropID}`; } while (data.PropData[prop.InstanceID]);
++        prop.Name = config.Name; prop.PropType = config.PropType; prop.UnitPrice = config.UnitPrice;
++        prop.CurCount = 1; prop.MaxCount = config.MaxCount;
++        prop.CurInventory = ZRSJZ_INVENTORY.仓库_全部; prop.OwnerPlayerIndex = -1;
++        [prop.Height, prop.Width] = config.GridType.split('_').map(Number);
++        prop.GridData = [0, 1].map(() => { const grid = new ZRSJZ_GridData(); grid.IsRotate = false; grid.GridX = -1; grid.GridY = -1; return grid; });
++        data.PropData[prop.InstanceID] = prop;
++        s.slots[slot] = false; s.cards--;
++        ZRSJZ_GameData.SaveData();
++        return { error: '', id: prop.InstanceID };
++    }
+*** Update File: D:/project/GitProject/CurTask/assets/Game_Bundles/73_ZRSJZ_DLC/Scripts/Panel/ZRSJZ_MatrixPanel.ts
+@@
+-import { _decorator, Button, Color, EventTouch, find, Graphics, Label, Node, Sprite, Tween, tween, v3 } from 'cc';
++import { _decorator, Button, Color, EventTouch, find, Label, Node, Sprite, Tween, tween, UITransform, v3 } from 'cc';
+@@
+     private clock = 0;
++    private busy = false;
++    private installSlot = -1;
++    private selectedCandle = 13;
++    private screenSize = '';
++    public get CanClose(): boolean { return !this.busy; }
+@@
+-        super.Show();
++        this.Panel = find('Panel', this.node);
++        Tween.stopAllByTarget(this.Panel);
++        this.node.active = true;
++        this.FitScreen();
+@@
+         this.Refresh();
+     }
++    private FitScreen(): void {
++        const size = this.node.getComponent(UITransform).contentSize;
++        if (!size.width || !size.height) return;
++        this.screenSize = `${size.width}/${size.height}`;
++        const scale = Math.min(size.width / 1280, size.height / 720);
++        this.Panel.setScale(scale, scale, 1);
++        const bg = this.node.getChildByName('Mask');
++        const cover = Math.max(size.width / 1280, size.height / 720);
++        bg.getComponent(UITransform).setContentSize(1280 * cover, 720 * cover);
++        const back = this.node.getChildByName('返回');
++        back.setScale(scale, scale, 1);
++        back.setPosition(-size.width / 2 + 145 * scale, size.height / 2 - 48 * scale, 0);
++    }
+@@
+         if (!this.Panel || !this.node.activeInHierarchy) return;
++        const size = this.node.getComponent(UITransform).contentSize;
++        if (this.screenSize !== `${size.width}/${size.height}`) this.FitScreen();
+@@
+-            slot.getChildByName('已装').active = i < s.cards;
+-            slot.getChildByName('空槽').active = i >= s.cards;
++            slot.getChildByName('已装').active = s.slots[i];
++            slot.getChildByName('空槽').active = !s.slots[i];
+@@
+-        const history = Matrix.History(this.day), g = this.N('货币市场/K线').getComponent(Graphics);
++        const history = Matrix.History(this.day);
+@@
+-        g.clear();
+         for (let i = 0; i <= 3; i++) {
+-            g.strokeColor = new Color(66, 102, 128, 140); g.lineWidth = 1;
+-            g.moveTo(0, i * height / 3); g.lineTo(width, i * height / 3); g.stroke();
+@@
+-            g.strokeColor = color; g.lineWidth = 2;
+-            g.moveTo(x, y(c.low)); g.lineTo(x, y(c.high)); g.stroke();
+-            g.fillColor = color;
+-            g.rect(x - 11, y(Math.min(c.open, c.close)), 22, Math.max(3, Math.abs(y(c.close) - y(c.open)))); g.fill();
++            const candle = this.N(`货币市场/K线/蜡烛${i}`);
++            candle.setPosition(x, height / 2, 0);
++            const body = candle.getChildByName('实体'), wick = candle.getChildByName('影线');
++            body.setPosition(0, (y(c.open) + y(c.close)) / 2 - height / 2, 0);
++            body.getComponent(UITransform).setContentSize(24, Math.max(3, Math.abs(y(c.close) - y(c.open))));
++            wick.setPosition(0, (y(c.low) + y(c.high)) / 2 - height / 2, 0);
++            wick.getComponent(UITransform).setContentSize(3, Math.max(3, y(c.high) - y(c.low)));
++            body.getComponent(Sprite).color = color; wick.getComponent(Sprite).color = color;
++            candle.getChildByName('选中').active = i === this.selectedCandle;
+@@
+         });
++        const c = history[this.selectedCandle], d = new Date(c.day * 86400000);
++        this.Text('货币市场/行情明细', `${d.getUTCMonth()+1}/${d.getUTCDate()}  开 ${c.open.toLocaleString()}  高 ${c.high.toLocaleString()}  低 ${c.low.toLocaleString()}  收 ${c.close.toLocaleString()}`);
+     }
+-    public OnButtonClick(event: EventTouch): void {
++    public async OnButtonClick(event: EventTouch): Promise<void> {
++        if (this.busy) return;
+         const name = event.getCurrentTarget().name;
+@@
+         const ui = ZRSJZ_UIManager.Instance;
++        if (/^蜡烛\d+$/.test(name)) {
++            this.selectedCandle = Math.min(13, Number(name.slice(2))); this.DrawChart(); return;
++        }
++        if (/^槽\d+$/.test(name)) {
++            const slot = Number(name.slice(1)) - 1;
++            if (!Matrix.State.slots[slot]) {
++                if (!Matrix.CardsAvailable()) ui.ShowTip('仓库显卡不足');
++                else { this.installSlot = slot; this.N('装卡确认').active = true; }
++            } else {
++                this.busy = true;
++                try {
++                    const result = Matrix.Remove(slot);
++                    if (result.error) ui.ShowTip(result.error);
++                    else {
++                        const mail = await ui.ReceiveExistingProps([result.id]);
++                        ui.ShowTip(mail.length ? '显卡已取下，仓库已满，已通过邮件返还' : '显卡已取下并返还仓库');
++                    }
++                } catch (error) {
++                    console.error('[超算矩阵] 显卡返还布局失败', error);
++                    ui.ShowTip('显卡已保存，请重新打开仓库检查');
++                } finally { this.busy = false; }
++            }
++            this.Refresh(); return;
++        }
+         switch (name) {
+-            case '关闭': case 'Mask':
++            case '返回':
+@@
+             case '安装':
++                this.installSlot = -1;
+@@
+-                const error = Matrix.Install(); ui.ShowTip(error || '显卡安装成功，生产加速！'); break;
++                const error = Matrix.Install(Date.now(), this.installSlot); ui.ShowTip(error || '显卡安装成功，生产加速！'); break;
+*** End Patch

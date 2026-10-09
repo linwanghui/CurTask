@@ -1,0 +1,58 @@
+// Patch existing prefab in place, retaining unrelated editor changes and asset UUIDs.
+const fs=require('fs'),path=require('path'),crypto=require('crypto');
+const root=path.resolve(__dirname,'..'),dlc=path.resolve(root,'../73_ZRSJZ_DLC');
+const read=p=>JSON.parse(fs.readFileSync(p,'utf8')),write=(p,v)=>fs.writeFileSync(p,JSON.stringify(v,null,2)+'\n');
+const file=path.join(dlc,'Prefabs/Panel/超算矩阵界面.prefab'),a=read(file);
+if(a.some(n=>n._name==='行情明细'))throw Error('V2 already applied; do not overwrite subsequent editor changes.');
+const id=n=>a.indexOf(n),ref=n=>({__id__:typeof n==='number'?n:id(n)}),add=o=>{a.push(o);return o;};
+const rootN=a[a[0].data.__id__],child=(n,name)=>n._children.map(r=>a[r.__id__]).find(n=>n._name===name);
+const P=child(rootN,'Panel'),N=p=>p.split('/').reduce(child,P);
+const comp=(n,t)=>n._components.map(r=>a[r.__id__]).find(c=>c.__type__===t);
+const sourceTypes={};for(const t of ['cc.Node','cc.UITransform','cc.Sprite','cc.Label','cc.Button','cc.BlockInputEvents'])sourceTypes[t]=structuredClone(a.find(n=>n.__type__===t));
+const color=(r,g,b,alpha=255)=>({__type__:'cc.Color',r,g,b,a:alpha});
+const white=comp(child(rootN,'Mask'),'cc.Sprite')._spriteFrame.__uuid__;
+const controller=rootN._components.map(r=>a[r.__id__]).find(c=>!c.__type__.startsWith('cc.')).__type__;
+function component(n,t,props={}){const c=structuredClone(sourceTypes[t]);Object.assign(c,{node:ref(n),__prefab:ref(add({__type__:'cc.CompPrefabInfo',fileId:crypto.randomUUID()})),_id:''},props);add(c);n._components.push(ref(c));return c;}
+function node(name,parent,x,y,w,h){const n=structuredClone(sourceTypes['cc.Node']);Object.assign(n,{_name:name,_children:[],_components:[],_parent:ref(parent),_active:true,_id:'',_lpos:{__type__:'cc.Vec3',x,y,z:0},_lscale:{__type__:'cc.Vec3',x:1,y:1,z:1}});add(n);n._prefab=ref(add({__type__:'cc.PrefabInfo',root:ref(rootN),asset:ref(0),fileId:crypto.randomUUID(),instance:null,targetOverrides:null}));parent._children.push(ref(n));component(n,'cc.UITransform',{_contentSize:{__type__:'cc.Size',width:w,height:h}});return n;}
+function sprite(n,c,sf=white){component(n,'cc.Sprite',{_spriteFrame:{__uuid__:sf,__expectedType__:'cc.SpriteFrame'},_color:c,_sizeMode:0,_type:0});}
+function box(name,parent,x,y,w,h,c){const n=node(name,parent,x,y,w,h);sprite(n,c);return n;}
+function label(name,parent,text,x,y,w,h,size){const n=node(name,parent,x,y,w,h);component(n,'cc.Label',{_string:text,_fontSize:size,_actualFontSize:size,_lineHeight:size+6,_overflow:1,_color:color(236,247,255)});return n;}
+function button(n){const e=add({__type__:'cc.ClickEvent',target:ref(rootN),component:'',_componentId:controller,handler:'OnButtonClick',customEventData:''});component(n,'cc.Button',{clickEvents:[ref(e)],_transition:0,_target:ref(n)});}
+function unlink(n){const parent=a[n._parent.__id__];parent._children=parent._children.filter(r=>r.__id__!==id(n));}
+function text(p,s){comp(N(p),'cc.Label')._string=s;}
+const imgFile=path.join(dlc,'Sprites/超算矩阵/全屏机房.png.meta');
+const old=read(path.join(dlc,'Sprites/超算矩阵/矩阵底板.png.meta'));const uid=fs.existsSync(imgFile)?read(imgFile).uuid:crypto.randomUUID();
+const im=JSON.parse(JSON.stringify(old).replaceAll(old.uuid,uid));for(const s of Object.values(im.subMetas))s.displayName='全屏机房';im.userData.hasAlpha=false;write(imgFile,im);
+const mask=child(rootN,'Mask');mask._components=mask._components.filter(r=>!['cc.Button','cc.Widget'].includes(a[r.__id__].__type__));
+Object.assign(comp(mask,'cc.Sprite'),{_spriteFrame:{__uuid__:uid+'@f9941',__expectedType__:'cc.SpriteFrame'},_color:color(255,255,255)});
+Object.assign(comp(mask,'cc.UITransform')._contentSize,{width:1280,height:720});component(mask,'cc.BlockInputEvents');
+P._components=P._components.filter(r=>a[r.__id__].__type__!=='cc.Sprite');
+unlink(N('标题'));unlink(N('左侧/导航标题'));
+const close=N('关闭');unlink(close);
+const back=node('返回',rootN,-495,312,260,72);button(back);
+box('底',back,0,0,260,70,color(8,16,29,185));
+sprite(node('箭头',back,-97,0,52,52),color(255,255,255),read(path.join(root,'Sprites/选关界面/返回按钮.png.meta')).uuid+'@f9941');
+label('文字',back,'超算矩阵',28,0,176,54,30);
+// Soft panels, not a popup frame; background remains visible edge to edge.
+const shade=box('内容底',P,96,-35,1012,585,color(8,22,38,210));P._children=P._children.filter(r=>r.__id__!==id(shade));P._children.unshift(ref(shade));
+const nav=N('左侧'),navBg=box('导航底',nav,0,100,178,234,color(8,22,38,200));nav._children=nav._children.filter(r=>r.__id__!==id(navBg));nav._children.unshift(ref(navBg));
+text('算力中心/规则','每张显卡减少 1 小时，最多 20 张 · 点击已装显卡可取回仓库');
+text('装卡确认/说明','从仓库放入 1 张显卡\n每枚加密货币的生产时间减少 1 小时\n以后可点击已装显卡取回');
+for(let i=0;i<20;i++){const slot=N('算力中心/显卡槽/槽'+(i+1));button(slot);text('算力中心/显卡槽/槽'+(i+1)+'/已装/状态','取回');}
+const chart=N('货币市场/K线');chart._components=chart._components.filter(r=>a[r.__id__].__type__!=='cc.Graphics');comp(chart,'cc.UITransform')._anchorPoint={__type__:'cc.Vec2',x:0,y:0};
+for(let i=0;i<=3;i++)box('网格'+i,chart,340,i*60,680,1,color(66,102,128,160));
+for(let i=0;i<14;i++){
+ const c=node('蜡烛'+i,chart,(i+.5)*680/14,90,680/14,188);button(c);
+ const selected=box('选中',c,0,0,43,186,color(208,226,242,25));selected._active=i===13;
+ box('影线',c,0,(i%3-1)*16,3,100+(i%4)*14,color(255,104,97));
+ box('实体',c,0,(i%3-1)*16,24,40+(i%3)*18,color(255,104,97));
+}
+const detail=N('货币市场/声明');detail._name='行情明细';comp(detail,'cc.Label')._string='点击 K 线查看当日开盘、最高、最低、收盘价';comp(detail,'cc.Label')._fontSize=19;
+text('货币市场/图标题','近 14 日日 K 线  /  红涨绿跌');
+text('货币市场/规则','游戏预设行情 · 今日买卖同价 · 售出不恢复当日购买次数');
+// Remove unreachable obsolete components/nodes, remap all references safely.
+const keep=new Set();function visit(i){if(keep.has(i))return;if(!a[i])throw Error('Invalid reference '+i);keep.add(i);walk(a[i],v=>visit(v.__id__));}
+function walk(v,cb){if(!v||typeof v!=='object')return;if('__id__'in v){cb(v);return;}for(const x of Object.values(v))walk(x,cb);}
+visit(0);const indexes=[...keep].sort((x,y)=>x-y),map=new Map(indexes.map((x,i)=>[x,i])),result=indexes.map(i=>a[i]);
+for(const o of result)walk(o,v=>v.__id__=map.get(v.__id__));write(file,result);
+console.log('Updated existing prefab with fullscreen Mask, return, clickable slots and 14 editable candle nodes.');

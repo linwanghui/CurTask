@@ -1,0 +1,23 @@
+"""Resize generated artwork only; preserve alpha, no synthesized replacement artwork."""
+from pathlib import Path
+from PIL import Image, ImageOps
+
+root = Path(__file__).resolve().parents[1]
+generated = Path('C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa')
+dest = root.parent / '73_ZRSJZ_DLC/Sprites/超算矩阵'
+dest.mkdir(parents=True, exist_ok=True)
+assets = [
+    ('exec-dd636d40-e3b5-4077-8650-50e6625026c5.png', '矩阵底板.png', (1280, 720), False),
+    ('exec-1b435e93-7b12-4615-8ddc-ee4904aea1fa.png', '超算机柜.png', (512, 512), True),
+    ('exec-1952fed8-5b39-41bf-bded-c8d816e152d8.png', '矩阵按钮.png', (384, 96), True),
+]
+for source, name, size, cutout in assets:
+    image = Image.open(generated / source).convert('RGBA')
+    if cutout:
+        bounds = image.getchannel('A').getbbox()
+        if bounds: image = image.crop(bounds)
+        image = ImageOps.pad(image, size, method=Image.Resampling.LANCZOS, color=(0, 0, 0, 0))
+    else:
+        image = ImageOps.fit(image, size, method=Image.Resampling.LANCZOS)
+    image.save(dest / name, optimize=True)
+    print(name, image.size, (dest / name).stat().st_size)

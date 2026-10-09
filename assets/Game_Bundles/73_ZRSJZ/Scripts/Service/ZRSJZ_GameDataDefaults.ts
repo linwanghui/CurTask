@@ -12,6 +12,7 @@ import { ZRSJZ_SIDE_TASK_LINES } from '../ZRSJZ_TaskLines';
 import { MigrateLegacyEnhancement } from '../ZRSJZ_EnhancementConfig';
 import { CreateBattlePassState } from '../ZRSJZ_BattlePassConfig';
 import { CreateMidAutumnState } from './ZRSJZ_MidAutumnService';
+import { CreateMatrixState } from '../ZRSJZ_MatrixState';
 
 /** 新存档初始化和旧存档迁移。此类不触发事件，也不主动写盘。 */
 export class ZRSJZ_GameDataDefaults {
@@ -48,6 +49,7 @@ export class ZRSJZ_GameDataDefaults {
         }
 
         const loadData = () => {
+            if (data.Versions === 25 && !savedData.Matrix) data.Matrix = CreateMatrixState();
             if (data.Versions === 24 && savedData.MandellFreeTenDate === undefined) data.MandellFreeTenDate = '';
             if (data.Versions === 23 && savedData.MidAutumn === undefined) data.MidAutumn = CreateMidAutumnState();
             if (data.Versions === 21) {

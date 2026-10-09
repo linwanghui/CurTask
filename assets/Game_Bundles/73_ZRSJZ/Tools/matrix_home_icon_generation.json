@@ -1,0 +1,9 @@
+{
+  "generator": "built-in image_gen",
+  "reference": "Sprites/主页/排行榜.png",
+  "output": "Sprites/主页/超算矩阵.png",
+  "size": [160, 160],
+  "transparent_background": true,
+  "processing": "Pillow LANCZOS resize to requested 160x160; preserve alpha.",
+  "prompt": "Use case: precise-object-edit. Edit the supplied 160x160 Chinese mobile game home button. Preserve the square composition, transparent background, orange/yellow diamond badge silhouette with thick black outlines, bold simple cartoon rendering and bottom white text with thick black stroke. Replace ONLY the leaderboard podium graphic with a compact readable supercomputer: two chunky navy/cyan GPU server blocks with large fan circles, one luminous cyan circuit chip, small gold highlights. Do NOT include numbers 1 2 3 or a trophy. Replace the Chinese text 排行榜 with exactly 超算矩阵 on one line in the same bold white black-outlined game font, as large and readable as possible. Keep content fitted to the full square frame without clipping, no background beyond the badge, no extra words, no realistic fine details. Output suitable for final 160x160 transparent sprite; maintain same border visual weight and comparable occupied area as reference."
+}

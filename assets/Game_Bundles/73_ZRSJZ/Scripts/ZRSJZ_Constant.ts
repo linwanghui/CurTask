@@ -9,6 +9,7 @@ export const ZRSJZ_AMMO_MAX_COUNT = 300;
 
 //界面路径
 export enum ZRSJZ_PANEL {
+    超算矩阵界面 = "73_ZRSJZ_DLC/Prefabs/Panel/超算矩阵界面",
     界面引导弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/界面引导弹窗",
     曼德尔箱界面 = "73_ZRSJZ_DLC/Prefabs/Panel/曼德尔箱界面",
     活动界面 = "73_ZRSJZ_DLC/Prefabs/Panel/活动界面",

@@ -1,0 +1,10 @@
+from pathlib import Path
+from PIL import Image
+root=Path(__file__).resolve().parents[1]
+source=Path('C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-71b597c1-d3c6-496d-bb25-85e447a08340.png')
+dest=root/'Sprites/主页/超算矩阵.png'
+if dest.exists(): raise RuntimeError('Destination exists; do not overwrite an existing icon')
+im=Image.open(source).convert('RGBA').resize((160,160),Image.Resampling.LANCZOS)
+im.save(dest,optimize=True)
+assert im.getchannel('A').getextrema()[0]==0
+print('Saved 160x160 RGBA:',dest,'bytes:',dest.stat().st_size)
