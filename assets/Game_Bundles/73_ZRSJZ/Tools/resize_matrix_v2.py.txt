@@ -1,0 +1,6 @@
+from PIL import Image, ImageOps
+from pathlib import Path
+source=Path('C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-70b3b732-06ea-4390-a9fd-12051ebaf7c8.png')
+dest=Path(__file__).resolve().parents[2]/'73_ZRSJZ_DLC/Sprites/超算矩阵/全屏机房.png'
+ImageOps.fit(Image.open(source).convert('RGB'),(1280,720),method=Image.Resampling.LANCZOS).save(dest,optimize=True)
+print('Fullscreen background: 1280x720, bytes',dest.stat().st_size)

@@ -1,0 +1,10 @@
+*** Begin Patch
+*** Update File: D:/project/GitProject/CurTask/assets/Game_Bundles/73_ZRSJZ_DLC/Scripts/Panel/ZRSJZ_MatrixPanel.ts
+@@
+ import { ZRSJZ_GameData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
++import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_EventManager';
+@@
+                         const mail = await ui.ReceiveExistingProps([result.id]);
++                        ZRSJZ_GameData.SaveData();
++                        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+*** End Patch

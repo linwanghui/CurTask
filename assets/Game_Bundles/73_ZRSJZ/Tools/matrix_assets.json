@@ -1,0 +1,33 @@
+{
+  "generator": "built-in image_gen",
+  "destination": "73_ZRSJZ_DLC/Sprites/超算矩阵",
+  "assets": [
+    {
+      "name": "矩阵底板.png",
+      "size": [1280, 720],
+      "prompt": "2D cartoon military sci-fi terminal UI background, front-on navy beveled steel frame, cyan light strips, yellow hazard details, slim header and left inset sidebar, quiet empty dark center, no text/buttons/charts/characters."
+    },
+    {
+      "name": "超算机柜.png",
+      "size": [512, 512],
+      "prompt": "Single futuristic GPU mining rack, stacked modules and cooling fans, thick graphite armor, cyan circuitry, amber lights, hovering golden hexagonal digital coin; three-quarter view, bold cartoon game outline, transparent background, no text or real cryptocurrency logo."
+    },
+    {
+      "name": "矩阵按钮.png",
+      "size": [384, 96],
+      "prompt": "Single wide horizontal sci-fi beveled metal button, cyan-blue empty inset, dark navy outline, cyan inner edge, small yellow metal end accents, front view, transparent background, no text or icons."
+    }
+  ],
+  "processing": "Pillow: resize/crop transparent padding only; preserve alpha. No redraw. Exact original prompts are recorded in the generation tool calls.",
+  "redesign": {
+    "name": "全屏机房.png",
+    "size": [1280, 720],
+    "generator": "built-in image_gen",
+    "prompt": "Use case: stylized-concept. Asset type: full-screen 16:9 game background, desired 1280x720. A spacious futuristic military base supercomputer room, rows of navy GPU server racks at the far left and far right, muted cyan status lights, cables in ceiling, restrained amber utility lamps, a dark blue floor reflecting subtle light. Polished 2D illustrated cartoon game art with bold outlines and shaded metallic forms matching a chibi extraction shooter. Large low-contrast quiet area across center for live interface overlays, room architecture not a panel. Entire image bleeds to all four edges. No decorative outer frame, no border, no sidebar, no buttons, no labels or text, no characters, no graphs, no watermark. Keep the room readable but darker behind white text."
+  },
+  "defaults": {
+    "firstProduction": "Timer starts on first opening the matrix; 24h with 0 GPUs, 4h with 20 GPUs.",
+    "gpuInstallation": "Move GPU from warehouse into chosen slot after confirmation; click installed slot to return to warehouse, with overflow mail fallback. Retain completed cycle fraction when installing or removing.",
+    "market": "Local calendar day. Deterministic virtual daily OHLC, fixed daily buy/sell quote, 120000–320000 configurable, 5 purchases daily."
+  }
+}

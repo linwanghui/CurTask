@@ -1,0 +1,8 @@
+const fs=require('fs'),path=require('path');
+const file=path.resolve(__dirname,'../../73_ZRSJZ_DLC/Prefabs/Panel/超算矩阵界面.prefab');
+const a=JSON.parse(fs.readFileSync(file,'utf8'));
+const nav=a.find(n=>n.__type__==='cc.Node'&&n._name==='左侧');
+nav._lpos.x=-540;nav._lpos.y=0;
+for(const r of nav._components)if(a[r.__id__].__type__==='cc.Widget')a[r.__id__]._enabled=false;
+fs.writeFileSync(file,JSON.stringify(a,null,2)+'\n');
+console.log('Navigation restored inside 1280px content layout; obsolete viewport-aligned widget disabled.');

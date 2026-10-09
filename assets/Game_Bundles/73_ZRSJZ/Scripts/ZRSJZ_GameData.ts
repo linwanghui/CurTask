@@ -4,6 +4,7 @@ import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
 import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
 import type { ZRSJZ_TaskLineProgress } from './ZRSJZ_TaskLines';
 import { CreateBattlePassState, ZRSJZ_BattlePassState } from './ZRSJZ_BattlePassConfig';
+import { CreateMatrixState, MatrixState } from './ZRSJZ_MatrixState';
 
 /**
  * 游戏存档数据容器。
@@ -16,7 +17,7 @@ import { CreateBattlePassState, ZRSJZ_BattlePassState } from './ZRSJZ_BattlePass
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 25;//当前版本：曼德尔箱每日免费十连
+    public static readonly Versions = 26;//当前版本：超算矩阵与每日市场
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -80,6 +81,7 @@ export class ZRSJZ_GameData {
     public IsTutorial: boolean = false;
 
     public Gold: number = 0;
+    public Matrix: MatrixState = CreateMatrixState();
     public SupplyLastClaimTime: number = 0;
     /** -1 没有待领取补给，0/1 为固定的奖励方案。 */
     public SupplyOffer: number = -1;

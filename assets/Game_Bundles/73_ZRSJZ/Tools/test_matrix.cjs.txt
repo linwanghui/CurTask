@@ -1,0 +1,119 @@
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const root=path.resolve(__dirname,'..'),dlc=path.resolve(root,'../73_ZRSJZ_DLC');
+function run(file,require){const out={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText,{exports:out,require,console,Date});return out;}
+const stateModule=run(path.join(root,'Scripts/ZRSJZ_MatrixState.ts'),()=>({}));
+let saved,events=[];const data={Versions:26,Instance:null,SaveData(){saved=JSON.parse(JSON.stringify(this.Instance));}};
+const enums=new Proxy({},{get:(_,k)=>k});
+const constants={ZRSJZ_INVENTORY:enums,ZRSJZ_PROP_CONFIG:new Map([['显卡',{Name:'显卡',PropType:'物品',UnitPrice:420000,MaxCount:1,GridType:'1_2'}]]),ZRSJZ_ACHIEVEMENT_CONFIG:[],ZRSJZ_PropData:class{},ZRSJZ_GridData:class{}};
+const deps=id=>id.endsWith('ZRSJZ_GameData')?{ZRSJZ_GameData:data}:id.endsWith('ZRSJZ_MatrixState')?stateModule:id.endsWith('ZRSJZ_Constant')?constants:
+ id.includes('EventManager')?{ZRSJZ_EventManager:{EmitPersist:(...args)=>events.push(args)},ZRSJZ_MyEvent:enums}:{};
+const {ZRSJZ_MatrixService:M}=run(path.join(dlc,'Scripts/Service/ZRSJZ_MatrixService.ts'),deps);
+const H=3600000,t=new Date(2026,9,8,12).getTime();
+function reset(){data.Instance={Gold:10000000,PropData:{},Matrix:stateModule.CreateMatrixState()};M.Settle(t);events=[];}
+reset();assert.equal(M.Hours(),24);assert.equal(M.Claim(t+24*H-1),0);assert.equal(M.Claim(t+24*H),1);assert.equal(M.Claim(t+24*H),0);
+assert.equal(M.Claim(t+24*H*8),7);assert.equal(M.State.coins,8);
+reset();data.Instance.PropData={a:{Name:'显卡',CurCount:1,CurInventory:'背包'},b:{Name:'显卡',CurCount:22,CurInventory:'仓库_物品'}};
+assert.equal(M.CardsAvailable(),22);
+assert.equal(M.Install(t+12*H),'');assert.equal(M.State.progress,.5);assert.equal(M.State.cards,1);assert.equal(M.Hours(),23);
+assert.equal(data.Instance.PropData.b.CurCount,21);assert.equal(saved.Matrix.cards,1);
+for(let i=1;i<20;i++)assert.equal(M.Install(t+12*H),'');
+assert.equal(M.Hours(),4);assert.ok(M.Install(t+12*H));assert.equal(data.Instance.PropData.b.CurCount,2);
+assert.equal(M.Claim(t+14*H),1);assert.equal(M.Claim(t+18*H),1);
+data.Instance=JSON.parse(JSON.stringify(saved));assert.equal(M.Claim(t+18*H),0);
+reset();data.Instance.PropData={a:{Name:'显卡',CurCount:1,CurInventory:'仓库_全部'}};
+M.Install(t);assert.equal(data.Instance.PropData.a,undefined);assert.ok(events.some(e=>e[0]==='ZRSJZ_SELL_PROP'));
+const cards=M.State.cards;assert.ok(M.Install(t));assert.equal(M.State.cards,cards);
+// Removing the exact slot is atomic with a durable warehouse item, and does not reset progress.
+let r=M.Remove(0,t+11.5*H);assert.equal(r.error,'');assert.equal(M.State.cards,0);assert.equal(M.State.slots[0],false);assert.equal(M.State.progress,.5);
+assert.equal(saved.PropData[r.id].Name,'显卡');assert.equal(saved.Matrix.cards,0);assert.ok(M.Remove(0,t+11.5*H).error);
+assert.equal(M.Install(t+11.5*H,7),'');assert.equal(M.State.slots[7],true);assert.equal(M.State.slots[0],false);assert.equal(M.State.progress,.5);
+assert.equal(M.Remove(7,t+11.5*H).error,'');assert.equal(M.State.cards,0);assert.equal(M.State.pending,0);
+assert.equal(M.Claim(t+23.5*H),1);
+data.Instance.Matrix={...stateModule.CreateMatrixState(),cards:4};M.Settle(t);assert.equal(M.State.slots.filter(Boolean).length,4);
+reset();const price=M.Price(M.Day(t)),gold=data.Instance.Gold;
+for(let i=0;i<5;i++)assert.equal(M.Buy(t),'');
+assert.equal(M.State.coins,5);assert.equal(data.Instance.Gold,gold-5*price);assert.equal(M.Buy(t),'已达今日购买上限！');
+assert.equal(M.Sell(false,t).gold,price);assert.equal(M.State.purchased,5);assert.equal(M.Sell(true,t).count,4);assert.equal(data.Instance.Gold,gold);
+assert.ok(M.Sell(false,t).error);assert.equal(M.Buy(t+24*H),'');assert.equal(M.State.purchased,1);
+assert.ok(M.Buy(t));assert.equal(M.State.purchased,1);assert.ok(M.Sell(false,t).error);
+reset();data.Instance.Gold=0;assert.equal(M.Buy(t),'货币不足');assert.equal(M.State.coins,0);assert.equal(M.State.purchased,0);
+const history=M.History(M.Day(t));assert.equal(history.length,14);
+history.forEach((c,i)=>{assert.equal(c.close,M.Price(c.day));assert.ok(c.high>=Math.max(c.open,c.close));assert.ok(c.low<=Math.min(c.open,c.close));if(i)assert.equal(c.open,history[i-1].close);});
+assert.equal(M.Price(M.Day(t)),price);assert.notEqual(M.Price(M.Day(t)+1),price);
+for(let d=M.Day(t)-1000;d<=M.Day(t)+1000;d++){assert.notEqual(M.Price(d),M.Price(d+1));assert.ok(M.Price(d)>=120000&&M.Price(d)<=320000);}
+reset();M.Settle(t+12*H);const progress=M.State.progress;M.Settle(t);assert.equal(M.State.progress,progress);assert.equal(M.State.lastTime,t+12*H);
+console.log('PASS: 24h/4h production, offline accumulation, claim idempotency, install at old rate, progress retained, inventory exclusion, cap, atomic saves, buy/sell, daily limits, rollback and deterministic OHLC.');
+const defaults=run(path.join(root,'Scripts/Service/ZRSJZ_GameDataDefaults.ts'),deps).ZRSJZ_GameDataDefaults;
+const old={Versions:25,Gold:987654,PropData:{},OwnedTitles:['勇者'],EquippedTitle:'勇者',OwnedAvatarFrames:['1'],CurrentAvatarFrame:'1',InventoryRow:{keep:8}};
+assert.equal(defaults.Migrate(old,JSON.parse(JSON.stringify(old))),true);assert.equal(old.Versions,26);assert.equal(old.Gold,987654);assert.equal(old.InventoryRow.keep,8);assert.equal(old.Matrix.cards,0);
+const existing={...old,Versions:25,Matrix:{...stateModule.CreateMatrixState(),cards:8,coins:7}};
+defaults.Migrate(existing,JSON.parse(JSON.stringify(existing)));assert.equal(existing.Matrix.cards,8);assert.equal(existing.Matrix.coins,7);
+console.log('PASS: v25 migration preserves existing inventory/gold and existing matrix state.');
+const prefab=JSON.parse(fs.readFileSync(path.join(dlc,'Prefabs/Panel/超算矩阵界面.prefab'),'utf8'));
+const panel=prefab.find(n=>n._name==='Panel'),byPath=p=>p.split('/').reduce((n,k)=>n?._children?.map(r=>prefab[r.__id__]).find(n=>n._name===k),panel);
+assert.ok(byPath('左侧/选中'));assert.equal(byPath('算力中心/显卡槽')._children.length,20);
+assert.ok(byPath('左侧')._lpos.x>=-550&&byPath('左侧')._lpos.x<=-480);
+for(const p of ['装卡确认/确认安装','装卡确认/取消安装','货币市场/K线','算力中心/产出进度/进度'])assert.ok(byPath(p),p);
+assert.ok(prefab.some(n=>n._name==='返回'));assert.ok(!byPath('左侧/导航标题'));
+assert.ok(!prefab.some(n=>n.__type__==='cc.Graphics'));
+const panelSource=fs.readFileSync(path.join(dlc,'Scripts/Panel/ZRSJZ_MatrixPanel.ts'),'utf8');
+for(const m of panelSource.matchAll(/this\.(?:N|Text)\('([^']+)'[,)]/g))if(!m[1].endsWith('/'))assert.ok(byPath(m[1]),'Missing '+m[1]);
+const script=JSON.parse(fs.readFileSync(path.join(dlc,'Scripts/Panel/ZRSJZ_MatrixPanel.ts.meta'),'utf8')).uuid.replace(/-/g,'');
+const b64='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';let compressed=script.slice(0,5);for(let i=5;i<32;i+=3){const n=parseInt(script.slice(i,i+3),16);compressed+=b64[n>>6]+b64[n&63];}
+assert.ok(prefab.some(n=>n.__type__===compressed));assert.ok(prefab.filter(n=>n.__type__==='cc.ClickEvent').every(n=>n._componentId===compressed));
+console.log('PASS: prefab nodes, 20 GPU slots, confirmation, chart, component UUID and button event wiring.');
+// Execute the actual panel against the actual serialized hierarchy, including Graphics calls.
+const nodes=new Map(),draws=[];
+for(let i=0;i<prefab.length;i++)if(prefab[i].__type__==='cc.Node')nodes.set(i,{name:prefab[i]._name,active:prefab[i]._active,activeInHierarchy:true,position:{...prefab[i]._lpos},components:new Map(),setPosition(x,y,z){this.position=typeof x==='object'?{...x}:{x,y,z};},setScale(x,y,z){this.scale={x,y,z};}});
+for(const [i,n] of nodes){
+ n.children=prefab[i]._children.map(r=>nodes.get(r.__id__));n.getChildByName=name=>n.children.find(c=>c.name===name);
+ for(const r of prefab[i]._components){const c=prefab[r.__id__];const v={...c,string:c._string,color:c._color};
+  if(c.__type__==='cc.UITransform'){v.contentSize={...c._contentSize};v.setContentSize=(width,height)=>{v.contentSize={width,height};};}
+  if(c.__type__==='cc.Graphics')for(const f of ['clear','moveTo','lineTo','stroke','rect','fill'])v[f]=(...args)=>draws.push([f,...args]);
+  n.components.set(c.__type__,v);
+ }n.getComponent=type=>{if(!n.components.has(type))throw Error(n.name+' lacks '+type);return n.components.get(type);};
+}
+const find=(p,n)=>p.split('/').reduce((n,k)=>n?.getChildByName(k),n);
+let rootNode=nodes.get(1),tips=[],closed=0;
+let overflow=false,returns=0;
+const UI={Instance:{ShowTip:s=>tips.push(s),HidePanel:()=>closed++,async ReceiveExistingProps(ids){returns++;assert.ok(data.Instance.PropData[ids[0]]);if(overflow){delete data.Instance.PropData[ids[0]];return [{PropName:'显卡',Count:1}];}return [];}}};
+class BasePanel {Show(){this.Panel=find('Panel',this.node);}}
+const cc={_decorator:{ccclass:()=>c=>c},Button:'cc.Button',UITransform:'cc.UITransform',Graphics:'cc.Graphics',Label:'cc.Label',Sprite:'cc.Sprite',Node:'cc.Node',find,
+ Color:class{constructor(r,g,b,a=255){Object.assign(this,{r,g,b,a});}},v3:(x,y,z)=>({x,y,z}),Tween:{stopAllByTarget(){}},
+ tween:n=>({to(t,props){this.props=props;return this;},start(){Object.assign(n,this.props);}})};
+const Panel=run(path.join(dlc,'Scripts/Panel/ZRSJZ_MatrixPanel.ts'),id=>id==='cc'?cc:id.endsWith('ZRSJZ_Panel')?{ZRSJZ_Panel:BasePanel}:
+ id.includes('MatrixService')?{ZRSJZ_MatrixService:M,MATRIX_CONFIG:{maxCards:20,dailyBuyLimit:5}}:
+ id.includes('UIManager')?{ZRSJZ_UIManager:UI}:id.includes('AudioManager')?{ZRSJZ_AudioManager:{Instance:{PlaySound(){}}}}:
+ id.endsWith('ZRSJZ_Constant')?{ZRSJZ_PANEL:enums}:deps(id)).ZRSJZ_MatrixPanel;
+(async()=>{
+reset();const p=new Panel();p.node=rootNode;p.Show();
+for(let i=0;i<14;i++){const candle=find('货币市场/K线/蜡烛'+i,p.Panel);assert.ok(candle.getChildByName('实体').getComponent('cc.UITransform').contentSize.height>=3);assert.ok(candle.getChildByName('影线').getComponent('cc.UITransform').contentSize.height>=3);}
+for(const [width,height]of [[1280,720],[2340,1080],[1600,900]]){rootNode.getComponent('cc.UITransform').setContentSize(width,height);p.FitScreen();const size=rootNode.getChildByName('Mask').getComponent('cc.UITransform').contentSize;assert.ok(size.width>=width&&size.height>=height);assert.ok(Math.abs(size.width/size.height-1280/720)<1e-8);}
+const click=name=>p.OnButtonClick({getCurrentTarget:()=>({name})});click('货币市场');assert.equal(find('货币市场',p.Panel).active,true);assert.equal(find('算力中心',p.Panel).active,false);
+await click('蜡烛2');assert.equal(find('货币市场/K线/蜡烛2/选中',p.Panel).active,true);assert.equal(find('货币市场/K线/蜡烛13/选中',p.Panel).active,false);
+click('安装');assert.equal(tips.at(-1),'仓库显卡不足');
+data.Instance.PropData={a:{Name:'显卡',CurCount:1,CurInventory:'仓库_全部'}};click('安装');assert.equal(find('装卡确认',p.Panel).active,true);
+click('取消安装');assert.equal(M.State.cards,0);click('安装');click('确认安装');assert.equal(M.State.cards,1);assert.equal(find('算力中心/显卡槽/槽1/已装',p.Panel).active,true);
+const removing=click('槽1');assert.equal(p.CanClose,false);await click('槽1');await removing;assert.equal(returns,1);assert.equal(M.State.cards,0);assert.equal(p.CanClose,true);
+await click('槽8');await click('确认安装');assert.equal(M.State.slots[7],true);overflow=true;await click('槽8');assert.ok(tips.at(-1).includes('邮件'));assert.equal(M.State.cards,0);
+click('购买');assert.equal(M.State.coins,1);click('出售');assert.equal(M.State.coins,0);click('返回');assert.equal(closed,1);
+console.log('PASS: actual panel Show, 14 sprite candles/selection, cover resizing, exact-slot takeback, duplicate-click lock, overflow feedback, page switching and return.');
+if(process.argv.includes('--snapshot')){
+ rootNode.getComponent('cc.UITransform').setContentSize(1280,720);p.FitScreen();
+ data.Instance.Matrix.cards=8;delete data.Instance.Matrix.slots;M.Settle();p.Refresh();
+ for(const page of ['算力中心','货币市场']){
+  p.Switch(page,false);const copy=structuredClone(prefab);
+  for(const [i,n]of nodes){copy[i]._active=n.active;Object.assign(copy[i]._lpos,n.position);if(n.scale)Object.assign(copy[i]._lscale,n.scale);
+   for(const r of copy[i]._components){const c=copy[r.__id__],v=n.components.get(c.__type__);
+    if(c.__type__==='cc.UITransform')Object.assign(c._contentSize,v.contentSize);
+    if(c.__type__==='cc.Label')c._string=v.string;
+    if(v.color)c._color={__type__:'cc.Color',...v.color};
+    if(v.fillRange!==undefined)c._fillRange=v.fillRange;
+   }
+  }
+  const dest='C:/Users/Administrator/.codex/visualizations/2026/08/10/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/matrix_v2_'+(page==='算力中心'?'mining':'market')+'.json';
+  fs.writeFileSync(dest,JSON.stringify(copy));
+ }
+}
+})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,0 +1,113 @@
+// Offline prefab authoring: writes explicit editable nodes, never builds the UI at runtime.
+const fs=require('fs'),path=require('path'),crypto=require('crypto');
+const root=path.resolve(__dirname,'..'),dlc=path.resolve(root,'../73_ZRSJZ_DLC');
+const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
+const write=(p,data)=>fs.writeFileSync(p,JSON.stringify(data,null,2)+'\n');
+const uuid=()=>crypto.randomUUID();
+function meta(p,importer,extra={}){
+ const file=p+'.meta'; if(fs.existsSync(file))return read(file).uuid;
+ const id=uuid();write(file,{ver:importer==='typescript'?'4.0.24':importer==='prefab'?'1.1.50':'1.2.0',importer,imported:true,uuid:id,files:importer==='prefab'?['.json']:[],subMetas:{},userData:extra});return id;
+}
+for(const p of [path.join(dlc,'Scripts/Service'),path.join(dlc,'Sprites/超算矩阵')])meta(p,'directory');
+const scriptID=meta(path.join(dlc,'Scripts/Panel/ZRSJZ_MatrixPanel.ts'),'typescript');
+meta(path.join(dlc,'Scripts/Service/ZRSJZ_MatrixService.ts'),'typescript');
+meta(path.join(root,'Scripts/ZRSJZ_MatrixState.ts'),'typescript');
+const compressed=id=>{const s=id.replace(/-/g,'');const base='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';let out=s.slice(0,5);for(let i=5;i<32;i+=3){const n=parseInt(s.slice(i,i+3),16);out+=base[n>>6]+base[n&63];}return out;};
+const typeID=compressed(scriptID);
+const imageTemplate=read(path.join(dlc,'Sprites/联机界面/数字按键_v4.png.meta'));
+function imageMeta(name,w,h){
+ const file=path.join(dlc,'Sprites/超算矩阵',name+'.png.meta');
+ const id=fs.existsSync(file)?read(file).uuid:uuid();
+ const m=JSON.parse(JSON.stringify(imageTemplate).replaceAll(imageTemplate.uuid,id));
+ for(const sub of Object.values(m.subMetas))sub.displayName=name;
+ const u=m.subMetas.f9941.userData;
+ Object.assign(u,{trimType:'none',trimX:0,trimY:0,offsetX:0,offsetY:0,width:w,height:h,rawWidth:w,rawHeight:h});delete u.vertices;
+ write(file,m);return id+'@f9941';
+}
+const bg=imageMeta('矩阵底板',1280,720),machine=imageMeta('超算机柜',512,512),button=imageMeta('矩阵按钮',384,96);
+const template=read(path.join(dlc,'Prefabs/Panel/公告界面.prefab'));
+const t=type=>structuredClone(template.find(n=>n.__type__===type));
+const white=t('cc.Sprite')._spriteFrame.__uuid__;
+const gpu=read(path.join(root,'Sprites/Prop/1_2/3蓝色/显卡.png.meta')).uuid+'@f9941';
+const close=read(path.join(dlc,'Sprites/公告界面/公告关闭按钮.png.meta')).uuid+'@f9941';
+const a=[{__type__:'cc.Prefab',_name:'超算矩阵界面',_objFlags:0,__editorExtras__:{},_native:'',data:{__id__:1},optimizationPolicy:0,persistent:false}];
+const ref=i=>({__id__:i}),add=o=>{a.push(o);return a.length-1;};
+const color=(r=255,g=255,b=255,alpha=255)=>({__type__:'cc.Color',r,g,b,a:alpha});
+const base=(type,node)=>({__type__:type,_name:'',_objFlags:0,__editorExtras__:{},node:ref(node),_enabled:true,__prefab:null,_id:''});
+function component(node,type,props={}){const c=template.find(n=>n.__type__===type)?t(type):base(type,node);Object.assign(c,{node:ref(node),__prefab:ref(add({__type__:'cc.CompPrefabInfo',fileId:'matrixC'+a.length})),_id:''},props);const id=add(c);a[node]._components.push(ref(id));return id;}
+function node(name,parent,x=0,y=0,w=100,h=100){
+ const n=t('cc.Node');Object.assign(n,{_name:name,_parent:parent===null?null:ref(parent),_children:[],_components:[],_prefab:null,_active:true,_layer:33554432,_id:''});
+ n._lpos={__type__:'cc.Vec3',x,y,z:0};const id=add(n);
+ n._prefab=ref(add({__type__:'cc.PrefabInfo',root:ref(1),asset:ref(0),fileId:'matrixN'+id,instance:null,targetOverrides:null}));
+ if(parent!==null)a[parent]._children.push(ref(id));
+ component(id,'cc.UITransform',{_contentSize:{__type__:'cc.Size',width:w,height:h}});return id;
+}
+function sprite(n,sf=white,c=color(),filled=false){return component(n,'cc.Sprite',{_spriteFrame:{__uuid__:sf,__expectedType__:'cc.SpriteFrame'},_color:c,_sizeMode:0,_type:filled?3:0,_fillType:0,_fillStart:0,_fillRange:filled?.35:1});}
+function box(name,p,x,y,w,h,c){const n=node(name,p,x,y,w,h);sprite(n,white,c);return n;}
+function label(name,p,text,x,y,w=300,h=40,size=24,c=color()){
+ const n=node(name,p,x,y,w,h);component(n,'cc.Label',{_string:text,_fontSize:size,_actualFontSize:size,_lineHeight:size+6,_overflow:1,_enableWrapText:true,_color:c,_enableOutline:true,_outlineWidth:1});return n;
+}
+function clickable(n){const click=add({__type__:'cc.ClickEvent',target:ref(1),component:'',_componentId:typeID,handler:'OnButtonClick',customEventData:''});component(n,'cc.Button',{clickEvents:[ref(click)],_transition:3,_zoomScale:1.035,_target:ref(n)});}
+function btn(name,p,text,x,y,w=240,h=60){const n=node(name,p,x,y,w,h);sprite(n,button);clickable(n);label('文字',n,text,0,0,w-20,h-8,24);return n;}
+const R=node('超算矩阵界面',null,0,0,1280,720);component(R,'cc.Widget');component(R,typeID);
+const mask=box('Mask',R,0,0,2560,1440,color(0,0,0,185));component(mask,'cc.Widget');clickable(mask);
+const P=node('Panel',R,0,0,1280,720);sprite(P,bg);component(P,'cc.BlockInputEvents');
+label('标题',P,'超算矩阵',40,321,600,48,38);
+const X=node('关闭',P,590,316,54,54);sprite(X,close);clickable(X);
+label('余额',P,'加密货币  0 枚    |    货币  0',100,257,950,36,23,color(216,236,245));
+const nav=node('左侧',P,-540,0,172,560);
+label('导航标题',nav,'基地终端',0,252,150,36,25,color(125,224,255));
+const select=box('选中',nav,0,150,156,78,color(32,116,142,230));
+box('高亮条',select,-75,0,4,70,color(255,209,62));
+for(const [name,text,y]of[['算力中心','算力中心',150],['货币市场','加密货币\n市场',45]]){const n=node(name,nav,0,y,160,80);clickable(n);label('文字',n,text,0,0,148,78,25);}
+label('导航说明',nav,'离线也可产出\n收益随时领取',0,-225,152,90,18,color(149,180,200));
+const mining=node('算力中心',P,0,0,1280,720);
+label('生产标题',mining,'持续运算 · 自动生产',-235,209,330,38,26,color(110,229,255));
+label('待领取',mining,'待领取  0 枚',-235,168,330,36,25,color(255,219,103));
+const rack=node('机柜',mining,-235,-6,330,330);sprite(rack,machine);
+label('周期',mining,'24 小时 / 枚',-235,-173,340,38,28);
+label('倒计时',mining,'下枚产出  24:00:00',-235,-210,345,34,23);
+const progress=box('产出进度',mining,-235,-238,330,10,color(47,68,88));
+sprite(node('进度',progress,0,0,330,10),white,color(46,218,239),true);
+btn('领取',mining,'生产中',-235,-283,280,62);
+label('显卡数量',mining,'已装显卡  0 / 20',275,209,420,40,28);
+const slots=node('显卡槽',mining,275,0,420,360);
+for(let i=0;i<20;i++){
+ const x=(i%5-2)*84,y=132-Math.floor(i/5)*88;
+ const slot=box('槽'+(i+1),slots,x,y,76,78,color(43,70,88));
+ box('底',slot,0,0,72,74,color(16,33,51));
+ const occupied=node('已装',slot,0,0,72,70);a[occupied]._active=false;
+ sprite(node('显卡',occupied,0,5,32,50),gpu);
+ label('状态',occupied,'运行',0,-25,65,20,15,color(92,240,196));
+ label('空槽',slot,String(i+1).padStart(2,'0')+'\n空槽',0,0,70,70,19,color(111,144,161));
+}
+label('仓库数量',mining,'仓库可用显卡：0 张',275,-206,420,36,22,color(167,202,219));
+btn('安装',mining,'放置显卡',275,-267,300,68);
+label('规则',mining,'每张显卡减少 1 小时，最多 20 张 · 安装永久消耗仓库显卡',95,-327,970,28,18,color(165,185,204));
+const market=node('货币市场',P,0,0,1280,720);a[market]._active=false;
+label('今日价格',market,'今日价格  200,000',-150,195,500,46,33,color(255,221,108));
+label('涨跌',market,'较昨日 +0.00%',330,195,290,40,26,color(255,104,97));
+label('日期',market,'每日行情',480,148,185,30,18,color(166,197,214));
+label('图标题',market,'近 14 日行情  /  红涨绿跌',-170,146,420,30,21,color(163,213,233));
+box('图底',market,92,20,922,216,color(10,23,38,225));
+const chart=node('K线',market,-240,-64,680,180);
+component(chart,'cc.Graphics',{_lineWidth:2,_strokeColor:color(),_fillColor:color(),_lineJoin:0,_lineCap:0,_miterLimit:10});
+for(let i=0;i<=3;i++)label('刻度'+i,market,'0万',-302,-64+i*60,100,28,18,color(143,176,199));
+for(let i=0;i<14;i++)label('日期'+i,market,'10/08',-240+(i+.5)*680/14,-86,48,25,14,color(143,176,199));
+label('声明',market,'日 K 为游戏预设行情，非实时交易数据；今日买卖价格固定',98,-122,945,26,18,color(150,177,195));
+label('次数',market,'今日可买 5 / 5 枚 · 每日零点更新',100,-163,925,36,24);
+label('持有',market,'持有 0 枚 · 买卖同价 · 出售不限次数',100,-202,925,36,23,color(142,216,233));
+btn('购买',market,'购买 1 枚',-200,-269,250,66);
+btn('出售',market,'出售 1 枚',110,-269,250,66);
+btn('全部出售',market,'全部出售',420,-269,250,66);
+label('规则',market,'当日售出不会恢复购买次数 · 交易直接使用游戏货币',100,-327,950,28,18,color(165,185,204));
+const confirm=node('装卡确认',P,0,0,1280,720);a[confirm]._active=false;
+const dark=box('确认遮罩',confirm,0,0,1280,720,color(0,0,0,210));component(dark,'cc.BlockInputEvents');
+box('边框',confirm,0,0,642,304,color(59,182,208));box('底板',confirm,0,0,634,296,color(19,39,59));
+label('标题',confirm,'安装显卡',0,105,550,42,32);
+label('说明',confirm,'永久消耗仓库中的 1 张显卡\n每枚加密货币的生产时间减少 1 小时\n安装后无法取回，是否继续？',0,20,590,116,25);
+btn('取消安装',confirm,'取消',-150,-104,240,60);btn('确认安装',confirm,'确认安装',150,-104,240,60);
+const dest=path.join(dlc,'Prefabs/Panel/超算矩阵界面.prefab');write(dest,a);meta(dest,'prefab',{syncNodeName:'超算矩阵界面'});
+// Every serialized local reference must resolve before Cocos imports it.
+function check(o){if(!o||typeof o!=='object')return;if('__id__'in o&&!a[o.__id__])throw Error('Bad reference '+o.__id__);for(const v of Object.values(o))check(v);}
+check(a);console.log('Built editable matrix prefab:',a.filter(n=>n.__type__==='cc.Node').length,'nodes');

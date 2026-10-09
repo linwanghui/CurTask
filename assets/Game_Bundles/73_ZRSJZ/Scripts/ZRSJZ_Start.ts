@@ -13,7 +13,6 @@ import { ZRSJZ_AMMO_MAX_COUNT, ZRSJZ_INVENTORY, ZRSJZ_MAIL_TYPE, ZRSJZ_PANEL } f
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
-import { ProjectEvent, ProjectEventManager } from '../../../Scripts/Framework/Managers/ProjectEventManager';
 import { ZRSJZ_GradeService } from "./Service/ZRSJZ_GradeService";
 import { ZRSJZ_TaskService } from "./Service/ZRSJZ_TaskService";
 import { ZRSJZ_MailService } from "./Service/ZRSJZ_MailService";
@@ -39,9 +38,11 @@ export class ZRSJZ_Start extends Component {
     ActivityUnlockLevel: number = 6;
 
     private GetUnlockLevel(name: string): number {
-        return ({ 锻造台: this.ForgeUnlockLevel, 宠物: this.PetUnlockLevel,
+        return ({
+            锻造台: this.ForgeUnlockLevel, 宠物: this.PetUnlockLevel,
             曼德尔箱: this.MandellBoxUnlockLevel, 战令: this.BattlePassUnlockLevel,
-            活动: this.ActivityUnlockLevel })[name] ?? 0;
+            活动: this.ActivityUnlockLevel
+        })[name] ?? 0;
     }
 
     private HasFirstUnlockReminder(name: string): boolean {
@@ -263,6 +264,13 @@ export class ZRSJZ_Start extends Component {
             }
         }
         switch (event.getCurrentTarget().name) {
+            case "超算矩阵":
+                if (!ZRSJZ_UIManager.ZRSJZ_DLC) {
+                    ZRSJZ_UIManager.Instance.ShowTip('超算矩阵资源正在加载，请稍后再试');
+                    break;
+                }
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.超算矩阵界面);
+                break;
             case "活动":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.活动界面);
                 break;
