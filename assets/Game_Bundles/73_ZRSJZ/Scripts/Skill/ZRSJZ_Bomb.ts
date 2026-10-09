@@ -22,7 +22,7 @@ export class ZRSJZ_Bomb extends ZRSJZ_Skill {
 
     BombSkeleton: sp.Skeleton = null;
     SkillRange: number = 500;
-    SkillDamage: number = 30;
+    SkillDamage: number = 100;
 
     Init() {
         super.Init();

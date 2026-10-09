@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "17ed0036-f5cb-4f88-8e7d-5ede6687f6ab",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "17ed0036-f5cb-4f88-8e7d-5ede6687f6ab@6c48a",
+      "displayName": "展开折叠_科幻",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "17ed0036-f5cb-4f88-8e7d-5ede6687f6ab",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "17ed0036-f5cb-4f88-8e7d-5ede6687f6ab@f9941",
+      "displayName": "展开折叠_科幻",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 10,
+        "offsetY": 8,
+        "trimX": 79,
+        "trimY": 23,
+        "width": 993,
+        "height": 1329,
+        "rawWidth": 1131,
+        "rawHeight": 1391,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -496.5,
+            -664.5,
+            0,
+            496.5,
+            -664.5,
+            0,
+            -496.5,
+            664.5,
+            0,
+            496.5,
+            664.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            79,
+            1368,
+            1072,
+            1368,
+            79,
+            39,
+            1072,
+            39
+          ],
+          "nuv": [
+            0.06984969053934571,
+            0.028037383177570093,
+            0.9478337754199824,
+            0.028037383177570093,
+            0.06984969053934571,
+            0.9834651329978433,
+            0.9478337754199824,
+            0.9834651329978433
+          ],
+          "minPos": [
+            -496.5,
+            -664.5,
+            0
+          ],
+          "maxPos": [
+            496.5,
+            664.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "17ed0036-f5cb-4f88-8e7d-5ede6687f6ab@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "17ed0036-f5cb-4f88-8e7d-5ede6687f6ab@6c48a"
+  }
+}

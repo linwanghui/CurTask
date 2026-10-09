@@ -510,6 +510,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (Coop.Replica) { if (this.OnlineID) Online.Combat({ kind: 'hit', id: this.OnlineID, harm, hitX, hitY }); return; }
         const harmRequestGame = ZRSJZ_Game.Instance;
         const harmWorldPosition = this.node.worldPosition.clone();
+        // 飘字使用本次实际扣除的生命值，避免致死溢出伤害被显示成实际扣血。
+        const actualHarm = Math.min(Math.max(0, this._health), harm);
         this._health -= harm;
         if (this._health <= 0) {
             this._health = 0;
@@ -544,7 +546,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             }
             effect.parent = effectParent;
             effect.active = true;
-            harmEffect.Show(harmWorldPosition, harm);
+            harmEffect.Show(harmWorldPosition, actualHarm);
         }).catch(error => console.error("[ZRSJZ_EnemyBase] 受伤特效创建失败", error))
         this.HP.Show(this._health);
     }

@@ -3,6 +3,7 @@ import { EnhancementNode, EnhancementStat, ZRSJZ_ENHANCEMENT_MAX_LEVEL, ZRSJZ_EN
 import { ZRSJZ_InventoryService } from './ZRSJZ_InventoryService';
 import { ZRSJZ_AccountService } from './ZRSJZ_AccountService';
 import { ZRSJZ_TaskService } from './ZRSJZ_TaskService';
+import { ZRSJZ_MAP_CONFIG } from '../ZRSJZ_Constant';
 
 /** 新强化唯一入口；旧设施字段只用于一次性迁移，不参与属性计算。 */
 export class ZRSJZ_EnhancementService {
@@ -28,7 +29,10 @@ export class ZRSJZ_EnhancementService {
     }
     public static GetCooldownDuration(base: number): number { return Math.max(0, base) * (1 - Math.min(0.5, this.GetBonus('技能冷却') / 100)); }
     public static GetReloadDuration(base: number): number { return Math.max(0, base) / (1 + this.GetBonus('换弹速度') / 100); }
-    public static GetSkillDamage(base: number): number { return base * (1 + this.GetBonus('技能伤害') / 100); }
+    public static GetSkillDamage(base: number): number {
+        const mapMultiplier = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap)?.HPMultiplier ?? 1;
+        return base * (1 + this.GetBonus('技能伤害') / 100) * mapMultiplier;
+    }
     public static GetBlockReason(node: EnhancementNode): string {
         if (this.IsOwned(node)) return '已强化';
         if (!this.IsAvailable(node)) return node.Special ? `强化达到 Lv.${node.Level} 后解锁` : `请先完成 Lv.${node.Level - 1}`;

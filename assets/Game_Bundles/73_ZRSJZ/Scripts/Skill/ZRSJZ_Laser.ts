@@ -8,7 +8,7 @@ const { ccclass, property } = _decorator;
 @ccclass('ZRSJZ_Laser')
 export class ZRSJZ_Laser extends ZRSJZ_Skill {
 
-    SkillDamage: number = 15;
+    SkillDamage: number = 50;
 
     Point1_0: Node = null;
     Point1_1: Node = null;

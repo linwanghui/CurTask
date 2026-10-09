@@ -16,7 +16,8 @@ export class ZRSJZ_HarmEffect extends Component {
             this.Harm = this.node.getChildByName("Harm").getComponent(Label);
             this._baseScale = this.node.scale.clone();
         }
-        this.Harm.string = `${harm}`;
+        // 仅飘字向下取整，实际伤害与扣血仍保留原有精度。
+        this.Harm.string = `${Math.floor(harm)}`;
         Tween.stopAllByTarget(this.node);
         this.node.setScale(this._baseScale);
         this.node.setWorldPosition(v3(worldPos.x + math.randomRangeInt(-50, 50), worldPos.y + math.randomRangeInt(200, 300), worldPos.z));

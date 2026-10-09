@@ -1,0 +1,49 @@
+const fs=require('fs');
+const boot=fs.readFileSync(__dirname+'/preview-enhancement-v2.cjs','utf8');
+const prefix=boot.slice(0,boot.indexOf("  console.log('open',"));
+eval(prefix+String.raw`
+ await page.evaluate(()=>{
+  const modules=Array.from(System.entries()),UI=modules.map(([,m])=>m).find(m=>m.ZRSJZ_UIManager)?.ZRSJZ_UIManager;UI.Instance.CloseAllPanelsImmediately();
+  window.sidebar=cc.director.getScene().getComponentInChildren(cc.js.getClassByName('ZRSJZ_SidebarToggle'));
+  if(!sidebar)throw Error('Missing component');
+  // 独立预览直接加载开始场景，补齐主页容器布局并关闭其资源等待遮罩。
+  const start=cc.director.getScene().getComponentInChildren(cc.js.getClassByName('ZRSJZ_Start'));
+  start.LoadPanel.active=false;start.UIPanel.setScale(start.GetPanelScale());
+  start._noticeRequested=true;
+  // 禁止主页自动公告弹窗打断本次侧边栏交互测试。
+  start.enabled=false;
+ });
+ const state=()=>page.evaluate(()=>{
+  const button=sidebar.node.getChildByName('展开折叠'),b=button.getComponent(cc.js.getClassByName('cc.UITransform')).getBoundingBoxToWorld();
+  const canvas=document.querySelector('canvas').getBoundingClientRect(),size=cc.view.getVisibleSize();
+  let c=sidebar.node;while(c&&!c.getComponent(cc.js.getClassByName('cc.Canvas')))c=c.parent;
+  const camera=c.getComponent(cc.js.getClassByName('cc.Canvas')).cameraComponent;
+  const p0=button.worldPosition.clone(),s0=camera.worldToScreen(p0),s1=camera.worldToScreen(new cc.Vec3(p0.x+1,p0.y,p0.z));
+  const pixelLeft=Math.max(0,-canvas.left)*cc.game.canvas.width/canvas.width;
+  const left=p0.x+(pixelLeft-s0.x)/(s1.x-s0.x);
+  const screen=camera.worldToScreen(new cc.Vec3(b.x+b.width/2,b.y+b.height/2,button.worldPosition.z));
+  return {collapsed:sidebar._collapsed,progress:sidebar._motion.progress,scale:button.scale.x,left:b.x-left,right:b.x+b.width-left,
+    clickX:canvas.left+screen.x/cc.game.canvas.width*canvas.width,clickY:canvas.top+(1-screen.y/cc.game.canvas.height)*canvas.height,
+    otherRight:Math.max(...sidebar.node.children.filter(n=>n!==button&&n.activeInHierarchy).map(n=>{const r=n.getComponent(cc.js.getClassByName('cc.UITransform')).getBoundingBoxToWorld();return r.x+r.width-left;}))};
+ });
+ await page.waitForTimeout(500);
+ const initial=await state();console.log('viewport',await page.evaluate(()=>({rect:document.querySelector('canvas').getBoundingClientRect().toJSON(),canvas:[cc.game.canvas.width,cc.game.canvas.height],visible:cc.view.getVisibleSize(),origin:cc.view.getVisibleOrigin(),viewport:cc.view.getViewportRect()})));if(initial.collapsed||initial.progress!==0)throw Error('Not expanded initially');
+ await page.screenshot({path:__dirname+'/sidebar-expanded.png'});
+ await page.mouse.click(initial.clickX,initial.clickY);await page.waitForTimeout(400);
+ const collapsed=await state();
+ if(!collapsed.collapsed||Math.abs(collapsed.left)>2||collapsed.otherRight>2||collapsed.scale!==-initial.scale)throw Error('Collapse failed '+JSON.stringify({initial,collapsed}));
+ await page.screenshot({path:__dirname+'/sidebar-collapsed.png'});
+ await page.mouse.click(collapsed.clickX,collapsed.clickY);await page.waitForTimeout(400);
+ const expanded=await state();if(expanded.collapsed||Math.abs(expanded.left-initial.left)>2||expanded.scale!==initial.scale)throw Error('Expand failed '+JSON.stringify({initial,collapsed,expanded}));
+ await page.evaluate(()=>{sidebar.Toggle();sidebar.Toggle();sidebar.Toggle();});await page.waitForTimeout(400);
+ if(!(await state()).collapsed)throw Error('Rapid click failed');
+ await page.setViewportSize({width:1280,height:720});await page.waitForTimeout(600);
+ const resized=await state();if(Math.abs(resized.left)>2||resized.otherRight>2)throw Error('Resize failed '+JSON.stringify(resized));
+ await page.evaluate(()=>{sidebar.node.active=false;sidebar.node.active=true;});await page.waitForTimeout(350);
+ if((await state()).collapsed)throw Error('Default expansion not restored');
+ console.log('sidebar',{initial,collapsed,expanded,resized,rapidClicks:true,reenableExpanded:true});
+ console.log('errors',errors);if(errors.some(e=>/TypeError|Cannot read|SidebarToggle/.test(e)))throw Error(errors.join('\n'));
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});
+`);
+

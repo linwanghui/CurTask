@@ -603,7 +603,7 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["RK77-轻机枪", "经过强化的重枪管轻机枪，单发威力更高，适合稳定进行中距离压制。"],
     ["FS-霰弹枪", "结构可靠的泵动霰弹枪，近距离弹丸覆盖广，可对无甲目标造成重创。"],
     ["KK41-霰弹枪", "强化弹仓与枪管的战术霰弹枪，爆发力更强，适合近距离连续作战。"],
-    ["ssv-狙击枪", "高威力远程狙击步枪，配有精密光学瞄具，擅长一击重创关键目标。"],
+    ["ssv-狙击枪", "高威力远程狙��步枪，配有精密光学瞄具，擅长一击重创关键目标。"],
     ["W76-狙击枪", "为超远距离射击设计的精确步枪，射程与弹容量兼顾，容错率更高。"],
     ["霜月狼", "以霜月与孤狼为主题的红色品质步枪，射程出色，适合在较远距离持续压制目标。"],
     ["裂海鲨", "以裂海狂鲨为主题的红色品质步枪，射速突出，擅长用密集火力快速压制敌人。"],
@@ -1441,6 +1441,8 @@ export interface ZRSJZ_MapConfig {
     ActionName: string;
     /** 模式难度等级，六个模式依次为 1~6；选关界面最多显示五颗星。 */
     Difficulty: number;
+    /** 普通敌人生命及玩家伤害技能共同使用的关卡倍率，来自 ZRSJZ_MAP_HP_MULTIPLIERS。 */
+    HPMultiplier: number;
     /** 玩家当前随身配置的最低总价值；0 表示不限制。 */
     RequiredLoadoutValue: number;
     /** 选关界面展示的额外任务限制。 */
@@ -1683,6 +1685,7 @@ function CreateMapModeConfig(
         DisplayName: displayName,
         ActionName: actionName,
         Difficulty: modeIndex + 1,
+        HPMultiplier: hpMultiplier,
         RequiredLoadoutValue: requiredValue,
         MissionLimit: requiredValue > 0 ? `战备价值达到${requiredValue}` : "无战备价值限制",
         TimeLimitMinutes: ZRSJZ_MAP_TIME_LIMITS[modeIndex],

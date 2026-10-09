@@ -1,0 +1,7 @@
+生成方式：内置 image_gen 工具；透明背景。
+成品：assets/Game_Bundles/73_ZRSJZ/Sprites/主页/展开折叠_科幻.png
+参考 1（修改目标）：assets/Game_Bundles/73_ZRSJZ/Sprites/商城/图层 90 拷贝 3.png
+参考 2（仅风格参考）：_data/upgrade/sidebar-expanded.png（生成时的原按钮场景截图）
+
+Final prompt:
+Use case: style-transfer. Edit target image 1: transparent 130x160 right-pointing sidebar toggle arrow sprite. Image 2 is ONLY the game UI style reference, do NOT reproduce screenshot. Produce one isolated game UI button sprite on actual transparent background, portrait aspect 13:16, tightly framed with minimal margin. Keep image 1's basic large right-pointing chevron plus small diamond at the left, same rightward direction and approximately same silhouette and proportions, readable when shrunk to 130x160. Replace its ornamental flat gold fantasy look with the reference game's bold illustrated military sci-fi UI: thick dark charcoal/navy outline, beveled brushed gunmetal and silver rim, dark blue steel surfaces, restrained bright cyan luminous inset along the arrow, small warm yellow accent on the diamond consistent with scene buttons. Front-facing orthographic 2D game asset, crisp hand-painted/cartoon hard edges, high contrast, not photorealistic, no heavy glow outside silhouette. No words, letters, numbers, panel backdrop, scenery, extra icons, watermark or checkerboard. Preserve transparent background and clean alpha edges. The runtime flips this arrow horizontally; generate only the single right-pointing state.
