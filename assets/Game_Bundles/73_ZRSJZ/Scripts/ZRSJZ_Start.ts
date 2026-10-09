@@ -265,10 +265,6 @@ export class ZRSJZ_Start extends Component {
         }
         switch (event.getCurrentTarget().name) {
             case "超算矩阵":
-                if (!ZRSJZ_UIManager.ZRSJZ_DLC) {
-                    ZRSJZ_UIManager.Instance.ShowTip('超算矩阵资源正在加载，请稍后再试');
-                    break;
-                }
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.超算矩阵界面);
                 break;
             case "活动":
