@@ -5,6 +5,7 @@ import {
     ZRSJZ_INVENTORY,
     ZRSJZ_MAIN_TASK_CONFIG,
     ZRSJZ_PROP_CONFIG,
+    ZRSJZ_SHOP_CONFIG,
     ZRSJZ_PropData,
 } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
@@ -49,6 +50,15 @@ export class ZRSJZ_GameDataDefaults {
         }
 
         const loadData = () => {
+            if (data.Versions === 26) {
+                // 版本26→27：只更新商店枪械实例价格，保留实例ID、位置、数量和装备归属。
+                // 品质与伤害始终从 Constant 读取，无须重建道具或改动锻造记录。
+                const shopWeapons = new Set(ZRSJZ_SHOP_CONFIG.get('武器') ?? []);
+                for (const prop of Object.values(data.PropData ?? {})) {
+                    const config = ZRSJZ_PROP_CONFIG.get(prop.Name);
+                    if (shopWeapons.has(prop.Name) && config?.PropType === '枪') prop.UnitPrice = config.UnitPrice;
+                }
+            }
             if (data.Versions === 25 && !savedData.Matrix) data.Matrix = CreateMatrixState();
             if (data.Versions === 24 && savedData.MandellFreeTenDate === undefined) data.MandellFreeTenDate = '';
             if (data.Versions === 23 && savedData.MidAutumn === undefined) data.MidAutumn = CreateMidAutumnState();

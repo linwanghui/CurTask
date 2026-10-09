@@ -1,0 +1,24 @@
+const fs = require('fs'), vm = require('vm');
+const ts = require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const source = fs.readFileSync('Scripts/ZRSJZ_Constant.ts', 'utf8');
+const lines = source.split(/\r?\n/);
+const balance = JSON.parse(fs.readFileSync('Tools/shop_weapon_balance.json', 'utf8'));
+function load(file, dep) {
+    const mod = { exports: {} };
+    vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: 1, target: 7 } }).outputText, { exports: mod.exports, require: () => dep });
+    return mod.exports;
+}
+const c = load('Scripts/ZRSJZ_Constant.ts');
+const f = load('Scripts/ZRSJZ_ForgeConstant.ts', c);
+const selected = balance.weapons.map(w => ({
+    name: w.name,
+    propLine: lines.find(l => l.includes('["' + w.name + '", { Name:')),
+    statsLine: lines.find(l => l.includes('["' + w.name + '", { "伤害":')),
+    skinLine: lines.find(l => l.includes('{ Name: "' + w.name + '"') && l.includes('UnlockType: "默认"')),
+}));
+console.log(JSON.stringify({
+    selected,
+    shopBlock: source.match(/    \["武器", \[[\s\S]*?    \]\],/)[0],
+    manifest: JSON.parse(fs.readFileSync('Tools/advanced_shop_weapon_assets.json', 'utf8')),
+    forge: balance.forgeExcluded.map(name => ({ name, prop: c.ZRSJZ_PROP_CONFIG.get(name), stats: c.ZRSJZ_PROP_PROPERTY.get(name), recipe: f.GetForgeRecipe(name) })),
+}));
