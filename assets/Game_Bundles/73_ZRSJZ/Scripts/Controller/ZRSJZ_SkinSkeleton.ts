@@ -48,6 +48,29 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
     private _fengYiSkillLoading: Promise<Prefab> = null;
     private _lunaEffectPrefab: Prefab = null;
     private _lunaEffectLoading: Promise<Prefab> = null;
+    private _animationSerial = 0;
+    private _pendingComplete: { serial: number; entrance: number; callback: Function } = null;
+    private _pendingLuna = false;
+    private readonly _completedEffects = new Set<Node>();
+
+    protected get RestoreTracksAfterDataChange(): boolean { return false; }
+
+    PlayAni(aniName: string, loop: boolean = true, cb: Function = null): void {
+        if (!isValid(this.Skeleton, true) || !this.Skeleton.findAnimation(aniName)) return;
+        const serial = ++this._animationSerial;
+        const entrance = this._entranceVersion;
+        this._pendingComplete = null;
+        this.Skeleton.setCompleteListener(null);
+        this.AniName = aniName;
+        this.Skeleton.setAnimation(0, aniName, loop);
+        if (!cb) return;
+        this.Skeleton.setCompleteListener(entry => {
+            if (!isValid(this, true) || serial !== this._animationSerial || entrance !== this._entranceVersion
+                || !this.node.activeInHierarchy || entry?.trackIndex !== 0 || entry.animation?.name !== aniName) return;
+            // WASM 回调中只记录 JS 数据，不能重入 setAnimation 或保存 TrackEntry。
+            this._pendingComplete = { serial, entrance, callback: cb };
+        });
+    }
 
     protected onLoad(): void {
         super.onLoad();
@@ -59,36 +82,44 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
     }
 
     protected onEnable(): void {
+        this.BindEntranceEvents();
         // Spine 事件触发时当帧骨骼矩阵可能尚未更新，渲染前再读取最终姿势。
         director.on(Director.EVENT_BEFORE_DRAW, this.FlushMissiles, this);
     }
 
     protected onDisable(): void {
         this._entranceVersion++;
+        this._animationSerial++;
+        this._pendingComplete = null;
+        this.Skeleton?.setCompleteListener(null);
+        this.Skeleton?.setStartListener(null);
+        this.Skeleton?.setEventListener(null);
         director.off(Director.EVENT_BEFORE_DRAW, this.FlushMissiles, this);
         this.ClearPreviewEffects();
     }
 
     private BindEntranceEvents(): void {
         this.Skeleton?.setStartListener(trackEntry => {
-            if (!this.node.activeInHierarchy || trackEntry?.trackIndex !== 0
+            if (!isValid(this, true) || !this.node.activeInHierarchy || trackEntry?.trackIndex !== 0
                 || trackEntry.animation?.name !== 'cc_露娜') return;
             if (this._lunaEffectPrefab) {
-                this.LaunchLunaEffect();
+                this._pendingLuna = true;
                 return;
             }
             // 兼容直接调用 PlayAni；切换角色或动画后不补播过期特效。
             const version = this._entranceVersion;
+            const animationSerial = this._animationSerial;
             void this.LoadLunaEffect().then(() => {
                 if (isValid(this, true) && this.node.activeInHierarchy
-                    && version === this._entranceVersion && this.Skeleton?.getCurrent(0) === trackEntry) {
-                    this.LaunchLunaEffect();
+                    && version === this._entranceVersion && animationSerial === this._animationSerial
+                    && this.AniName === 'cc_露娜') {
+                    this._pendingLuna = true;
                 }
             }).catch(error => console.error('[ZRSJZ_SkinSkeleton] 露娜出场特效加载失败', error));
         });
         this.Skeleton?.setEventListener((trackEntry, event) => {
             if (typeof event === "number") return;
-            if (!this.node.activeInHierarchy || trackEntry?.trackIndex !== 0) return;
+            if (!isValid(this, true) || !this.node.activeInHierarchy || trackEntry?.trackIndex !== 0) return;
             const name = event.data.name;
             if (trackEntry.animation?.name === 'cc_乌鲁' && /^p[1-4]$/.test(name)) this._pendingMissiles.push(name);
             if (trackEntry.animation?.name === 'cc_蜂医' && name === 'fy') this._pendingFengYi = true;
@@ -96,6 +127,19 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
     }
 
     private FlushMissiles(): void {
+        const pending = this._pendingComplete;
+        this._pendingComplete = null;
+        if (pending && pending.serial === this._animationSerial && pending.entrance === this._entranceVersion
+            && this.node.activeInHierarchy) pending.callback();
+        for (const effect of this._completedEffects) {
+            this._previewEffects.delete(effect);
+            if (isValid(effect, true)) effect.destroy();
+        }
+        this._completedEffects.clear();
+        if (this._pendingLuna) {
+            this._pendingLuna = false;
+            this.LaunchLunaEffect();
+        }
         const names = this._pendingMissiles.splice(0);
         for (const name of names) this.LaunchPreviewMissile(name);
         if (this._pendingFengYi) {
@@ -173,13 +217,14 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
         }
         this._previewEffects.add(effect);
         skeleton.setCompleteListener(() => {
-            this._previewEffects.delete(effect);
-            if (isValid(effect, true)) effect.destroy();
+            this._completedEffects.add(effect);
         });
         skeleton.setAnimation(0, animation, false);
     }
 
     private ClearPreviewEffects(): void {
+        this._pendingLuna = false;
+        this._completedEffects.clear();
         this._pendingFengYi = false;
         this._pendingMissiles.length = 0;
         this._previewEffects.forEach(effect => {
@@ -189,6 +234,9 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
     }
 
     SetSkin(skinName: string): void {
+        this._animationSerial++;
+        this._pendingComplete = null;
+        this.Skeleton?.setCompleteListener(null);
         this.ClearPreviewEffects();
         const version = ++this._entranceVersion;
         this.node.active = true;
@@ -273,11 +321,12 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
         if (!isGun || !isEquipment) return;
     }
 
-    ShowEntranceAnis(anis: string[]) {
+    ShowEntranceAnis(anis: string[], version = this._entranceVersion) {
+        if (!isValid(this, true) || !this.node.activeInHierarchy || version !== this._entranceVersion) return;
         if (anis.length == 0) {
             this.PlayAni(ZRSJZ_ANI.Idle_Q);
         } else {
-            this.PlayAni(anis.shift(), false, () => { this.ShowEntranceAnis([...anis]) });
+            this.PlayAni(anis[0], false, () => { this.ShowEntranceAnis(anis.slice(1), version) });
         }
     }
 }

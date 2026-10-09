@@ -138,7 +138,7 @@ export class ZRSJZ_UIManager extends Component {
             ZRSJZ_UIManager._instance = this;
             ZRSJZ_UIManager._lifecycleVersion++;
             ZRSJZ_UIManager.InitDLC();
-            ZRSJZ_UIManager.InitAudio();
+            ZRSJZ_UIManager.InitAudios();
             ZRSJZ_UIManager.InitUI();
             ZRSJZ_UIManager.InitInventory();
             ZRSJZ_UIManager.InitEvent();
@@ -425,7 +425,7 @@ export class ZRSJZ_UIManager extends Component {
         })
     }
 
-    public static InitAudio() {
+    public static InitAudios() {
         const instance = ZRSJZ_UIManager._instance;
         const lifecycleVersion = ZRSJZ_UIManager._lifecycleVersion;
         if (!instance?.IsAvailable()) return;
@@ -436,6 +436,7 @@ export class ZRSJZ_UIManager extends Component {
             "73_ZRSJZ/Audios",
         ]
         let initCount = 0;
+
         audioRes.forEach(path => {
             const bundlePath: string = path.split("/").shift();
             const resPath: string = path.split("/").slice(1).join("/");
@@ -454,6 +455,10 @@ export class ZRSJZ_UIManager extends Component {
                 })
             })
         });
+    }
+
+    public static LoadAudioClips(bundlePath: string, resPath: string) {
+
     }
 
     public static InitEvent() {

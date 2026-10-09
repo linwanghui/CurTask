@@ -1,6 +1,6 @@
 import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, Button, EventHandler, EventTouch, find, instantiate, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
+import { _decorator, Button, EventHandler, EventTouch, find, instantiate, isValid, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_QUALITY, ZRSJZ_ROLE_CONFIG, ZRSJZ_RoleConfig, ZRSJZ_SKIN_CONFIG } from '../ZRSJZ_Constant';
@@ -119,6 +119,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
 
     protected async start(): Promise<void> {
         await this.InitSkinQualityFrames();
+        if (!isValid(this, true)) return;
         this.SkillIconSFs.forEach(sf => this._skillIconMap.set(sf.name, sf));
         this._initialized = true;
         if (this.node.activeInHierarchy) this.SelectInitialRole();
@@ -137,6 +138,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     }
 
     protected onDisable(): void {
+        this._skinListVersion++;
         this.unschedule(this.RefreshFragments);
         this._fragmentEventNode?.off(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE, this.RefreshFragments, this);
         this._fragmentEventNode = null;
@@ -212,6 +214,10 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         }
         const skinItems = await Promise.all(skins.map(async (skinName, index) => {
             const skinItem: Node = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/SkinItem");
+            if (!isValid(this, true) || !this.node.activeInHierarchy || version !== this._skinListVersion) {
+                this.RecycleSkinItem(skinItem);
+                return null;
+            }
             skinItem.name = index.toString();
             skinItem.active = true;
             const skinItemTs = skinItem.getComponent(ZRSJZ_SkinItem);
@@ -226,12 +232,13 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
             return skinItemTs;
         }));
 
-        if (version !== this._skinListVersion) {
-            skinItems.forEach(item => this.RecycleSkinItem(item.node));
+        if (!isValid(this, true) || !this.node.activeInHierarchy || version !== this._skinListVersion) {
+            skinItems.forEach(item => { if (item) this.RecycleSkinItem(item.node); });
             return;
         }
-        skinItems.forEach(item => item.node.parent = this.SkinContent);
-        this._roleSkins = skinItems;
+        const readyItems = skinItems.filter(item => !!item);
+        readyItems.forEach(item => item.node.parent = this.SkinContent);
+        this._roleSkins = readyItems;
     }
 
     private RecycleSkinItem(node: Node): void {
@@ -242,7 +249,8 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
             return;
         }
         node.name = "SkinItem";
-        ZRSJZ_PoolManager.Instance.PutNode(node);
+        if (isValid(ZRSJZ_PoolManager.Instance, true)) ZRSJZ_PoolManager.Instance.PutNode(node);
+        else node.destroy();
     }
 
     SwitchSkin(skinIndex: number) {
@@ -296,6 +304,7 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     private async InitSkinQualityFrames(): Promise<void> {
         try {
             const spriteFrames = await ZRSJZ_Tools.LoadSprites("Sprites/皮肤框");
+            if (!isValid(this, true)) return;
             spriteFrames.forEach(spriteFrame => this._skinQualityFrames.set(spriteFrame.name, spriteFrame));
         } catch (error) {
             console.error("角色皮肤品质框加载失败", error);
