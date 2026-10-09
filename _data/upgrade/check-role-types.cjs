@@ -3,6 +3,8 @@ const root=path.resolve(__dirname,'../..');
 const config=ts.getParsedCommandLineOfConfigFile(path.join(root,'tsconfig.json'),{}, {...ts.sys,onUnRecoverableConfigFileDiagnostic:console.error});
 const files=['Panel/ZRSJZ_RolePanel.ts','Controller/ZRSJZ_Player.ts','Controller/ZRSJZ_Joystick_Attack.ts','Skill/ZRSJZ_Skill_Button.ts','Service/ZRSJZ_BoosterShotService.ts'].map(p=>path.join(root,'assets/Game_Bundles/73_ZRSJZ/Scripts',p));
 files.push(path.join(root,'assets/Game_Bundles/73_ZRSJZ/Scripts/Panel/ZRSJZ_CheatingPanel.ts'));
+files.push(path.join(root,'assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_MapAutoShow.ts'));
+files.push(path.join(root,'assets/Game_Bundles/73_ZRSJZ/Scripts/Panel/ZRSJZ_AmmoGiftBagPanel.ts'));
 files.push(...['Controller/ZRSJZ_BossBase.ts','Controller/ZRSJZ_Boss.ts','Controller/ZRSJZ_EnemySkeleton.ts']
     .map(p=>path.join(root,'assets/Game_Bundles/73_ZRSJZ/Scripts',p)));
 const program=ts.createProgram(files,{...config.options,skipLibCheck:true,noEmit:true});

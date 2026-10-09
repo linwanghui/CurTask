@@ -36,6 +36,8 @@ interface ZRSJZ_MiniMapTaskMarker {
     TaskPoint: ZRSJZ_SpecialOperationsTaskIcon;
 }
 
+let ZRSJZ_AUTO_SHOW_TEST = true;
+
 @ccclass('ZRSJZ_Game')
 export class ZRSJZ_Game extends Component {
     public static Instance: ZRSJZ_Game = null;
@@ -1008,16 +1010,19 @@ export class ZRSJZ_Game extends Component {
                         if (!Banner.WinTheCustomerIsOver) {
                             //默认直接进入第一个关卡，需要修改手动修改
                             Banner.Instance.TTuploading();
+                            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAP_AUTO_SHOW);
                         }
                     } else {
                         //非获客场景进入
                     }
-
-
                 }
             }, () => {
 
             });
+        } else if (ZRSJZ_AUTO_SHOW_TEST) {
+            console.error("开始自动演示");
+            ZRSJZ_AUTO_SHOW_TEST = false;
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAP_AUTO_SHOW);
         }
 
     }

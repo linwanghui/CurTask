@@ -185,6 +185,17 @@ export class ZRSJZ_Player extends Component {
     CurSpeed: number = 1000;
 
     TargetEnemy: Node = null;
+    /** 自动演示期间指定目标；退出后恢复普通索敌。 */
+    public AutoShowTarget: Node = null;
+
+    public StopAutoShowInput(): void {
+        if (this.TargetEnemy === this.AutoShowTarget) this.TargetEnemy = null;
+        this.AutoShowTarget = null;
+        this.CancelGunAttackState();
+        this.CancelKnifeAttackState();
+        this.Move(0, 0, 0, this.PlayerIndex);
+        if (this.RigidBody) this.RigidBody.linearVelocity = Vec2.ZERO;
+    }
     TargetRange: number = 2000;
     Reloading: Node = null;
     Loading: Sprite = null;
@@ -1159,6 +1170,12 @@ export class ZRSJZ_Player extends Component {
 
     //#region 寻找敌人
     protected FindTarget() {
+        if (this.AutoShowTarget) {
+            const target = this.AutoShowTarget;
+            const enemy = isValid(target, true) ? target.getComponent(ZRSJZ_EnemyBase) : null;
+            this.TargetEnemy = enemy && !enemy.IsDead && target.activeInHierarchy ? target : null;
+            return;
+        }
         // const attackRange = this.WeaponType === "枪"
         //     ? this.GetGunProperty("射程", 500)
         //     : 500;

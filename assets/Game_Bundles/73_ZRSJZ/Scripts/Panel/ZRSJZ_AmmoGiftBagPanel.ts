@@ -11,7 +11,7 @@ const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_AmmoGiftBagPanel')
 export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
-    private static readonly AMMO_COUNT = 120;
+    private static readonly AMMO_COUNT = ZRSJZ_AMMO_MAX_COUNT;
 
     private readonly _icons: Sprite[] = [];
     private readonly _names: Label[] = [];
@@ -74,7 +74,7 @@ export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
         const showVersion = ++this._showVersion;
         for (let index = 0; index < 3; index++) {
             if (this._names[index]) this._names[index].string = this._ammoNames[index];
-            if (this._counts[index]) this._counts[index].string = `${ZRSJZ_AMMO_MAX_COUNT * 2}`;
+            if (this._counts[index]) this._counts[index].string = `${ZRSJZ_AmmoGiftBagPanel.AMMO_COUNT}`;
         }
 
         const spriteFrames = await Promise.all(
@@ -92,7 +92,7 @@ export class ZRSJZ_AmmoGiftBagPanel extends ZRSJZ_Panel {
         const replacedPropIDs: string[] = [];
         const success = ZRSJZ_InventoryService.ApplyAmmoGift(
             this._ammoNames,
-            ZRSJZ_AMMO_MAX_COUNT,
+            ZRSJZ_AmmoGiftBagPanel.AMMO_COUNT,
             this._playerIndex,
             replacedPropIDs,
         );

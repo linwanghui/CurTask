@@ -1,0 +1,273 @@
+{
+"skeleton": { "hash": "JYlVE6doGqh0PjKw4U43swBCf2w", "spine": "3.8.75", "images": "./images/", "audio": "" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "p", "parent": "root" },
+	{ "name": "size", "parent": "p" },
+	{ "name": "andi", "parent": "size" },
+	{ "name": "pan", "parent": "root" },
+	{ "name": "andifazhen", "parent": "pan" },
+	{ "name": "fazhenmove", "parent": "pan" },
+	{ "name": "fazhen", "parent": "fazhenmove" },
+	{ "name": "fazhenmove2", "parent": "pan" },
+	{ "name": "fazhen2", "parent": "fazhenmove2" },
+	{ "name": "fazhenmove3", "parent": "pan" },
+	{ "name": "fazhen3", "parent": "fazhenmove3" },
+	{ "name": "guangzhu", "parent": "pan" },
+	{ "name": "heiandimove", "parent": "size" },
+	{ "name": "heiandi", "parent": "heiandimove" },
+	{ "name": "liangdimove", "parent": "size" },
+	{ "name": "liangdi", "parent": "liangdimove" },
+	{ "name": "shandian", "parent": "size" },
+	{ "name": "shangshenghe", "parent": "pan" },
+	{ "name": "shangsheng", "parent": "shangshenghe", "x": 1.49, "y": 1.49 },
+	{ "name": "shangsheng2", "parent": "shangshenghe" },
+	{ "name": "shangsheng3", "parent": "shangshenghe" },
+	{ "name": "shangsheng4", "parent": "shangshenghe" },
+	{ "name": "shangsheng5", "parent": "shangshenghe" },
+	{ "name": "shangsheng6", "parent": "shangshenghe" },
+	{ "name": "shangsheng7", "parent": "shangshenghe" },
+	{ "name": "tiliang", "parent": "size" },
+	{ "name": "xingmove", "parent": "size" },
+	{ "name": "xing", "parent": "xingmove" },
+	{ "name": "xingmove2", "parent": "size" },
+	{ "name": "xing2", "parent": "xingmove2" }
+],
+"slots": [
+	{ "name": "effect/dian", "bone": "andi" },
+	{ "name": "effect/zd", "bone": "heiandi" },
+	{ "name": "effect/zd2", "bone": "liangdi", "blend": "additive" },
+	{ "name": "effect/xing", "bone": "xing", "blend": "additive" },
+	{ "name": "effect/xing2", "bone": "xing2", "blend": "additive" },
+	{ "name": "shandian", "bone": "shandian", "blend": "additive" },
+	{ "name": "effect/liang", "bone": "tiliang", "blend": "additive" },
+	{ "name": "effect/liang2", "bone": "tiliang", "blend": "additive" },
+	{ "name": "effect/dian2", "bone": "andifazhen" },
+	{ "name": "effect/fazhen", "bone": "fazhen", "blend": "additive" },
+	{ "name": "effect/fazhen2", "bone": "fazhen2", "blend": "additive" },
+	{ "name": "effect/fazhen3", "bone": "fazhen3", "blend": "additive" },
+	{ "name": "guangzhu", "bone": "guangzhu", "blend": "additive" },
+	{ "name": "shangsheng", "bone": "shangsheng", "blend": "additive" },
+	{ "name": "shangsheng2", "bone": "shangsheng2", "blend": "additive" },
+	{ "name": "shangsheng3", "bone": "shangsheng3", "blend": "additive" },
+	{ "name": "shangsheng4", "bone": "shangsheng4", "blend": "additive" },
+	{ "name": "shangsheng7", "bone": "shangsheng7", "blend": "additive" },
+	{ "name": "shangsheng6", "bone": "shangsheng6", "blend": "additive" },
+	{ "name": "shangsheng5", "bone": "shangsheng5", "blend": "additive" }
+],
+"skins": [
+	{
+		"name": "default",
+		"attachments": {
+			"effect/dian2": {
+				"effect/dian": { "width": 128, "height": 128 }
+			},
+			"effect/zd2": {
+				"effect/zd": { "width": 200, "height": 200 }
+			},
+			"shangsheng2": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"shangsheng3": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"effect/fazhen": {
+				"effect/fazhen": { "width": 232, "height": 232 }
+			},
+			"shangsheng5": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"shangsheng6": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"effect/liang2": {
+				"effect/liang": { "width": 100, "height": 100 }
+			},
+			"effect/xing": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"guangzhu": {
+				"effect/zhuguang": {
+					"type": "mesh",
+					"uvs": [ 1, 1, 0, 1, 0, 0.66667, 0, 0.33333, 0, 0, 1, 0, 1, 0.33333, 1, 0.66667 ],
+					"triangles": [ 3, 4, 5, 3, 5, 6, 2, 3, 6, 2, 6, 7, 1, 2, 7, 1, 7, 0 ],
+					"vertices": [ 50, -58.5, -50, -58.5, -50, -19.5, -50, 19.5, -50, 58.5, 50, 58.5, 50, 19.5, 50, -19.5 ],
+					"hull": 8,
+					"edges": [ 0, 14, 0, 2, 2, 4, 4, 6, 6, 8, 8, 10, 10, 12, 12, 14 ],
+					"width": 100,
+					"height": 117
+				}
+			},
+			"shangsheng4": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"effect/fazhen2": {
+				"effect/yuan1": { "width": 128, "height": 128 }
+			},
+			"effect/fazhen3": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"shangsheng": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"effect/zd": {
+				"effect/zd": { "width": 200, "height": 200 }
+			},
+			"effect/dian": {
+				"effect/dian": { "width": 128, "height": 128 }
+			},
+			"shandian": {
+				"effect/shan01": { "width": 123, "height": 123 },
+				"effect/shan02": { "width": 123, "height": 123 },
+				"effect/shan03": { "width": 123, "height": 123 },
+				"effect/shan04": { "width": 123, "height": 123 }
+			},
+			"shangsheng7": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"effect/xing2": {
+				"effect/xing": { "width": 200, "height": 200 }
+			},
+			"effect/liang": {
+				"effect/liang": { "width": 100, "height": 100 }
+			}
+		}
+	}
+],
+"animations": {
+	"ls": {
+		"slots": {
+			"effect/liang2": {
+				"color": [
+					{ "color": "ff7100ff" }
+				],
+				"attachment": [
+					{ "name": "effect/liang" }
+				]
+			},
+			"effect/liang": {
+				"color": [
+					{ "color": "ff9000ff" }
+				],
+				"attachment": [
+					{ "name": "effect/liang" }
+				]
+			},
+			"effect/dian": {
+				"color": [
+					{ "color": "391b00ff" }
+				],
+				"attachment": [
+					{ "name": "effect/dian" }
+				]
+			},
+			"effect/zd2": {
+				"attachment": [
+					{ "name": null }
+				]
+			},
+			"effect/xing": {
+				"color": [
+					{ "color": "b0781eff" }
+				],
+				"attachment": [
+					{ "name": "effect/xing" }
+				]
+			},
+			"effect/xing2": {
+				"attachment": [
+					{ "name": "effect/xing" }
+				]
+			},
+			"effect/zd": {
+				"attachment": [
+					{ "name": "effect/zd" }
+				]
+			}
+		},
+		"bones": {
+			"xing2": {
+				"rotate": [
+					{},
+					{ "time": 1.3333, "angle": -90 },
+					{ "time": 2.6667, "angle": 180 },
+					{ "time": 4, "angle": 90 },
+					{ "time": 5.3333 }
+				]
+			},
+			"xing": {
+				"rotate": [
+					{},
+					{ "time": 1.3333, "angle": 90 },
+					{ "time": 2.6667, "angle": 180 },
+					{ "time": 4, "angle": -90 },
+					{ "time": 5.3333 }
+				]
+			},
+			"heiandi": {
+				"rotate": [
+					{},
+					{ "time": 1.3333, "angle": -90 },
+					{ "time": 2.6667, "angle": 180 },
+					{ "time": 4, "angle": 90 },
+					{ "time": 5.3333 }
+				]
+			},
+			"tiliang": {
+				"scale": [
+					{ "x": 1.706, "y": 1.59 }
+				]
+			},
+			"andi": {
+				"scale": [
+					{ "x": 1.794, "y": 1.882 }
+				]
+			},
+			"liangdi": {
+				"rotate": [
+					{},
+					{ "time": 0.6667, "angle": -90 },
+					{ "time": 1.3333, "angle": 180 },
+					{ "time": 2, "angle": 90 },
+					{ "time": 2.6667 },
+					{ "time": 3.3333, "angle": -90 },
+					{ "time": 4, "angle": 180 },
+					{ "time": 4.6667, "angle": 90 },
+					{ "time": 5.3333 }
+				]
+			},
+			"liangdimove": {
+				"scale": [
+					{ "x": -0.69, "y": 0.688 }
+				]
+			},
+			"size": {
+				"scale": [
+					{ "x": 0.737 }
+				]
+			},
+			"p": {
+				"rotate": [
+					{ "angle": -94.27 }
+				],
+				"translate": [
+					{ "x": 1.87, "y": 2.45 }
+				],
+				"scale": [
+					{ "x": 1.5, "y": 1.5 }
+				]
+			},
+			"xingmove2": {
+				"scale": [
+					{ "x": 0.278, "y": 0.275 }
+				]
+			},
+			"xingmove": {
+				"scale": [
+					{ "x": 0.711, "y": 0.706 }
+				]
+			}
+		}
+	}
+}
+}
