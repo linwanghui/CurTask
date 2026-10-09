@@ -178,6 +178,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (length > 1) {
             Vec3.lerp(pos, pos, center, Math.min(1, distance / length));
             this.node.setWorldPosition(pos);
+            const body = this.RigidBody?.impl as { syncPositionToPhysics?: () => void };
+            body?.syncPositionToPhysics?.();
             this.ClearNavigation();
         }
     }

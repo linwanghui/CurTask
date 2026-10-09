@@ -1,122 +1,63 @@
-const { chromium } = require('C:/Users/Administrator/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-(async () => {
-  const browser = await chromium.launch({ headless: true, executablePath: 'C:/Users/Administrator/AppData/Local/Google/Chrome/Bin/chrome.exe' });
-  try {
-    const page = await browser.newPage({ viewport: { width: 1560, height: 720 } });
-    const errors = [];
-    page.on('pageerror', error => { errors.push(error.message); console.error('runtime', error.message); });
-    await page.goto('http://localhost:7456', { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => typeof cc !== 'undefined' && cc.director.getScene(), null, { timeout: 45000 });
-    await page.evaluate(async () => {
-      const bundle = await new Promise((resolve, reject) => cc.assetManager.loadBundle('73_ZRSJZ', (e,b) => e ? reject(e) : resolve(b)));
-      const scene = await new Promise((resolve, reject) => bundle.loadScene('ZRSJZ_Start', (e,s) => e ? reject(e) : resolve(s)));
-      cc.director.runSceneImmediate(scene);
-    });
-    await page.waitForTimeout(5000);
-    await page.evaluate(() => {
-      const get = name => Array.from(System.entries()).map(([,m]) => m).find(m => m[name])?.[name];
-      const UI = get('ZRSJZ_UIManager');
-      UI.ZRSJZ_DLC = true;
-      UI.Instance.CloseAllPanelsImmediately();
-      UI.Instance.ShowPanel('73_ZRSJZ/Prefabs/Panel/角色界面');
-      window.lunaTest = { UI, launches: 0, effects: [] };
-    });
-    await page.waitForFunction(() => {
-      const t = window.lunaTest;
-      t.panel = t.UI.Instance.node.getComponentsInChildren(cc.js.getClassByName('ZRSJZ_RolePanel'))[0];
-      t.skin = t.panel?.Skeleton;
-      return t.skin && t.panel._initialized;
-    }, null, { timeout: 30000 }).catch(async error => {
-      console.log('panel diagnostic', await page.evaluate(() => {
-        const t = window.lunaTest;
-        return { scene: cc.director.getScene()?.name, panel: !!t.panel, initialized: t.panel?._initialized,
-          skin: !!t.skin, active: t.panel?.node.activeInHierarchy, children: t.UI.Instance.node.children.map(n => n.name) };
-      }));
-      throw error;
-    });
-    await page.evaluate(async () => {
-      const t = window.lunaTest;
-      t.UI.ZRSJZ_DLC = true;
-      await new Promise((resolve, reject) => cc.assetManager.loadBundle('73_ZRSJZ_DLC', (e,b) => e ? reject(e) : resolve(b)));
-      t.skin.LoadDLCSkeleton();
-    });
-    await page.waitForFunction(() => window.lunaTest.skin.HasFullAppearance, null, { timeout: 30000 });
-    await page.evaluate(() => {
-      const t = window.lunaTest;
-      if (!t.skin.LunaEffectPoint) throw Error('Missing role release point');
-      const privacy = cc.js.getClassByName('PrivacyPanel');
-      if (privacy) for (const p of cc.director.getScene().getComponentsInChildren(privacy)) p.node.active = false;
-      const launch = t.skin.LaunchLunaEffect;
-      t.skin.LaunchLunaEffect = function() {
-        launch.call(this);
-        const effect = Array.from(this._previewEffects).find(n => n.name === '出场特效_露娜');
-        if (!effect) throw Error('fy did not instantiate effect');
-        if (cc.Vec3.distance(effect.worldPosition, this.LunaEffectPoint.worldPosition) > 0.001) throw Error('Release position mismatch');
-        if (effect.layer !== this.node.layer || effect.children.some(n => n.layer !== this.node.layer)) throw Error('UI layer mismatch');
-        if (effect.getChildByName('Spine').getComponent('sp.Skeleton').loop) throw Error('Effect should play once');
-        const skeleton = effect.getChildByName('Spine').getComponent('sp.Skeleton');
-        if (skeleton.skeletonData._uuid !== '5ea18a09-56dd-4b87-900f-3f2ecca73ded' || skeleton.animation !== 'action') throw Error('Wrong Luna Spine or animation');
-        if (this.Skeleton.getCurrent(0).trackTime > 0.1) throw Error('Effect is not synchronized with entrance start');
-        t.launches++;
-        t.effects.push(effect);
-      };
-      t.panel.ShowRoleDesc('浅燎');
-    });
-    await page.waitForFunction(() => window.lunaTest.launches === 1, null, { timeout: 15000 }).catch(async error => {
-      console.log('diagnostic', await page.evaluate(() => {
-        const t = window.lunaTest;
-        return { skin: t.skin.SkinName, active: t.skin.node.activeInHierarchy, dlc: t.UI.ZRSJZ_DLC, ready: t.skin.HasFullAppearance,
-          loaded: !!t.skin._lunaEffectPrefab, animation: t.skin.Skeleton.getCurrent(0)?.animation?.name,
-          hasEntrance: !!t.skin.Skeleton.findAnimation('cc_露娜'), launches: t.launches, method: String(t.skin.BindEntranceEvents) };
-      }), errors);
-      throw error;
-    });
-    await page.waitForTimeout(350);
-    await page.screenshot({ path: '_data/upgrade/luna-role-preview.png' });
-    await page.waitForTimeout(2300);
-    console.log('completion', await page.evaluate(() => {
-      const t = window.lunaTest;
-      if (t.effects.some(n => cc.isValid(n, true))) throw Error('Completed effect not destroyed');
-      if (t.skin._previewEffects.size) throw Error('Effect registry not cleared');
-      t.skin.SetSkin('鸢铠');
-      return { launches: t.launches, cleanup: true };
-    }));
-    await page.waitForFunction(() => window.lunaTest.launches === 2, null, { timeout: 10000 }).catch(async error => {
-      console.log(await page.evaluate(() => { const t = window.lunaTest; return { skin: t.skin.SkinName, active: t.skin.node.activeInHierarchy, dlc: t.UI.ZRSJZ_DLC, launches: t.launches, animation: t.skin.Skeleton.getCurrent(0)?.animation.name }; }));
-      throw error;
-    });
-    console.log('switch', await page.evaluate(() => {
-      const t = window.lunaTest, effect = t.effects[1];
-      t.skin.SetSkin('威蓝');
-      if (cc.isValid(effect, true) || t.skin._previewEffects.size || t.skin._pendingFengYi) throw Error('Switch cleanup failed');
-      t.skin.SetSkin('凌魇');
-      return { cleanup: true };
-    }));
-    await page.waitForFunction(() => window.lunaTest.launches === 3, null, { timeout: 10000 });
-    console.log('close', await page.evaluate(() => {
-      const t = window.lunaTest, effect = t.effects[2];
-      t.panel.node.active = false;
-      if (cc.isValid(effect, true) || t.skin._previewEffects.size || t.skin._pendingFengYi) throw Error('Close cleanup failed');
-      return { launches: t.launches, cleanup: true };
-    }));
-    console.log('stale load', await page.evaluate(async () => {
-      const t = window.lunaTest;
-      t.panel.node.active = true;
-      t.skin.SetSkin('威蓝');
-      const original = t.skin.LoadLunaEffect;
-      let release;
-      t.skin.LoadLunaEffect = () => new Promise(resolve => { release = resolve; });
-      const before = t.launches;
-      t.skin.SetSkin('浅燎');
-      if (t.launches !== before || t.skin.Skeleton.getCurrent(0).animation.name !== 'daiji_q') throw Error('Entrance started before resource ready');
-      t.skin.SetSkin('威蓝');
-      release(t.skin._lunaEffectPrefab);
-      await new Promise(resolve => setTimeout(resolve, 100));
-      t.skin.LoadLunaEffect = original;
-      if (t.launches !== before || t.skin._previewEffects.size) throw Error('Stale resource load played after skin switch');
-      return { waitingForResource: true, staleLoadCancelled: true };
-    }));
-    console.log('pageErrors', JSON.stringify(errors));
-    if (errors.length) throw Error(errors.join('\n'));
-  } finally { await browser.close(); }
-})().catch(error => { console.error(error); process.exitCode = 1; });
+const fs=require('fs');
+const boot=fs.readFileSync(__dirname+'/preview-enhancement-v2.cjs','utf8'),boss=fs.readFileSync(__dirname+'/preview-boss-motion.cjs','utf8');
+const prefix=boot.slice(0,boot.indexOf("  console.log('open',")).replace('await page.waitForTimeout(18000);await page.mouse.click(1010,615);await page.waitForTimeout(10000);',"await page.waitForFunction(() => typeof cc !== 'undefined' && cc.director.getScene(), null, {timeout:45000});");
+const launch=boss.slice(boss.indexOf("  console.log('launch',"),boss.indexOf("  console.log('runtime',"));
+eval(prefix+launch+String.raw`
+ console.log('luna',await page.evaluate(async()=>{
+  const game=t.get('ZRSJZ_Game').Instance,p=game.Players[0],Luna=cc.js.getClassByName('ZRSJZ_LunaSkill');
+  const check=(x,s)=>{if(!x)throw Error(s);};
+  game.GamePaused=false;t.UI.Instance.CloseAllPanelsImmediately();p.enabled=false;p.BeHit=()=>{};p.CurHP=p.MaxHP;
+  p.PlayerSkeleton.AttackX=1;p.PlayerSkeleton.AttackY=0;p.TargetEnemy=null;
+  await p.CastLuna();
+  const skill=game.node.scene.getComponentsInChildren(Luna)[0];check(!!skill,'Cast missing');
+  const advance=(s,dt)=>{s.update(dt);if(s._game&&!game.GamePaused){s._spine.getCurrent(0).trackTime+=dt;s.lateUpdate();}};
+  check(!skill._spine.getCurrent(0).loop,'Animation loops');
+  const center=skill.node.worldPosition.clone();
+  check(Math.abs(center.x-p.node.worldPosition.x-skill.ForwardDistance)<.01,'Forward location');
+  check(skill._spine.animation==='action','Wrong animation');
+  const enemies=game.node.scene.getComponentsInChildren(cc.js.getClassByName('ZRSJZ_EnemyBase')).filter(e=>!e.IsDead&&e.node.activeInHierarchy);
+  check(enemies.length>=3,'Not enough enemies');
+  enemies.forEach(e=>{e.enabled=false;e.StopMoving();});
+  const target=enemies[0],outside=enemies[1],dead=enemies[2];
+  for(const e of [target,outside,dead]){game.node.addChild(e.node);e.node.active=true;}
+  let hits=[],outsideHits=0,deadHits=0;
+  target._health=10000;const hit=target.BeHit;target.BeHit=function(d){hits.push(d);hit.call(this,d);};
+  outside.BeHit=()=>outsideHits++;dead.BeHit=()=>deadHits++;dead._state=t.get('ZRSJZ_ENEMY_STATE').DEAD;
+  // 在同一帧设置位置并检查，避免地图物理系统覆盖测试位置。
+  target.node.setWorldPosition(center.x+100,center.y,center.z);
+  outside.node.setWorldPosition(center.x+2000,center.y,center.z);
+  dead.node.setWorldPosition(center.x+50,center.y,center.z);
+  if(outside.Other)outside.Other.setWorldPosition(center.x+2000,center.y,center.z);
+  // 场景障碍另由已有 HasDirectPath 负责；测试使用可通行路径隔离拉扯计算。
+  target.HasDirectPath=()=>true;
+  const start=cc.Vec3.distance(target.node.worldPosition,center);
+  advance(skill,.15);check(cc.Vec3.distance(target.node.worldPosition,center)<start,'Pull failed');check(hits.length===0,'Damage too early');
+  advance(skill,.15);check(hits.length===1,'First damage missing');
+  const elapsed=skill._elapsed,position=target.node.worldPosition.clone();
+  game.GamePaused=true;advance(skill,1);check(skill._elapsed===elapsed&&hits.length===1,'Pause failed');check(cc.Vec3.distance(position,target.node.worldPosition)<.001,'Paused pull');
+  game.GamePaused=false;
+  for(let i=0;i<6;i++)advance(skill,.3);
+  advance(skill,.31);
+  check(hits.length===8,'Expected 8 small hits: '+hits.length);
+  const singleCycleHits=hits.length;
+  check(hits.every(d=>d===skill._damage),'Wrong tick damage');
+  check(outsideHits===0&&deadHits===0,'Invalid targets damaged');
+  check(!cc.isValid(skill.node,true),'No cleanup');
+  const hp=p.CurHP;check(hp===p.MaxHP,'Self damaged');
+  p.TargetEnemy=target.node;
+  await p.CastLuna();const second=game.node.scene.getComponentsInChildren(Luna).find(x=>cc.isValid(x,true));
+  check(!!second,'Second cast missing');
+  check(cc.Vec3.distance(second.node.worldPosition,target.node.worldPosition)<.001,'Locked target center');
+  const fixed=second.node.worldPosition.clone();target.node.setWorldPosition(fixed.x+100,fixed.y,fixed.z);second.update(.01);
+  check(cc.Vec3.distance(second.node.worldPosition,fixed)<.001,'Center should remain fixed');
+  game._isGameFinished=true;second.update(.1);check(!cc.isValid(second.node,true),'Battle cleanup');
+  game._isGameFinished=false;await p.CastLuna();
+  const live=game.node.scene.getComponentsInChildren(Luna).find(x=>cc.isValid(x,true));
+  await new Promise(r=>setTimeout(r,700));check(cc.isValid(live,true)&&live._elapsed>0,'Real animation not advancing');
+  await new Promise(r=>setTimeout(r,2400));check(!cc.isValid(live,true),'Real single cycle not cleaned up');
+  return {lockedTargetCenter:true,fixedCenter:true,forwardFallback:true,pull:true,ticksPerCycle:singleCycleHits,damagePerTick:hits[0],outsideAndDeadExcluded:true,pause:true,cleanup:true,realAnimationCleanup:true};
+ }));
+ console.log('errors',errors);if(errors.some(e=>/TypeError|Cannot read|露娜技能释放失败/.test(e)))throw Error(errors.join('\n'));
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});
+`);

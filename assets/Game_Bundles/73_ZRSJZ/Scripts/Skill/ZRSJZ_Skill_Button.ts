@@ -97,6 +97,8 @@ export class ZRSJZ_Skill_Button extends Component {
         }
         if ((skillName === '蜂医' || skillName === '医疗')
             && !ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.CanCastFengYi()) return false;
+        if ((skillName === '露娜' || skillName === '风翎')
+            && !ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.CanCastLuna()) return false;
 
         const directionLength = Math.sqrt(dirX * dirX + dirY * dirY);
         if (directionLength > 0) {
@@ -134,7 +136,9 @@ export class ZRSJZ_Skill_Button extends Component {
 
     private OnTouchStart(event: EventTouch): void {
         const player = ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex);
-        if (this.SkillName === '蜂医' || this.SkillName === '医疗') {
+        if (this.SkillName === '露娜' || this.SkillName === '风翎') {
+            if (!player?.CanCastLuna()) return;
+        } else if (this.SkillName === '蜂医' || this.SkillName === '医疗') {
             if (!player?.CanCastFengYi()) return;
         } else
         if (this.IsNeedLock && !player?.IsLockEnemy) {

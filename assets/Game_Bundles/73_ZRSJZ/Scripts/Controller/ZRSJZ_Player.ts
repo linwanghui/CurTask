@@ -28,6 +28,7 @@ import { ZRSJZ_Mailbox } from '../Unit/ZRSJZ_Mailbox';
 import { ZRSJZ_BoosterShotService } from "../Service/ZRSJZ_BoosterShotService";
 import { ZRSJZ_Laser } from "../Skill/ZRSJZ_Laser";
 import { ZRSJZ_UluSkill } from '../Skill/ZRSJZ_UluSkill';
+import { ZRSJZ_LunaSkill } from '../Skill/ZRSJZ_LunaSkill';
 import { assetManager, Prefab, sp } from 'cc';
 import { ZRSJZ_FENGYI_HEAL_CONFIG } from '../ZRSJZ_Constant';
 const { ccclass, property } = _decorator;
@@ -48,6 +49,51 @@ export class ZRSJZ_Player extends Component {
     private _refreshUluTarget: (() => void) = null;
     private _fengYiVersion = 0;
     private _fengYiLoading = false;
+    private _lunaLoading = false;
+    private _lunaVersion = 0;
+
+    public CanCastLuna(): boolean {
+        const game = ZRSJZ_Game.Instance;
+        return this.CanUseAsyncResult(game) && !game.GamePaused && !game.IsGameFinished
+            && !this.IsDead && this.IsSkill && !this._lunaLoading;
+    }
+
+    private async CastLuna(): Promise<void> {
+        if (!this.CanCastLuna()) return;
+        const game = ZRSJZ_Game.Instance;
+        const version = ++this._lunaVersion;
+        this._lunaLoading = true;
+        let effect: Node = null;
+        try {
+            const bundle = assetManager.getBundle('73_ZRSJZ_DLC') ?? await new Promise<ReturnType<typeof assetManager.getBundle>>((resolve, reject) => {
+                assetManager.loadBundle('73_ZRSJZ_DLC', (error, loaded) => error ? reject(error) : resolve(loaded));
+            });
+            const prefab = await new Promise<Prefab>((resolve, reject) => {
+                bundle.load('Prefabs/Effect/技能_露娜', Prefab, (error, loaded) => error ? reject(error) : resolve(loaded));
+            });
+            if (version !== this._lunaVersion || !this.CanUseAsyncResult(game) || game.GamePaused || game.IsGameFinished || this.IsDead) return;
+            const parent = game.CurMap?.BulletParent ?? this.node.parent;
+            if (!isValid(parent, true)) return;
+            effect = instantiate(prefab);
+            parent.addChild(effect);
+            const setLayer = (node: Node): void => { node.layer = parent.layer; node.children.forEach(setLayer); };
+            setLayer(effect);
+            const skill = effect.getComponent(ZRSJZ_LunaSkill);
+            if (!skill) throw new Error('技能_露娜缺少 ZRSJZ_LunaSkill');
+            const direction = new Vec3(this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY, 0);
+            if (direction.lengthSqr() < 0.000001) direction.set(this._lastMoveDirectionX, this._lastMoveDirectionY, 0);
+            const target = this.TargetEnemy;
+            const enemy = isValid(target, true) ? target.getComponent(ZRSJZ_EnemyBase) : null;
+            const targetCenter = enemy && isValid(enemy, true) && target.activeInHierarchy && !enemy.IsDead
+                ? target.worldPosition.clone() : null;
+            skill.Show(this.node.worldPosition.clone(), direction, targetCenter);
+        } catch (error) {
+            if (isValid(effect, true)) effect.destroy();
+            console.error('[ZRSJZ_Player] 露娜技能释放失败:', error);
+        } finally {
+            if (version === this._lunaVersion) this._lunaLoading = false;
+        }
+    }
     private _fengYiHeal: { node: Node; spine: sp.Skeleton; game: ZRSJZ_Game; duration: number; elapsed: number; total: number; delivered: number } = null;
 
     public CanCastFengYi(showTip = true): boolean {
@@ -394,6 +440,8 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected onDisable(): void {
+        this._lunaVersion++;
+        this._lunaLoading = false;
         this.ClearFengYi();
         this.CancelUluSkill();
         if (this._bulletDelayedSprite) Tween.stopAllByTarget(this._bulletDelayedSprite);
@@ -509,6 +557,10 @@ export class ZRSJZ_Player extends Component {
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        if (skillName === '露娜' || skillName === '风翎') {
+            void this.CastLuna();
+            return;
+        }
         if (skillName === '蜂医' || skillName === '医疗') {
             void this.CastFengYi();
             return;
