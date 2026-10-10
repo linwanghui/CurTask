@@ -52,8 +52,13 @@ defaults.Migrate(existing,JSON.parse(JSON.stringify(existing)));assert.equal(exi
 console.log('PASS: v25 migration preserves existing inventory/gold and existing matrix state.');
 const prefab=JSON.parse(fs.readFileSync(path.join(dlc,'Prefabs/Panel/超算矩阵界面.prefab'),'utf8'));
 const panel=prefab.find(n=>n._name==='Panel'),byPath=p=>p.split('/').reduce((n,k)=>n?._children?.map(r=>prefab[r.__id__]).find(n=>n._name===k),panel);
-assert.ok(byPath('左侧/选中'));assert.equal(byPath('算力中心/显卡槽')._children.length,20);
-assert.ok(byPath('左侧')._lpos.x>=-550&&byPath('左侧')._lpos.x<=-480);
+assert.ok(byPath('左侧/选中'));assert.equal(byPath('算力中心/显卡槽')._children.length,1);
+assert.equal(byPath('算力中心/显卡槽/槽模板')._active,false);
+for(const p of ['算力中心/显卡槽/槽模板/已装','算力中心/显卡槽/槽模板/已装/图标']){
+ const n=byPath(p),sprite=n._components.map(r=>prefab[r.__id__]).find(c=>c.__type__==='cc.Sprite');
+ assert.equal(sprite._spriteFrame,null);
+}
+assert.ok(byPath('左侧')._lpos.x < -900);
 for(const p of ['装卡确认/确认安装','装卡确认/取消安装','货币市场/K线','算力中心/产出进度/进度'])assert.ok(byPath(p),p);
 assert.ok(prefab.some(n=>n._name==='返回'));assert.ok(!byPath('左侧/导航标题'));
 assert.ok(!prefab.some(n=>n.__type__==='cc.Graphics'));
@@ -68,46 +73,103 @@ const nodes=new Map(),draws=[];
 for(let i=0;i<prefab.length;i++)if(prefab[i].__type__==='cc.Node')nodes.set(i,{name:prefab[i]._name,active:prefab[i]._active,activeInHierarchy:true,position:{...prefab[i]._lpos},components:new Map(),setPosition(x,y,z){this.position=typeof x==='object'?{...x}:{x,y,z};},setScale(x,y,z){this.scale={x,y,z};}});
 for(const [i,n] of nodes){
  n.children=prefab[i]._children.map(r=>nodes.get(r.__id__));n.getChildByName=name=>n.children.find(c=>c.name===name);
- for(const r of prefab[i]._components){const c=prefab[r.__id__];const v={...c,string:c._string,color:c._color};
+ for(const r of prefab[i]._components){const c=prefab[r.__id__];const v={...c,string:c._string,color:c._color,fontSize:c._fontSize,lineHeight:c._lineHeight,outlineWidth:c._outlineWidth};
   if(c.__type__==='cc.UITransform'){v.contentSize={...c._contentSize};v.setContentSize=(width,height)=>{v.contentSize={width,height};};}
   if(c.__type__==='cc.Graphics')for(const f of ['clear','moveTo','lineTo','stroke','rect','fill'])v[f]=(...args)=>draws.push([f,...args]);
   n.components.set(c.__type__,v);
- }n.getComponent=type=>{if(!n.components.has(type))throw Error(n.name+' lacks '+type);return n.components.get(type);};
+ }n.getComponent=type=>n.components.get(type)??null;
 }
 const find=(p,n)=>p.split('/').reduce((n,k)=>n?.getChildByName(k),n);
+for(const n of nodes.values())n.addChild=function(child){this.children.push(child);};
+function instantiate(source){
+ const n={...source,position:{...source.position},components:new Map()};
+ for(const [type,c] of source.components){const v={...c};
+  if(c.contentSize){v.contentSize={...c.contentSize};v.setContentSize=(width,height)=>v.contentSize={width,height};}
+  n.components.set(type,v);
+ }
+ n.children=source.children.map(instantiate);
+ n.getChildByName=name=>n.children.find(c=>c.name===name);n.getComponent=type=>n.components.get(type)??null;
+ return n;
+}
 let rootNode=nodes.get(1),tips=[],closed=0;
 let overflow=false,returns=0;
-const UI={Instance:{ShowTip:s=>tips.push(s),HidePanel:()=>closed++,async ReceiveExistingProps(ids){returns++;assert.ok(data.Instance.PropData[ids[0]]);if(overflow){delete data.Instance.PropData[ids[0]];return [{PropName:'显卡',Count:1}];}return [];}}};
+let artRequests=0;
+const UI={Instance:{GetPropGridUI:async name=>{artRequests++;assert.equal(name,'蓝色格子1_1');return 'qualityFrame';},GetPropUI:async name=>{artRequests++;assert.equal(name,'显卡');return 'gpuIcon';},ShowTip:s=>tips.push(s),HidePanel:()=>closed++,async ReceiveExistingProps(ids){returns++;assert.ok(data.Instance.PropData[ids[0]]);if(overflow){delete data.Instance.PropData[ids[0]];return [{PropName:'显卡',Count:1}];}return [];}}};
 class BasePanel {Show(){this.Panel=find('Panel',this.node);}}
-const cc={_decorator:{ccclass:()=>c=>c},Button:'cc.Button',UITransform:'cc.UITransform',Graphics:'cc.Graphics',Label:'cc.Label',Sprite:'cc.Sprite',Node:'cc.Node',find,
+const cc={instantiate,isValid:()=>true,_decorator:{ccclass:()=>c=>c},Button:'cc.Button',UIOpacity:'cc.UIOpacity',UITransform:'cc.UITransform',Graphics:'cc.Graphics',Label:'cc.Label',Sprite:'cc.Sprite',Node:'cc.Node',find,
  Color:class{constructor(r,g,b,a=255){Object.assign(this,{r,g,b,a});}},v3:(x,y,z)=>({x,y,z}),Tween:{stopAllByTarget(){}},
  tween:n=>({to(t,props){this.props=props;return this;},start(){Object.assign(n,this.props);}})};
 const Panel=run(path.join(dlc,'Scripts/Panel/ZRSJZ_MatrixPanel.ts'),id=>id==='cc'?cc:id.endsWith('ZRSJZ_Panel')?{ZRSJZ_Panel:BasePanel}:
  id.includes('MatrixService')?{ZRSJZ_MatrixService:M,MATRIX_CONFIG:{maxCards:20,dailyBuyLimit:5}}:
  id.includes('UIManager')?{ZRSJZ_UIManager:UI}:id.includes('AudioManager')?{ZRSJZ_AudioManager:{Instance:{PlaySound(){}}}}:
- id.endsWith('ZRSJZ_Constant')?{ZRSJZ_PANEL:enums}:deps(id)).ZRSJZ_MatrixPanel;
+ id.endsWith('ZRSJZ_Constant')?{ZRSJZ_PANEL:enums,ZRSJZ_PROP_CONFIG:new Map([['显卡',{Quality:'蓝色格子'}]])}:deps(id)).ZRSJZ_MatrixPanel;
 (async()=>{
 reset();const p=new Panel();p.node=rootNode;p.Show();
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(find('算力中心/显卡槽',p.Panel).children.length,21);
+assert.equal(find('算力中心/显卡槽/槽20/已装',p.Panel).getComponent('cc.Sprite').spriteFrame,'qualityFrame');
+assert.equal(find('算力中心/显卡槽/槽20/已装/图标',p.Panel).getComponent('cc.Sprite').spriteFrame,'gpuIcon');
+for (const count of [0, 1, 4, 5, 20]) {
+ data.Instance.Matrix.slots=Array.from({length:20},(_,i)=>i<count);
+ data.Instance.Matrix.cards=count;p.Refresh();
+ let rackCount=0,slotCount=0;
+ for(let i=0;i<20;i++){
+  const rack=find(`算力中心/机柜组/机柜${Math.floor(i/4)+1}/显卡${i%4+1}`,p.Panel);
+  const slot=find(`算力中心/显卡槽/槽${i+1}/已装`,p.Panel);
+  assert.equal(rack.active,slot.active);rackCount+=Number(rack.active);slotCount+=Number(slot.active);
+ }
+ assert.equal(rackCount,count);assert.equal(slotCount,count);
+}
+data.Instance.Matrix.slots=Array(20).fill(false);data.Instance.Matrix.cards=0;p.Refresh();
+console.log('PASS: 0/1/4/5/20 installed cards map exactly to five racks and twenty editable slots.');
 for(let i=0;i<14;i++){const candle=find('货币市场/K线/蜡烛'+i,p.Panel);assert.ok(candle.getChildByName('实体').getComponent('cc.UITransform').contentSize.height>=3);assert.ok(candle.getChildByName('影线').getComponent('cc.UITransform').contentSize.height>=3);}
-for(const [width,height]of [[1280,720],[2340,1080],[1600,900]]){rootNode.getComponent('cc.UITransform').setContentSize(width,height);p.FitScreen();const size=rootNode.getChildByName('Mask').getComponent('cc.UITransform').contentSize;assert.ok(size.width>=width&&size.height>=height);assert.ok(Math.abs(size.width/size.height-1280/720)<1e-8);}
+for(const [width,height]of [[1280,720],[2340,1080],[1600,900]]){rootNode.getComponent('cc.UITransform').setContentSize(width,height);p.FitScreen();const size=rootNode.getChildByName('Mask').getComponent('cc.UITransform').contentSize;assert.ok(size.width>=width&&size.height>=height);assert.ok(Math.abs(size.width/size.height-2340/1080)<1e-8);}
 const click=name=>p.OnButtonClick({getCurrentTarget:()=>({name})});click('货币市场');assert.equal(find('货币市场',p.Panel).active,true);assert.equal(find('算力中心',p.Panel).active,false);
+for(const [width,height] of [[2340,1080],[1280,720],[1920,1080],[2340,1080]]){
+ rootNode.getComponent('cc.UITransform').setContentSize(width,height);p.FitScreen();
+ const ratio=Math.min(width/2340,height/1080);
+ assert(Math.abs(find('算力中心/服务器底',p.Panel).getComponent('cc.UITransform').contentSize.width-610*2340/1430*ratio)<1e-6);
+ for(const n of nodes.values())if(n.scale)assert.deepEqual(n.scale,{x:1,y:1,z:1},'Non-unit scale: '+n.name);
+}
+const beforeOpen=find('算力中心/服务器底',p.Panel).getComponent('cc.UITransform').contentSize.width;
+p.Show();assert.equal(find('算力中心/服务器底',p.Panel).getComponent('cc.UITransform').contentSize.width,beforeOpen);
+let hideCallbacks=0;
+for(let i=0;i<3;i++){
+ p.Hide(()=>hideCallbacks++);assert.equal(p.node.active,false);assert.deepEqual(p.Panel.scale,{x:1,y:1,z:1});
+ p.Show();assert.equal(p.node.active,true);assert.deepEqual(p.Panel.scale,{x:1,y:1,z:1});
+ assert.equal(find('算力中心',p.Panel).active,true);
+ assert.equal(find('算力中心/服务器底',p.Panel).getComponent('cc.UITransform').contentSize.width,beforeOpen);
+}
+assert.equal(hideCallbacks,3);
+assert.equal(find('算力中心/显卡槽',p.Panel).children.length,21);
+assert.equal(artRequests,2);
+console.log('PASS: one serialized template, twenty runtime slots, shared dynamic images, no duplicate slots or reload on reopen.');
+p.Panel.setScale(0,0,0);p.Show();assert.deepEqual(p.Panel.scale,{x:1,y:1,z:1});
+console.log('PASS: actual Hide/Show cycles and recovery from legacy zero scale.');
+for(const n of prefab.filter(n=>n.__type__==='cc.Node'))assert.deepEqual([n._lscale.x,n._lscale.y,n._lscale.z],[1,1,1]);
+console.log('PASS: unit node scales, dimension-only adaptation, repeated open/resize without accumulated resizing.');
 await click('蜡烛2');assert.equal(find('货币市场/K线/蜡烛2/选中',p.Panel).active,true);assert.equal(find('货币市场/K线/蜡烛13/选中',p.Panel).active,false);
 click('安装');assert.equal(tips.at(-1),'仓库显卡不足');
 data.Instance.PropData={a:{Name:'显卡',CurCount:1,CurInventory:'仓库_全部'}};click('安装');assert.equal(find('装卡确认',p.Panel).active,true);
 click('取消安装');assert.equal(M.State.cards,0);click('安装');click('确认安装');assert.equal(M.State.cards,1);assert.equal(find('算力中心/显卡槽/槽1/已装',p.Panel).active,true);
-const removing=click('槽1');assert.equal(p.CanClose,false);await click('槽1');await removing;assert.equal(returns,1);assert.equal(M.State.cards,0);assert.equal(p.CanClose,true);
-await click('槽8');await click('确认安装');assert.equal(M.State.slots[7],true);overflow=true;await click('槽8');assert.ok(tips.at(-1).includes('邮件'));assert.equal(M.State.cards,0);
+assert.equal(find('算力中心/机柜组/机柜1/显卡1',p.Panel).active,true);
+p.Switch('算力中心',false);p.update(0.1);
+const lamp=find('算力中心/机柜组/机柜1/显卡1/工作灯',p.Panel).getComponent('cc.UIOpacity');
+const firstOpacity=lamp.opacity;p.update(0.2);assert.notEqual(lamp.opacity,firstOpacity);
+assert(lamp.opacity>=40&&lamp.opacity<=255);
+const removing=click('槽1');assert.equal(p.CanClose,false);await click('槽1');await removing;assert.equal(returns,1);assert.equal(find('算力中心/机柜组/机柜1/显卡1',p.Panel).active,false);assert.equal(M.State.cards,0);assert.equal(p.CanClose,true);
+await click('槽8');await click('确认安装');assert.equal(M.State.slots[7],true);assert.equal(find('算力中心/机柜组/机柜2/显卡4',p.Panel).active,true);overflow=true;await click('槽8');assert.ok(tips.at(-1).includes('邮件'));assert.equal(M.State.cards,0);
 click('购买');assert.equal(M.State.coins,1);click('出售');assert.equal(M.State.coins,0);click('返回');assert.equal(closed,1);
 console.log('PASS: actual panel Show, 14 sprite candles/selection, cover resizing, exact-slot takeback, duplicate-click lock, overflow feedback, page switching and return.');
 if(process.argv.includes('--snapshot')){
- rootNode.getComponent('cc.UITransform').setContentSize(1280,720);p.FitScreen();
+ rootNode.getComponent('cc.UITransform').setContentSize(1430,660);p.FitScreen();
  data.Instance.Matrix.cards=8;delete data.Instance.Matrix.slots;M.Settle();p.Refresh();
  for(const page of ['算力中心','货币市场']){
   p.Switch(page,false);const copy=structuredClone(prefab);
   for(const [i,n]of nodes){copy[i]._active=n.active;Object.assign(copy[i]._lpos,n.position);if(n.scale)Object.assign(copy[i]._lscale,n.scale);
    for(const r of copy[i]._components){const c=copy[r.__id__],v=n.components.get(c.__type__);
     if(c.__type__==='cc.UITransform')Object.assign(c._contentSize,v.contentSize);
-    if(c.__type__==='cc.Label')c._string=v.string;
+    if(c.__type__==='cc.Label'){c._string=v.string;c._fontSize=v.fontSize;c._lineHeight=v.lineHeight;}
     if(v.color)c._color={__type__:'cc.Color',...v.color};
     if(v.fillRange!==undefined)c._fillRange=v.fillRange;
    }

@@ -50,6 +50,14 @@ export class ZRSJZ_GameDataDefaults {
         }
 
         const loadData = () => {
+            if (data.Versions === 27) {
+                // Only refresh cached prices; preserve ownership, inventory slots and counts.
+                const repriced = new Set([...(ZRSJZ_SHOP_CONFIG.get('武器') ?? []), '霜月狼', '裂海鲨', '焚天龙']);
+                for (const prop of Object.values(data.PropData ?? {})) {
+                    const config = ZRSJZ_PROP_CONFIG.get(prop.Name);
+                    if (repriced.has(prop.Name) && config?.PropType === '枪') prop.UnitPrice = config.UnitPrice;
+                }
+            }
             if (data.Versions === 26) {
                 // 版本26→27：只更新商店枪械实例价格，保留实例ID、位置、数量和装备归属。
                 // 品质与伤害始终从 Constant 读取，无须重建道具或改动锻造记录。

@@ -1,6 +1,6 @@
-import { _decorator, Button, Color, EventTouch, find, Label, Node, Sprite, Tween, tween, UITransform, v3 } from 'cc';
+import { _decorator, Color, EventTouch, find, instantiate, isValid, Label, Node, Sprite, Tween, tween, UIOpacity, UITransform, v3 } from 'cc';
 import { ZRSJZ_Panel } from '../../../73_ZRSJZ/Scripts/Panel/ZRSJZ_Panel';
-import { ZRSJZ_PANEL } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
+import { ZRSJZ_PANEL, ZRSJZ_PROP_CONFIG } from '../../../73_ZRSJZ/Scripts/ZRSJZ_Constant';
 import { ZRSJZ_UIManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../../../73_ZRSJZ/Scripts/Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_GameData } from '../../../73_ZRSJZ/Scripts/ZRSJZ_GameData';
@@ -17,6 +17,13 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
     private installSlot = -1;
     private selectedCandle = 13;
     private screenSize = '';
+    private lampTime = 0;
+    private lamps: UIOpacity[] = [];
+    private slots: Node[] = [];
+    private slotArtReady = false;
+    private slotArtLoading = false;
+    private layout: { node: Node; x: number; y: number; width: number; height: number;
+        label: Label | null; font: number; line: number; outline: number }[] = [];
     public get CanClose(): boolean { return !this.busy; }
     private N(path: string): Node { return find(path, this.Panel); }
     private Text(path: string, value: string): void { this.N(path).getComponent(Label).string = value; }
@@ -24,25 +31,97 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
         Matrix.Settle();
         this.PlayerIndex = -1;
         this.Panel = find('Panel', this.node);
+        this.InitializeSlots();
+        void this.LoadSlotArt();
+        this.lampTime = 0;
+        this.lamps = Array.from({ length: MATRIX_CONFIG.maxCards }, (_, i) =>
+            this.N(`算力中心/机柜组/机柜${Math.floor(i / 4) + 1}/显卡${i % 4 + 1}/工作灯`).getComponent(UIOpacity));
         Tween.stopAllByTarget(this.Panel);
+        // Recover a cached instance closed by the former inherited scale-to-zero Hide.
+        this.Panel.setScale(1, 1, 1);
         this.node.active = true;
         this.FitScreen();
         this.N('装卡确认').active = false;
         this.Switch('算力中心', false);
         this.Refresh();
     }
+    private InitializeSlots(): void {
+        if (this.slots.length) return;
+        const container = this.N('算力中心/显卡槽');
+        const template = container.getChildByName('槽模板');
+        const size = template.getComponent(UITransform).contentSize;
+        // Column-major: four slots per rack; copy once before capturing adaptive layout.
+        for (let i = 0; i < MATRIX_CONFIG.maxCards; i++) {
+            const slot = instantiate(template);
+            slot.name = `槽${i + 1}`;
+            container.addChild(slot);
+            slot.setPosition(template.position.x + Math.floor(i / 4) * size.width * 92 / 83,
+                template.position.y - (i % 4) * size.height * 86 / 83, 0);
+            slot.active = true;
+            this.slots.push(slot);
+        }
+        template.active = false;
+    }
+    private async LoadSlotArt(): Promise<void> {
+        if (this.slotArtReady || this.slotArtLoading) return;
+        this.slotArtLoading = true;
+        try {
+            const quality = ZRSJZ_PROP_CONFIG.get('显卡')?.Quality;
+            if (!quality) return;
+            const ui = ZRSJZ_UIManager.Instance;
+            const [frame, icon] = await Promise.all([ui.GetPropGridUI(quality + '1_1'), ui.GetPropUI('显卡')]);
+            if (!isValid(this.node) || !frame || !icon) return;
+            for (const slot of this.slots) {
+                const installed = slot.getChildByName('已装');
+                installed.getComponent(Sprite).spriteFrame = frame;
+                installed.getChildByName('图标').getComponent(Sprite).spriteFrame = icon;
+            }
+            this.slotArtReady = true;
+        } catch (error) {
+            console.warn('[超算矩阵] 显卡槽图片加载失败，下次打开重试', error);
+        } finally { this.slotArtLoading = false; }
+    }
+    Hide(...args: any[]): void {
+        if (!this.Panel) this.Panel = find('Panel', this.node);
+        Tween.stopAllByTarget(this.Panel);
+        this.Panel.setScale(1, 1, 1);
+        this.node.active = false;
+        if (typeof args[0] === 'function') args[0]();
+    }
     private FitScreen(): void {
         const size = this.node.getComponent(UITransform).contentSize;
         if (!size.width || !size.height) return;
         this.screenSize = `${size.width}/${size.height}`;
-        const scale = Math.min(size.width / 1280, size.height / 720);
-        this.Panel.setScale(scale, scale, 1);
+        // Cache the authored 2340×1080 geometry once. Resize dimensions, never node scales.
+        if (!this.layout.length) {
+            const capture = (node: Node) => {
+                const tr = node.getComponent(UITransform), label = node.getComponent(Label);
+                if (tr) this.layout.push({ node, x: node.position.x, y: node.position.y,
+                    width: tr.contentSize.width, height: tr.contentSize.height, label,
+                    font: label?.fontSize ?? 0, line: label?.lineHeight ?? 0, outline: label?.outlineWidth ?? 0 });
+                node.children.forEach(capture);
+            };
+            this.Panel.children.forEach(capture);
+            capture(this.node.getChildByName('返回'));
+        }
+        const ratio = Math.min(size.width / 2340, size.height / 1080);
+        this.Panel.getComponent(UITransform).setContentSize(size.width, size.height);
+        for (const item of this.layout) {
+            item.node.setPosition(item.x * ratio, item.y * ratio, 0);
+            item.node.getComponent(UITransform).setContentSize(item.width * ratio, item.height * ratio);
+            if (item.label) {
+                item.label.fontSize = item.font * ratio;
+                item.label.lineHeight = item.line * ratio;
+                item.label.outlineWidth = item.outline * ratio;
+            }
+        }
         const bg = this.node.getChildByName('Mask');
-        const cover = Math.max(size.width / 1280, size.height / 720);
-        bg.getComponent(UITransform).setContentSize(1280 * cover, 720 * cover);
+        const cover = Math.max(size.width / 2340, size.height / 1080);
+        bg.getComponent(UITransform).setContentSize(2340 * cover, 1080 * cover);
         const back = this.node.getChildByName('返回');
-        back.setScale(scale, scale, 1);
-        back.setPosition(-size.width / 2 + 145 * scale, size.height / 2 - 48 * scale, 0);
+        const backLayout = this.layout.find(item => item.node === back)!;
+        back.setPosition(-size.width / 2 + (1170 + backLayout.x) * ratio,
+            size.height / 2 - (540 - backLayout.y) * ratio, 0);
     }
     private Switch(page: string, animate = true): void {
         this.page = page;
@@ -53,14 +132,26 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
         Tween.stopAllByTarget(mark);
         if (animate) tween(mark).to(0.18, { position: v3(target.x, target.y, 0) }, { easing: 'quadOut' }).start();
         else mark.setPosition(target);
-        for (const name of ['算力中心', '货币市场'])
-            this.N('左侧/' + name + '/文字').getComponent(Label).color = name === page
-                ? new Color(255, 224, 95) : new Color(187, 217, 230);
+        for (const name of ['算力中心', '货币市场']) {
+            const tab = this.N('左侧/' + name);
+            tab.getChildByName('普通底').active = name !== page;
+            tab.getChildByName('普通图').active = name !== page;
+            tab.getChildByName('选中图').active = name === page;
+        }
     }
     protected update(dt: number): void {
         if (!this.Panel || !this.node.activeInHierarchy) return;
         const size = this.node.getComponent(UITransform).contentSize;
-        if (this.screenSize !== `${size.width}/${size.height}`) this.FitScreen();
+        if (this.screenSize !== `${size.width}/${size.height}`) {
+            this.FitScreen();
+            this.Switch(this.page, false);
+            this.DrawChart();
+        }
+        // Phase offsets give each installed GPU its own activity light, without runtime components.
+        this.lampTime += dt;
+        if (this.page === '算力中心') this.lamps.forEach((lamp, i) => {
+            lamp.opacity = Math.round(40 + 215 * (0.5 + 0.5 * Math.sin(this.lampTime * 6 + i * 1.7)));
+        });
         this.clock += dt;
         if (this.clock < 0.5) return;
         this.clock = 0;
@@ -72,24 +163,28 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
         const hours = Math.floor(view.seconds / 3600), minutes = Math.floor(view.seconds % 3600 / 60);
         const seconds = view.seconds % 60;
         const pad = (n: number) => n.toString().padStart(2, '0');
-        this.Text('算力中心/倒计时', `下枚产出  ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
+        this.Text('算力中心/倒计时', `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
         this.Text('算力中心/待领取', `待领取  ${view.pending} 枚`);
         this.N('算力中心/产出进度/进度').getComponent(Sprite).fillRange = view.progress;
-        this.N('算力中心/领取/文字').getComponent(Label).string = view.pending > 0 ? '领取产出' : '生产中';
+        this.Text('算力中心/百分比', `${Math.floor(view.progress * 100)}%`);
+        this.Text('算力中心/领取/文字', view.pending > 0 ? '点击领取' : '生产中');
     }
     private Refresh(): void {
         const s = Matrix.State;
         this.day = Matrix.Day();
-        this.Text('余额', `加密货币  ${s.coins} 枚    |    货币  ${ZRSJZ_GameData.Instance.Gold.toLocaleString()}`);
-        this.Text('算力中心/显卡数量', `已装显卡  ${s.cards} / ${MATRIX_CONFIG.maxCards}`);
-        this.Text('算力中心/周期', `${Matrix.Hours()} 小时 / 枚`);
-        this.Text('算力中心/仓库数量', `仓库可用显卡：${Matrix.CardsAvailable()} 张`);
+        this.Text('货币市场/余额', `${s.coins}枚`);
+        this.Text('算力中心/显卡数量', `已装 ${s.cards} / ${MATRIX_CONFIG.maxCards} · 点击显卡可取回`);
+        this.Text('算力中心/周期', `${Matrix.Hours()}小时/枚`);
+        this.Text('算力中心/仓库数量', `仓库可用显卡:${Matrix.CardsAvailable()}`);
         for (let i = 0; i < MATRIX_CONFIG.maxCards; i++) {
             const slot = this.N(`算力中心/显卡槽/槽${i + 1}`);
             slot.getChildByName('已装').active = s.slots[i];
             slot.getChildByName('空槽').active = !s.slots[i];
+            this.N(`算力中心/机柜组/机柜${Math.floor(i / 4) + 1}/显卡${i % 4 + 1}`).active = s.slots[i];
         }
-        this.Text('算力中心/安装/文字', s.cards >= MATRIX_CONFIG.maxCards ? '显卡已装满' : '放置显卡');
+        this.N('算力中心/安装/图文').active = s.cards < MATRIX_CONFIG.maxCards;
+        this.N('算力中心/安装/文字').active = s.cards >= MATRIX_CONFIG.maxCards;
+        this.Text('算力中心/安装/文字', '显卡已装满');
         const price = Matrix.Price(this.day), yesterday = Matrix.Price(this.day - 1);
         this.Text('货币市场/今日价格', `今日价格  ${price.toLocaleString()}`);
         const change = (price - yesterday) / yesterday * 100;
@@ -105,7 +200,7 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
         const history = Matrix.History(this.day);
         const low = Math.floor(Math.min(...history.map(c => c.low)) / 10000) * 10000;
         const high = Math.ceil(Math.max(...history.map(c => c.high)) / 10000) * 10000;
-        const height = 180, width = 680;
+        const { width, height } = this.N('货币市场/K线').getComponent(UITransform).contentSize;
         const y = (price: number) => (price - low) / Math.max(1, high - low) * height;
         for (let i = 0; i <= 3; i++) {
             this.Text('货币市场/刻度' + i, ((low + (high - low) * i / 3) / 10000).toFixed(1) + '万');
@@ -117,9 +212,10 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
             candle.setPosition(x, height / 2, 0);
             const body = candle.getChildByName('实体'), wick = candle.getChildByName('影线');
             body.setPosition(0, (y(c.open) + y(c.close)) / 2 - height / 2, 0);
-            body.getComponent(UITransform).setContentSize(24, Math.max(3, Math.abs(y(c.close) - y(c.open))));
+            const pixel = width / 930;
+            body.getComponent(UITransform).setContentSize(24 * pixel, Math.max(3 * pixel, Math.abs(y(c.close) - y(c.open))));
             wick.setPosition(0, (y(c.low) + y(c.high)) / 2 - height / 2, 0);
-            wick.getComponent(UITransform).setContentSize(3, Math.max(3, y(c.high) - y(c.low)));
+            wick.getComponent(UITransform).setContentSize(3 * pixel, Math.max(3 * pixel, y(c.high) - y(c.low)));
             body.getComponent(Sprite).color = color; wick.getComponent(Sprite).color = color;
             candle.getChildByName('选中').active = i === this.selectedCandle;
             const d = new Date(c.day * 86400000);

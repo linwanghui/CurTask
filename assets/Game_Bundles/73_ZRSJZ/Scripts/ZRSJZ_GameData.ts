@@ -17,7 +17,7 @@ import { CreateMatrixState, MatrixState } from './ZRSJZ_MatrixState';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 27;//当前版本：商店枪械重新分档及旧实例价格同步
+    public static readonly Versions = 28;//当前版本：新枪及三把锻造枪价格同步
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;

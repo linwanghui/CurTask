@@ -8,7 +8,8 @@ dlc=root.parent/'73_ZRSJZ_DLC'
 data=json.loads((dlc/'Prefabs/Panel/超算矩阵界面.prefab').read_text('utf8'))
 assets={}
 for base in (root,dlc):
-    for p in (base/'Sprites').rglob('*.png.meta'):
+    for p in (base/'Sprites').rglob('*.meta'):
+        if not p.name.endswith(('.png.meta', '.jpg.meta')): continue
         m=json.loads(p.read_text('utf8'))
         assets[m['uuid']+'@f9941']=p.with_suffix('')
 fonts={}
@@ -21,7 +22,7 @@ def render(page):
     if '--v2' in sys.argv:
         data=json.loads((Path('C:/Users/Administrator/.codex/visualizations/2026/08/10/019fe99f-84ac-7cb3-991a-5212a1e5b6fa')/('matrix_v2_'+('mining' if page=='算力中心' else 'market')+'.json')).read_text('utf8'))
         panel=next(n for n in data if n.get('_name')=='Panel')
-    im=Image.new('RGBA',(1280,720),(12,22,33,255))
+    im=Image.new('RGBA',(1430,660),(12,22,33,255))
     def draw(n,px=0,py=0):
         name=n.get('_name','')
         if name=='装卡确认' or name in ('算力中心','货币市场') and n.get('_parent',{}).get('__id__')==data.index(panel) and name!=page:return
@@ -30,7 +31,7 @@ def render(page):
         cs=[data[r['__id__']] for r in n.get('_components',[])]
         tr=next((c for c in cs if c['__type__']=='cc.UITransform'),None)
         w=int(tr['_contentSize']['width']) if tr else 0;h=int(tr['_contentSize']['height']) if tr else 0
-        left=int(640+x-w/2);top=int(360-y-h/2)
+        left=int(715+x-w/2);top=int(330-y-h/2)
         for c in cs:
             col=c.get('_color',dict(r=255,g=255,b=255,a=255));rgba=tuple(col[k] for k in ('r','g','b','a'))
             if c['__type__']=='cc.Sprite':
@@ -40,6 +41,9 @@ def render(page):
                     if rgba!=(255,255,255,255):
                         from PIL import ImageChops
                         img=ImageChops.multiply(img,Image.new('RGBA',(w,h),rgba))
+                    if c.get('_type')==3:
+                        filled=max(0,min(w,int(w*c.get('_fillRange',1))))
+                        img.paste((0,0,0,0),(filled,0,w,h))
                     im.alpha_composite(img,(left,top))
                 else:
                     ImageDraw.Draw(im).rectangle((left,top,left+w,top+h),fill=rgba)
@@ -47,7 +51,7 @@ def render(page):
                 text=c['_string'];size=c['_fontSize'];d=ImageDraw.Draw(im)
                 lines=text.split('\n')
                 while size>10 and (max(d.textlength(line,font=font(size)) for line in lines)>w or len(lines)*(size+6)>h):size-=1
-                d.multiline_text((640+x,360-y),text,font=font(size),anchor='mm',align='center',fill=rgba,stroke_width=1,stroke_fill=(0,0,0,255),spacing=6)
+                d.multiline_text((715+x,330-y),text,font=font(size),anchor='mm',align='center',fill=rgba,stroke_width=1,stroke_fill=(0,0,0,255),spacing=6)
         for r in n.get('_children',[]):draw(data[r['__id__']],x,y)
     draw(data[data[0]['data']['__id__']])
     out=Path('C:/Users/Administrator/.codex/visualizations/2026/08/10/019fe99f-84ac-7cb3-991a-5212a1e5b6fa')/('matrix_preview_'+('mining' if page=='算力中心' else 'market')+'.png')

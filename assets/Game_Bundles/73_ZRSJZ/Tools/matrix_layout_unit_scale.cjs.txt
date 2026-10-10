@@ -1,0 +1,25 @@
+const fs=require('fs'),path=require('path');
+const file=path.resolve(__dirname,'../../73_ZRSJZ_DLC/Prefabs/Panel/超算矩阵界面.prefab');
+const a=JSON.parse(fs.readFileSync(file,'utf8'));
+function visit(n,p='') {const name=p+'/'+n._name;const cs=n._components.map(r=>a[r.__id__]); console.log(JSON.stringify({path:name,pos:n._lpos,scale:n._lscale,size:cs.find(c=>c.__type__==='cc.UITransform')?._contentSize,widget:cs.find(c=>c.__type__==='cc.Widget')}));for(const r of n._children)visit(a[r.__id__],name);}
+if(process.argv.includes('--inspect')) { visit(a[a[0].data.__id__]); process.exit(); }
+const original=fs.readFileSync(file,'utf8'),factor=2340/1430;
+const R=a[a[0].data.__id__],child=(n,name)=>n._children.map(r=>a[r.__id__]).find(n=>n._name===name);
+const comp=(n,t)=>n._components.map(r=>a[r.__id__]).find(c=>c.__type__===t),P=child(R,'Panel');
+function bake(n,resize=true){n._lscale={__type__:'cc.Vec3',x:1,y:1,z:1};n._lpos.x*=factor;n._lpos.y*=factor;
+ const tr=comp(n,'cc.UITransform');if(tr&&resize){tr._contentSize.width*=factor;tr._contentSize.height*=factor;}
+ const l=comp(n,'cc.Label');if(l)for(const k of ['_fontSize','_actualFontSize','_lineHeight','_outlineWidth'])if(typeof l[k]==='number')l[k]*=factor;
+ for(const r of n._children)bake(a[r.__id__]);}
+for(const name of ['算力中心','货币市场','装卡确认']){const n=child(P,name);bake(n,false);comp(n,'cc.UITransform')._contentSize={__type__:'cc.Size',width:2340,height:1080};}
+// The user already resized/repositioned navigation and return: retain these placements.
+const nav=child(P,'左侧');comp(nav,'cc.Widget')._enabled=false;
+for(const name of ['算力中心','货币市场']){const tab=child(nav,name);for(const r of tab._children){const n=a[r.__id__],tr=comp(n,'cc.UITransform');if(n._name==='普通底')Object.assign(tr._contentSize,{width:337,height:118});else{tr._contentSize.width*=337/210;tr._contentSize.height*=337/210;}}}
+for(const n of [child(R,'返回'),child(R,'Mask')]){n._lscale={__type__:'cc.Vec3',x:1,y:1,z:1};const w=comp(n,'cc.Widget');if(w)w._enabled=false;}
+P._lscale={__type__:'cc.Vec3',x:1,y:1,z:1};
+const before=original.trimEnd().split(/\r?\n/),after=JSON.stringify(a,null,2).split('\n');
+if(before.length!==after.length)throw Error('Unexpected serialization layout');
+let patch='*** Begin Patch\n*** Update File: '+file.replaceAll('\\','/')+'\n';
+for(let i=0;i<before.length;i++){if(before[i]===after[i])continue;let start=Math.max(0,i-2),end=i+1;
+ while(end<before.length&&(end<=i+2||before[end]!==after[end])){if(before[end]!==after[end])i=end;end++;}
+ patch+='@@\n'+before.slice(start,end).map((s,j)=>s===after[start+j]?' '+s:'-'+s+'\n+'+after[start+j]).join('\n')+'\n';i=end-1;}
+process.stdout.write(patch+'*** End Patch');

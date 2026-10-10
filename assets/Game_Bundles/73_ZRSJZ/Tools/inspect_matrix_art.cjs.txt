@@ -1,0 +1,8 @@
+const fs=require('fs'),path=require('path');
+const dlc=path.resolve(__dirname,'../../73_ZRSJZ_DLC');
+const a=JSON.parse(fs.readFileSync(path.join(dlc,'Prefabs/Panel/超算矩阵界面.prefab'),'utf8'));
+const comp=(n,t)=>n._components?.map(r=>a[r.__id__]).find(c=>c.__type__===t);
+function tree(n,depth=0){console.log(' '.repeat(depth)+n._name,JSON.stringify(n._lpos),JSON.stringify(comp(n,'cc.UITransform')?._contentSize));if(depth<2)for(const r of n._children)tree(a[r.__id__],depth+1);}
+tree(a[a[0].data.__id__]);
+for(const t of ['cc.Sprite','cc.Label','cc.Button','cc.UIOpacity'])console.log(t,JSON.stringify(a.find(n=>n.__type__===t)));
+for(const f of fs.readdirSync(path.join(dlc,'Sprites/超算矩阵')).filter(f=>f.endsWith('.meta'))){const m=JSON.parse(fs.readFileSync(path.join(dlc,'Sprites/超算矩阵',f),'utf8'));console.log(f,m.subMetas?.f9941?.userData.rawWidth,m.subMetas?.f9941?.userData.rawHeight);}

@@ -27,6 +27,7 @@ import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import {
     ZRSJZ_FORGE_CATEGORIES,
+    GetForgeRecipe,
     ZRSJZ_FORGE_RECIPES,
     ZRSJZ_ForgeCategory,
     ZRSJZ_ForgeRecipe,
@@ -244,6 +245,7 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
         const task = ZRSJZ_ForgeService.GetTask();
         this._lastTaskName = task?.itemName ?? '';
         this._lastReady = ZRSJZ_ForgeService.IsReady(task);
+        if (!this.GetSelectedRecipe()) this._selectedItemName = this.GetCategoryRecipes()[0]?.itemName ?? '';
         this.RefreshTabs();
         this.RefreshList(task);
         this.RefreshDetail(task);
@@ -505,11 +507,15 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
     }
 
     private GetCategoryRecipes(): readonly ZRSJZ_ForgeRecipe[] {
-        return ZRSJZ_FORGE_RECIPES.filter(recipe => recipe.category === this._category);
+        const recipes = ZRSJZ_FORGE_RECIPES.filter(recipe => recipe.category === this._category);
+        const task = ZRSJZ_ForgeService.GetTask();
+        const legacy = task && !GetForgeRecipe(task.itemName) ? GetForgeRecipe(task.itemName, true) : null;
+        if (legacy?.category === this._category) recipes.unshift(legacy);
+        return recipes;
     }
 
     private GetSelectedRecipe(): ZRSJZ_ForgeRecipe | null {
-        return ZRSJZ_FORGE_RECIPES.find(
+        return this.GetCategoryRecipes().find(
             recipe => recipe.itemName === this._selectedItemName,
         ) ?? null;
     }

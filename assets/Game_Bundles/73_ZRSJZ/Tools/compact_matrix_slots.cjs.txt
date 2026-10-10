@@ -1,0 +1,15 @@
+// Keep one editable slot and remove unreachable serialized copies. Emit patch only.
+const fs=require('fs'),path=require('path');
+const file=path.resolve(__dirname,'../../73_ZRSJZ_DLC/Prefabs/Panel/超算矩阵界面.prefab');
+const original=fs.readFileSync(file,'utf8'),a=JSON.parse(original);
+const root=a[a[0].data.__id__],child=(n,s)=>n._children.map(r=>a[r.__id__]).find(n=>n._name===s);
+const slots=child(child(child(root,'Panel'),'算力中心'),'显卡槽');
+const template=child(slots,'槽1');if(!template)throw Error('Already compacted or missing slot1');
+slots._children=[{__id__:a.indexOf(template)}];template._name='槽模板';template._active=false;
+const installed=child(template,'已装'),icon=child(installed,'图标');
+for(const n of [installed,icon]){const s=n._components.map(r=>a[r.__id__]).find(c=>c.__type__==='cc.Sprite');s._spriteFrame=null;s._sizeMode=0;}
+const keep=new Set();function walk(v,cb){if(!v||typeof v!=='object')return;if('__id__'in v){cb(v);return;}for(const x of Object.values(v))walk(x,cb);}
+function visit(i){if(keep.has(i))return;if(!a[i])throw Error('Bad ref');keep.add(i);walk(a[i],r=>visit(r.__id__));}visit(0);
+const indexes=[...keep].sort((x,y)=>x-y),map=new Map(indexes.map((x,i)=>[x,i])),result=indexes.map(i=>a[i]);for(const o of result)walk(o,r=>r.__id__=map.get(r.__id__));
+const patch='*** Begin Patch\n*** Update File: '+file.replaceAll('\\','/')+'\n@@\n'+original.trimEnd().split(/\r?\n/).map(l=>'-'+l).join('\n')+'\n'+JSON.stringify(result,null,2).split('\n').map(l=>'+'+l).join('\n')+'\n*** End Patch';
+process.stdout.write(process.argv[2]==='size'?String(patch.length):patch.slice(Number(process.argv[2]??0),Number(process.argv[3]??patch.length)));

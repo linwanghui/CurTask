@@ -31,7 +31,7 @@ export class ZRSJZ_ForgeService {
                 || !Number.isFinite(task.startedAt)
                 || !Number.isFinite(task.finishAt)
                 || task.finishAt <= task.startedAt
-                || !GetForgeRecipe(task.itemName)
+                || !GetForgeRecipe(task.itemName, true)
             ) {
                 this.ClearTask();
                 return null;
@@ -59,7 +59,7 @@ export class ZRSJZ_ForgeService {
     }
 
     public static ValidateStart(recipe: ZRSJZ_ForgeRecipe): ZRSJZ_ForgeActionResult {
-        if (!recipe) return { success: false, message: '锻造配方不存在' };
+        if (!recipe || !GetForgeRecipe(recipe.itemName)) return { success: false, message: '该装备不可锻造' };
         if (this.GetTask()) return { success: false, message: '已有装备正在锻造' };
         if (ZRSJZ_GameData.Instance.Gold < recipe.goldCost) {
             return { success: false, message: '所需货币不足' };
@@ -96,7 +96,7 @@ export class ZRSJZ_ForgeService {
         const task = this.GetTask();
         if (!task) return { success: false, message: '当前没有锻造任务' };
         if (!this.IsReady(task)) return { success: false, message: '锻造尚未完成' };
-        const recipe = GetForgeRecipe(task.itemName);
+        const recipe = GetForgeRecipe(task.itemName, true);
         if (!recipe) {
             this.ClearTask();
             return { success: false, message: '锻造配方已失效' };

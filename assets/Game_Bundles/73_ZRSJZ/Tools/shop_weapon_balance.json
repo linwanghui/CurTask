@@ -1,5 +1,5 @@
 {
-  "scope": "18 shop firearms only; forge-only weapons and their authored recipes unchanged",
+  "scope": "Shop guns retuned up to 30m; ten new guns cannot start forging; three forge guns repriced above 30m.",
   "forgeExcluded": [
     "霜月狼",
     "裂海鲨",
@@ -70,24 +70,6 @@
       "mag": 8
     },
     {
-      "name": "HK416-突击步枪",
-      "quality": "紫色",
-      "price": 880000,
-      "damage": 46,
-      "range": 1350,
-      "rpm": 720,
-      "mag": 30
-    },
-    {
-      "name": "SCAR-H-战斗步枪",
-      "quality": "紫色",
-      "price": 1100000,
-      "damage": 58,
-      "range": 1450,
-      "rpm": 660,
-      "mag": 30
-    },
-    {
       "name": "W76-狙击枪",
       "quality": "紫色",
       "price": 1380000,
@@ -97,76 +79,94 @@
       "mag": 6
     },
     {
+      "name": "HK416-突击步枪",
+      "quality": "紫色",
+      "price": 1800000,
+      "damage": 50,
+      "range": 1400,
+      "rpm": 720,
+      "mag": 32
+    },
+    {
+      "name": "SCAR-H-战斗步枪",
+      "quality": "紫色",
+      "price": 2800000,
+      "damage": 64,
+      "range": 1500,
+      "rpm": 660,
+      "mag": 35
+    },
+    {
       "name": "AA12-霰弹枪",
       "quality": "紫色",
-      "price": 1650000,
-      "damage": 48,
-      "range": 900,
+      "price": 4200000,
+      "damage": 52,
+      "range": 950,
       "rpm": 240,
       "mag": 12
     },
     {
       "name": "MCX-突击步枪",
       "quality": "紫色",
-      "price": 2100000,
-      "damage": 54,
-      "range": 1400,
+      "price": 6500000,
+      "damage": 62,
+      "range": 1550,
       "rpm": 780,
-      "mag": 36
+      "mag": 38
     },
     {
       "name": "AK12-突击步枪",
       "quality": "金色",
-      "price": 2800000,
-      "damage": 68,
-      "range": 1500,
+      "price": 9800000,
+      "damage": 78,
+      "range": 1600,
       "rpm": 700,
       "mag": 40
     },
     {
       "name": "DP12-霰弹枪",
       "quality": "金色",
-      "price": 3600000,
-      "damage": 68,
-      "range": 1000,
-      "rpm": 240,
+      "price": 13500000,
+      "damage": 76,
+      "range": 1100,
+      "rpm": 250,
       "mag": 16
     },
     {
       "name": "M249-轻机枪",
       "quality": "金色",
-      "price": 4400000,
-      "damage": 64,
-      "range": 1550,
+      "price": 17500000,
+      "damage": 76,
+      "range": 1700,
       "rpm": 780,
       "mag": 60
     },
     {
       "name": "AWM-狙击枪",
       "quality": "金色",
-      "price": 5600000,
-      "damage": 380,
-      "range": 2400,
+      "price": 22000000,
+      "damage": 500,
+      "range": 2600,
       "rpm": 120,
-      "mag": 8
+      "mag": 10
     },
     {
       "name": "MG5-轻机枪",
       "quality": "红色",
-      "price": 6500000,
-      "damage": 86,
-      "range": 1650,
+      "price": 26000000,
+      "damage": 96,
+      "range": 1800,
       "rpm": 700,
       "mag": 70
     },
     {
       "name": "M82A1-狙击枪",
       "quality": "红色",
-      "price": 7800000,
-      "damage": 480,
-      "range": 2600,
-      "rpm": 135,
-      "mag": 10
+      "price": 30000000,
+      "damage": 580,
+      "range": 2800,
+      "rpm": 130,
+      "mag": 12
     }
   ]
 }
