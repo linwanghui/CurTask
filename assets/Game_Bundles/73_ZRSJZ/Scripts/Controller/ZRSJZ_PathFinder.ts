@@ -1,4 +1,4 @@
-import { ERaycast2DType, PhysicsSystem2D, Rect, Vec2, Vec3 } from 'cc';
+import { BoxCollider2D, CircleCollider2D, ERaycast2DType, Intersection2D, PhysicsSystem2D, PolygonCollider2D, Rect, Vec2, Vec3 } from 'cc';
 
 interface ZRSJZ_PathNode {
     X: number;
@@ -15,6 +15,7 @@ export interface ZRSJZ_PathFindOptions {
     RaycastRadiusScale: number;
     ObstacleMask: number;
     MaxSearchNodes: number;
+    PreciseObstacles?: boolean;
 }
 
 /**
@@ -308,9 +309,22 @@ export class ZRSJZ_PathFinder {
             radius * 2,
         );
         const colliders = PhysicsSystem2D.instance.testAABB(queryRect);
-        const walkable = !colliders.some(collider => (
-            (collider.group & options.ObstacleMask) !== 0
-        ));
+        const walkable = !colliders.some(collider => {
+            if ((collider.group & options.ObstacleMask) === 0) return false;
+            if (!options.PreciseObstacles) return true;
+            if (!collider.enabledInHierarchy || collider.sensor) return false;
+            // 凹形墙的 AABB 会覆盖内部空地，自动展示需核对真实碰撞形状。
+            if (collider instanceof BoxCollider2D || collider instanceof PolygonCollider2D) {
+                return Intersection2D.rectPolygon(queryRect, collider.worldPoints);
+            }
+            if (collider instanceof CircleCollider2D) {
+                const center = collider.worldPosition;
+                const dx = center.x - Math.max(queryRect.x, Math.min(queryRect.xMax, center.x));
+                const dy = center.y - Math.max(queryRect.y, Math.min(queryRect.yMax, center.y));
+                return dx * dx + dy * dy <= collider.worldRadius * collider.worldRadius;
+            }
+            return true;
+        });
         cache.set(key, walkable);
         return walkable;
     }

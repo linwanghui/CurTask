@@ -1042,7 +1042,9 @@ export class ZRSJZ_Inventory extends Component {
         sourceInventory: ZRSJZ_INVENTORY,
         id: string,
         organizeBeforePlacement: boolean = false,
+        canContinue: (() => boolean) = null,
     ): Promise<boolean> {
+        if (canContinue && !canContinue()) return false;
         const propData = ZRSJZ_GameData.Instance.PropData[id];
         if (!propData || !this.IsAdaptive(id)) return false;
 
@@ -1058,7 +1060,7 @@ export class ZRSJZ_Inventory extends Component {
             placement = await this.AutoOrganizeForIncomingProp(id);
         }
 
-        if (!placement) return false;
+        if (!placement || (canContinue && !canContinue())) return false;
         return this.ChangeGrid(
             sourceInventory,
             id,
@@ -1067,6 +1069,7 @@ export class ZRSJZ_Inventory extends Component {
             placement.width,
             placement.height,
             placement.isRotate,
+            canContinue,
         );
     }
 
@@ -1213,7 +1216,8 @@ export class ZRSJZ_Inventory extends Component {
         }
     }
 
-    async ChangeGrid(inventory: ZRSJZ_INVENTORY, id: string, gridX: number, gridY: number, width: number, height: number, isRotate: boolean = false): Promise<boolean> {
+    async ChangeGrid(inventory: ZRSJZ_INVENTORY, id: string, gridX: number, gridY: number, width: number, height: number, isRotate: boolean = false, canContinue: (() => boolean) = null): Promise<boolean> {
+        if (canContinue && !canContinue()) return false;
         const movingProp = ZRSJZ_GameData.Instance.PropData[id];
         if (
             ZRSJZ_UIManager.IsBattle
@@ -1263,12 +1267,20 @@ export class ZRSJZ_Inventory extends Component {
 
             // 跨库存时清除旧库存中的节点和占格；数据层只保留一个 CurInventory。
             const inventoryNodes = ZRSJZ_UIManager.Instance.GetAllInventoryNodes();
+            const removedSources: ZRSJZ_Inventory[] = [];
             for (const inventoryNode of inventoryNodes) {
                 const sourceInventory = inventoryNode.getComponent(ZRSJZ_Inventory);
                 if (!sourceInventory || sourceInventory === this) continue;
                 if (sourceInventory.Grids.some(row => row.includes(id))) {
                     await sourceInventory.RemoveProp(id);
+                    removedSources.push(sourceInventory);
                 }
+            }
+
+            if (canContinue && !canContinue()) {
+                // 尚未提交物资归属，取消后依据原数据恢复来源库存显示。
+                for (const source of removedSources) if (source.node?.isValid) await source.ShowPropItem();
+                return false;
             }
 
             const gridIndex = this.InventoryType === ZRSJZ_INVENTORY.仓库_全部 ? 0 : 1;

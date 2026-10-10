@@ -1008,12 +1008,11 @@ export class ZRSJZ_Game extends Component {
                         if (!Banner.WinTheCustomerIsOver) {
                             //默认直接进入第一个关卡，需要修改手动修改
                             Banner.Instance.TTuploading();
+                            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAP_AUTO_SHOW);
                         }
                     } else {
                         //非获客场景进入
                     }
-
-
                 }
             }, () => {
 

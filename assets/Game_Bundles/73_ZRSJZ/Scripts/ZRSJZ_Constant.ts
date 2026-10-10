@@ -5,8 +5,6 @@ export const ZRSJZ_GRID_INTERVAL = 5;//格子间隔
 // 单个弹药格最多可堆叠的子弹数量。
 export const ZRSJZ_AMMO_MAX_COUNT = 300;
 
-
-
 //界面路径
 export enum ZRSJZ_PANEL {
     超算矩阵界面 = "73_ZRSJZ_DLC/Prefabs/Panel/超算矩阵界面",
@@ -1261,7 +1259,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         DetectionRange: 2000,
         LoseRange: 2500,
         PatrolRadius: 500,
-        PatrolSpeed: 400,
+        PatrolSpeed: 200,
         ChaseSpeed: ZRSJZ_BOSS_CHASE_SPEED,
         MoveAnimationSpeed: 1.74,
         PatrolWaitTime: 1,
@@ -1298,7 +1296,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         DetectionRange: 2000,
         LoseRange: 2500,
         PatrolRadius: 500,
-        PatrolSpeed: 380,
+        PatrolSpeed: 200,
         ChaseSpeed: ZRSJZ_BOSS_CHASE_SPEED,
         MoveAnimationSpeed: 1.74,
         PatrolWaitTime: 1,
@@ -1335,7 +1333,7 @@ export const ZRSJZ_BOSS_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_BossConfig>> 
         DetectionRange: 2000,
         LoseRange: 2500,
         PatrolRadius: 500,
-        PatrolSpeed: 360,
+        PatrolSpeed: 200,
         ChaseSpeed: ZRSJZ_BOSS_CHASE_SPEED,
         MoveAnimationSpeed: 1.74,
         PatrolWaitTime: 1,

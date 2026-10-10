@@ -14,6 +14,9 @@ var WLY = {
     },
 
     dealTakeNum() {
+        // 本地预览沿用默认策略，避免向不允许 localhost 跨域的正式接口请求。
+        if (typeof window !== 'undefined' && window.location
+            && ['localhost', '127.0.0.1', '[::1]', '::1'].includes(window.location.hostname)) return;
         console.log('---dealTakeNum----');
         let self = this;
 

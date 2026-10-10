@@ -33,6 +33,9 @@ export class ZRSJZ_Skeleton extends Component {
         return true;
     }
 
+    /** 预览角色换成完整资源后会重新播放出场，不恢复旧资源的动画轨道。 */
+    protected get RestoreTracksAfterDataChange(): boolean { return true; }
+
     protected get HasFullAppearance(): boolean {
         return !this.UsesPlayerDLCAppearance || (ZRSJZ_UIManager.ZRSJZ_DLC && this._dlcSkeletonReady);
     }
@@ -85,6 +88,7 @@ export class ZRSJZ_Skeleton extends Component {
                 this.SetSkin(this._requestedSkinName);
                 this.OnSkeletonDataChanged();
                 for (const track of tracks) {
+                    if (!this.RestoreTracksAfterDataChange) break;
                     if (!this.Skeleton.findAnimation(track.name)) continue;
                     const entry = this.Skeleton.setAnimation(track.index, track.name, track.loop);
                     if (entry) entry.trackTime = track.time;

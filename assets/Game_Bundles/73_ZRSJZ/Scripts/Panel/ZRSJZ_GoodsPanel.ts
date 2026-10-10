@@ -73,6 +73,39 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     private _revealCallback: () => void = null;
     private _activeGoodsInventory: ZRSJZ_BoxInventory = null;
     private _activeBox: ZRSJZ_Box = null;
+    private _revealComplete = false;
+    private _revealFailed = false;
+
+    public IsShowingBox(box: ZRSJZ_Box, playerIndex: number): boolean {
+        return this.node.activeInHierarchy && this._activeBox === box && this._playerIndex === playerIndex;
+    }
+
+    public IsBoxSearchComplete(box: ZRSJZ_Box, playerIndex: number): boolean {
+        return this.IsShowingBox(box, playerIndex) && this._revealComplete && !this._revealFailed && !!this._activeGoodsInventory;
+    }
+
+    /** 自动演示只领取本箱已完成搜索的物资，仍走背包的正常容量校验。 */
+    public async CollectForAutoShow(box: ZRSJZ_Box, playerIndex: number, canContinue: () => boolean): Promise<boolean> {
+        const ready = () => canContinue() && this.IsBoxSearchComplete(box, playerIndex);
+        if (!ready()) return false;
+        const boxID = this._activeGoodsInventory.BoxID;
+        const backpackNode = await ZRSJZ_UIManager.Instance.GetInventory(ZRSJZ_INVENTORY.背包, playerIndex, true);
+        const backpack = backpackNode?.getComponent(ZRSJZ_Inventory);
+        if (!ready() || !backpack || backpack.PlayerViewIndex !== playerIndex) return false;
+        const ids = Object.keys(ZRSJZ_GameData.Instance.PropData).filter(id => {
+            const p = ZRSJZ_GameData.Instance.PropData[id];
+            return p.CurInventory === ZRSJZ_INVENTORY.物资 && p.SourceBoxID === boxID;
+        });
+        for (const id of ids) {
+            const prop = ZRSJZ_GameData.Instance.PropData[id];
+            if (!ready() || prop?.IsSearchLocked || prop?.IsRewardVideoLocked) return false;
+            if (!await backpack.TryReceiveProp(ZRSJZ_INVENTORY.物资, id, true, ready)) {
+                if (ready()) ZRSJZ_UIManager.Instance.ShowTip('背包空间不足，自动展示已停止');
+                return false;
+            }
+        }
+        return ready();
+    }
     private _playerIndex: number = 0;
     private _arrayGoodsInventory: ZRSJZ_BoxInventory = null;
     private _backpackShowVersion: number = 0;
@@ -307,6 +340,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
             return;
         }
         if (propNames.length === 0 && !box?.HasUnclaimedLoot()) {
+            this._revealComplete = true;
             return;
         }
 
@@ -330,6 +364,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
 
             const propName = box ? box.TakeNextLootProp() : propNames[index++];
             if (!propName) {
+                this._revealComplete = true;
                 return;
             }
             const placeholder = this._searchPlaceholders.shift() ?? null;
@@ -339,7 +374,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                 this.ReleaseSearchPlaceholder(placeholder);
                 if (box?.HasUnclaimedLoot() || index < propNames.length) {
                     this.ScheduleNextReveal(revealNext, 0.05);
-                }
+                } else this._revealComplete = true;
                 return;
             }
 
@@ -414,6 +449,7 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                     }
                 })
                 .catch(error => {
+                    if (serial === this._revealSerial) this._revealFailed = true;
                     const propData = ZRSJZ_GameData.Instance.PropData[propID];
                     if (propData) {
                         propData.IsSearchLocked = false;
@@ -428,6 +464,8 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
                         && (box?.HasUnclaimedLoot() || index < propNames.length)
                     ) {
                         this.ScheduleNextReveal(revealNext, 0.05);
+                    } else if (serial === this._revealSerial && this.node.activeInHierarchy) {
+                        this._revealComplete = true;
                     }
                 });
         };
@@ -452,6 +490,8 @@ export class ZRSJZ_GoodsPanel extends ZRSJZ_Panel {
     }
 
     private CancelReveal(): void {
+        this._revealComplete = false;
+        this._revealFailed = false;
         this._revealSerial++;
         this.ClearSearchPlaceholders();
         if (this._revealCallback) {

@@ -389,8 +389,8 @@ export class ZRSJZ_InventoryService {
     }
 
     /**
-     * 将三种礼包弹药装备到指定玩家的六格弹药栏。
-     * 每种 120 发会按单格 60 发拆成两组，不依赖全局活动玩家，
+     * 将三项礼包弹药装备到指定玩家的六格弹药栏，允许各项使用相同弹药。
+     * 每项按 ZRSJZ_AMMO_MAX_COUNT 单格上限拆组，不依赖全局活动玩家，
      * 因此双人模式下不会改动另一名玩家的弹药。
      */
     public static ApplyAmmoGift(
@@ -404,7 +404,6 @@ export class ZRSJZ_InventoryService {
         const totalPerAmmo = Math.max(0, Math.floor(countPerAmmo));
         if (
             normalizedNames.length !== 3
-            || new Set(normalizedNames).size !== 3
             || totalPerAmmo <= 0
             || normalizedNames.some(name => ZRSJZ_PROP_CONFIG.get(name)?.PropType !== "弹药")
         ) {
