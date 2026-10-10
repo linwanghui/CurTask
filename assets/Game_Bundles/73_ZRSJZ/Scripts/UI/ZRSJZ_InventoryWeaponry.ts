@@ -185,7 +185,30 @@ export class ZRSJZ_InventoryWeaponry extends ZRSJZ_Inventory {
 
     async ReplaceProp(id: string, _expectedSourceInventory?: ZRSJZ_INVENTORY): Promise<boolean> {
         await this._initTask;
-        return this.CommitSwap(this.GetSwapPlan(id, 0, 0, 1, 1, false));
+        const plan = this.GetSwapPlan(id, 0, 0, 1, 1, false);
+        const success = await this.CommitSwap(plan);
+        if (!success) {
+            const prop = ZRSJZ_GameData.Instance.PropData[id];
+            console.warn("[ZRSJZ_InventoryWeaponry] 装备替换失败", {
+                id,
+                name: prop?.Name,
+                sourceInventory: prop?.CurInventory,
+                targetInventory: this.InventoryType,
+                playerIndex: this.PlayerViewIndex,
+                equippedID: this.Grids[0]?.[0],
+                hasSwapPlan: !!plan,
+                swapInProgress: ZRSJZ_Inventory.SwapInProgress,
+                inventories: ZRSJZ_UIManager.Instance.GetAllInventoryNodes().map(node => {
+                    const inventory = node.getComponent(ZRSJZ_Inventory);
+                    return {
+                        type: inventory?.InventoryType,
+                        initialized: inventory?.IsInitialized,
+                        containsSource: inventory?.Grids.some(row => row.includes(id)),
+                    };
+                }),
+            });
+        }
+        return success;
     }
 
     protected AdaptSwappedProp(propGrid: ZRSJZ_PropGrid): void {
