@@ -22,6 +22,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     HasDirection: boolean = true;
     Facing: number = 1;
     IsKnife: boolean = false;
+    public IsFishing = false;
     public OnlineAttackSerial = 0;
 
     private _afterAimAttack: (() => void) = null;
@@ -44,6 +45,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         // 外观刷新只应用当前持有的武器，避免先显示刀后被枪覆盖。
         const ids = [...ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex)];
         ids[this.IsKnife ? 0 : 4] = "";
+        if (this.IsFishing) { ids[0] = ""; ids[4] = ""; }
         return ids;
     }
 
@@ -272,6 +274,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     }
 
     private ApplyAimDirection(): void {
+        if (this.IsFishing) return;
         // this.ApplyWeaponHandSlots();
         if (!this._mzBone || !this.HasDirection) return;
         const distance = 1000;
@@ -317,6 +320,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
     async ShowEquipment(equipmentName: string, isEquipment: boolean = true): Promise<void> {
         if (!equipmentName || !this.Skeleton?._skeleton) return;
+        if (this.IsFishing && (this.GetGunSlotName(equipmentName) || this.FindAttachmentSlotName(equipmentName) === 'dao')) return;
 
         for (const [gunType, weaponNames] of ZRSJZ_WEAPONRY_TYPE) {
             if (!weaponNames.includes(equipmentName)) continue;

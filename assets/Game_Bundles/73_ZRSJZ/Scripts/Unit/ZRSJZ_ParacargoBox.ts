@@ -70,7 +70,7 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
         Tween.stopAllByTarget(this.node);
         this._landed = false;
         this.BoxName = "空投";
-        this.ConfigureFixedLoot(this.GenerateHighValueLoot(config, mapConfig));
+        this.ConfigureFixedLoot(ZRSJZ_ParacargoBox.GenerateHighValueLoot(config, mapConfig));
         this._rewardVideoLockPending = true;
         this.SetInteractionEnabled(false);
         this.ApplyIcon(0);
@@ -168,7 +168,7 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
      * 每个空投至少含一件金/红高价值物资，并按难度保证若干高品质装备；
      * 其余位置继续从这两类奖励中补齐，不会混入普通白绿蓝物资。
      */
-    private GenerateHighValueLoot(
+    public static GenerateHighValueLoot(
         config: Readonly<ZRSJZ_ParacargoConfig>,
         mapConfig: Readonly<ZRSJZ_MapConfig>,
     ): string[] {
@@ -233,7 +233,7 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
         return loot;
     }
 
-    private PushWeightedHighValueProp(
+    private static PushWeightedHighValueProp(
         target: string[],
         candidates: readonly string[],
         config: Readonly<ZRSJZ_ParacargoConfig>,
@@ -258,7 +258,7 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
         return true;
     }
 
-    private PushRandomUnique(target: string[], candidates: readonly string[]): boolean {
+    private static PushRandomUnique(target: string[], candidates: readonly string[]): boolean {
         const available = candidates.filter(propName => !target.includes(propName));
         if (available.length === 0) return false;
         target.push(available[Math.floor(Math.random() * available.length)]);

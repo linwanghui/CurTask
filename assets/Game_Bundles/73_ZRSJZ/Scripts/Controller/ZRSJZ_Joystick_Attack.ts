@@ -200,6 +200,14 @@ export class ZRSJZ_Joystick_Attack extends Component {
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex);
     }
 
+    /** 切入钓鱼界面前释放触点及换弹状态，防止返回时继续射击。 */
+    public ResetFishingInput(): void {
+        this._attackTouch = null;
+        this._reloadingCD = 0;
+        this._reloadDuration = 0;
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_ATTACK, false, this.PlayerIndex);
+    }
+
     OnButtonClick(event: EventTouch) {
         if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {

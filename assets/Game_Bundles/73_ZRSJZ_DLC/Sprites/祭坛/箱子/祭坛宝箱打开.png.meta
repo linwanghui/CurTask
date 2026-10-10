@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "877fc85c-28e3-4d93-be32-e46a13653d61",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "877fc85c-28e3-4d93-be32-e46a13653d61@6c48a",
+      "displayName": "祭坛宝箱打开",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "877fc85c-28e3-4d93-be32-e46a13653d61",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "877fc85c-28e3-4d93-be32-e46a13653d61@f9941",
+      "displayName": "祭坛宝箱打开",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": -0.5,
+        "offsetY": 13,
+        "trimX": 83,
+        "trimY": 91,
+        "width": 277,
+        "height": 364,
+        "rawWidth": 444,
+        "rawHeight": 572,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -138.5,
+            -182,
+            0,
+            138.5,
+            -182,
+            0,
+            -138.5,
+            182,
+            0,
+            138.5,
+            182,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            83,
+            481,
+            360,
+            481,
+            83,
+            117,
+            360,
+            117
+          ],
+          "nuv": [
+            0.18693693693693694,
+            0.20454545454545456,
+            0.8108108108108109,
+            0.20454545454545456,
+            0.18693693693693694,
+            0.8409090909090909,
+            0.8108108108108109,
+            0.8409090909090909
+          ],
+          "minPos": [
+            -138.5,
+            -182,
+            0
+          ],
+          "maxPos": [
+            138.5,
+            182,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "877fc85c-28e3-4d93-be32-e46a13653d61@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "877fc85c-28e3-4d93-be32-e46a13653d61@6c48a"
+  }
+}

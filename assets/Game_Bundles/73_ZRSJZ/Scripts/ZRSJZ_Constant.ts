@@ -596,7 +596,7 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["一级包", "小型基础背包，结构简单，可额外携带少量行动物资。"],
     ["二级包", "容量适中的战术背包，分区合理，能够容纳更多补给。"],
     ["三级包", "大容量军用背包，结实耐磨，适合长时间搜集与行动。"],
-    ["四级包", "顶级扩容背包，拥有优秀承重与收纳能力，可携带大量战利品。"],
+    ["四级包", "顶级扩容背包，拥有优秀承重与收纳��力，可携带大量战利品。"],
     ["五级包", "采用模块化分区的军用运输背包，容量巨大且能稳定固定贵重物资。"],
     ["六级包", "为极限搜集行动打造的重型扩容背包，提供52格物资携带空间。"],
     ["兔绒包", "兔绒主题的2级背包，内置宽敞收纳空间，可携带56格行动物资。"],
@@ -607,7 +607,7 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["烬菱包", "以烬菱为主题的7级背包，内部设有76格容量，便于整理搜集到的物资。"],
     ["虚空匣", "以虚空为主题的8级携行匣，拥有80格收纳空间，可装载大量战利品。"],
     //枪
-    ["CN8-突击步枪", "性能均衡的制式突击步枪，后坐力稳定，适合中近距离持续交火。"],
+    ["CN8-突击步枪", "性能均衡的制式突击���枪，后坐力稳定，适合中�������距���持续交�����。"],
     ["DX9-冲锋枪", "紧凑轻便的高速冲锋枪，射速突出，擅长在狭窄区域快速压制目标。"],
     ["K50-轻机枪", "便携式班用轻机枪，火力持续性良好，能够有效封锁敌人的移动路线。"],
     ["RK77-轻机枪", "经过强化的重枪管轻机枪，单发威力更高，适合稳定进行中距离压制。"],
@@ -1914,7 +1914,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
         ],
         TaskAwards: CreateMainTaskAwards(50000, 100, "1级子弹", "CN8-突击步枪", "黑色手表", "量子U盘"),
     }],
-    ["弹药补给", {
+    ["������补给", {
         TaskName: "弹药补给",
         TaskDesc: "前往商城购买1级子弹。充足的弹药是每次行动顺利完成的基础保障。",
         TaskTargets: [
@@ -2808,3 +2808,126 @@ export const ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG: readonly {
         { percent: 80, rewards: [{ type: '道具', name: '英雄碎片', count: 20 }, { type: '道具', name: '宠物碎片', count: 20 }] },
         { percent: 100, rewards: [{ type: '称号', name: '王者之姿' }, { type: '头像框', id: '8' }] },
     ];
+
+//#region 场景新增玩法
+/** 城镇钓鱼；进度与有效区宽度均为 0~1，奖励根据有效区宽度范围与概率抽取。 */
+export const ZRSJZ_FISHING_CONFIG = {
+    ApproachRadius: 260,
+    MinWidth: 0.05,
+    MaxWidth: 0.2,
+    InitialProgress: 0.35,
+    WarmupSeconds: 3,
+    WarmupProgressRate: 0.25,
+    PointerOffsetY: -7,
+    LineWidth: 4, // 鱼线宽度：原来为2，现为两倍；按UI设计像素计算。
+    FishPullSpeed: 0.12,
+    ClickPull: 0.045,
+    GainPerSecond: 0.2,
+    LossPerSecond: 0.12,
+};
+
+/**
+ * MaxWidth 为 [最小宽度, 最大宽度]，左闭右开，最后一档包含 0.2。
+ * Probability 为同一宽度下的抽取权重；当前各档合计100，即百分比。
+ * Awards 指定大红；QualityWeights 按白、绿、蓝、紫、金配置普通物品品质权重。
+ * 每次成功抽取一组奖励，普通物品数量为1；成功入仓库，满仓按既有规则转邮件。
+ */
+export const ZRSJZ_FISHING_REWARDS: ReadonlyArray<{
+    MaxWidth: readonly [number, number];
+    Probability: number;
+    Awards?: ReadonlyArray<ZRSJZ_MainTaskAwardConfig>;
+    QualityWeights?: readonly [number, number, number, number, number];
+}> = [
+        { MaxWidth: [0.05, 0.08], Probability: 5, Awards: [{ TaskAwardName: '红珊瑚鲤鱼', TaskAwardCount: 1 }] },
+        { MaxWidth: [0.05, 0.08], Probability: 95, QualityWeights: [1, 4, 10, 25, 60] },
+        { MaxWidth: [0.08, 0.12], Probability: 8, Awards: [{ TaskAwardName: '彩金色鲤鱼', TaskAwardCount: 1 }] },
+        { MaxWidth: [0.08, 0.12], Probability: 92, QualityWeights: [3, 7, 20, 45, 25] },
+        { MaxWidth: [0.12, 0.16], Probability: 10, Awards: [{ TaskAwardName: '钻石级鱼子酱', TaskAwardCount: 1 }] },
+        { MaxWidth: [0.12, 0.16], Probability: 90, QualityWeights: [10, 25, 45, 15, 5] },
+        { MaxWidth: [0.16, 0.2], Probability: 100, QualityWeights: [55, 30, 10, 4, 1] },
+    ];
+
+/** 使用实际绿色区域宽度抽奖；随机品质池仅包含白到金的普通物品。 */
+export function ZRSJZ_RollFishingRewards(width: number, random: () => number = Math.random): ZRSJZ_MainTaskAwardConfig[] {
+    if (!Number.isFinite(width)) return [];
+    const boundedWidth = Math.max(ZRSJZ_FISHING_CONFIG.MinWidth, Math.min(ZRSJZ_FISHING_CONFIG.MaxWidth, width));
+    const candidates = ZRSJZ_FISHING_REWARDS.filter(item => item.Probability > 0
+        && boundedWidth >= item.MaxWidth[0]
+        && (boundedWidth < item.MaxWidth[1]
+            || (boundedWidth === ZRSJZ_FISHING_CONFIG.MaxWidth && boundedWidth === item.MaxWidth[1])));
+    const pick = (weights: readonly number[]): number => {
+        const total = weights.reduce((sum, weight) => sum + Math.max(0, weight), 0);
+        if (total <= 0) return -1;
+        let roll = Math.max(0, Math.min(1 - Number.EPSILON, random())) * total;
+        for (let i = 0; i < weights.length; i++) {
+            roll -= Math.max(0, weights[i]);
+            if (roll < 0) return i;
+        }
+        return -1;
+    };
+    const selected = candidates[pick(candidates.map(item => item.Probability))];
+    if (!selected) return [];
+    if (selected.Awards) return selected.Awards.map(award => ({ ...award }));
+    if (!selected.QualityWeights) return [];
+    const qualities = [ZRSJZ_PROP_QUALITY.白色, ZRSJZ_PROP_QUALITY.绿色, ZRSJZ_PROP_QUALITY.蓝色,
+    ZRSJZ_PROP_QUALITY.紫色, ZRSJZ_PROP_QUALITY.金色];
+    const pools = qualities.map(quality => Array.from(ZRSJZ_PROP_CONFIG.values())
+        .filter(prop => prop.PropType === '物品' && prop.Quality === quality));
+    const qualityIndex = pick(selected.QualityWeights.map((weight, index) => pools[index].length ? weight : 0));
+    if (qualityIndex < 0) return [];
+    const pool = pools[qualityIndex];
+    const prop = pool[Math.floor(Math.max(0, Math.min(1 - Number.EPSILON, random())) * pool.length)];
+    return [{ TaskAwardName: prop.Name, TaskAwardCount: 1 }];
+}
+
+/** 城镇沼泽：每秒基础伤害走现有受伤/死亡逻辑，多个区域不叠加。 */
+export const ZRSJZ_SWAMP_CONFIG = {
+    SpeedMultiplier: 0.5,
+    Damage: 5,
+    DamageInterval: 0.3,
+};
+
+/** 城镇激光陷阱：攻击间隔按两次发射开始计时，暂停时冻结；伤害沿用受伤/死亡逻辑。 */
+export const ZRSJZ_LASER_TRAP_CONFIG = {
+    AttackInterval: 2,
+    Damage: 40,
+    IdleAnimation: 'daiji',
+    AttackAnimation: 'animation2',
+    HitEvent: 'gj',
+};
+
+/** 沙漠祈祷：每局随机抽取不重复方位，只有点亮组合完全相符才成功。 */
+export const ZRSJZ_PRAYER_CONFIG = {
+    Directions: ['左上', '左下', '右上', '右下'],
+    MinRequired: 1,
+    MaxRequired: 4,
+    FireRadius: 260,
+    PrayRadius: 260,
+    BlinkPeriod: 1,
+    LightAnimation: 'in',
+    BurnAnimation: 'loop',
+    ExtinguishAnimation: 'out',
+};
+
+/**
+ * 祈祷箱仅在祈祷成功后生成一次；使用当前难度Paracargo的完整掉落算法。
+ * 默认继承空投数量、装备保底、金红权重及物资栏概率；在LootOverrides中填写同名字段可独立调整。
+ * 可覆盖：MinPropCount、MaxPropCount、GuaranteedEquipmentCount、MinEquipmentQualityIndex、
+ * PropSlotChance、GoldPropWeight、RedPropWeight；生成时不受空投投放时间/概率影响。
+ */
+export const ZRSJZ_PRAYER_BOX_CONFIG = {
+    BoxName: '沙漠_祈祷箱',
+    PrefabPath: 'Prefabs/Unit/箱子/沙漠_祈祷箱',
+    SpawnOffset: { x: 0, y: 0 },
+    LootOverrides: {} as Partial<Pick<ZRSJZ_ParacargoConfig,
+        'MinPropCount' | 'MaxPropCount' | 'GuaranteedEquipmentCount' | 'MinEquipmentQualityIndex'
+        | 'PropSlotChance' | 'GoldPropWeight' | 'RedPropWeight'>>,
+};
+
+/** 沙漠漩涡：拉扯速度采用玩家移动的同一单位，默认约基础移动速度的12%。 */
+export const ZRSJZ_VORTEX_CONFIG = {
+    PullSpeed: 180,
+    MaxMoveSpeedRatio: 0.15, // 最多占当前移动速度15%，避免低速状态难以离开。
+    CenterSoftRadius: 30, // 世界坐标像素；靠近中心时减弱，避免反复穿过中心。
+    EdgeFadeRatio: 0.25, // 范围最外侧25%逐渐减弱。
+};

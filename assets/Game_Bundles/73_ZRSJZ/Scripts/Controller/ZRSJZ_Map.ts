@@ -1,3 +1,8 @@
+import { ZRSJZ_Vortex } from './ZRSJZ_Vortex';
+import { ZRSJZ_Prayer } from './ZRSJZ_Prayer';
+import { ZRSJZ_LaserTraps } from './ZRSJZ_LaserTraps';
+import { ZRSJZ_Swamp } from './ZRSJZ_Swamp';
+import { ZRSJZ_Fishing } from './ZRSJZ_Fishing';
 import { _decorator, Component, instantiate, Node, Prefab } from 'cc';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { BundleManager } from 'db://assets/Scripts/Framework/Managers/BundleManager';
@@ -18,6 +23,11 @@ export class ZRSJZ_Map extends Component {
 
 
     Init() {
+        if (this.node.name === '沙漠' && !this.getComponent(ZRSJZ_Prayer)) this.addComponent(ZRSJZ_Prayer);
+        if (this.node.name === '沙漠' && !this.getComponent(ZRSJZ_Vortex)) this.addComponent(ZRSJZ_Vortex);
+        if (this.node.name === '城镇' && !this.getComponent(ZRSJZ_Fishing)) this.addComponent(ZRSJZ_Fishing);
+        if (this.node.name === '城镇' && !this.getComponent(ZRSJZ_Swamp)) this.addComponent(ZRSJZ_Swamp);
+        if (this.node.name === '城镇' && !this.getComponent(ZRSJZ_LaserTraps)) this.addComponent(ZRSJZ_LaserTraps);
         this.Map = this.node.getChildByName("Map");
         this.node.getChildByName("PlayerPoints").children.forEach(child => {
             this.PlayerPoints.push(child);

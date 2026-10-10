@@ -18,6 +18,27 @@ export class ZRSJZ_Tools {
         });
     }
 
+    /** 跨分包按需加载，DLC未就绪时不隐式下载。 */
+    public static LoadPrefabByBundle(bundleName: string, path: string): Promise<Prefab> {
+        if (bundleName === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) {
+            return Promise.reject(new Error('DLC未就绪，不能加载DLC预制体：' + path));
+        }
+        return new Promise((resolve, reject) => {
+            const load = (bundle: AssetManager.Bundle): void => {
+                bundle.load(path, Prefab, (error, prefab) => {
+                    if (error || !prefab) reject(error || new Error('预制体不存在：' + path));
+                    else resolve(prefab);
+                });
+            };
+            const bundle = BundleManager.BundleMap.get(bundleName) ?? assetManager.getBundle(bundleName);
+            if (bundle) load(bundle);
+            else assetManager.loadBundle(bundleName, (error, loaded) => {
+                if (error || !loaded) reject(error || new Error('分包不存在：' + bundleName));
+                else load(loaded);
+            });
+        });
+    }
+
     public static LoadSprites(path: string): Promise<SpriteFrame[]> {
         return new Promise((resolve, reject) => {
             BundleManager.GetBundle("73_ZRSJZ").loadDir(path, SpriteFrame, (err: any, sprites: SpriteFrame[]) => {
