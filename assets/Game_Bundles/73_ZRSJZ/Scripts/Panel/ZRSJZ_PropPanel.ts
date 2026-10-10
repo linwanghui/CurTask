@@ -231,7 +231,11 @@ export class ZRSJZ_PropPanel extends ZRSJZ_Panel {
             const success = isReplace
                 ? await inventory.ReplaceProp(this._propID)
                 : await inventory.ChangeGrid(this._propID);
-            if (success) this.ClosePanel();
+            if (success) {
+                this.ClosePanel();
+            } else {
+                void ZRSJZ_UIManager.Instance.ShowTip("装备未能替换，请重新打开仓库后重试");
+            }
         } finally {
             this._isOperating = false;
         }
