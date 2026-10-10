@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "42e8b3bc-d6e1-42f6-8076-f47de3f4bba8",
+  "uuid": "1117161d-29a0-487b-8ff3-015828555534",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "42e8b3bc-d6e1-42f6-8076-f47de3f4bba8@6c48a",
-      "displayName": "矩阵底板",
+      "uuid": "1117161d-29a0-487b-8ff3-015828555534@6c48a",
+      "displayName": "安装显卡底",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "42e8b3bc-d6e1-42f6-8076-f47de3f4bba8",
+        "imageUuidOrDatabaseUri": "1117161d-29a0-487b-8ff3-015828555534",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "42e8b3bc-d6e1-42f6-8076-f47de3f4bba8@f9941",
-      "displayName": "矩阵底板",
+      "uuid": "1117161d-29a0-487b-8ff3-015828555534@f9941",
+      "displayName": "安装显卡底",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 1280,
-        "height": 720,
-        "rawWidth": 1280,
-        "rawHeight": 720,
+        "width": 780,
+        "height": 873,
+        "rawWidth": 780,
+        "rawHeight": 873,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -58,23 +58,19 @@
         "pivotX": 0.5,
         "pivotY": 0.5,
         "meshType": 0,
-        "isUuid": true,
-        "imageUuidOrDatabaseUri": "42e8b3bc-d6e1-42f6-8076-f47de3f4bba8@6c48a",
-        "atlasUuid": "",
-        "trimType": "none",
         "vertices": {
           "rawPosition": [
-            -640,
-            -360,
+            -390,
+            -436.5,
             0,
-            640,
-            -360,
+            390,
+            -436.5,
             0,
-            -640,
-            360,
+            -390,
+            436.5,
             0,
-            640,
-            360,
+            390,
+            436.5,
             0
           ],
           "indexes": [
@@ -87,12 +83,12 @@
           ],
           "uv": [
             0,
-            720,
-            1280,
-            720,
+            873,
+            780,
+            873,
             0,
             0,
-            1280,
+            780,
             0
           ],
           "nuv": [
@@ -106,16 +102,20 @@
             1
           ],
           "minPos": [
-            -640,
-            -360,
+            -390,
+            -436.5,
             0
           ],
           "maxPos": [
-            640,
-            360,
+            390,
+            436.5,
             0
           ]
-        }
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "1117161d-29a0-487b-8ff3-015828555534@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
       },
       "ver": "1.0.12",
       "imported": true,
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "42e8b3bc-d6e1-42f6-8076-f47de3f4bba8@6c48a"
+    "redirect": "1117161d-29a0-487b-8ff3-015828555534@6c48a"
   }
 }

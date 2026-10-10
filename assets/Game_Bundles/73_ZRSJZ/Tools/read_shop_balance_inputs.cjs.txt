@@ -17,6 +17,7 @@ const selected = balance.weapons.map(w => ({
     skinLine: lines.find(l => l.includes('{ Name: "' + w.name + '"') && l.includes('UnlockType: "默认"')),
 }));
 console.log(JSON.stringify({
+    materialPrices: [...c.ZRSJZ_PROP_CONFIG].map(([name, p]) => [name, p.UnitPrice]),
     selected,
     shopBlock: source.match(/    \["武器", \[[\s\S]*?    \]\],/)[0],
     manifest: JSON.parse(fs.readFileSync('Tools/advanced_shop_weapon_assets.json', 'utf8')),

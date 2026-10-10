@@ -72,16 +72,16 @@ const MATERIAL_POOLS: Readonly<Record<ZRSJZ_ForgeCategory, readonly string[]>> =
 // Endgame rifles use distinct, hand-tuned material sets; blueprint is added below.
 const SPECIAL_WEAPON_MATERIALS: Readonly<Record<string, readonly ZRSJZ_ForgeMaterial[]>> = {
     '霜月狼': [
-        { name: '军用雷达', count: 1 }, { name: '高速阵列', count: 3 },
-        { name: '供能单元', count: 2 }, { name: '脑机数据', count: 4 },
+        { name: '军用雷达', count: 8 }, { name: '高速阵列', count: 12 },
+        { name: '供能单元', count: 5 }, { name: '脑机数据', count: 5 },
     ],
     '裂海鲨': [
-        { name: '无人机', count: 3 }, { name: '刀片服务器', count: 3 },
-        { name: '动力电池组', count: 2 }, { name: '实验数据', count: 2 },
+        { name: '无人机', count: 16 }, { name: '刀片服务器', count: 15 },
+        { name: '动力电池组', count: 10 }, { name: '实验数据', count: 6 },
     ],
     '焚天龙': [
-        { name: '火箭燃料', count: 1 }, { name: '反应炉', count: 3 },
-        { name: '155炮弹', count: 3 }, { name: '装甲车电池', count: 2 },
+        { name: '火箭燃料', count: 8 }, { name: '反应炉', count: 10 },
+        { name: '155炮弹', count: 8 }, { name: '装甲车电池', count: 5 },
     ],
 };
 
@@ -196,8 +196,12 @@ function BuildRecipes(): ZRSJZ_ForgeRecipe[] {
     });
 }
 
-export const ZRSJZ_FORGE_RECIPES: readonly ZRSJZ_ForgeRecipe[] = BuildRecipes();
+const ALL_FORGE_RECIPES = BuildRecipes();
+export const ZRSJZ_FORGE_RECIPES: readonly ZRSJZ_ForgeRecipe[] = ALL_FORGE_RECIPES
+    .filter(recipe => ZRSJZ_PROP_CONFIG.get(recipe.itemName)?.CanForge !== false);
 
-export function GetForgeRecipe(itemName: string): ZRSJZ_ForgeRecipe | null {
-    return ZRSJZ_FORGE_RECIPES.find(recipe => recipe.itemName === itemName) ?? null;
+// Retired recipes are only available to finish an already-paid saved task.
+export function GetForgeRecipe(itemName: string, includeRetired = false): ZRSJZ_ForgeRecipe | null {
+    return (includeRetired ? ALL_FORGE_RECIPES : ZRSJZ_FORGE_RECIPES)
+        .find(recipe => recipe.itemName === itemName) ?? null;
 }

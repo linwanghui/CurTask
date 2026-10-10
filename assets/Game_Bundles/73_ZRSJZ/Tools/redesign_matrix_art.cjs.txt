@@ -1,0 +1,94 @@
+// Offline authoring. Emits an apply_patch patch; never writes project files directly.
+const fs=require('fs'),path=require('path'),crypto=require('crypto');
+const root=path.resolve(__dirname,'..'),dlc=path.resolve(root,'../73_ZRSJZ_DLC');
+const file=path.join(dlc,'Prefabs/Panel/超算矩阵界面.prefab');
+const original=fs.readFileSync(file,'utf8'),a=JSON.parse(original),templates={};
+for(const t of ['cc.Node','cc.UITransform','cc.Sprite','cc.Label','cc.Button','cc.BlockInputEvents'])templates[t]=structuredClone(a.find(c=>c.__type__===t));
+const R=a[a[0].data.__id__],id=n=>a.indexOf(n),ref=n=>({__id__:typeof n==='number'?n:id(n)}),add=o=>(a.push(o),o);
+const child=(n,name)=>n._children.map(r=>a[r.__id__]).find(n=>n._name===name),P=child(R,'Panel');
+const comp=(n,t)=>n._components.map(r=>a[r.__id__]).find(c=>c.__type__===t);
+const confirm=child(P,'装卡确认'),controller=R._components.map(r=>a[r.__id__]).find(c=>!c.__type__.startsWith('cc.')).__type__;
+const white=comp(child(P,'内容底'),'cc.Sprite')._spriteFrame.__uuid__;
+const read=p=>JSON.parse(fs.readFileSync(p,'utf8')),sf=p=>read(p+'.meta').uuid+'@f9941';
+const art=name=>sf(path.join(dlc,'Sprites/超算矩阵',name)),main=name=>sf(path.join(root,'Sprites',name));
+const color=(r=255,g=255,b=255,alpha=255)=>({__type__:'cc.Color',r,g,b,a:alpha});
+let serial=0;
+const uuid=()=>`matrixArt${String(++serial).padStart(8,'0')}`;
+function component(n,t,props={}){const c=structuredClone(templates[t]??{__type__:t,_name:'',_objFlags:0,__editorExtras__:{},_enabled:true});Object.assign(c,{node:ref(n),__prefab:ref(add({__type__:'cc.CompPrefabInfo',fileId:uuid()})),_id:''},props);add(c);n._components.push(ref(c));return c;}
+function node(name,parent,x=0,y=0,w=100,h=100){const n=structuredClone(templates['cc.Node']);Object.assign(n,{_name:name,_parent:ref(parent),_children:[],_components:[],_active:true,_id:'',_lpos:{__type__:'cc.Vec3',x,y,z:0},_lscale:{__type__:'cc.Vec3',x:1,y:1,z:1}});add(n);n._prefab=ref(add({__type__:'cc.PrefabInfo',root:ref(R),asset:ref(0),fileId:uuid(),instance:null,targetOverrides:null}));parent._children.push(ref(n));component(n,'cc.UITransform',{_contentSize:{__type__:'cc.Size',width:w,height:h},_anchorPoint:{__type__:'cc.Vec2',x:.5,y:.5}});return n;}
+function sprite(n,frame,c=color(),filled=false){return component(n,'cc.Sprite',{_spriteFrame:{__uuid__:frame,__expectedType__:'cc.SpriteFrame'},_color:c,_sizeMode:0,_type:filled?3:0,_fillStart:0,_fillRange:filled?0:1,_fillType:0});}
+function image(name,p,x,y,w,h,frame,c){const n=node(name,p,x,y,w,h);sprite(n,frame,c);return n;}
+function label(name,p,text,x,y,w,h,size=24,c=color()){const n=node(name,p,x,y,w,h);component(n,'cc.Label',{_string:text,_fontSize:size,_actualFontSize:size,_lineHeight:size+5,_overflow:2,_enableWrapText:false,_color:c,_enableOutline:true,_outlineWidth:1});return n;}
+function click(n){const ev=add({__type__:'cc.ClickEvent',target:ref(R),component:'',_componentId:controller,handler:'OnButtonClick',customEventData:''});component(n,'cc.Button',{clickEvents:[ref(ev)],_transition:0,_target:ref(n)});}
+function btn(name,p,text,x,y,w,h,tint){const n=image(name,p,x,y,w,h,main('UI/按钮-'+tint+'.png'));click(n);label('文字',n,text,0,0,w-16,h-8,24,color(0,0,0));return n;}
+// Keep the root controller, editor UUID, widget, and existing confirmation dialog.
+P._children=[];comp(P,'cc.UITransform')._contentSize={__type__:'cc.Size',width:1430,height:660};
+const size=comp(R,'cc.UITransform')._contentSize,scale=Math.min(size.width/1430,size.height/660);
+P._lscale={__type__:'cc.Vec3',x:scale,y:scale,z:1};
+const mask=child(R,'Mask');comp(mask,'cc.Sprite')._spriteFrame={__uuid__:art('背景.jpg'),__expectedType__:'cc.SpriteFrame'};
+const cover=Math.max(size.width/2340,size.height/1080);comp(mask,'cc.UITransform')._contentSize={__type__:'cc.Size',width:2340*cover,height:1080*cover};
+const back=child(R,'返回');back._children=[];back._components=back._components.filter(r=>a[r.__id__].__type__!=='cc.Sprite');sprite(back,art('返回-超算矩阵.png'));
+comp(back,'cc.UITransform')._contentSize={__type__:'cc.Size',width:250,height:250*105/412};back._lscale={__type__:'cc.Vec3',x:scale,y:scale,z:1};back._lpos={__type__:'cc.Vec3',x:-size.width/2+145*scale,y:size.height/2-48*scale,z:0};
+const nav=node('左侧',P,-597,0,220,420);image('选中',nav,0,160,210,74,art('页签选中.png'));
+for(const [name,y]of [['算力中心',160],['货币市场',74]]){const n=node(name,nav,0,y,210,74);click(n);image('普通底',n,0,0,210,74,art('页签.png'));image('普通图',n,0,0,177,name==='算力中心'?46:41,art(name+'1.png'));image('选中图',n,0,0,177,name==='算力中心'?46:41,art(name+'.png'));child(n,'选中图')._active=name==='算力中心';child(n,'普通底')._active=child(n,'普通图')._active=name!=='算力中心';}
+const mining=node('算力中心',P,0,0,1430,660);
+image('服务器底',mining,-152,-8,610,527,art('服务器底.png'));
+image('安装显卡底',mining,415,-8,480,537,art('安装显卡底.png'));
+label('安装标题',mining,'安装显卡',415,232,420,42,32);
+const claim=node('领取',mining,-152,145,304,70);click(claim);image('底',claim,0,0,304,68,art('加密货币底.png'));image('货币图标',claim,-104,0,52,54,art('加密货币.png'));
+label('待领取',mining,'待领取 0 枚',-122,145,215,45,29,color(255,219,0));
+label('文字',claim,'点击领取',34,-28,130,20,15,color(186,231,244));
+label('周期',mining,'24小时/枚',-355,76,148,32,22,color(238,228,70));
+label('倒计时标题',mining,'下枚产出剩余时间:',-171,29,270,36,24);
+label('倒计时',mining,'24:00:00',35,29,154,36,24,color(24,246,64));
+const progress=image('产出进度',mining,-158,4,466,20,art('加载条.png'),color(27,58,112));
+sprite(node('进度',progress,0,0,466,20),art('加载条.png'),color(),true);
+label('百分比',mining,'0%',109,4,64,28,23,color(0,221,255));
+const racks=node('机柜组',mining,0,0,600,220);
+for(let col=0;col<5;col++){
+ const rack=image('机柜'+(col+1),racks,-384+col*117,-146,113,195,art('服务器.png'));
+ for(let row=0;row<4;row++){
+  const card=image('显卡'+(row+1),rack,0,56-row*19,90,18.24,art('显卡.png'));card._active=false;
+  const light=image('工作灯',card,32.5,0,6.08,14,art('工作灯.png'));component(light,'cc.UIOpacity',{_opacity:255});
+ }
+}
+const slots=node('显卡槽',mining,0,0,460,352);
+for(let i=0;i<20;i++){
+ const slot=node('槽'+(i+1),slots,233+Math.floor(i/4)*92,155-(i%4)*86,83,83);click(slot);
+ image('空槽',slot,0,0,83,83,art('待安装.png'));
+ const installed=image('已装',slot,0,0,83,83,main('格子/红色格子1_1.png'));installed._active=false;
+ image('图标',installed,0,0,73,36.5,main('Prop/1_2/3蓝色/显卡.png'));
+}
+image('仓库图标',mining,219,-211,44,46,art('形状 1.png'));
+label('仓库数量',mining,'仓库可用显卡:0',339,-211,190,39,22);
+const install=btn('安装',mining,'',535,-211,189,64,'蓝');image('图文',install,0,0,158,35,art('组 8.png'));child(install,'文字')._active=false;
+label('显卡数量',mining,'已装 0 / 20 · 点击显卡可取回',415,-260,425,24,16,color(56,73,82));
+const market=node('货币市场',P,0,0,1430,660);market._active=false;
+image('市场底',market,92,-27,1100,558,art('市场底.png'));
+image('币底',market,-299,290,300,62,art('加密货币底.png'));image('币图',market,-419,290,49,51,art('加密货币.png'));
+label('余额',market,'0枚',-287,290,185,42,28,color(255,222,0));
+label('今日价格',market,'今日价格 0',-197,208,480,40,28,color(255,219,67));
+label('涨跌',market,'较昨日 +0.00%',376,208,255,36,23);
+label('图标题',market,'近14日日K线 · 红涨绿跌',-195,162,470,30,20,color(183,229,249));
+label('日期',market,'',505,162,210,30,20,color(183,229,249));
+const chart=node('K线',market,-337,-102,930,220);comp(chart,'cc.UITransform')._anchorPoint={__type__:'cc.Vec2',x:0,y:0};
+for(let i=0;i<=3;i++){image('网格'+i,chart,465,i*220/3,930,1,white,color(109,198,221,95));label('刻度'+i,market,'0万',-398,-102+i*220/3,90,28,19,color(187,226,242));}
+for(let i=0;i<14;i++){
+ const candle=node('蜡烛'+i,chart,(i+.5)*930/14,110,930/14,220);click(candle);
+ image('选中',candle,0,0,54,220,white,color(202,227,241,25))._active=i===13;
+ image('影线',candle,0,0,3,70,white,color(255,104,97));image('实体',candle,0,0,24,36,white,color(255,104,97));
+ label('日期'+i,market,'',-337+(i+.5)*930/14,-127,64,24,16,color(183,222,242));
+}
+label('行情明细',market,'点击K线查看行情',92,-165,1030,31,21,color(204,235,252));
+label('次数',market,'今日可买 5 / 5 枚 · 每日零点更新',-140,-201,600,28,20,color(202,229,242));
+label('持有',market,'持有0枚',433,-201,400,28,18,color(202,229,242));
+btn('购买',market,'购买一枚',-297,-250,170,57,'黄');btn('出售',market,'出售一枚',-76,-250,170,57,'蓝');btn('全部出售',market,'全部出售',475,-250,200,57,'绿');
+P._children.push(ref(confirm));confirm._parent=ref(P);comp(confirm,'cc.UITransform')._contentSize={__type__:'cc.Size',width:1430,height:660};
+// Trim unreachable old UI while preserving reachable references and the original prefab identity.
+const keep=new Set();function walk(v,cb){if(!v||typeof v!=='object')return;if('__id__'in v){cb(v);return;}for(const x of Object.values(v))walk(x,cb);}
+function visit(i){if(keep.has(i))return;if(!a[i])throw Error('Bad reference '+i);keep.add(i);walk(a[i],v=>visit(v.__id__));}visit(0);
+const indices=[...keep].sort((a,b)=>a-b),map=new Map(indices.map((n,i)=>[n,i])),result=indices.map(i=>a[i]);for(const o of result)walk(o,r=>r.__id__=map.get(r.__id__));
+const output=JSON.stringify(result,null,2)+'\n';
+const patch='*** Begin Patch\n*** Update File: '+file.replaceAll('\\','/')+'\n@@\n'+original.trimEnd().split(/\r?\n/).map(l=>'-'+l).join('\n')+'\n'+output.trimEnd().split('\n').map(l=>'+'+l).join('\n')+'\n*** End Patch';
+// Deterministic per-node IDs allow bounded chunks to be retrieved separately.
+process.stdout.write(process.argv[2]==='size'?String(patch.length):patch.slice(Number(process.argv[2]??0),Number(process.argv[3]??patch.length)));
