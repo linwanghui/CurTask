@@ -13,6 +13,7 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
     private page = '算力中心';
     private day = 0;
     private clock = 0;
+    private quoteSecond = -1;
     private busy = false;
     private installSlot = -1;
     private selectedCandle = 13;
@@ -153,6 +154,7 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
             lamp.opacity = Math.round(40 + 215 * (0.5 + 0.5 * Math.sin(this.lampTime * 6 + i * 1.7)));
         });
         this.clock += dt;
+        if (this.page === '货币市场' && this.quoteSecond !== Math.floor(Date.now() / 1000)) this.RefreshMarket();
         if (this.clock < 0.5) return;
         this.clock = 0;
         if (this.day !== Matrix.Day()) { Matrix.Settle(); this.Refresh(); }
@@ -185,19 +187,27 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
         this.N('算力中心/安装/图文').active = s.cards < MATRIX_CONFIG.maxCards;
         this.N('算力中心/安装/文字').active = s.cards >= MATRIX_CONFIG.maxCards;
         this.Text('算力中心/安装/文字', '显卡已装满');
-        const price = Matrix.Price(this.day), yesterday = Matrix.Price(this.day - 1);
-        this.Text('货币市场/今日价格', `今日价格  ${price.toLocaleString()}`);
+        this.RefreshMarket();
+        this.RefreshMining();
+    }
+    private RefreshMarket(): void {
+        const now = Date.now();
+        if (this.day !== Matrix.Day(now)) Matrix.Settle(now);
+        const s = Matrix.State;
+        this.quoteSecond = Math.floor(now / 1000);
+        this.day = Matrix.Day(now);
+        const price = Matrix.Quote(now), yesterday = Matrix.Price(this.day - 1);
+        this.Text('货币市场/今日价格', `实时价格  ${price.toLocaleString()}`);
         const change = (price - yesterday) / yesterday * 100;
         this.Text('货币市场/涨跌', `较昨日 ${change >= 0 ? '+' : ''}${change.toFixed(2)}%`);
         this.N('货币市场/涨跌').getComponent(Label).color = change >= 0 ? new Color(255, 104, 97) : new Color(76, 227, 170);
         this.Text('货币市场/次数', `今日可买 ${Math.max(0, MATRIX_CONFIG.dailyBuyLimit - s.purchased)} / 5 枚 · 每日零点更新`);
         this.Text('货币市场/持有', `持有 ${s.coins} 枚 · 买卖同价 · 出售不限次数`);
         this.Text('货币市场/日期', new Date().toLocaleDateString());
-        this.DrawChart();
-        this.RefreshMining();
+        this.DrawChart(now);
     }
-    private DrawChart(): void {
-        const history = Matrix.History(this.day);
+    private DrawChart(now = Date.now()): void {
+        const history = Matrix.History(Matrix.Day(now), now);
         const low = Math.floor(Math.min(...history.map(c => c.low)) / 10000) * 10000;
         const high = Math.ceil(Math.max(...history.map(c => c.high)) / 10000) * 10000;
         const { width, height } = this.N('货币市场/K线').getComponent(UITransform).contentSize;
@@ -222,7 +232,8 @@ export class ZRSJZ_MatrixPanel extends ZRSJZ_Panel {
             this.Text(`货币市场/日期${i}`, `${d.getUTCMonth() + 1}/${d.getUTCDate()}`);
         });
         const c = history[this.selectedCandle], d = new Date(c.day * 86400000);
-        this.Text('货币市场/行情明细', `${d.getUTCMonth()+1}/${d.getUTCDate()}  开 ${c.open.toLocaleString()}  高 ${c.high.toLocaleString()}  低 ${c.low.toLocaleString()}  收 ${c.close.toLocaleString()}`);
+        const last = c.live ? `现 ${c.close.toLocaleString()} · 未收盘` : `收 ${c.close.toLocaleString()}`;
+        this.Text('货币市场/行情明细', `${d.getUTCMonth()+1}/${d.getUTCDate()}  开 ${c.open.toLocaleString()}  高 ${c.high.toLocaleString()}  低 ${c.low.toLocaleString()}  ${last}`);
     }
     public async OnButtonClick(event: EventTouch): Promise<void> {
         if (this.busy) return;

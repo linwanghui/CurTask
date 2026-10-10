@@ -31,7 +31,7 @@ assert.equal(M.Install(t+11.5*H,7),'');assert.equal(M.State.slots[7],true);asser
 assert.equal(M.Remove(7,t+11.5*H).error,'');assert.equal(M.State.cards,0);assert.equal(M.State.pending,0);
 assert.equal(M.Claim(t+23.5*H),1);
 data.Instance.Matrix={...stateModule.CreateMatrixState(),cards:4};M.Settle(t);assert.equal(M.State.slots.filter(Boolean).length,4);
-reset();const price=M.Price(M.Day(t)),gold=data.Instance.Gold;
+reset();const price=M.Quote(t),gold=data.Instance.Gold;
 for(let i=0;i<5;i++)assert.equal(M.Buy(t),'');
 assert.equal(M.State.coins,5);assert.equal(data.Instance.Gold,gold-5*price);assert.equal(M.Buy(t),'已达今日购买上限！');
 assert.equal(M.Sell(false,t).gold,price);assert.equal(M.State.purchased,5);assert.equal(M.Sell(true,t).count,4);assert.equal(data.Instance.Gold,gold);
@@ -40,10 +40,30 @@ assert.ok(M.Buy(t));assert.equal(M.State.purchased,1);assert.ok(M.Sell(false,t).
 reset();data.Instance.Gold=0;assert.equal(M.Buy(t),'货币不足');assert.equal(M.State.coins,0);assert.equal(M.State.purchased,0);
 const history=M.History(M.Day(t));assert.equal(history.length,14);
 history.forEach((c,i)=>{assert.equal(c.close,M.Price(c.day));assert.ok(c.high>=Math.max(c.open,c.close));assert.ok(c.low<=Math.min(c.open,c.close));if(i)assert.equal(c.open,history[i-1].close);});
-assert.equal(M.Price(M.Day(t)),price);assert.notEqual(M.Price(M.Day(t)+1),price);
+assert.equal(M.Quote(t),price);assert.notEqual(M.Price(M.Day(t)+1),M.Price(M.Day(t)));
 for(let d=M.Day(t)-1000;d<=M.Day(t)+1000;d++){assert.notEqual(M.Price(d),M.Price(d+1));assert.ok(M.Price(d)>=120000&&M.Price(d)<=320000);}
 reset();M.Settle(t+12*H);const progress=M.State.progress;M.Settle(t);assert.equal(M.State.progress,progress);assert.equal(M.State.lastTime,t+12*H);
 console.log('PASS: 24h/4h production, offline accumulation, claim idempotency, install at old rate, progress retained, inventory exclusion, cap, atomic saves, buy/sell, daily limits, rollback and deterministic OHLC.');
+const start=new Date(2026,9,8).getTime(),day=M.Day(start),open=M.Price(day-1),close=M.Price(day);
+const allowedWick=Math.round(2000+M.Random(day,2718)*10000);
+let last=M.Quote(start),up=0,down=0,observedHigh=last,observedLow=last;
+assert.equal(last,open);
+for(let sec=1;sec<86400;sec++){
+ const candle=M.CurrentCandle(start+sec*1000),quote=candle.close;
+ assert(quote>=Math.max(1,Math.min(open,close)-allowedWick)&&quote<=Math.max(open,close)+allowedWick);
+ assert(Math.abs(quote-last)<=open*.0005+5,'per-second step too large');
+ if(quote>last)up++;if(quote<last)down++;
+ observedHigh=Math.max(observedHigh,quote);observedLow=Math.min(observedLow,quote);
+ assert(candle.high>=observedHigh&&candle.low<=observedLow);
+ assert(candle.high-observedHigh<=2&&observedLow-candle.low<=2,'future extrema leaked');
+ last=quote;
+}
+assert(up>100&&down>100);assert.equal(last,close);
+assert.equal(M.Quote(start+86400000),close);
+const nowCandle=M.History(day,t).at(-1);assert.equal(nowCandle.live,true);assert.equal(nowCandle.close,M.Quote(t));
+assert.equal(M.History(day,start+86400000).at(-1).close,close);
+const savedQuote=M.Quote(t);M.curves.clear();assert.equal(M.Quote(t),savedQuote);
+console.log('PASS: full-day bounded small ticks, both directions, live-only extrema, midnight continuity, final close and deterministic reload.');
 const defaults=run(path.join(root,'Scripts/Service/ZRSJZ_GameDataDefaults.ts'),deps).ZRSJZ_GameDataDefaults;
 const old={Versions:25,Gold:987654,PropData:{},OwnedTitles:['勇者'],EquippedTitle:'勇者',OwnedAvatarFrames:['1'],CurrentAvatarFrame:'1',InventoryRow:{keep:8}};
 assert.equal(defaults.Migrate(old,JSON.parse(JSON.stringify(old))),true);assert.equal(old.Versions,26);assert.equal(old.Gold,987654);assert.equal(old.InventoryRow.keep,8);assert.equal(old.Matrix.cards,0);
@@ -125,6 +145,9 @@ console.log('PASS: 0/1/4/5/20 installed cards map exactly to five racks and twen
 for(let i=0;i<14;i++){const candle=find('货币市场/K线/蜡烛'+i,p.Panel);assert.ok(candle.getChildByName('实体').getComponent('cc.UITransform').contentSize.height>=3);assert.ok(candle.getChildByName('影线').getComponent('cc.UITransform').contentSize.height>=3);}
 for(const [width,height]of [[1280,720],[2340,1080],[1600,900]]){rootNode.getComponent('cc.UITransform').setContentSize(width,height);p.FitScreen();const size=rootNode.getChildByName('Mask').getComponent('cc.UITransform').contentSize;assert.ok(size.width>=width&&size.height>=height);assert.ok(Math.abs(size.width/size.height-2340/1080)<1e-8);}
 const click=name=>p.OnButtonClick({getCurrentTarget:()=>({name})});click('货币市场');assert.equal(find('货币市场',p.Panel).active,true);assert.equal(find('算力中心',p.Panel).active,false);
+await click('蜡烛13');assert(find('货币市场/行情明细',p.Panel).getComponent('cc.Label').string.includes('未收盘'));
+assert(!find('货币市场/行情明细',p.Panel).getComponent('cc.Label').string.includes('  收 '));
+await click('蜡烛12');assert(find('货币市场/行情明细',p.Panel).getComponent('cc.Label').string.includes('收 '));
 for(const [width,height] of [[2340,1080],[1280,720],[1920,1080],[2340,1080]]){
  rootNode.getComponent('cc.UITransform').setContentSize(width,height);p.FitScreen();
  const ratio=Math.min(width/2340,height/1080);

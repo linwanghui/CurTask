@@ -7,7 +7,7 @@ export const MATRIX_CONFIG = {
     maxCards: 20, baseHours: 24, dailyBuyLimit: 5,
     minPrice: 120000, maxPrice: 320000, historyDays: 14,
 };
-export interface MatrixCandle { day: number; open: number; close: number; high: number; low: number; }
+export interface MatrixCandle { day: number; open: number; close: number; high: number; low: number; live?: boolean; }
 
 /** 同步扣款、产出和落盘；DLC 业务代码不被主包反向引用。 */
 export class ZRSJZ_MatrixService {
@@ -127,19 +127,70 @@ export class ZRSJZ_MatrixService {
         const steps = Math.floor((c.maxPrice - c.minPrice - 100) / 200) + 1;
         return c.minPrice + Math.floor(this.Random(day, 7391) * steps) * 200 + (day % 2) * 100;
     }
-    public static History(day = this.Day()): MatrixCandle[] {
+    private static curves = new Map<number, { prices: number[]; highs: number[]; lows: number[] }>();
+    /** Deterministic minute anchors, interpolated each second; reopening cannot reroll prices. */
+    private static Curve(day: number) {
+        const cached = this.curves.get(day);
+        if (cached) return cached;
+        const open = this.Price(day - 1), close = this.Price(day);
+        const wick = Math.round(2000 + this.Random(day, 2718) * 10000);
+        const floor = Math.max(1, Math.min(open, close) - wick), ceiling = Math.max(open, close) + wick;
+        const prices: number[] = [], highs: number[] = [], lows: number[] = [];
+        for (let i = 0; i <= 1440; i++) {
+            const t = i / 1440;
+            const noise = (this.Random(day, 31001 + i) * 2 - 1) * open * 0.008 * Math.sin(Math.PI * t);
+            const value = i === 0 ? open : i === 1440 ? close
+                : Math.round(Math.max(floor, Math.min(ceiling, open + (close - open) * t + noise)));
+            prices.push(value);
+        }
+        // Prefix extrema use prices actually quoted at integer seconds, not unsampled anchor peaks.
+        const date = new Date(day * 86400000);
+        const span = (new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1).getTime()
+            - new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).getTime()) / 1000 - 1;
+        const sample = (second: number) => {
+            const index = Math.min(1440, second / span * 1440), left = Math.floor(index);
+            return Math.round(prices[left] + (prices[Math.min(1440, left + 1)] - prices[left]) * (index - left));
+        };
+        highs.push(open); lows.push(open);
+        for (let i = 1; i <= 1440; i++) {
+            const first = sample(Math.ceil((i - 1) * span / 1440));
+            const last = sample(Math.floor(i * span / 1440));
+            highs.push(Math.max(highs[i - 1], first, last));
+            lows.push(Math.min(lows[i - 1], first, last));
+        }
+        const curve = { prices, highs, lows };
+        if (this.curves.size >= 20) this.curves.delete(this.curves.keys().next().value);
+        this.curves.set(day, curve);
+        return curve;
+    }
+    public static CurrentCandle(now = Date.now()): MatrixCandle {
+        const date = new Date(now), day = this.Day(now), curve = this.Curve(day);
+        const start = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+        const end = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime();
+        const elapsed = Math.floor((now - start) / 1000);
+        const index = Math.min(1440, Math.max(0, elapsed / ((end - start) / 1000 - 1) * 1440));
+        const left = Math.floor(index), right = Math.min(1440, left + 1);
+        const close = Math.round(curve.prices[left] + (curve.prices[right] - curve.prices[left]) * (index - left));
+        const firstSecond = Math.ceil(left * ((end - start) / 1000 - 1) / 1440);
+        const firstIndex = firstSecond / ((end - start) / 1000 - 1) * 1440;
+        const first = Math.round(curve.prices[left] + (curve.prices[right] - curve.prices[left]) * (firstIndex - left));
+        return { day, open: curve.prices[0], close,
+            high: Math.max(curve.highs[left], first, close), low: Math.min(curve.lows[left], first, close), live: true };
+    }
+    public static Quote(now = Date.now()): number { return this.CurrentCandle(now).close; }
+    public static History(day = this.Day(), now = Date.now()): MatrixCandle[] {
         return Array.from({ length: MATRIX_CONFIG.historyDays }, (_, i) => {
             const d = day - MATRIX_CONFIG.historyDays + i + 1;
-            const open = this.Price(d - 1), close = this.Price(d);
-            const wick = Math.round(2000 + this.Random(d, 2718) * 10000);
-            return { day: d, open, close, high: Math.max(open, close) + wick, low: Math.max(1, Math.min(open, close) - wick) };
+            if (d === this.Day(now)) return this.CurrentCandle(now);
+            const curve = this.Curve(d);
+            return { day: d, open: curve.prices[0], close: curve.prices[1440], high: curve.highs[1440], low: curve.lows[1440] };
         });
     }
     public static Buy(now = Date.now()): string {
         const s = this.Settle(now);
         if (this.Day(now) < s.purchaseDay) return '设备日期异常，请恢复正确时间';
         if (s.purchased >= MATRIX_CONFIG.dailyBuyLimit) return '已达今日购买上限！';
-        const data = ZRSJZ_GameData.Instance, price = this.Price(this.Day(now));
+        const data = ZRSJZ_GameData.Instance, price = this.Quote(now);
         if (!Number.isFinite(data.Gold) || data.Gold < price) return '货币不足';
         data.Gold -= price; s.coins++; s.purchased++;
         ZRSJZ_GameData.SaveData();
@@ -151,7 +202,7 @@ export class ZRSJZ_MatrixService {
         if (this.Day(now) < s.purchaseDay) return { error: '设备日期异常，请恢复正确时间', count: 0, gold: 0 };
         const count = all ? s.coins : Math.min(1, s.coins);
         if (!count) return { error: '加密货币不足，请先领取产出', count: 0, gold: 0 };
-        const gold = count * this.Price(this.Day(now));
+        const gold = count * this.Quote(now);
         if (!Number.isSafeInteger(gold) || !Number.isFinite(data.Gold) || data.Gold + gold > Number.MAX_SAFE_INTEGER)
             return { error: '货币余额已达上限', count: 0, gold: 0 };
         s.coins -= count; data.Gold += gold;
