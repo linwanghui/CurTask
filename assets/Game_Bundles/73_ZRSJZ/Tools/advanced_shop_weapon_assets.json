@@ -1,0 +1,270 @@
+{
+  "generator": "built-in image_gen",
+  "weaponrySize": [
+    899,
+    520
+  ],
+  "inventorySize": [
+    240,
+    100
+  ],
+  "rotation": 17.1,
+  "processing": "Preserve generated alpha and artwork. Normalize scale and position from manually inspected grip and muzzle landmarks; match existing category texture canvas and Spine angle. Inventory is a horizontal, aspect-preserving resize of the same generated weapon.",
+  "rigTargets": {
+    "步枪": {
+      "grip": [
+        240,
+        360
+      ],
+      "muzzle": [
+        586,
+        396
+      ],
+      "reference": "Sprites/Weaponry/冲锋枪/1/CN8-突击步枪.png"
+    },
+    "狙击枪": {
+      "grip": [
+        239,
+        328
+      ],
+      "muzzle": [
+        648,
+        394
+      ],
+      "reference": "Sprites/Weaponry/狙击枪/2/W76-狙击枪.png"
+    },
+    "散弹枪": {
+      "grip": [
+        302,
+        355
+      ],
+      "muzzle": [
+        651,
+        426
+      ],
+      "reference": "Sprites/Weaponry/散弹枪/2/KK41-霰弹枪.png"
+    }
+  },
+  "assets": [
+    {
+      "name": "HK416-突击步枪",
+      "kind": "步枪",
+      "dir": "冲锋枪",
+      "price": 880000,
+      "damage": 46,
+      "range": 1350,
+      "rpm": 720,
+      "mag": 30,
+      "subject": "HK416 assault rifle, sand tan stock and handguard, charcoal receiver and straight black magazine, compact holographic sight, tactical sturdy silhouette",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-f621ddd2-9af8-42d4-9947-9acaaf780ccd.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: HK416 assault rifle, sand tan stock and handguard, charcoal receiver and straight black magazine, compact holographic sight, tactical sturdy silhouette",
+      "gripNormalized": [
+        0.285,
+        0.675
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.34
+      ],
+      "quality": "紫色"
+    },
+    {
+      "name": "SCAR-H-战斗步枪",
+      "kind": "步枪",
+      "dir": "冲锋枪",
+      "price": 1100000,
+      "damage": 58,
+      "range": 1450,
+      "rpm": 660,
+      "mag": 30,
+      "subject": "SCAR-H heavy battle rifle, unmistakable chunky sand-tan folding stock, olive bronze receiver, short straight box magazine, black barrel, compact scope",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-f50eacf2-521f-456c-ab11-553a0d882891.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: SCAR-H heavy battle rifle, unmistakable chunky sand-tan folding stock, olive bronze receiver, short straight box magazine, black barrel, compact scope",
+      "gripNormalized": [
+        0.28,
+        0.743
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.399
+      ],
+      "quality": "紫色"
+    },
+    {
+      "name": "MCX-突击步枪",
+      "kind": "步枪",
+      "dir": "冲锋枪",
+      "price": 2100000,
+      "damage": 54,
+      "range": 1400,
+      "rpm": 780,
+      "mag": 36,
+      "subject": "MCX tactical assault rifle, slate blue grey metal handguard, black skeleton folding stock, dark magazine, restrained turquoise metal accents, small reflex optic",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-c3f452f8-da47-4123-bf48-3fc9ad725bd8.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: MCX tactical assault rifle, slate blue grey metal handguard, black skeleton folding stock, dark magazine, restrained turquoise metal accents, small reflex optic",
+      "gripNormalized": [
+        0.31,
+        0.688
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.304
+      ],
+      "quality": "紫色"
+    },
+    {
+      "name": "AK12-突击步枪",
+      "kind": "步枪",
+      "dir": "冲锋枪",
+      "price": 2800000,
+      "damage": 68,
+      "range": 1500,
+      "rpm": 700,
+      "mag": 40,
+      "subject": "AK12 assault rifle, charcoal and muted dark crimson receiver, prominent curved black magazine, angular folding stock, gas tube over long barrel, small red-dot optic",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-c54e10be-978f-44fd-8ff7-f420b1546111.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: AK12 assault rifle, charcoal and muted dark crimson receiver, prominent curved black magazine, angular folding stock, gas tube over long barrel, small red-dot optic",
+      "gripNormalized": [
+        0.26,
+        0.65
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.326
+      ],
+      "quality": "金色"
+    },
+    {
+      "name": "M249-轻机枪",
+      "kind": "步枪",
+      "dir": "冲锋枪",
+      "price": 4400000,
+      "damage": 64,
+      "range": 1550,
+      "rpm": 780,
+      "mag": 60,
+      "subject": "M249 light machine gun, olive green and charcoal metal, large box ammunition magazine under receiver, compact stock, short carry handle on top, folded bipod tucked along barrel, iron sights",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-d6ff49fb-582b-47f9-977a-7fa7455c4bd8.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: M249 light machine gun, olive green and charcoal metal, large box ammunition magazine under receiver, compact stock, short carry handle on top, folded bipod tucked along barrel, iron sights",
+      "gripNormalized": [
+        0.253,
+        0.719
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.414
+      ],
+      "quality": "金色"
+    },
+    {
+      "name": "MG5-轻机枪",
+      "kind": "步枪",
+      "dir": "冲锋枪",
+      "price": 6500000,
+      "damage": 86,
+      "range": 1650,
+      "rpm": 700,
+      "mag": 70,
+      "subject": "MG5 heavy light-machine gun, dark graphite grey with copper bronze receiver panels, box magazine below, chunky shoulder stock, long perforated heat shield, folded bipod under barrel",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-da258ba6-cfc2-47f8-8977-5e181fd3eb78.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: MG5 heavy light-machine gun, dark graphite grey with copper bronze receiver panels, box magazine below, chunky shoulder stock, long perforated heat shield, folded bipod under barrel",
+      "gripNormalized": [
+        0.263,
+        0.67
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.325
+      ],
+      "quality": "红色"
+    },
+    {
+      "name": "AA12-霰弹枪",
+      "kind": "散弹枪",
+      "dir": "散弹枪",
+      "price": 1650000,
+      "damage": 48,
+      "range": 900,
+      "rpm": 240,
+      "mag": 12,
+      "subject": "AA12 automatic shotgun, bulky dark charcoal polymer receiver, muted silver-blue top panels, round black drum magazine below, short heavy barrel, fixed stock, compact iron sights",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-b549eae8-a8b1-43c3-8058-ed2cda8951b6.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: AA12 automatic shotgun, bulky dark charcoal polymer receiver, muted silver-blue top panels, round black drum magazine below, short heavy barrel, fixed stock, compact iron sights",
+      "gripNormalized": [
+        0.358,
+        0.681
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.369
+      ],
+      "quality": "紫色"
+    },
+    {
+      "name": "DP12-霰弹枪",
+      "kind": "散弹枪",
+      "dir": "散弹枪",
+      "price": 3600000,
+      "damage": 68,
+      "range": 1000,
+      "rpm": 240,
+      "mag": 16,
+      "subject": "DP12 bullpup tactical shotgun, tan bronze armored body, twin parallel barrels, pump fore-end below barrel, black pistol grip, very compact integrated shoulder stock at rear, short top optic",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-8f7abb3d-59b9-4027-ad40-f355a7748e66.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: DP12 bullpup tactical shotgun, tan bronze armored body, twin parallel barrels, pump fore-end below barrel, black pistol grip, very compact integrated shoulder stock at rear, short top optic",
+      "gripNormalized": [
+        0.335,
+        0.731
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.423
+      ],
+      "quality": "金色"
+    },
+    {
+      "name": "AWM-狙击枪",
+      "kind": "狙击枪",
+      "dir": "狙击枪",
+      "price": 5600000,
+      "damage": 380,
+      "range": 2400,
+      "rpm": 120,
+      "mag": 8,
+      "subject": "AWM bolt action sniper rifle, recognizable olive green thumbhole stock, black pistol grip opening behind trigger, long dark barrel, large silver-grey scope with two mount rings, small black box magazine, no extended bipod",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-85f59ba6-3689-46be-8f06-b6a7f405a62f.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: AWM bolt action sniper rifle, recognizable olive green thumbhole stock, black pistol grip opening behind trigger, long dark barrel, large silver-grey scope with two mount rings, small black box magazine, no extended bipod",
+      "gripNormalized": [
+        0.258,
+        0.714
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.405
+      ],
+      "quality": "金色"
+    },
+    {
+      "name": "M82A1-狙击枪",
+      "kind": "狙击枪",
+      "dir": "狙击枪",
+      "price": 7800000,
+      "damage": 480,
+      "range": 2600,
+      "rpm": 135,
+      "mag": 10,
+      "subject": "M82A1 anti-materiel sniper rifle, long silver graphite rectangular upper receiver, small muted orange accent panels, rear black shoulder stock, black box magazine, long fluted barrel with large rectangular muzzle brake, powerful scope, folded bipod",
+      "source": "C:/Users/Administrator/.codex/generated_images/019fe99f-84ac-7cb3-991a-5212a1e5b6fa/exec-25cd2d25-33c8-4a58-9f48-0b1d598e769d.png",
+      "prompt": "Use case: stylized-concept. Asset type: single transparent 2D mobile shooter weapon sprite. Reference image is ONLY style reference for the game's existing gun: match its bold black outlines, hand-painted hard-edged metallic shading, simplified readable game proportions and moderately realistic cartoon finish. Draw exactly ONE weapon in pure orthographic side profile, perfectly horizontal barrel pointing RIGHT, stock LEFT, handle and magazine DOWN. No perspective, no diagonal angle, no background, no frame, no shadow, no text, no insignia, no muzzle flash, no glow, no hands. Entire weapon visible with clear alpha padding on all sides. Wide landscape canvas around 3:1 with weapon filling ~90% of width, high quality crisp silhouette suited for final inventory icon around 240px wide AND a runtime gun texture. Keep pistol grip and trigger clearly identifiable for precise grip-point alignment. Subject: M82A1 anti-materiel sniper rifle, long silver graphite rectangular upper receiver, small muted orange accent panels, rear black shoulder stock, black box magazine, long fluted barrel with large rectangular muzzle brake, powerful scope, folded bipod",
+      "gripNormalized": [
+        0.234,
+        0.657
+      ],
+      "muzzleNormalized": [
+        0.993,
+        0.413
+      ],
+      "quality": "红色"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+"""Normalize ImageGen artwork to existing weapon attachment canvases; no redraw."""
+import json
+import math
+from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont
+
+root = Path(__file__).resolve().parents[1]
+manifest = json.loads((root / 'Tools/advanced_shop_weapon_assets.json').read_text(encoding='utf-8'))
+preview_root = Path('C:/Users/Administrator/.codex/visualizations/2026/08/10/019fe99f-84ac-7cb3-991a-5212a1e5b6fa')
+angle = math.radians(manifest['rotation'])
+c, s = math.cos(angle), math.sin(angle)
+report = []
+preview = Image.new('RGB', (1080, 1560), '#263342')
+draw = ImageDraw.Draw(preview)
+font = ImageFont.truetype('C:/Windows/Fonts/msyh.ttc', 22)
+
+for i, asset in enumerate(manifest['assets']):
+    source = Image.open(asset['source']).convert('RGBA')
+    assert source.getchannel('A').getextrema()[0] == 0, asset['name']
+    gx, gy = [v * size for v, size in zip(asset['gripNormalized'], source.size)]
+    mx, my = [v * size for v, size in zip(asset['muzzleNormalized'], source.size)]
+    target = manifest['rigTargets'][asset['kind']]
+    tgx, tgy = target['grip']
+    tmx, tmy = target['muzzle']
+    dx, dy = tmx - tgx, tmy - tgy
+    sx = (c * dx + s * dy) / (mx - gx)
+    sy = (-s * dx + c * dy) / (my - gy)
+    assert 0.08 < sx < 0.5 and 0.08 < sy < 0.5, (asset['name'], sx, sy)
+    tx, ty = tgx - c * sx * gx + s * sy * gy, tgy - s * sx * gx - c * sy * gy
+    inverse = (c / sx, s / sx, -(c * tx + s * ty) / sx,
+               -s / sy, c / sy, (s * tx - c * ty) / sy)
+    weapon = source.transform(tuple(manifest['weaponrySize']), Image.Transform.AFFINE,
+                              inverse, Image.Resampling.BICUBIC)
+    bbox = weapon.getchannel('A').getbbox()
+    assert bbox and bbox[0] > 5 and bbox[1] > 5 and bbox[2] < 894 and bbox[3] < 515, (asset['name'], bbox)
+    muzzle_error = math.hypot(c * sx * mx - s * sy * my + tx - tmx,
+                              s * sx * mx + c * sy * my + ty - tmy)
+    assert muzzle_error < 0.001
+    crop = source.crop(source.getchannel('A').getbbox())
+    fit = min(232 / crop.width, 92 / crop.height)
+    crop = crop.resize((round(crop.width * fit), round(crop.height * fit)), Image.Resampling.LANCZOS)
+    icon = Image.new('RGBA', tuple(manifest['inventorySize']))
+    icon.alpha_composite(crop, ((240 - crop.width) // 2, (100 - crop.height) // 2))
+    outputs = [('weaponry', root / 'Sprites/Weaponry' / asset['dir'] / (asset['name'] + '.png'), weapon),
+               ('inventory', root / 'Sprites/Prop/装备/枪' / asset['dir'] / (asset['name'] + '.png'), icon)]
+    for role, dest, im in outputs:
+        im.save(dest, optimize=True)
+        report.append({'role': role, 'name': asset['name'], 'path': dest.as_posix(),
+                       'size': list(im.size), 'bbox': list(im.getchannel('A').getbbox()), 'bytes': dest.stat().st_size})
+    y = i * 150
+    draw.text((12, y + 8), asset['name'], fill='white', font=font)
+    preview.paste(icon, (20, y + 42), icon)
+    thumb = weapon.resize((720, 416), Image.Resampling.LANCZOS)
+    occupied = thumb.crop(thumb.getchannel('A').getbbox())
+    fit_preview = min(700 / occupied.width, 113 / occupied.height)
+    occupied = occupied.resize((round(occupied.width * fit_preview), round(occupied.height * fit_preview)), Image.Resampling.LANCZOS)
+    preview.paste(occupied, (320, y + 33), occupied)
+
+preview.save(preview_root / 'advanced_shop_weapons_preview.png')
+print(json.dumps(report, ensure_ascii=False))

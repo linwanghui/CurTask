@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "3bde7ca3-8498-4450-994b-f978da0a87bd",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "3bde7ca3-8498-4450-994b-f978da0a87bd@6c48a",
+      "displayName": "M82A1-狙击枪",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "3bde7ca3-8498-4450-994b-f978da0a87bd",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "3bde7ca3-8498-4450-994b-f978da0a87bd@f9941",
+      "displayName": "M82A1-狙击枪",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": 4.5,
+        "trimX": 4,
+        "trimY": 16,
+        "width": 232,
+        "height": 59,
+        "rawWidth": 240,
+        "rawHeight": 100,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -116,
+            -29.5,
+            0,
+            116,
+            -29.5,
+            0,
+            -116,
+            29.5,
+            0,
+            116,
+            29.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            4,
+            84,
+            236,
+            84,
+            4,
+            25,
+            236,
+            25
+          ],
+          "nuv": [
+            0.016666666666666666,
+            0.25,
+            0.9833333333333333,
+            0.25,
+            0.016666666666666666,
+            0.84,
+            0.9833333333333333,
+            0.84
+          ],
+          "minPos": [
+            -116,
+            -29.5,
+            0
+          ],
+          "maxPos": [
+            116,
+            29.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "3bde7ca3-8498-4450-994b-f978da0a87bd@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "3bde7ca3-8498-4450-994b-f978da0a87bd@6c48a"
+  }
+}

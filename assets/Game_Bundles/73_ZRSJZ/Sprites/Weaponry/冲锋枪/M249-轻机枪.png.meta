@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "181688a0-d8c0-469e-831a-b0de5df0059a",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "181688a0-d8c0-469e-831a-b0de5df0059a@6c48a",
+      "displayName": "M249-轻机枪",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "181688a0-d8c0-469e-831a-b0de5df0059a",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "181688a0-d8c0-469e-831a-b0de5df0059a@f9941",
+      "displayName": "M249-轻机枪",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": -86.5,
+        "offsetY": -73.5,
+        "trimX": 137,
+        "trimY": 232,
+        "width": 452,
+        "height": 203,
+        "rawWidth": 899,
+        "rawHeight": 520,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": false,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -226,
+            -101.5,
+            0,
+            226,
+            -101.5,
+            0,
+            -226,
+            101.5,
+            0,
+            226,
+            101.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            137,
+            288,
+            589,
+            288,
+            137,
+            85,
+            589,
+            85
+          ],
+          "nuv": [
+            0.15239154616240266,
+            0.16346153846153846,
+            0.6551724137931034,
+            0.16346153846153846,
+            0.15239154616240266,
+            0.5538461538461539,
+            0.6551724137931034,
+            0.5538461538461539
+          ],
+          "minPos": [
+            -226,
+            -101.5,
+            0
+          ],
+          "maxPos": [
+            226,
+            101.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "181688a0-d8c0-469e-831a-b0de5df0059a@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "181688a0-d8c0-469e-831a-b0de5df0059a@6c48a"
+  }
+}

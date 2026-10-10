@@ -1,0 +1,138 @@
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+const assert = require('assert');
+const ts = require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const root = path.resolve(__dirname, '..');
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'Tools/advanced_shop_weapon_assets.json'), 'utf8'));
+function loadConfig(file, dependencies = {}) {
+    const source = fs.readFileSync(path.join(root, 'Scripts', file), 'utf8');
+    const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+    const mod = { exports: {} };
+    vm.runInNewContext(js, { exports: mod.exports, require(name) { assert(dependencies[name], name); return dependencies[name]; } });
+    return mod.exports;
+}
+const c = loadConfig('ZRSJZ_Constant.ts');
+const f = loadConfig('ZRSJZ_ForgeConstant.ts', { './ZRSJZ_Constant': c });
+const shop = c.ZRSJZ_SHOP_CONFIG.get('武器');
+assert.equal(shop.length, 18);
+assert.equal(new Set(shop).size, 18);
+assert.equal(manifest.assets.length, 10);
+const top = c.ZRSJZ_PROP_PROPERTY.get('焚天龙');
+const balance = JSON.parse(fs.readFileSync(path.join(root, 'Tools/shop_weapon_balance.json'), 'utf8'));
+const ranks = ['绿色', '蓝色', '紫色', '金色', '红色'];
+let previousPrice = 0, previousRank = -1;
+for (let i = 0; i < balance.weapons.length; i++) {
+    const w = balance.weapons[i], p = c.ZRSJZ_PROP_CONFIG.get(w.name), s = c.ZRSJZ_PROP_PROPERTY.get(w.name);
+    assert.equal(shop[i], w.name);
+    assert.equal(p.Quality, c.ZRSJZ_PROP_QUALITY[w.quality]);
+    assert.equal(p.UnitPrice, w.price);
+    assert.deepEqual(JSON.parse(JSON.stringify(s)), { 伤害: w.damage, 射程: w.range, 射速: w.rpm, 弹夹: w.mag });
+    assert(w.price > previousPrice);
+    assert(ranks.indexOf(w.quality) >= previousRank);
+    previousPrice = w.price; previousRank = ranks.indexOf(w.quality);
+    const defaultSkin = c.ZRSJZ_WEAPON_SKIN.get(w.name)?.find(skin => skin.UnlockType === '默认');
+    if (defaultSkin) assert.equal(defaultSkin.Quality, p.Quality);
+}
+const frozenForge = JSON.parse(fs.readFileSync(path.join(root, 'Tools/forge_weapon_preserved_snapshot.json'), 'utf8'));
+for (const w of frozenForge) {
+    assert.equal(JSON.stringify(c.ZRSJZ_PROP_CONFIG.get(w.name)), JSON.stringify(w.prop));
+    assert.equal(JSON.stringify(c.ZRSJZ_PROP_PROPERTY.get(w.name)), JSON.stringify(w.stats));
+    assert.equal(JSON.stringify(f.GetForgeRecipe(w.name)), JSON.stringify(w.recipe));
+}
+const uuids = new Set();
+let bytes = 0;
+for (const w of manifest.assets) {
+    assert(shop.includes(w.name), w.name);
+    assert.equal([...c.ZRSJZ_WEAPONRY_TYPE.values()].filter(list => list.includes(w.name)).length, 1);
+    assert(c.ZRSJZ_WEAPONRY_TYPE.get(w.kind).includes(w.name));
+    const prop = c.ZRSJZ_PROP_CONFIG.get(w.name), stats = c.ZRSJZ_PROP_PROPERTY.get(w.name);
+    assert.equal(prop.Name, w.name);
+    assert.equal(prop.UnitPrice, w.price);
+    assert.equal(prop.PropType, '枪');
+    assert.equal(prop.GridType, c.ZRSJZ_GRID_TYPE._1x2);
+    assert.equal(prop.Quality, c.ZRSJZ_PROP_QUALITY[w.quality]);
+    assert(prop.Description.length > 15);
+    assert(prop.UnitPrice < c.ZRSJZ_PROP_CONFIG.get('焚天龙').UnitPrice);
+    const pellets = w.kind === '散弹枪' ? 3 : 1;
+    for (const ammo of [0, 8, 16, 24, 42, 60]) {
+        const damage = (stats['伤害'] + ammo) * stats['射速'] * pellets;
+        assert(damage < (top['伤害'] + ammo) * top['射速'], w.name + ' forge ceiling');
+    }
+    for (const key of ['伤害', '射程', '射速', '弹夹']) assert(stats[key] <= c.ZRSJZ_PROP_PROPERTY_MAX.get(key));
+    // Existing automatic recipe builder should remain valid and keep the endgame top.
+    const recipe = f.GetForgeRecipe(w.name);
+    assert(recipe && recipe.value === w.price && recipe.materials.length <= 6);
+    for (const ingredient of recipe.materials) assert(c.ZRSJZ_PROP_CONFIG.has(ingredient.name));
+    for (const [folder, size] of [['Sprites/Weaponry', [899, 520]], ['Sprites/Prop/装备/枪', [240, 100]]]) {
+        const imagePath = path.join(root, folder, w.dir, w.name + '.png');
+        const png = fs.readFileSync(imagePath);
+        assert.equal(png.readUInt32BE(16), size[0]);
+        assert.equal(png.readUInt32BE(20), size[1]);
+        const meta = JSON.parse(fs.readFileSync(imagePath + '.meta', 'utf8'));
+        assert(!uuids.has(meta.uuid)); uuids.add(meta.uuid);
+        const sf = meta.subMetas.f9941;
+        assert.equal(sf.displayName, w.name);
+        assert.equal(sf.userData.rawWidth, size[0]);
+        assert.equal(sf.userData.rawHeight, size[1]);
+        assert.equal(sf.userData.imageUuidOrDatabaseUri, meta.uuid + '@6c48a');
+        if (folder === 'Sprites/Weaponry') assert.equal(sf.userData.packable, false);
+        bytes += png.length;
+    }
+}
+assert(shop.includes('AWM-狙击枪'));
+assert.equal(c.ZRSJZ_PROP_PROPERTY.get('焚天龙')['伤害'], 120);
+assert.equal(c.ZRSJZ_PROP_CONFIG.get('焚天龙').UnitPrice, 13000000);
+// Exercise the real saved-data entry point, including automatic backup and one-time migration.
+const matrixConfig = loadConfig('ZRSJZ_MatrixState.ts');
+const battlePassConfig = { CreateBattlePassState: () => ({}) };
+const defaults = loadConfig('Service/ZRSJZ_GameDataDefaults.ts', {
+    '../ZRSJZ_Constant': c, '../ZRSJZ_GameData': { ZRSJZ_GameData: { Versions: 27 } },
+    '../ZRSJZ_TaskLines': { ZRSJZ_SIDE_TASK_LINES: [] }, '../ZRSJZ_EnhancementConfig': { MigrateLegacyEnhancement: () => ({}) },
+    '../ZRSJZ_BattlePassConfig': battlePassConfig, './ZRSJZ_MidAutumnService': { CreateMidAutumnState: () => ({}) },
+    '../ZRSJZ_MatrixState': matrixConfig,
+});
+const saved = {
+    Versions: 26, Gold: 987654, PropID: 7, InventoryRow: { 仓库_全部: 42 },
+    OwnedTitles: ['勇者'], EquippedTitle: '勇者', OwnedAvatarFrames: ['1'], CurrentAvatarFrame: '1',
+    CurWeaponSkin: { 'W76-狙击枪': 'W76-紫墟' }, HaveWeaponSkin: ['W76-紫墟'],
+    WeaponryID: ['gun1', '', '', '', 'knife'], Player2WeaponryID: ['', '', '', '', 'knife2'],
+    Matrix: { cards: 3, coins: 9, progress: 0.4 }, TaskLines: { main: { index: 5 } }, MailData: { example: { reward: 'test' } },
+    PropData: {
+        gun1: { Name: 'W76-狙击枪', UnitPrice: 5500000, InstanceID: 'gun1', CurCount: 1, OwnerPlayerIndex: 0, CurInventory: '武器_枪', GridData: [{ GridX: 2, GridY: 3 }] },
+        gun2: { Name: 'HK416-突击步枪', UnitPrice: 6000000, InstanceID: 'gun2', CurCount: 1, OwnerPlayerIndex: -1, CurInventory: '仓库_全部' },
+        forge: { Name: '焚天龙', UnitPrice: 13000000, InstanceID: 'forge', CurCount: 1 },
+        food: { Name: '鸡蛋', UnitPrice: 18000, InstanceID: 'food', CurCount: 1 },
+    },
+};
+const savedJson = JSON.stringify(saved), storage = new Map([['ZRSJZ_GameData', savedJson]]);
+const dataClass = loadConfig('ZRSJZ_GameData.ts', {
+    cc: { sys: { localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, v) } } },
+    './ZRSJZ_Constant': c, './Service/ZRSJZ_GameDataDefaults': defaults,
+    './Service/ZRSJZ_MailService': { ZRSJZ_MailService: { CheckExpired() {} } },
+    './ZRSJZ_BattlePassConfig': battlePassConfig, './ZRSJZ_MatrixState': matrixConfig,
+}).ZRSJZ_GameData;
+assert.equal(dataClass.Versions, 27);
+const loaded = dataClass.ReadData();
+assert.equal(loaded.Versions, 27);
+assert.equal(storage.get('ZRSJZ_GameData_before_v27'), savedJson);
+for (const [id, original] of Object.entries(saved.PropData)) {
+    const expected = { ...original };
+    if (shop.includes(original.Name)) expected.UnitPrice = c.ZRSJZ_PROP_CONFIG.get(original.Name).UnitPrice;
+    assert.deepEqual(JSON.parse(JSON.stringify(loaded.PropData[id])), expected);
+}
+for (const key of ['Gold', 'PropID', 'InventoryRow', 'WeaponryID', 'Player2WeaponryID', 'CurWeaponSkin', 'HaveWeaponSkin', 'Matrix', 'TaskLines', 'MailData'])
+    assert.equal(JSON.stringify(loaded[key]), JSON.stringify(saved[key]));
+const second = dataClass.ReadData();
+assert.equal(second.PropData.gun1.UnitPrice, 1380000);
+assert.equal(storage.get('ZRSJZ_GameData_before_v27'), savedJson);
+console.log('PASS: shop prices/qualities/stats sorted; default skin quality; three forge weapons and recipes unchanged; six-ammo DPS ceiling; 20 sprites; v26->v27 migration preserves items/state and backs up original. Asset size:', Math.round(bytes / 1024), 'KB');
+const configPath = path.resolve(root, '../../../tsconfig.json');
+const config = ts.readConfigFile(configPath, ts.sys.readFile);
+const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, path.dirname(configPath));
+const program = ts.createProgram(parsed.fileNames.filter(file => file.endsWith('.ts')), { ...parsed.options, noEmit: true });
+const diagnostics = ts.getPreEmitDiagnostics(program);
+const scoped = diagnostics.filter(d => d.file && /Game_Bundles[\\/]73_ZRSJZ(?:_DLC)?[\\/]/.test(d.file.fileName));
+console.log('TypeScript diagnostics total:', diagnostics.length, 'main/DLC:', scoped.length);
+for (const d of scoped) console.log(d.file.fileName, ts.flattenDiagnosticMessageText(d.messageText, '\n'));
+if (scoped.length) process.exitCode = 1;

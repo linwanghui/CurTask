@@ -1,0 +1,172 @@
+{
+  "scope": "18 shop firearms only; forge-only weapons and their authored recipes unchanged",
+  "forgeExcluded": [
+    "霜月狼",
+    "裂海鲨",
+    "焚天龙"
+  ],
+  "weapons": [
+    {
+      "name": "CN8-突击步枪",
+      "quality": "绿色",
+      "price": 120000,
+      "damage": 22,
+      "range": 1200,
+      "rpm": 700,
+      "mag": 30
+    },
+    {
+      "name": "DX9-冲锋枪",
+      "quality": "绿色",
+      "price": 180000,
+      "damage": 26,
+      "range": 1250,
+      "rpm": 740,
+      "mag": 35
+    },
+    {
+      "name": "FS-霰弹枪",
+      "quality": "绿色",
+      "price": 220000,
+      "damage": 28,
+      "range": 750,
+      "rpm": 240,
+      "mag": 6
+    },
+    {
+      "name": "K50-轻机枪",
+      "quality": "蓝色",
+      "price": 320000,
+      "damage": 34,
+      "range": 1350,
+      "rpm": 680,
+      "mag": 40
+    },
+    {
+      "name": "RK77-轻机枪",
+      "quality": "蓝色",
+      "price": 480000,
+      "damage": 40,
+      "range": 1400,
+      "rpm": 660,
+      "mag": 45
+    },
+    {
+      "name": "ssv-狙击枪",
+      "quality": "蓝色",
+      "price": 650000,
+      "damage": 160,
+      "range": 1800,
+      "rpm": 90,
+      "mag": 5
+    },
+    {
+      "name": "KK41-霰弹枪",
+      "quality": "紫色",
+      "price": 850000,
+      "damage": 40,
+      "range": 850,
+      "rpm": 240,
+      "mag": 8
+    },
+    {
+      "name": "HK416-突击步枪",
+      "quality": "紫色",
+      "price": 880000,
+      "damage": 46,
+      "range": 1350,
+      "rpm": 720,
+      "mag": 30
+    },
+    {
+      "name": "SCAR-H-战斗步枪",
+      "quality": "紫色",
+      "price": 1100000,
+      "damage": 58,
+      "range": 1450,
+      "rpm": 660,
+      "mag": 30
+    },
+    {
+      "name": "W76-狙击枪",
+      "quality": "紫色",
+      "price": 1380000,
+      "damage": 230,
+      "range": 2100,
+      "rpm": 105,
+      "mag": 6
+    },
+    {
+      "name": "AA12-霰弹枪",
+      "quality": "紫色",
+      "price": 1650000,
+      "damage": 48,
+      "range": 900,
+      "rpm": 240,
+      "mag": 12
+    },
+    {
+      "name": "MCX-突击步枪",
+      "quality": "紫色",
+      "price": 2100000,
+      "damage": 54,
+      "range": 1400,
+      "rpm": 780,
+      "mag": 36
+    },
+    {
+      "name": "AK12-突击步枪",
+      "quality": "金色",
+      "price": 2800000,
+      "damage": 68,
+      "range": 1500,
+      "rpm": 700,
+      "mag": 40
+    },
+    {
+      "name": "DP12-霰弹枪",
+      "quality": "金色",
+      "price": 3600000,
+      "damage": 68,
+      "range": 1000,
+      "rpm": 240,
+      "mag": 16
+    },
+    {
+      "name": "M249-轻机枪",
+      "quality": "金色",
+      "price": 4400000,
+      "damage": 64,
+      "range": 1550,
+      "rpm": 780,
+      "mag": 60
+    },
+    {
+      "name": "AWM-狙击枪",
+      "quality": "金色",
+      "price": 5600000,
+      "damage": 380,
+      "range": 2400,
+      "rpm": 120,
+      "mag": 8
+    },
+    {
+      "name": "MG5-轻机枪",
+      "quality": "红色",
+      "price": 6500000,
+      "damage": 86,
+      "range": 1650,
+      "rpm": 700,
+      "mag": 70
+    },
+    {
+      "name": "M82A1-狙击枪",
+      "quality": "红色",
+      "price": 7800000,
+      "damage": 480,
+      "range": 2600,
+      "rpm": 135,
+      "mag": 10
+    }
+  ]
+}

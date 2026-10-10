@@ -1,0 +1,152 @@
+[
+  {
+    "name": "霜月狼",
+    "prop": {
+      "Name": "霜月狼",
+      "Quality": "红色格子",
+      "GridType": "1_2",
+      "PropType": "枪",
+      "UnitPrice": 7000000,
+      "MaxCount": 1,
+      "Description": "以霜月与孤狼为主题的红色品质步枪，射程出色，适合在较远距离持续压制目标。"
+    },
+    "stats": {
+      "伤害": 80,
+      "射程": 1400,
+      "射速": 700,
+      "弹夹": 32
+    },
+    "recipe": {
+      "itemName": "霜月狼",
+      "category": "枪械",
+      "propType": "枪",
+      "quality": "红色格子",
+      "value": 7000000,
+      "goldCost": 560000,
+      "durationHours": 8,
+      "materials": [
+        {
+          "name": "枪蓝图",
+          "count": 1
+        },
+        {
+          "name": "军用雷达",
+          "count": 1
+        },
+        {
+          "name": "高速阵列",
+          "count": 3
+        },
+        {
+          "name": "供能单元",
+          "count": 2
+        },
+        {
+          "name": "脑机数据",
+          "count": 4
+        }
+      ],
+      "ordinaryMaterialValue": 2838000
+    }
+  },
+  {
+    "name": "裂海鲨",
+    "prop": {
+      "Name": "裂海鲨",
+      "Quality": "红色格子",
+      "GridType": "1_2",
+      "PropType": "枪",
+      "UnitPrice": 9000000,
+      "MaxCount": 1,
+      "Description": "以裂海狂鲨为主题的红色品质步枪，射速突出，擅长用密集火力快速压制敌人。"
+    },
+    "stats": {
+      "伤害": 100,
+      "射程": 1500,
+      "射速": 700,
+      "弹夹": 32
+    },
+    "recipe": {
+      "itemName": "裂海鲨",
+      "category": "枪械",
+      "propType": "枪",
+      "quality": "红色格子",
+      "value": 9000000,
+      "goldCost": 720000,
+      "durationHours": 8,
+      "materials": [
+        {
+          "name": "枪蓝图",
+          "count": 1
+        },
+        {
+          "name": "无人机",
+          "count": 3
+        },
+        {
+          "name": "刀片服务器",
+          "count": 3
+        },
+        {
+          "name": "动力电池组",
+          "count": 2
+        },
+        {
+          "name": "实验数据",
+          "count": 2
+        }
+      ],
+      "ordinaryMaterialValue": 3910000
+    }
+  },
+  {
+    "name": "焚天龙",
+    "prop": {
+      "Name": "焚天龙",
+      "Quality": "红色格子",
+      "GridType": "1_2",
+      "PropType": "枪",
+      "UnitPrice": 13000000,
+      "MaxCount": 1,
+      "Description": "以焚天巨龙为主题的红色品质步枪，单发伤害较高，适合稳步推进时重创目标。"
+    },
+    "stats": {
+      "伤害": 120,
+      "射程": 1600,
+      "射速": 700,
+      "弹夹": 32
+    },
+    "recipe": {
+      "itemName": "焚天龙",
+      "category": "枪械",
+      "propType": "枪",
+      "quality": "红色格子",
+      "value": 13000000,
+      "goldCost": 1040000,
+      "durationHours": 8,
+      "materials": [
+        {
+          "name": "枪蓝图",
+          "count": 1
+        },
+        {
+          "name": "火箭燃料",
+          "count": 1
+        },
+        {
+          "name": "反应炉",
+          "count": 3
+        },
+        {
+          "name": "155炮弹",
+          "count": 3
+        },
+        {
+          "name": "装甲车电池",
+          "count": 2
+        }
+      ],
+      "ordinaryMaterialValue": 5922000
+    }
+  }
+]

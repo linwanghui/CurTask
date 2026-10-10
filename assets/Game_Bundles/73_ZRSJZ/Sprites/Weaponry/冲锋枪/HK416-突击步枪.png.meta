@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "2b741942-7c2d-42fc-9622-29aad58ecf5e",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "2b741942-7c2d-42fc-9622-29aad58ecf5e@6c48a",
+      "displayName": "HK416-突击步枪",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "2b741942-7c2d-42fc-9622-29aad58ecf5e",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "2b741942-7c2d-42fc-9622-29aad58ecf5e@f9941",
+      "displayName": "HK416-突击步枪",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": -97.5,
+        "offsetY": -84,
+        "trimX": 115,
+        "trimY": 240,
+        "width": 474,
+        "height": 208,
+        "rawWidth": 899,
+        "rawHeight": 520,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": false,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -237,
+            -104,
+            0,
+            237,
+            -104,
+            0,
+            -237,
+            104,
+            0,
+            237,
+            104,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            115,
+            280,
+            589,
+            280,
+            115,
+            72,
+            589,
+            72
+          ],
+          "nuv": [
+            0.12791991101223582,
+            0.13846153846153847,
+            0.6551724137931034,
+            0.13846153846153847,
+            0.12791991101223582,
+            0.5384615384615384,
+            0.6551724137931034,
+            0.5384615384615384
+          ],
+          "minPos": [
+            -237,
+            -104,
+            0
+          ],
+          "maxPos": [
+            237,
+            104,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "2b741942-7c2d-42fc-9622-29aad58ecf5e@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "2b741942-7c2d-42fc-9622-29aad58ecf5e@6c48a"
+  }
+}
