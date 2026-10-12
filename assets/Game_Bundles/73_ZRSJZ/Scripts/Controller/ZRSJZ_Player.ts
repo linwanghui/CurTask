@@ -1,12 +1,13 @@
+import { ZRSJZ_Vortex } from './ZRSJZ_Vortex';
 import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { ZRSJZ_AchievementService } from '../Service/ZRSJZ_AchievementService';
 import { ZRSJZ_BoxroomService } from "../Service/ZRSJZ_BoxroomService";
 import { ZRSJZ_FacilityService } from "../Service/ZRSJZ_FacilityService";
 import { ZRSJZ_PetService } from "../Service/ZRSJZ_PetService";
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
-import { _decorator, instantiate, isValid, Label, CircleCollider2D, Collider2D, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, Sprite, tween, Tween, v2, v3, Vec2, Vec3 } from 'cc';
+import { _decorator, instantiate, isValid, Label, CircleCollider2D, Collider2D, ERigidBody2DType, Color, Component, Contact2DType, director, IPhysics2DContact, Node, RigidBody2D, Sprite, tween, Tween, v2, v3, Vec2, Vec3 } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
-import { ZRSJZ_PET_HEAL_CONFIG, ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
+import { ZRSJZ_VORTEX_CONFIG, ZRSJZ_PET_HEAL_CONFIG, ZRSJZ_ANI, ZRSJZ_INVENTORY, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_TIER, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
@@ -37,6 +38,76 @@ const { ccclass, property } = _decorator;
 export class ZRSJZ_Player extends Component {
     /** 0 为玩家1，1 为玩家2；所有战斗输入和装备读取都以此隔离。 */
     PlayerIndex: number = 0;
+    public IsFishing = false;
+    private _fishingPoint: Node = null;
+    private _fishingBodyType: ERigidBody2DType = null;
+
+    /** 钓鱼不改装备数据，仅锁定战斗输入和切换外观。 */
+    public BeginFishing(point: Node): boolean {
+        const spine = this.PlayerSkeleton?.Skeleton;
+        if (this.IsDead || this.IsFishing || this._isStop || this._isSlide || this._isLaserCasting
+            || this._uluCastLoading || this._lunaLoading || this._fengYiLoading || this.PlayerSkeleton.IsUluSkillPlaying
+            || !['dy1', 'dy2', 'dy3', 'dy4'].every(name => !!spine?.findAnimation(name))) return false;
+        this.CancelGunAttackState();
+        this.CancelKnifeAttackState();
+        this.PlayerSkeleton.ClearAttackAnimation();
+        this.Reload(0, true, this.PlayerIndex);
+        this.ResetMovement();
+        this.TargetEnemy = null;
+        this.IsFishing = true;
+        this.PlayerSkeleton.IsFishing = true;
+        this.PlayerSkeleton.HasDirection = false;
+        this._fishingPoint = point;
+        if (this.RigidBody) {
+            this._fishingBodyType = this.RigidBody.type;
+            // 动态刚体即使速度为零也会被岸边碰撞体挤开，钓鱼时固定为运动学刚体。
+            this.RigidBody.type = ERigidBody2DType.Kinematic;
+            this.RigidBody.angularVelocity = 0;
+        }
+        this.AlignFishingPoint();
+        this.PlayerSkeleton.Facing = point.worldScale.x < 0 ? -1 : 1;
+        this.PlayerSkeleton.SetPlayerDir(this.PlayerSkeleton.Facing);
+        this.PlayerSkeleton.RefreshEquipmentAppearance();
+        return true;
+    }
+
+    private AlignFishingPoint(): void {
+        if (!this.IsFishing || !isValid(this._fishingPoint, true)) return;
+        this.node.setWorldPosition(this._fishingPoint.worldPosition);
+        this.node.setWorldRotation(this._fishingPoint.worldRotation);
+        if (this.RigidBody) {
+            this.RigidBody.linearVelocity = Vec2.ZERO;
+            this.RigidBody.angularVelocity = 0;
+        }
+    }
+
+    public EndFishing(): void {
+        if (!this.IsFishing) return;
+        this.IsFishing = false;
+        this._fishingPoint = null;
+        if (this.RigidBody && this._fishingBodyType !== null) {
+            this.RigidBody.type = this._fishingBodyType;
+            this.RigidBody.linearVelocity = Vec2.ZERO;
+            this.RigidBody.angularVelocity = 0;
+        }
+        this._fishingBodyType = null;
+        this.PlayerSkeleton.IsFishing = false;
+        const track = this.PlayerSkeleton.Skeleton.getCurrent(0);
+        if (track) track.timeScale = 1;
+        if (!this.IsDead) {
+            this.PlayerSkeleton.Skeleton.clearTrack(0);
+            this.PlayerSkeleton.ClearAttackAnimation();
+            // 钓鱼改动了正常武器动画没有覆盖的骨骼；清轨道本身不会恢复这些姿态。
+            this.PlayerSkeleton.Skeleton.setToSetupPose();
+        }
+        this.PlayerSkeleton.IsKnife = this.WeaponType === '刀';
+        this.PlayerSkeleton.Skeleton.findSlot('4_三合一螺纹钢')?.setAttachment(null);
+        this.PlayerSkeleton.HasDirection = this.WeaponType !== '枪';
+        this._aniName = '';
+        this.ResetMovement();
+        this.PlayerSkeleton.RefreshEquipmentAppearance();
+        if (!this.IsDead) this.AniSwitch();
+    }
     public readonly Speed: number = 1500;
     public readonly InitHP: number = 500;
     RigidBody: RigidBody2D = null;
@@ -183,6 +254,8 @@ export class ZRSJZ_Player extends Component {
     CurHP: number = 100;
     MaxSpeed: number = 1000;
     CurSpeed: number = 1000;
+    /** 地形减速单独乘算，离开时不会覆盖技能、装备或设施提供的速度。 */
+    public SwampSpeedMultiplier = 1;
 
     TargetEnemy: Node = null;
     /** 自动演示期间指定目标；退出后恢复普通索敌。 */
@@ -486,7 +559,8 @@ export class ZRSJZ_Player extends Component {
                 if (shield.remaining <= 0) this._petShields.delete(source);
             }
         }
-        if (ZRSJZ_Game.Instance.GamePaused || this._isStop) {
+        if (this.IsFishing) this.AlignFishingPoint();
+        if (ZRSJZ_Game.Instance.GamePaused || this._isStop || this.IsFishing) {
             this.RigidBody.linearVelocity = v2(0, 0);
             return;
         }
@@ -500,7 +574,7 @@ export class ZRSJZ_Player extends Component {
             if (moveVec.x == 0 && moveVec.y == 0) {
                 Vec2.normalize(moveVec, v2(this.PlayerSkeleton.AttackX, this.PlayerSkeleton.AttackY))
             }
-            this.RigidBody.linearVelocity = v2(moveVec.x * dt * this.CurSpeed * this._moveRadius, moveVec.y * dt * this.CurSpeed * this._moveRadius);
+            this.RigidBody.linearVelocity = v2(moveVec.x * dt * this.CurSpeed * this.SwampSpeedMultiplier * this._moveRadius, moveVec.y * dt * this.CurSpeed * this.SwampSpeedMultiplier * this._moveRadius);
         } else {
             // 枪械方向由 UpdateGunDirectionLock 统一管理；刀仍保持原来的自动朝敌逻辑。
             if (this.WeaponType !== "枪") {
@@ -513,7 +587,14 @@ export class ZRSJZ_Player extends Component {
                     ? this.TargetEnemy.worldPositionY - this.node.worldPositionY
                     : 0;
             }
-            this.RigidBody.linearVelocity = v2(this._moveX * dt * this.CurSpeed * this._moveRadius, this._moveY * dt * this.CurSpeed * this._moveRadius);
+            this.RigidBody.linearVelocity = v2(this._moveX * dt * this.CurSpeed * this.SwampSpeedMultiplier * this._moveRadius, this._moveY * dt * this.CurSpeed * this.SwampSpeedMultiplier * this._moveRadius);
+        }
+        const pull = ZRSJZ_Game.Instance.CurMap?.getComponent(ZRSJZ_Vortex)?.GetPull(this.node.worldPosition);
+        if (pull && pull.lengthSqr() > 0) {
+            const cap = Math.max(0, this.CurSpeed * this.SwampSpeedMultiplier * ZRSJZ_VORTEX_CONFIG.MaxMoveSpeedRatio);
+            const rate = Math.min(1, cap / pull.length());
+            const velocity = this.RigidBody.linearVelocity;
+            this.RigidBody.linearVelocity = v2(velocity.x + pull.x * dt * rate, velocity.y + pull.y * dt * rate);
         }
     }
 
@@ -567,6 +648,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number, playerIndex?: number) {
+        if (this.IsFishing) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (skillName === '露娜' || skillName === '风翎') {
             void this.CastLuna();
@@ -780,7 +862,7 @@ export class ZRSJZ_Player extends Component {
 
     Move(x: number, y: number, radius: number, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        if (this._isStop || this.IsDead || (x === 0 && y === 0)) {
+        if (this.IsFishing || this._isStop || this.IsDead || (x === 0 && y === 0)) {
             this.ResetMovement();
             return;
         }
@@ -798,6 +880,7 @@ export class ZRSJZ_Player extends Component {
     }
     //#region 攻击
     Attack(fireing: boolean, playerIndex?: number) {
+        if (this.IsFishing) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isSlide || this._isStop || this._isLaserCasting) return;
         if (!fireing) {
@@ -1069,6 +1152,7 @@ export class ZRSJZ_Player extends Component {
     //#region 武器切换
     private _curKnifeName: string = "";
     SwitchWeapon(weaponType: string, playerIndex?: number) {
+        if (this.IsFishing) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isLaserCasting) return;
         const weaponryIndex = weaponType === "枪" ? 0 : (weaponType === "刀" ? 4 : -1);
@@ -1203,7 +1287,7 @@ export class ZRSJZ_Player extends Component {
 
     /**
      * 持枪时只在锁敌或开火阶段覆盖 Spine 朝向。
-     * 无锁敌开火会朝向玩家最近一次有效移动方向；停火动画结束 1 秒后解除覆盖，
+     * 无锁敌开火会朝向���家最��一次有效移动方向；停火动画结束 1 秒后解除覆盖，
      * 让 Spine 回到待机/移动动画自身的自然姿态。
      */
     private UpdateGunDirectionLock(dt: number): void {
@@ -1361,6 +1445,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 换弹
     Reload(fill: number, isCancelled: boolean = false, playerIndex?: number) {
+        if (this.IsFishing && !isCancelled) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (isCancelled) {
             this._isReloading = false;
@@ -1414,6 +1499,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     public CanReload(): boolean {
+        if (this.IsFishing) return false;
         if (this._isLaserCasting) {
             return false;
         }
@@ -1656,6 +1742,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 滑动
     Slide(playerIndex?: number) {
+        if (this.IsFishing) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         // 挥刀使用 Track 1；中途清除会让刀光等附件停在当前帧，因此必须等待动画自然结束。
         if (

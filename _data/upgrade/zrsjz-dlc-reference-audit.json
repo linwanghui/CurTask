@@ -1,0 +1,311 @@
+{
+  "mainBundle": "assets/Game_Bundles/73_ZRSJZ",
+  "dlcBundle": "assets/Game_Bundles/73_ZRSJZ_DLC",
+  "scannedFiles": 1525,
+  "staticReferences": [
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Sprites/开箱/特效/1.json.meta",
+      "field": "userData.atlasUuid",
+      "resource": "assets/Game_Bundles/73_ZRSJZ_DLC/Sprites/盲盒/特效/1.atlas",
+      "uuid": "66b0a9f0-a23e-4570-bd7c-943288c2ff1e"
+    }
+  ],
+  "runtimeReferenceNote": "脚本字符串为运行时分包加载路径；序列化UUID/元数据引用列在staticReferences中。",
+  "runtimeReferences": [
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_Fishing.ts",
+      "line": 60,
+      "text": "ZRSJZ_Tools.LoadPrefabByBundle('73_ZRSJZ_DLC', 'Prefabs/FishJoystick'),"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_Fishing.ts",
+      "line": 61,
+      "text": "ZRSJZ_Tools.LoadPrefabByBundle('73_ZRSJZ_DLC', 'Prefabs/Unit/水波纹'),"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_Map.ts",
+      "line": 29,
+      "text": "BundleManager.GetBundle(\"73_ZRSJZ_DLC\").load(\"Prefabs/Unit/油桶\", Prefab, (err: any, prefab: Prefab) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_Map.ts",
+      "line": 31,
+      "text": "console.error(`加载 Bundle: 73_ZRSJZ_DLC Prefab 加载失败 Path: Prefabs/Unit/油桶`);"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_OnlineBattle.ts",
+      "line": 134,
+      "text": "BundleManager.GetBundle('73_ZRSJZ_DLC').load('Prefabs/Unit/OnlinePet', Prefab, (error, prefab) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_OnlineBattle.ts",
+      "line": 137,
+      "text": "BundleManager.GetBundle('73_ZRSJZ_DLC').load('Prefabs/Unit/OnlinePeer', Prefab, (error, prefab) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_OnlineBattle.ts",
+      "line": 304,
+      "text": "const bundle = state.name === 'Boss2' || state.name === 'Boss3' ? '73_ZRSJZ_DLC' : '73_ZRSJZ';"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_OnlineBattle.ts",
+      "line": 374,
+      "text": "BundleManager.GetBundle('73_ZRSJZ_DLC').load(paths[name], sp.SkeletonData, (error, data) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_Player.ts",
+      "line": 138,
+      "text": "const bundle = assetManager.getBundle('73_ZRSJZ_DLC') ?? await new Promise<ReturnType<typeof assetManager.getBundle>>((resolve, reject) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_Player.ts",
+      "line": 139,
+      "text": "assetManager.loadBundle('73_ZRSJZ_DLC', (error, loaded) => error ? reject(error) : resolve(loaded));"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_Player.ts",
+      "line": 193,
+      "text": "const bundle = assetManager.getBundle('73_ZRSJZ_DLC') ?? await new Promise<ReturnType<typeof assetManager.getBundle>>((resolve, reject) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_Player.ts",
+      "line": 194,
+      "text": "assetManager.loadBundle('73_ZRSJZ_DLC', (error, loaded) => error ? reject(error) : resolve(loaded));"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_Skeleton.ts",
+      "line": 73,
+      "text": "ZRSJZ_Tools.LoadSkeletonDataByBundle(\"73_ZRSJZ_DLC\", \"Spine/玩家/1\").then((data) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_SkinSkeleton.ts",
+      "line": 308,
+      "text": "const bundle = assetManager.getBundle('73_ZRSJZ_DLC');"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_SkinSkeleton.ts",
+      "line": 310,
+      "text": "else assetManager.loadBundle('73_ZRSJZ_DLC', (error, loaded) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Controller/ZRSJZ_SkinSkeleton.ts",
+      "line": 311,
+      "text": "if (error || !loaded) reject(error ?? new Error('73_ZRSJZ_DLC 加载失败'));"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager.ts",
+      "line": 373,
+      "text": "BundleManager.LoadBundle(\"73_ZRSJZ_DLC\", () => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager.ts",
+      "line": 477,
+      "text": "if (panel.split('/')[0] === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) return;"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager.ts",
+      "line": 551,
+      "text": "if (panel.split('/')[0] === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) return;"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Manager/ZRSJZ_UIManager.ts",
+      "line": 898,
+      "text": "BundleManager.GetBundle(\"73_ZRSJZ_DLC\").load(`Sprites/角色界面/皮肤Icon/${SkinName}/spriteFrame`, SpriteFrame, (err: any, sf: SpriteFrame) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Service/ZRSJZ_GradeService.ts",
+      "line": 249,
+      "text": "return await ZRSJZ_Tools.LoadSpriteByBundle('73_ZRSJZ_DLC', `Sprites/头像框/头像/${selected}`);"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Skill/ZRSJZ_UluSkill.ts",
+      "line": 47,
+      "text": "const bundle = assetManager.getBundle('73_ZRSJZ_DLC');"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Skill/ZRSJZ_UluSkill.ts",
+      "line": 49,
+      "text": "else assetManager.loadBundle('73_ZRSJZ_DLC', (error, loaded) => {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/Skill/ZRSJZ_UluSkill.ts",
+      "line": 50,
+      "text": "if (error || !loaded) reject(error ?? new Error('73_ZRSJZ_DLC 加载失败'));"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/UI/ZRSJZ_ProfileAppearance.ts",
+      "line": 133,
+      "text": "const bundle = BundleManager.GetBundle('73_ZRSJZ_DLC');"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/UI/ZRSJZ_ProfileSelector.ts",
+      "line": 67,
+      "text": "private Ready(): boolean { return ZRSJZ_UIManager.ZRSJZ_DLC && !!assetManager.getBundle('73_ZRSJZ_DLC'); }"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/UI/ZRSJZ_ProfileSelector.ts",
+      "line": 211,
+      "text": "private Decoration(parent: Node, name: string, path: string, w: number, h: number, x: number, y: number, request: number, bundleName = '73_ZRSJZ_DLC'): void {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/UI/ZRSJZ_ProfileSelector.ts",
+      "line": 225,
+      "text": "private async LoadVisual(path: string, animated: boolean, bundleName = '73_ZRSJZ_DLC'): Promise<SpriteFrame | sp.SkeletonData> {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 10,
+      "text": "超算矩阵界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/超算矩阵界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 11,
+      "text": "界面引导弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/界面引导弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 12,
+      "text": "曼德尔箱界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/曼德尔箱界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 13,
+      "text": "活动界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/活动界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 14,
+      "text": "公告界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/公告界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 15,
+      "text": "联机界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/联机界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 28,
+      "text": "强化界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/强化界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 48,
+      "text": "助战礼包弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/助战礼包弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 49,
+      "text": "弹药大礼包弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/弹药大礼包弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 50,
+      "text": "增强针弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/增强针弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 51,
+      "text": "增强针替换弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/增强针替换弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 54,
+      "text": "收藏室界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/收藏室界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 55,
+      "text": "盲盒界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/盲盒界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 56,
+      "text": "锻造界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/锻造界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 57,
+      "text": "宠物界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/宠物界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 59,
+      "text": "宠物碎片弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/宠物碎片弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 60,
+      "text": "宠物皮肤弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/宠物皮肤弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 61,
+      "text": "宠物基因弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/宠物基因弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 62,
+      "text": "行动补给弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/行动补给弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 63,
+      "text": "神秘商人弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/神秘商人弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 64,
+      "text": "成就界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/成就界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 65,
+      "text": "战令界面 = \"73_ZRSJZ_DLC/Prefabs/Panel/战令界面\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 66,
+      "text": "头像框弹窗 = \"73_ZRSJZ_DLC/Prefabs/Panel/头像框弹窗\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Constant.ts",
+      "line": 67,
+      "text": "避难所_升级界面 = \"73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel\","
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Game.ts",
+      "line": 791,
+      "text": "const bundle = mapConfig.MapName === \"新手村\" || mapConfig.MapName === \"城镇\" ? \"73_ZRSJZ\" : \"73_ZRSJZ_DLC\";"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Game.ts",
+      "line": 792,
+      "text": "if (bundle === \"73_ZRSJZ_DLC\" && !ZRSJZ_UIManager.ZRSJZ_DLC) {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Game.ts",
+      "line": 1032,
+      "text": "BundleManager.GetBundle('73_ZRSJZ_DLC').load('Prefabs/Unit/Pet/' + petName, Prefab,"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Start.ts",
+      "line": 474,
+      "text": "BundleManager.GetBundle('73_ZRSJZ_DLC').load(`Prefabs/Unit/Pet/${petName}`, Prefab,"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Tools.ts",
+      "line": 23,
+      "text": "if (bundleName === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Tools.ts",
+      "line": 56,
+      "text": "if (bundle === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) {"
+    },
+    {
+      "file": "assets/Game_Bundles/73_ZRSJZ/Scripts/ZRSJZ_Tools.ts",
+      "line": 112,
+      "text": "if (bundlePath === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) {"
+    }
+  ]
+}
