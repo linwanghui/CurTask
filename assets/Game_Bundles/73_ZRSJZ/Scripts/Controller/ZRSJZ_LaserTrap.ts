@@ -3,6 +3,7 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_LASER_TRAP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 
 const { ccclass } = _decorator;
 
@@ -82,6 +83,10 @@ export class ZRSJZ_LaserTrap extends Component {
             || !game || game.GamePaused || game.IsGameFinished || !ZRSJZ_UIManager.ZRSJZ_DLC) return;
         this._pendingHit = false;
         this._hitDelivered = true;
+
+        // 激光真正发射时播放一次
+        ZRSJZ_AudioManager.Instance?.PlaySound('激光');
+
         for (const player of game.Players) {
             if (this.Contains(player)) player.BeHit(ZRSJZ_LASER_TRAP_CONFIG.Damage);
         }

@@ -64,6 +64,9 @@ export class ZRSJZ_UluSkill extends Component {
         missile.RecycleToPool = false;
         missile.Show(start, direction, target, position => this.Explode(position),
             () => this.IsCurrentBattle() && !this._game.GamePaused, this.MovementSpeedMultiplier, getTarget);
+
+        // 每发射一枚导弹，播放一次音效
+        ZRSJZ_AudioManager.Instance?.PlaySound('技能_乌鲁');
     }
 
     protected update(): void {
