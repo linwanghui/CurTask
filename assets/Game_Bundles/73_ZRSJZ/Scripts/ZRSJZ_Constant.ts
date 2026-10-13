@@ -595,7 +595,7 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["噬星甲", "以噬星为主题的8级重型护甲，覆盖躯干要害，为高危行动提供保障。"],
     //背包
     ["一级包", "小型基础背包，结构简单，可额外携带少量行动物资。"],
-    ["二级包", "容量适中的战术背包，分区合理，能够容纳更多补给。"],
+    ["二级包", "容量适中的战术背包，分区�����������理，能够容纳更多补给。"],
     ["三级包", "大容量军用背包，结实耐磨，适合长时间搜集与行动。"],
     ["四级包", "顶级扩容背包，拥有优秀承重与收纳��力，可携带大量战利品。"],
     ["五级包", "采用模块化分区的军用运输背包，容量巨大且能稳定固定贵重物资。"],
@@ -2940,10 +2940,19 @@ export const ZRSJZ_PRAYER_BOX_CONFIG = {
         | 'PropSlotChance' | 'GoldPropWeight' | 'RedPropWeight'>>,
 };
 
+/** 冰蝶触碰冻结：完整播放冰冻动画后解冻，伤害数值独立配置。 */
+export const ZRSJZ_ICE_BUTTERFLY_CONFIG = {
+    Damage: 25,
+    DamageInterval: 0.3,
+    EffectPath: 'Prefabs/Unit/Map/冰冻',
+    AnimationName: 'bd', // 非循环播放完成后解除冻结。
+    EffectCenter: { x: 252.46, y: 130.87 }, // 父骨骼与冰块骨骼偏移相加，校正到玩家碰撞体中心。
+};
+
 /** 沙漠漩涡：拉扯速度采用玩家移动的同一单位，默认约基础移动速度的12%。 */
 export const ZRSJZ_VORTEX_CONFIG = {
-    PullSpeed: 180,
-    MaxMoveSpeedRatio: 0.15, // 最多占当前移动速度15%，避免低速状态难以离开。
+    PullSpeed: 500,
+    MaxMoveSpeedRatio: 0.2, // 最多占当前移动速度20%，避免低速状态难以离开。
     CenterSoftRadius: 30, // 世界坐标像素；靠近中心时减弱，避免反复穿过中心。
-    EdgeFadeRatio: 0.25, // 范围最外侧25%逐渐减弱。
+    EdgeFadeRatio: 0.4, // 范围最外侧40%逐渐减弱。
 };

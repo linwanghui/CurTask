@@ -250,10 +250,28 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
         );
     }
 
+    public RefreshEquipmentAppearance(): void {
+        super.RefreshEquipmentAppearance();
+        if (this.IsFishing) this.RestoreFishingRod();
+    }
+
+    /** dy1 的起始透明帧不能残留到等待/收竿；装备刷新也不能清掉鱼竿附件。 */
+    private RestoreFishingRod(): void {
+        const name = '4_三合一螺纹钢';
+        const slot = this.Skeleton?.findSlot(name);
+        if (!slot) return;
+        if (!slot.getAttachment() && this.HasAttachmentForSlot(name, name)) {
+            this.Skeleton.setAttachment(name, name);
+        }
+        const track = this.Skeleton.getCurrent(0);
+        if (track?.animation?.name !== 'dy1' || track.trackTime >= 0.1) slot.color.a = 1;
+    }
+
     /** 动画事件只排队，待骨骼姿态与本帧绘制一致后执行。 */
     QueueAttackAfterAim(callback: () => void): void { this._afterAimAttack = callback; }
 
     private UpdateAimAndAttack(): void {
+        if (this.IsFishing) this.RestoreFishingRod();
         this.ApplyAimDirection();
         const attack = this._afterAimAttack;
         this._afterAimAttack = null;

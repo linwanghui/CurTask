@@ -1,4 +1,6 @@
 import { ZRSJZ_Vortex } from './ZRSJZ_Vortex';
+import { ZRSJZ_SnowPrayer } from './ZRSJZ_SnowPrayer';
+import { ZRSJZ_IceButterfly } from './ZRSJZ_IceButterfly';
 import { ZRSJZ_Prayer } from './ZRSJZ_Prayer';
 import { ZRSJZ_LaserTraps } from './ZRSJZ_LaserTraps';
 import { ZRSJZ_Swamp } from './ZRSJZ_Swamp';
@@ -23,6 +25,8 @@ export class ZRSJZ_Map extends Component {
 
 
     Init() {
+        if (this.node.name === '雪地' && !this.getComponent(ZRSJZ_SnowPrayer)) this.addComponent(ZRSJZ_SnowPrayer);
+        if (this.node.name === '雪地' && !this.getComponent(ZRSJZ_IceButterfly)) this.addComponent(ZRSJZ_IceButterfly);
         if (this.node.name === '沙漠' && !this.getComponent(ZRSJZ_Prayer)) this.addComponent(ZRSJZ_Prayer);
         if (this.node.name === '沙漠' && !this.getComponent(ZRSJZ_Vortex)) this.addComponent(ZRSJZ_Vortex);
         if (this.node.name === '城镇' && !this.getComponent(ZRSJZ_Fishing)) this.addComponent(ZRSJZ_Fishing);

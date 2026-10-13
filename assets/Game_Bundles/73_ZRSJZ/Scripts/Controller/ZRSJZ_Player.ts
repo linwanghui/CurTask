@@ -1,4 +1,6 @@
 import { ZRSJZ_Vortex } from './ZRSJZ_Vortex';
+import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
+import { ZRSJZ_ICE_BUTTERFLY_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { ZRSJZ_AchievementService } from '../Service/ZRSJZ_AchievementService';
 import { ZRSJZ_BoxroomService } from "../Service/ZRSJZ_BoxroomService";
@@ -39,13 +41,120 @@ export class ZRSJZ_Player extends Component {
     /** 0 为玩家1，1 为玩家2；所有战斗输入和装备读取都以此隔离。 */
     PlayerIndex: number = 0;
     public IsFishing = false;
+    public get IsFrozen(): boolean { return this._freezeRemaining > 0; }
+    private _freezeRemaining = 0;
+    private _freezeDamageElapsed = 0;
+    private _freezeVersion = 0;
+    private _freezeEffect: Node = null;
+    private _freezeBodyType: ERigidBody2DType = null;
+    private _freezeSpineSpeed = 1;
+    private readonly _freezePosition = new Vec3();
+
+    public BeginFrozen(): void {
+        const game = ZRSJZ_Game.Instance;
+        if (!game || game.GamePaused || game.IsGameFinished || this.IsDead || this.IsFrozen
+            || !this.enabledInHierarchy || !ZRSJZ_UIManager.ZRSJZ_DLC) return;
+        this.EndFishing();
+        this.CancelUluSkill();
+        this.CancelGunAttackState();
+        this.CancelKnifeAttackState();
+        this.Reload(0, true, this.PlayerIndex);
+        ++this._lunaVersion;
+        ++this._fengYiVersion;
+        if (this._isSlide) { this._isSlide = false; this.CurSpeed -= 1500; }
+        this._isLaserCasting = false;
+        this.ResetMovement();
+        game.CancelEvacuation(this.PlayerIndex);
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_PLAYER_RESET_MOVEMENT, this.PlayerIndex);
+        for (const root of [game.OnePlayerModel, game.TwoPlayerModel]) {
+            if (!isValid(root, true)) continue;
+            for (const control of root.getComponentsInChildren('ZRSJZ_Joystick_Attack') as any[]) {
+                if (control.PlayerIndex === this.PlayerIndex) control.ResetFishingInput();
+            }
+        }
+        // 状态由冰冻动画完整播放完成解除，不用固定秒数倒计时。
+        this._freezeRemaining = 1;
+        this._freezeDamageElapsed = 0;
+        this._freezePosition.set(this.node.worldPosition);
+        const spine = this.PlayerSkeleton?.Skeleton;
+        if (spine) { this._freezeSpineSpeed = spine.timeScale; spine.timeScale = 0; }
+        const version = ++this._freezeVersion;
+        void ZRSJZ_Tools.LoadPrefabByBundle('73_ZRSJZ_DLC', ZRSJZ_ICE_BUTTERFLY_CONFIG.EffectPath).then(prefab => {
+            if (!this.CanUseAsyncResult(game) || version !== this._freezeVersion || !this.IsFrozen || this.IsDead) return;
+            const effect = instantiate(prefab);
+            effect.parent = this.node;
+            effect.setPosition(0, 0, 0);
+            const visual = effect.getChildByName('Spine');
+            if (visual) {
+                visual.setPosition(this.Collider.offset.x - ZRSJZ_ICE_BUTTERFLY_CONFIG.EffectCenter.x * visual.scale.x,
+                    this.Collider.offset.y - ZRSJZ_ICE_BUTTERFLY_CONFIG.EffectCenter.y * visual.scale.y, 0);
+            }
+            const layer = (node: Node): void => { node.layer = this.node.layer; node.children.forEach(layer); };
+            layer(effect);
+            this._freezeEffect = effect;
+            const skeleton = effect.getComponentInChildren(sp.Skeleton);
+            if (!skeleton?.findAnimation(ZRSJZ_ICE_BUTTERFLY_CONFIG.AnimationName)) {
+                this.ClearFrozen();
+                throw new Error('冰冻特效缺少指定动画');
+            }
+            skeleton.setAnimation(0, ZRSJZ_ICE_BUTTERFLY_CONFIG.AnimationName, false);
+        }).catch(error => {
+            if (isValid(this, true) && version === this._freezeVersion) this.ClearFrozen();
+            console.error('[冰蝶] 冰冻特效加载失败', error);
+        });
+    }
+
+    public ClearFrozen(): void {
+        ++this._freezeVersion;
+        this._freezeRemaining = 0;
+        this._freezeDamageElapsed = 0;
+        if (isValid(this._freezeEffect, true)) this._freezeEffect.destroy();
+        this._freezeEffect = null;
+        if (this.RigidBody && this._freezeBodyType !== null) this.RigidBody.type = this._freezeBodyType;
+        this._freezeBodyType = null;
+        const spine = this.PlayerSkeleton?.Skeleton;
+        if (isValid(spine, true)) spine.timeScale = this._freezeSpineSpeed;
+        this.ResetMovement();
+    }
+
+    private UpdateFrozen(dt: number): void {
+        if (!this.IsFrozen) return;
+        const game = ZRSJZ_Game.Instance;
+        if (!game || game.IsGameFinished || this.IsDead || !ZRSJZ_UIManager.ZRSJZ_DLC) { this.ClearFrozen(); return; }
+        // 碰撞回调时物理世界仍被锁定，在下一帧安全地固定刚体。
+        if (this.RigidBody && this._freezeBodyType === null) {
+            this._freezeBodyType = this.RigidBody.type;
+            this.RigidBody.type = ERigidBody2DType.Kinematic;
+        }
+        this.node.setWorldPosition(this._freezePosition);
+        this.ResetMovement();
+        if (!this._freezeEffect) return; // 特效加载期间不造成持续伤害。
+        if (!isValid(this._freezeEffect, true) || !this._freezeEffect.activeInHierarchy) { this.ClearFrozen(); return; }
+        const spine = this._freezeEffect.getComponentInChildren(sp.Skeleton);
+        const track = spine?.getCurrent(0);
+        if (spine && (!track || track.trackTime <= 0)) {
+            spine.timeScale = game.GamePaused ? 0 : 1;
+            return; // 首帧等待 Spine 将动画附件应用到槽位。
+        }
+        if (!spine || track?.isComplete()) { this.ClearFrozen(); return; }
+        spine.timeScale = game.GamePaused ? 0 : 1;
+        if (game.GamePaused) return;
+        const elapsed = Math.max(0, dt);
+        this._freezeDamageElapsed += elapsed;
+        const interval = Math.max(0.05, ZRSJZ_ICE_BUTTERFLY_CONFIG.DamageInterval);
+        while (this._freezeDamageElapsed + 0.000001 >= interval && !this.IsDead) {
+            this._freezeDamageElapsed -= interval;
+            this.BeHit(Math.max(0, ZRSJZ_ICE_BUTTERFLY_CONFIG.Damage));
+        }
+        if (this.IsDead) this.ClearFrozen();
+    }
     private _fishingPoint: Node = null;
     private _fishingBodyType: ERigidBody2DType = null;
 
     /** 钓鱼不改装备数据，仅锁定战斗输入和切换外观。 */
     public BeginFishing(point: Node): boolean {
         const spine = this.PlayerSkeleton?.Skeleton;
-        if (this.IsDead || this.IsFishing || this._isStop || this._isSlide || this._isLaserCasting
+        if (this.IsDead || this.IsFrozen || this.IsFishing || this._isStop || this._isSlide || this._isLaserCasting
             || this._uluCastLoading || this._lunaLoading || this._fengYiLoading || this.PlayerSkeleton.IsUluSkillPlaying
             || !['dy1', 'dy2', 'dy3', 'dy4'].every(name => !!spine?.findAnimation(name))) return false;
         this.CancelGunAttackState();
@@ -125,7 +234,7 @@ export class ZRSJZ_Player extends Component {
 
     public CanCastLuna(): boolean {
         const game = ZRSJZ_Game.Instance;
-        return this.CanUseAsyncResult(game) && !game.GamePaused && !game.IsGameFinished
+        return !this.IsFrozen && this.CanUseAsyncResult(game) && !game.GamePaused && !game.IsGameFinished
             && !this.IsDead && this.IsSkill && !this._lunaLoading;
     }
 
@@ -168,6 +277,7 @@ export class ZRSJZ_Player extends Component {
     private _fengYiHeal: { node: Node; spine: sp.Skeleton; game: ZRSJZ_Game; duration: number; elapsed: number; total: number; delivered: number } = null;
 
     public CanCastFengYi(showTip = true): boolean {
+        if (this.IsFrozen) return false;
         const game = ZRSJZ_Game.Instance;
         if (!this.CanUseAsyncResult(game) || game.GamePaused || game.IsGameFinished || this.IsDead) return false;
         if (this.CurHP >= this.MaxHP) {
@@ -443,6 +553,7 @@ export class ZRSJZ_Player extends Component {
     }
     //是否能滑动
     public get IsSlide(): boolean {
+        if (this.IsFrozen) return false;
         return !this._isStop
             && !this._isLaserCasting
             && !this._gunAttackAnimationActive
@@ -451,11 +562,13 @@ export class ZRSJZ_Player extends Component {
 
     //是否能释放技能
     public get IsSkill(): boolean {
+        if (this.IsFrozen) return false;
         return !this._isSlide && !this._isLaserCasting;
     }
 
     //是否能切换武器
     public get IsSwitch(): boolean {
+        if (this.IsFrozen) return false;
         return !this._isSlide && !this._isLaserCasting;
     }
 
@@ -524,6 +637,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected onDisable(): void {
+        this.ClearFrozen();
         this._lunaVersion++;
         this._lunaLoading = false;
         this.ClearFengYi();
@@ -547,6 +661,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected update(dt: number): void {
+        this.UpdateFrozen(dt);
         this.UpdateFengYi(dt);
         this._refreshUluTarget?.();
         if (!this._uluCastLoading && !this.PlayerSkeleton?.IsUluSkillPlaying) this._refreshUluTarget = null;
@@ -560,7 +675,7 @@ export class ZRSJZ_Player extends Component {
             }
         }
         if (this.IsFishing) this.AlignFishingPoint();
-        if (ZRSJZ_Game.Instance.GamePaused || this._isStop || this.IsFishing) {
+        if (ZRSJZ_Game.Instance.GamePaused || this._isStop || this.IsFishing || this.IsFrozen) {
             this.RigidBody.linearVelocity = v2(0, 0);
             return;
         }
@@ -648,6 +763,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number, playerIndex?: number) {
+        if (this.IsFrozen) return;
         if (this.IsFishing) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (skillName === '露娜' || skillName === '风翎') {
@@ -862,7 +978,7 @@ export class ZRSJZ_Player extends Component {
 
     Move(x: number, y: number, radius: number, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
-        if (this.IsFishing || this._isStop || this.IsDead || (x === 0 && y === 0)) {
+        if (this.IsFrozen || this.IsFishing || this._isStop || this.IsDead || (x === 0 && y === 0)) {
             this.ResetMovement();
             return;
         }
@@ -880,6 +996,7 @@ export class ZRSJZ_Player extends Component {
     }
     //#region 攻击
     Attack(fireing: boolean, playerIndex?: number) {
+        if (this.IsFrozen) return;
         if (this.IsFishing) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isSlide || this._isStop || this._isLaserCasting) return;
@@ -1083,6 +1200,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     KnifeAttack(skillRange: number) {
+        if (this.IsFrozen) return;
         ZRSJZ_AudioManager.Instance.PlaySound("近战攻击");
         const damage: number = ZRSJZ_PROP_PROPERTY.get(this._curKnifeName).伤害;
 
@@ -1152,6 +1270,7 @@ export class ZRSJZ_Player extends Component {
     //#region 武器切换
     private _curKnifeName: string = "";
     SwitchWeapon(weaponType: string, playerIndex?: number) {
+        if (this.IsFrozen) return;
         if (this.IsFishing) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isLaserCasting) return;
@@ -1445,6 +1564,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 换弹
     Reload(fill: number, isCancelled: boolean = false, playerIndex?: number) {
+        if (this.IsFrozen && !isCancelled) return;
         if (this.IsFishing && !isCancelled) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (isCancelled) {
@@ -1499,6 +1619,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     public CanReload(): boolean {
+        if (this.IsFrozen) return false;
         if (this.IsFishing) return false;
         if (this._isLaserCasting) {
             return false;
@@ -1742,6 +1863,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 滑动
     Slide(playerIndex?: number) {
+        if (this.IsFrozen) return;
         if (this.IsFishing) return;
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         // 挥刀使用 Track 1；中途清除会让刀光等附件停在当前帧，因此必须等待动画自然结束。
@@ -1767,6 +1889,13 @@ export class ZRSJZ_Player extends Component {
 
     //#region 碰撞检测
     BeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contract: IPhysics2DContact | null) {
+        if (otherCollider.node?.name === '冰蝶' && ZRSJZ_Game.Instance?.CurMap?.node.name === '雪地') {
+            if (otherCollider.node.activeInHierarchy) {
+                this.BeginFrozen();
+                if (this.IsFrozen) otherCollider.node.active = false;
+            }
+            return;
+        }
         // if (this._targetBox) return;
         if (otherCollider.group === ZRSJZ_TIER.场景物 && otherCollider.node?.getComponent(ZRSJZ_Box) && otherCollider.node?.getComponent(ZRSJZ_Box) != this._targetBox) {
             if (this._targetBox) {

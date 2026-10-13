@@ -11,7 +11,7 @@ import { ZRSJZ_AccountService } from '../Service/ZRSJZ_AccountService';
 import { ZRSJZ_GradeService } from '../Service/ZRSJZ_GradeService';
 
 const { ccclass } = _decorator;
-type FishingState = 'ready' | 'waiting' | 'pulling' | 'finishing';
+type FishingState = 'ready' | 'casting' | 'waiting' | 'pulling' | 'finishing';
 interface FishingSession {
     player: ZRSJZ_Player;
     station: Node;
@@ -256,7 +256,7 @@ export class ZRSJZ_Fishing extends Component {
 
     private Cast(session: FishingSession): void {
         if (session.state !== 'ready' || ZRSJZ_Game.Instance.GamePaused) return;
-        session.state = 'waiting';
+        session.state = 'casting';
         session.elapsed = 0;
         session.biteTime = 1 + Math.random() * 2;
         session.round = new ZRSJZ_FishingRound();
@@ -272,10 +272,15 @@ export class ZRSJZ_Fishing extends Component {
     private UpdateSession(session: FishingSession, dt: number): void {
         if (!Number.isFinite(dt) || dt <= 0) return;
         session.elapsed += dt;
-        const castDurationForLine = session.player.PlayerSkeleton.Skeleton.findAnimation('dy1')?.duration || 0.5;
-        session.line?.SetState(session.state, session.elapsed / castDurationForLine);
-        if (session.state === 'waiting') {
-            const castDuration = session.player.PlayerSkeleton.Skeleton.findAnimation('dy1')?.duration ?? 0;
+        session.line?.SetState(session.state, session.state === 'casting' ? 0 : 1);
+        if (session.state === 'casting') {
+            const track = session.player.PlayerSkeleton.Skeleton.getCurrent(0);
+            if (track?.animation?.name !== 'dy1' || !track.isComplete()) return;
+            session.state = 'waiting';
+            session.elapsed = 0;
+            session.line?.SetState(session.state, 1);
+            this.PlayAnimation(session, 'dy2', true);
+        } else if (session.state === 'waiting') {
             if (session.elapsed >= session.biteTime) {
                 session.state = 'pulling';
                 session.line?.SetState(session.state, 1);
@@ -283,7 +288,7 @@ export class ZRSJZ_Fishing extends Component {
                 session.reel.active = true;
                 this.PlayAnimation(session, 'dy3', true);
                 this.RenderProgress(session);
-            } else if (session.elapsed >= castDuration) this.PlayAnimation(session, 'dy2', true);
+            }
         } else if (session.state === 'pulling') {
             session.round.Update(dt);
             this.RenderProgress(session);
@@ -320,7 +325,7 @@ export class ZRSJZ_Fishing extends Component {
     }
 
     private PlayAnimation(session: FishingSession, animation: string, loop: boolean): void {
-        if (session.animation === animation) return;
+        if (session.animation === animation && session.player.PlayerSkeleton.Skeleton.getCurrent(0)?.animation?.name === animation) return;
         session.animation = animation;
         session.player.PlayerSkeleton.PlayAni(animation, loop);
     }

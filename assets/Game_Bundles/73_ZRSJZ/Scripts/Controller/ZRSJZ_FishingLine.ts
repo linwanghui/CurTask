@@ -38,13 +38,15 @@ export class ZRSJZ_FishingLine extends Component {
             (0.2 + Math.random() * 0.6 - this._area.anchorY) * this._area.height, 0);
         this._elapsed = 0;
         this._pull = 0;
-        this.node.active = true;
+        this._state = 'casting';
+        this._castProgress = 0;
+        this.node.active = false;
     }
 
     public SetState(state: string, castProgress: number): void {
         this._state = state;
         this._castProgress = Math.max(0, Math.min(1, castProgress));
-        this.node.active = state !== 'ready';
+        this.node.active = state !== 'ready' && state !== 'casting';
         this.SyncRippleAnimation();
     }
 
@@ -97,7 +99,7 @@ export class ZRSJZ_FishingLine extends Component {
         const minY = -this._area.anchorY * this._area.height + margin;
         const maxY = (1 - this._area.anchorY) * this._area.height - margin;
         this._area.convertToWorldSpaceAR(new Vec3(Math.max(minX, Math.min(maxX, x)), Math.max(minY, Math.min(maxY, y)), 0), this._end);
-        // 抛竿时鱼线从竿尖伸向落点；其余阶段始终连接水面端点。
+        // 鱼线在抛竿完成后启用，并直接连接水面落点。
         if (this._state === 'waiting') Vec3.lerp(this._end, this._start, this._end, this._castProgress);
         if (!isValid(this._ripple, true)) return;
         this._ripple.setWorldPosition(this._end);

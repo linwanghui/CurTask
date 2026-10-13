@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "962e2a2e-78af-44b6-a9b9-649a56154db0",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "962e2a2e-78af-44b6-a9b9-649a56154db0@6c48a",
+      "displayName": "解密宝箱描边",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "962e2a2e-78af-44b6-a9b9-649a56154db0",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "962e2a2e-78af-44b6-a9b9-649a56154db0@f9941",
+      "displayName": "解密宝箱描边",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 8.5,
+        "offsetY": -33.5,
+        "trimX": 63,
+        "trimY": 153,
+        "width": 335,
+        "height": 333,
+        "rawWidth": 444,
+        "rawHeight": 572,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -167.5,
+            -166.5,
+            0,
+            167.5,
+            -166.5,
+            0,
+            -167.5,
+            166.5,
+            0,
+            167.5,
+            166.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            63,
+            419,
+            398,
+            419,
+            63,
+            86,
+            398,
+            86
+          ],
+          "nuv": [
+            0.14189189189189189,
+            0.15034965034965034,
+            0.8963963963963963,
+            0.15034965034965034,
+            0.14189189189189189,
+            0.7325174825174825,
+            0.8963963963963963,
+            0.7325174825174825
+          ],
+          "minPos": [
+            -167.5,
+            -166.5,
+            0
+          ],
+          "maxPos": [
+            167.5,
+            166.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "962e2a2e-78af-44b6-a9b9-649a56154db0@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "962e2a2e-78af-44b6-a9b9-649a56154db0@6c48a"
+  }
+}
