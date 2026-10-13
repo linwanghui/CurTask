@@ -137,8 +137,8 @@ export class ZRSJZ_UIManager extends Component {
         if (ZRSJZ_UIManager._instance == null) {
             ZRSJZ_UIManager._instance = this;
             ZRSJZ_UIManager._lifecycleVersion++;
-            ZRSJZ_UIManager.InitDLC();
             ZRSJZ_UIManager.InitAudios();
+            ZRSJZ_UIManager.InitDLC();
             ZRSJZ_UIManager.InitUI();
             ZRSJZ_UIManager.InitInventory();
             ZRSJZ_UIManager.InitEvent();
@@ -374,6 +374,10 @@ export class ZRSJZ_UIManager extends Component {
             if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance?.IsAvailable()) return;
             ZRSJZ_UIManager.ZRSJZ_DLC = true;
             ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC);
+            ZRSJZ_UIManager.LoadAudioClips("73_ZRSJZ_DLC", "Audios", "_DLC", () => {
+                //初始化完成
+                console.log("DLC音频初始化完成");
+            });
         })
     }
 
@@ -431,34 +435,23 @@ export class ZRSJZ_UIManager extends Component {
         if (!instance?.IsAvailable()) return;
         ZRSJZ_AudioManager.Instance = instance.node.addComponent(ZRSJZ_AudioManager);
         ZRSJZ_AudioManager.Instance.Init();
-        //音频资源地址
-        const audioRes: string[] = [
-            "73_ZRSJZ/Audios",
-        ]
-        let initCount = 0;
 
-        audioRes.forEach(path => {
-            const bundlePath: string = path.split("/").shift();
-            const resPath: string = path.split("/").slice(1).join("/");
-            ZRSJZ_Tools.LoadAudioClips(bundlePath, resPath).then((clips: AudioClip[]) => {
-                if (ZRSJZ_UIManager._lifecycleVersion !== lifecycleVersion || !instance.IsAvailable()) return;
-                clips.forEach((clip, index) => {
-                    ZRSJZ_AudioManager.Instance.AudioClipMaps.set(clip.name, clip);
-                    if (index === clips.length - 1) {
-                        initCount++;
-                        if (initCount === audioRes.length) {
-                            //初始化完成
-                            console.log("音频初始化完成");
-                            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT);
-                        }
-                    }
-                })
-            })
+        ZRSJZ_UIManager.LoadAudioClips("73_ZRSJZ", "Audios", "", () => {
+            //初始化完成
+            console.log("音频初始化完成");
+            ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT);
         });
     }
 
-    public static LoadAudioClips(bundlePath: string, resPath: string) {
-
+    public static LoadAudioClips(bundlePath: string, resPath: string, suffix: string = "", cb: Function = null) {
+        ZRSJZ_Tools.LoadAudioClips(bundlePath, resPath).then((clips: AudioClip[]) => {
+            clips.forEach((clip, index) => {
+                ZRSJZ_AudioManager.Instance.AudioClipMaps.set(clip.name + suffix, clip);
+                if (index === clips.length - 1) {
+                    cb && cb();
+                }
+            })
+        })
     }
 
     public static InitEvent() {
@@ -474,8 +467,14 @@ export class ZRSJZ_UIManager extends Component {
     //展示面板
     public ShowPanel(panel: string, ...args: any[]) {
         if (!this.IsAvailable()) return;
+        if (!isValid(this._panelNode, true)) return;
         if (panel.split('/')[0] === '73_ZRSJZ_DLC' && !ZRSJZ_UIManager.ZRSJZ_DLC) return;
         const panelName = panel.split('/').pop() || panel;
+        const cached = this._panelMap.get(panelName);
+        if (cached && !isValid(cached, true)) {
+            this._panelMap.delete(panelName);
+            this._curPanel = this._curPanel.filter(name => name !== panelName);
+        }
 
         // 结算界面拥有最高优先级：显示前立即关闭其余弹窗，并终止未完成的异步弹窗请求。
         const winPanelName = ZRSJZ_PANEL.胜利弹窗.split('/').pop() || ZRSJZ_PANEL.胜利弹窗;
@@ -494,7 +493,8 @@ export class ZRSJZ_UIManager extends Component {
         //显示面板
         const showPanel: Function = () => {
             const panelNode = this._panelMap.get(panelName);
-            if (panelNode) {
+            if (isValid(panelNode, true) && isValid(this._panelNode, true)) {
+                panelNode.parent = this._panelNode;
                 panelNode.setSiblingIndex(99);
                 panelNode.getComponent(ZRSJZ_Panel).Show(...args);
 
@@ -523,8 +523,9 @@ export class ZRSJZ_UIManager extends Component {
             const bundlePath = panel.split('/')[0];
             const resPath = panel.replace(bundlePath, '');
             BundleManager.GetBundle(bundlePath).load(resPath, Prefab, (err: any, prefab: Prefab) => {
-                if (!this.IsAvailable()) return;
+                if (!this.IsAvailable() || !isValid(this._panelNode, true)) return;
                 if (err) {
+                    this._curPanel = this._curPanel.filter(name => name !== panelName);
                     console.error(`加载 Bundle: 73_ZRSJZ Prefab 加载失败 Path: ${resPath}`);
                 } else {
                     const panelNode = instantiate(prefab);
@@ -618,12 +619,18 @@ export class ZRSJZ_UIManager extends Component {
     public HidePanel(panel: string, ...args: any[]) {
         if (ZRSJZ_UIManager.Dragging) return;
         const panelName = panel.split('/').pop() || panel;
-        if (this._panelMap.get(panelName)?.getComponent(ZRSJZ_Panel)?.CanClose === false) return;
+        const panelNode = this._panelMap.get(panelName);
+        if (panelNode && !isValid(panelNode, true)) {
+            this._panelMap.delete(panelName);
+            this._curPanel = this._curPanel.filter(name => name !== panelName);
+            return;
+        }
+        if (panelNode?.getComponent(ZRSJZ_Panel)?.CanClose === false) return;
         if (!this._curPanel.includes(panelName)) return;//面板未显示
         this._curPanel.splice(this._curPanel.indexOf(panelName), 1);
 
         if (!this._panelMap.has(panelName)) return;
-        this._panelMap.get(panelName).getComponent(ZRSJZ_Panel).Hide(...args);
+        panelNode?.getComponent(ZRSJZ_Panel)?.Hide(...args);
     }
 
     public HidePlayerPanel(panel: string, playerIndex: number, ...args: any[]): void {

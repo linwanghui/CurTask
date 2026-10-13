@@ -92,6 +92,10 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     protected update(dt: number): void {
+        if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) {
+            this.ResetFishingInput();
+            return;
+        }
         if (this._targetMailbox && !this._targetMailbox.IsAvailable) {
             this.ShowSearch(null);
         }
@@ -155,6 +159,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //#region 射击
     OnTouchStart_Attack(event: EventTouch) {
+        if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) return;
         // 使用当前变更的触点，避免快速点击时 getTouches() 的活动触点列表为空或发生错配。
         if (!this._attackTouch && event.touch) this._attackTouch = event.touch;
 
@@ -209,6 +214,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) return;
         if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {
             case "Switch":

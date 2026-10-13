@@ -3,6 +3,7 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_EnemyBase } from '../Controller/ZRSJZ_EnemyBase';
 import { ZRSJZ_EnhancementService } from '../Service/ZRSJZ_EnhancementService';
 import { ZRSJZ_BoosterShotService } from '../Service/ZRSJZ_BoosterShotService';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 
 const { ccclass, property } = _decorator;
 
@@ -45,6 +46,7 @@ export class ZRSJZ_LunaSkill extends Component {
         this._elapsed = this._damageElapsed = 0;
         this._damage = ZRSJZ_EnhancementService.GetSkillDamage(Math.max(0, this.TickDamage)
             * (1 + ZRSJZ_BoosterShotService.GetBooster('攻击针')));
+        ZRSJZ_AudioManager.Instance.PlaySound("技能_露娜");
     }
 
     protected update(dt: number): void {

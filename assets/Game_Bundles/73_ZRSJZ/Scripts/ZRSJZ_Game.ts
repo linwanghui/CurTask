@@ -145,6 +145,12 @@ export class ZRSJZ_Game extends Component {
     private _miniMapPlayer2Position: Vec3 = new Vec3();
     private _specialTaskWorldPosition: Vec3 = new Vec3();
     private _currentMapName: string = "";
+    private _panoramaEffect: Node = null;
+    private _panoramaRequest = 0;
+    private _panoramaWidth = 0;
+    private _panoramaHeight = 0;
+    private readonly _panoramaBottomLeft = new Vec3();
+    private readonly _panoramaTopRight = new Vec3();
     private _elapsedGameTime: number = 0;
     private _fiveMinuteWarningShown: boolean = false;
     private _normalTimerColor: Color = null;
@@ -325,10 +331,13 @@ export class ZRSJZ_Game extends Component {
         ZRSJZ_UIManager.IsBattle = true;
         // 在所有组件的 lateUpdate 之后、正式提交渲染数据之前覆盖引擎的单相机裁剪结果。
         director.on(Director.EVENT_BEFORE_DRAW, this.UpdateCombinedTileMapCulling, this);
+        director.on(Director.EVENT_BEFORE_DRAW, this.FitPanoramaEffect, this);
     }
 
     protected onDisable(): void {
         director.off(Director.EVENT_BEFORE_DRAW, this.UpdateCombinedTileMapCulling, this);
+        director.off(Director.EVENT_BEFORE_DRAW, this.FitPanoramaEffect, this);
+        this.ClearPanoramaEffect();
         this.RestoreBuiltInTileMapCulling();
         this.DestroyVanguardOperationIntro();
         ZRSJZ_GradeService.FlushOnlineTime();
@@ -803,11 +812,81 @@ export class ZRSJZ_Game extends Component {
                 map.parent = this.MapParent;
                 this.CurMap = map.getComponent(ZRSJZ_Map);
                 this.CurMap.Init();
+                this.LoadPanoramaEffect(mapConfig.MapName);
                 this.InitializeSpecialOperationPoints();
                 this.ConfigureTileMapForPlayerCount();
                 this.LoadPlayer();
             }
         });
+    }
+
+    private ClearPanoramaEffect(): void {
+        ++this._panoramaRequest;
+        if (this._panoramaEffect?.isValid) this._panoramaEffect.destroy();
+        this._panoramaEffect = null;
+    }
+
+    /** 全景天气挂在 UI 下，跟随整个屏幕而非玩家或地图相机。 */
+    private LoadPanoramaEffect(mapName: string): void {
+        this.ClearPanoramaEffect();
+        const effectName = mapName === '沙漠' ? '沙漠特效' : mapName === '雪地' ? '雪地特效' : '';
+        const root = this.UI?.getChildByName('全景特效');
+        if (!effectName || !ZRSJZ_UIManager.ZRSJZ_DLC) return;
+        if (!root?.isValid || !root.getComponent(UITransform)) {
+            console.warn('[ZRSJZ_Game] 缺少全景特效节点或 UITransform');
+            return;
+        }
+        const request = this._panoramaRequest;
+        const map = this.CurMap;
+        ZRSJZ_Tools.LoadPrefabByBundle('73_ZRSJZ_DLC', 'Prefabs/Unit/Map/' + effectName).then(prefab => {
+            if (!this.IsCurrentBattle() || !this.enabledInHierarchy || request !== this._panoramaRequest
+                || this.CurMap !== map || !root.isValid || !ZRSJZ_UIManager.ZRSJZ_DLC) return;
+            const effect = instantiate(prefab);
+            const transform = effect.getComponent(UITransform);
+            if (!transform || transform.width <= 0 || transform.height <= 0) {
+                effect.destroy();
+                throw new Error(effectName + '缺少有效的设计尺寸');
+            }
+            // 保存预制体设计尺寸，避免 Spine 更新包围盒后造成缩放抖动。
+            this._panoramaWidth = transform.width;
+            this._panoramaHeight = transform.height;
+            effect.active = false;
+            effect.parent = root;
+            effect.setPosition(0, 0, 0);
+            const setLayer = (node: Node): void => {
+                node.layer = root.layer;
+                node.children.forEach(setLayer);
+            };
+            setLayer(effect);
+            this._panoramaEffect = effect;
+            this.FitPanoramaEffect();
+        }).catch(error => {
+            if (request === this._panoramaRequest && this.IsCurrentBattle()) {
+                console.error('[ZRSJZ_Game] 全景特效加载失败', error);
+            }
+        });
+    }
+
+    /** cover：统一使用宽高倍率的最大值，短边也铺满；在 Widget 布局后适配。 */
+    private FitPanoramaEffect(): void {
+        const effect = this._panoramaEffect;
+        if (!effect?.isValid) return;
+        effect.active = ZRSJZ_UIManager.ZRSJZ_DLC;
+        if (!effect.active) return;
+        const canvas = this.UI?.getComponent(UITransform);
+        const parent = effect.parent?.getComponent(UITransform);
+        if (!canvas || !parent || canvas.width <= 0 || canvas.height <= 0) return;
+        const bottomLeft = this._panoramaBottomLeft, topRight = this._panoramaTopRight;
+        bottomLeft.set(-canvas.width * canvas.anchorX, -canvas.height * canvas.anchorY, 0);
+        topRight.set(canvas.width * (1 - canvas.anchorX), canvas.height * (1 - canvas.anchorY), 0);
+        canvas.convertToWorldSpaceAR(bottomLeft, bottomLeft);
+        canvas.convertToWorldSpaceAR(topRight, topRight);
+        parent.convertToNodeSpaceAR(bottomLeft, bottomLeft);
+        parent.convertToNodeSpaceAR(topRight, topRight);
+        const scale = Math.max(Math.abs(topRight.x - bottomLeft.x) / this._panoramaWidth,
+            Math.abs(topRight.y - bottomLeft.y) / this._panoramaHeight);
+        effect.setScale(scale, scale, 1);
+        effect.setPosition((bottomLeft.x + topRight.x) / 2, (bottomLeft.y + topRight.y) / 2, 0);
     }
 
     /** 双人对局准备接管 TileMap 裁剪（包括存活玩家全屏）；单人对局保持引擎原始行为。 */

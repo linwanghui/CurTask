@@ -59,7 +59,8 @@ export class ZRSJZ_Vortex extends Component {
             const localX = this._local.x - circle.offset.x, localY = this._local.y - circle.offset.y;
             const localDistance = Math.sqrt(localX * localX + localY * localY);
             if (localDistance >= circle.radius) continue;
-            area.convertToWorldSpaceAR(new Vec3(circle.offset.x, circle.offset.y, 0), this._center);
+            // 吸引目标使用漩涡节点自身的中心；碰撞体偏移仅用于判断作用范围。
+            vortex.getWorldPosition(this._center);
             const x = this._center.x - position.x, y = this._center.y - position.y;
             const distance = Math.sqrt(x * x + y * y);
             if (distance < 0.001) continue;

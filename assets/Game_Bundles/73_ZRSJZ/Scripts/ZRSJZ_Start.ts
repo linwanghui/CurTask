@@ -93,6 +93,7 @@ export class ZRSJZ_Start extends Component {
     @property(Node)
     MerchantButton: Node = null;
     private _noticeHomeReady = false;
+    private _uiLoadedCallback: Function = null;
     private _noticeRequested = false;
 
     @property(Node)
@@ -129,7 +130,9 @@ export class ZRSJZ_Start extends Component {
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
         this.RankingListBtn.active = Banner.IS_BYTEDANCE_MINI_GAME;
         const cb: Function = () => {
+            if (!isValid(this, true) || !this.node.activeInHierarchy) return;
             const startGame = () => {
+                if (!isValid(this, true) || !this.node.activeInHierarchy) return;
                 if (!ZRSJZ_GameData.Instance.IsTutorial) {
                     // if (Banner.Mode == BannerMode.测试包) {
                     if (Banner.Mode != BannerMode.测试包 && !sys.isBrowser) {
@@ -198,9 +201,8 @@ export class ZRSJZ_Start extends Component {
 
         if (ZRSJZ_UIManager.ZRSJZ_UI) cb();
 
-        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_UI, () => {
-            cb();
-        });
+        this._uiLoadedCallback = cb;
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_UI, cb, this);
     }
 
     protected onEnable(): void {
@@ -219,6 +221,10 @@ export class ZRSJZ_Start extends Component {
     }
 
     protected onDisable(): void {
+        if (this._uiLoadedCallback) {
+            ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_UI, this._uiLoadedCallback, this);
+            this._uiLoadedCallback = null;
+        }
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE, this.RefreshMainReminders, this);
         this.unschedule(this.RefreshMainReminders);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SUPPLIES_CHANGE, this.RefreshMainReminders, this);

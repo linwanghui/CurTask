@@ -91,6 +91,7 @@ export class ZRSJZ_Skill_Button extends Component {
         dirY: number = 0,
         strength: number = 0,
     ): boolean {
+        if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) return false;
         const skillName = this.SkillName.trim();
         if (!this.IsReady || !skillName) {
             return false;
@@ -135,6 +136,7 @@ export class ZRSJZ_Skill_Button extends Component {
     }
 
     private OnTouchStart(event: EventTouch): void {
+        if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) return;
         const player = ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex);
         if (this.SkillName === '露娜' || this.SkillName === '风翎') {
             if (!player?.CanCastLuna()) return;

@@ -59,6 +59,7 @@ export class ZRSJZ_Joystick_Drug extends Component {
     }
 
     OnButtonClick(event: EventTouch) {
+        if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) return;
         if (ZRSJZ_UIManager.Dragging) return;
         const target = event.getCurrentTarget();
         if (target.name === "背包") {
@@ -79,7 +80,7 @@ export class ZRSJZ_Joystick_Drug extends Component {
     private UseDrug(drugIndex: number): void {
         const game = ZRSJZ_Game.Instance;
         const player = game?.GetPlayer(this.PlayerIndex);
-        if (!game || !player) return;
+        if (!game || !player || player.IsFrozen) return;
 
         const drug = game.Drug[this.PlayerIndex];
         const count = Math.max(0, Math.floor(drug[drugIndex] ?? 0));

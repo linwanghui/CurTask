@@ -27,7 +27,8 @@ export class ZRSJZ_GetExpPanel extends ZRSJZ_Panel {
         this.CacheNodes();
         this._isFinishing = false;
         this._hasShown = true;
-        this.node.parent = this.node.parent.parent;
+        // 留在常驻 UI 的弹窗容器中，重复显示不能逐级移到战斗场景下。
+        this.node.setSiblingIndex(this.node.parent.children.length - 1);
         if (this._experienceLabel) {
             this._experienceLabel.string = `+${Math.max(0, Math.floor(Number(experience) || 0))}`;
         }
@@ -49,8 +50,10 @@ export class ZRSJZ_GetExpPanel extends ZRSJZ_Panel {
 
     private static ShowNext(): void {
         if (this._isShowing || this._experienceQueue.length <= 0) return;
+        const ui = ZRSJZ_UIManager.Instance;
+        if (!ui?.isValid || !ui.node?.isValid) return;
         this._isShowing = true;
-        ZRSJZ_UIManager.Instance.ShowPanel(
+        ui.ShowPanel(
             ZRSJZ_PANEL.涨经验弹窗,
             this._experienceQueue.shift(),
         );
