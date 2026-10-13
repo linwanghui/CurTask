@@ -1,0 +1,24 @@
+"""Only size/format packaging of approved generated artwork; original files preserved."""
+from pathlib import Path
+import json
+from PIL import Image, ImageOps
+root = Path(__file__).resolve().parent.parent
+m = json.loads((root/'Tools/fishing_asset_manifest.json').read_text(encoding='utf-8-sig'))
+folder = root/'Sprites/Prop/钓鱼活动'
+folder.mkdir(parents=True, exist_ok=True)
+for a in m['assets']:
+    out = folder/(a['name']+'.png')
+    im = Image.open(a['source']).convert('RGBA').resize((192,192), Image.Resampling.LANCZOS)
+    im.save(out, optimize=True)
+    if out.stat().st_size > 45000:
+        im.quantize(colors=192, method=Image.Quantize.FASTOCTREE).save(out, optimize=True)
+    assert out.stat().st_size <= 45000
+    print(a['name'], out.stat().st_size)
+bg = root.parent/'73_ZRSJZ_DLC/Sprites/活动界面/钓鱼活动/背景.jpg'
+bg.parent.mkdir(parents=True, exist_ok=True)
+im = ImageOps.fit(Image.open(m['background']['source']).convert('RGB'), (1600,900), method=Image.Resampling.LANCZOS)
+for q in range(88,49,-3):
+    im.save(bg, quality=q, optimize=True)
+    if bg.stat().st_size <= 350000: break
+assert bg.stat().st_size <= 350000
+print('background',bg.stat().st_size)

@@ -1,0 +1,34 @@
+const fs=require('fs');const file='Scripts/ZRSJZ_Constant.ts',s=fs.readFileSync(file,'utf8');
+const fish=[['青背鲫','绿色',8000,2],['银鳍鲈','绿色',12000,3],['蓝纹鳟','蓝色',30000,6],['翡翠河豚','蓝色',40000,8],['紫晶神仙鱼','紫色',80000,16],['月光鳗','紫色',100000,20],['黄金锦鲤','金色',200000,40],['鎏金剑鱼','金色',260000,50],['赤焰龙鱼','红色',800000,120],['星海幻鲲','红色',1200000,160]];
+const bait=[['玉米鱼饵','绿色',1200],['鲜虾鱼饵','蓝色',8000],['磷光鱼饵','金色',25000]];
+let out=s;const marker='    ["炫彩月饼", { Name:';
+const at=s.indexOf(marker);if(at<0)throw Error('marker');
+const entries=[...fish,...bait].map(([n,q,v])=>`    ["${n}", { Name: "${n}", Quality: ZRSJZ_PROP_QUALITY.${q}, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: ${v}, MaxCount: ${n.endsWith('鱼饵')?20:1}, Description: "${n.endsWith('鱼饵')?'钓鱼消耗品。放入当前玩家背包后携带入场，每次抛竿消耗1个；品级越高越容易钓到珍稀鱼。':`城镇钓鱼可获得的${q}渔获，可在渔获丰收活动中提交兑换积分。${q==='红色'?'也可放入收藏室的食用品分类。':''}`}" }],`).join('\n')+'\n';
+out=out.slice(0,at)+entries+out.slice(at);
+const begin=out.indexOf('/**\n * MaxWidth');const start=begin>=0?begin:out.indexOf('/**\r\n * MaxWidth');
+const end=out.indexOf('/** 城镇沼泽',start);if(start<0||end<0)throw Error('reward region');
+const newCode=`/** Only these ten fish are eligible fishing rewards. Points are event currency, not inventory items. */
+export const ZRSJZ_FISH_CATALOG = ${JSON.stringify(fish.map(([name,quality,value,points])=>({name,quality,points})),null,4)};
+export const ZRSJZ_FISHING_BAITS = [
+    { name: '', weights: [65, 25, 8, 1.8, 0.2] },
+    { name: '玉米鱼饵', weights: [45, 32, 17, 5, 1] },
+    { name: '鲜虾鱼饵', weights: [25, 33, 27, 12, 3] },
+    { name: '磷光鱼饵', weights: [10, 23, 35, 24, 8] },
+];
+export function ZRSJZ_RollFishingRewards(width: number, random: () => number = Math.random, bait = ''): ZRSJZ_MainTaskAwardConfig[] {
+    if (!Number.isFinite(width)) return [];
+    const weights = [...(ZRSJZ_FISHING_BAITS.find(b => b.name === bait) ?? ZRSJZ_FISHING_BAITS[0]).weights];
+    // Narrower green window modestly rewards harder catches, without changing bait ordering.
+    const bonus = Math.max(0, Math.min(1, (0.2 - width) / 0.15)) * 4;
+    weights[0] -= bonus; weights[2] += bonus * 0.5; weights[3] += bonus * 0.35; weights[4] += bonus * 0.15;
+    let roll = Math.max(0, Math.min(1 - Number.EPSILON, random())) * 100, tier = 4;
+    for (let i = 0; i < weights.length; i++) { roll -= weights[i]; if (roll < 0) { tier = i; break; } }
+    const variant = Math.min(1, Math.max(0, Math.floor(random() * 2)));
+    return [{ TaskAwardName: ZRSJZ_FISH_CATALOG[tier * 2 + variant].name, TaskAwardCount: 1 }];
+\n`;
+out=out.slice(0,start)+newCode+out.slice(end);
+// Make bait obtainable before entering battle, using the existing shop category.
+out=out.replace('["道具", [','["道具", ["玉米鱼饵", "鲜虾鱼饵", "磷光鱼饵", ');
+const before=s.split(/\r?\n/),after=out.split(/\r?\n/);
+const originalRegion=s.slice(s.indexOf('/**\r\n * MaxWidth')>=0?s.indexOf('/**\r\n * MaxWidth'):s.indexOf('/**\n * MaxWidth'),s.indexOf('/** 城镇沼泽'));
+process.stdout.write('*** Begin Patch\n*** Update File: '+file+'\n@@\n'+entries.trimEnd().split('\n').map(l=>'+'+l).join('\n')+'\n '+s.slice(at,s.indexOf('\n',at)).trimEnd()+'\n@@\n'+originalRegion.trimEnd().split(/\r?\n/).map(l=>'-'+l).join('\n')+'\n'+newCode.trimEnd().split('\n').map(l=>'+'+l).join('\n')+'\n*** End Patch');

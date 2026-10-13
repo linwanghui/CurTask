@@ -43,6 +43,7 @@ const PROP_ATTRIBUTE = new Map<string, ZRSJZ_BoxroomAttribute>([
 ]);
 
 const FOOD_PROPS = new Set<string>([
+    "赤焰龙鱼", "星海幻鲲",
     "炫彩月饼",
     "八宝粥", "柠檬茶", "苹果", "鱼子酱", "香槟", "各种红蛋", "咖啡豆",
     "七彩鸟蛋", "特供香槟", "彩金色鲤鱼", "极品平安果", "特供咖啡豆", "白金鸟蛋",

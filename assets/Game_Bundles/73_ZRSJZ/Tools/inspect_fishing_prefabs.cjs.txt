@@ -1,0 +1,6 @@
+const fs=require('fs');
+for(const f of ['../73_ZRSJZ_DLC/Prefabs/Panel/活动界面.prefab','../73_ZRSJZ_DLC/Prefabs/FishJoystick.prefab']){
+ const a=JSON.parse(fs.readFileSync(f,'utf8'));console.log(f);
+ function visit(n,depth){console.log(' '.repeat(depth)+n._name,JSON.stringify(n._lpos),JSON.stringify(n._components.map(r=>a[r.__id__]).find(c=>c.__type__==='cc.UITransform')?._contentSize));if(depth<3)for(const r of n._children)visit(a[r.__id__],depth+1);}
+ visit(a[a[0].data.__id__],0);
+}
