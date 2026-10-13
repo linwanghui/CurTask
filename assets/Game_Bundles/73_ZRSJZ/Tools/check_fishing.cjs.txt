@@ -10,7 +10,18 @@ const req=id=>id.includes('GameData')?{ZRSJZ_GameData:Data}:id.includes('Fragmen
 const Fish=load('Scripts/Service/ZRSJZ_FishingFestivalService.ts',req).ZRSJZ_FishingFestivalService;
 const Bait=load('Scripts/Service/ZRSJZ_FishingBaitService.ts',req).ZRSJZ_FishingBaitService;
 assert.equal(config.ZRSJZ_FISH_CATALOG.length,10);assert.equal(config.ZRSJZ_FISHING_BAITS[1].name,'玉米鱼饵');assert.equal(config.ZRSJZ_PROP_CONFIG.has('蚯蚓鱼饵'),false);
-for(const b of config.ZRSJZ_FISHING_BAITS){assert.equal(b.weights.reduce((a,b)=>a+b,0),100);for(let i=0;i<1000;i++){const award=config.ZRSJZ_RollFishingRewards(.15,()=>i/1000,b.name)[0];assert.ok(config.ZRSJZ_FISH_CATALOG.some(f=>f.name===award.TaskAwardName));}}
+for(const [index,b] of config.ZRSJZ_FISHING_BAITS.entries()){
+ assert.ok(Math.abs(b.weights.reduce((a,b)=>a+b,0)-100)<1e-9);
+ assert.equal(b.weights[3],[1.8,3.6,7,12][index]);assert.equal(b.weights[4],[.2,.5,.9,1.5][index]);
+ for(const width of [.05,.125,.2]){
+  const counts=[0,0,0,0,0];
+  for(let i=0;i<10000;i++){
+   const award=config.ZRSJZ_RollFishingRewards(width,()=>(i+.5)/10000,b.name)[0];
+   const item=config.ZRSJZ_FISH_CATALOG.findIndex(f=>f.name===award.TaskAwardName);assert.ok(item>=0);counts[Math.floor(item/2)]++;
+  }
+  assert.equal(counts[3],Math.round(b.weights[3]*100));assert.equal(counts[4],Math.round(b.weights[4]*100));
+ }
+}
 const inv=config.ZRSJZ_INVENTORY;
 Data.Instance.PropData={store:{Name:'玉米鱼饵',CurCount:20,CurInventory:inv.仓库_全部},other:{Name:'玉米鱼饵',CurCount:2,CurInventory:inv.背包,OwnerPlayerIndex:1}};
 assert.equal(Bait.Count('玉米鱼饵',0),20);assert.equal(Bait.Consume('玉米鱼饵',0),true);assert.equal(Data.Instance.PropData.store.CurCount,19);assert.equal(Bait.Consume('',0),true);

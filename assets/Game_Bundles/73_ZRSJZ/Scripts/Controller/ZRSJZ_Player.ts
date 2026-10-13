@@ -166,6 +166,10 @@ export class ZRSJZ_Player extends Component {
         this.IsFishing = true;
         this.PlayerSkeleton.IsFishing = true;
         this.PlayerSkeleton.HasDirection = false;
+        // 待机/瞄准和被打断的钓鱼动画并不覆盖同一组骨骼。
+        // 新的一轮从 setup pose 开始，清除旧 Track 0 混合和手臂/鱼竿偏移。
+        spine.clearTrack(0);
+        spine.setToSetupPose();
         this._fishingPoint = point;
         if (this.RigidBody) {
             this._fishingBodyType = this.RigidBody.type;

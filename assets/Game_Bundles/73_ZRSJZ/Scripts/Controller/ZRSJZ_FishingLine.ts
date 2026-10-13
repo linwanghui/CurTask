@@ -1,11 +1,12 @@
-import { _decorator, Camera, Color, Component, Director, director, Graphics, isValid, Node, sp, UITransform, Vec3 } from 'cc';
+import { _decorator, Camera, Color, Component, Director, director, Graphics, isValid, Node, sp, Sprite, UITransform, Vec3 } from 'cc';
+import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_FISHING_CONFIG } from '../ZRSJZ_Constant';
 
 const { ccclass } = _decorator;
 
-/** 跟随世界地图的鱼线与水波；绘制前读取 Spine 本帧的 bone13，支持玩家镜像及地图缩放。 */
+/** 跟随世界地图的鱼线与水波；绘制前读取 Spine 本帧的竿尖 dy，支持玩家镜像及地图缩放。 */
 @ccclass('ZRSJZ_FishingLine')
 export class ZRSJZ_FishingLine extends Component {
     private _player: ZRSJZ_Player;
@@ -21,6 +22,44 @@ export class ZRSJZ_FishingLine extends Component {
     private _pull = 0;
     private _state = 'waiting';
     private _castProgress = 1;
+    private _disposed = false;
+    private _fish: Node;
+    private _catchName = '';
+    private _catchVersion = 0;
+    private _catchOrigin = new Vec3();
+    private _catchRodTip = new Vec3();
+    private _catchProgress = 0;
+
+    /** 与本次实际奖励共用结果；锁定水面起点，吊起后飞向玩家，不跟随竿尖回摆。 */
+    public ShowCatch(name: string): void {
+        if (this._disposed || !name) return;
+        this._catchName = name;
+        Vec3.copy(this._catchOrigin, this._end);
+        Vec3.copy(this._catchRodTip, this._start);
+        this._catchProgress = 0;
+        const version = ++this._catchVersion;
+        void ZRSJZ_UIManager.Instance.GetPropUI(name)?.then(frame => {
+            if (!frame || this._disposed || version !== this._catchVersion || !isValid(this.node, true)) return;
+            if (!this._fish) {
+                this._fish = new Node('钓起的鱼');
+                this._fish.layer = this.node.layer;
+                this._fish.parent = this.node;
+                this._fish.addComponent(UITransform).setAnchorPoint(0.5, 1);
+                this._fish.addComponent(Sprite).sizeMode = Sprite.SizeMode.CUSTOM;
+            }
+            this._fish.getComponent(Sprite).spriteFrame = frame;
+            const size = frame.originalSize;
+            const scale = 76 / Math.max(1, size.width, size.height);
+            this._fish.getComponent(UITransform).setContentSize(size.width * scale, size.height * scale);
+            this._fish.active = false; // 由 Draw 定位后显示，避免异步加载时闪在旧位置。
+        }).catch(error => console.warn('[钓鱼] 鱼图标加载失败', error));
+    }
+
+    private ClearCatch(): void {
+        this._catchName = '';
+        ++this._catchVersion;
+        if (isValid(this._fish, true)) this._fish.active = false;
+    }
 
     public Init(player: ZRSJZ_Player, area: Node, ripple: Node): void {
         this._player = player;
@@ -33,7 +72,10 @@ export class ZRSJZ_FishingLine extends Component {
     }
 
     public Cast(): void {
-        if (!this._area) return;
+        if (this._disposed || !this._area) return;
+        this.ClearCatch();
+        this._graphics?.clear();
+        if (isValid(this._ripple, true)) this._ripple.active = false;
         this._origin.set((0.2 + Math.random() * 0.6 - this._area.anchorX) * this._area.width,
             (0.2 + Math.random() * 0.6 - this._area.anchorY) * this._area.height, 0);
         this._elapsed = 0;
@@ -44,7 +86,9 @@ export class ZRSJZ_FishingLine extends Component {
     }
 
     public SetState(state: string, castProgress: number): void {
+        if (this._disposed) return;
         this._state = state;
+        if (state === 'ready' && this._catchName) this.ClearCatch();
         this._castProgress = Math.max(0, Math.min(1, castProgress));
         this.node.active = state !== 'ready' && state !== 'casting';
         this.SyncRippleAnimation();
@@ -60,14 +104,32 @@ export class ZRSJZ_FishingLine extends Component {
 
     public Pull(): void { this._pull = Math.min(1, this._pull + 0.65); }
 
-    protected onEnable(): void { director.on(Director.EVENT_BEFORE_DRAW, this.Draw, this); }
+    protected onEnable(): void {
+        if (!this._disposed) director.on(Director.EVENT_BEFORE_DRAW, this.Draw, this);
+    }
     protected onDisable(): void {
         director.off(Director.EVENT_BEFORE_DRAW, this.Draw, this);
+        this._graphics?.clear();
         if (isValid(this._ripple, true)) this._ripple.active = false;
     }
 
     protected onDestroy(): void {
-        if (isValid(this._ripple, true)) this._ripple.destroy();
+        this.Dispose();
+    }
+
+    public Dispose(): void {
+        if (this._disposed) return;
+        this._disposed = true;
+        this.ClearCatch();
+        director.off(Director.EVENT_BEFORE_DRAW, this.Draw, this);
+        this._graphics?.clear();
+        this.node.active = false;
+        if (isValid(this._ripple, true)) {
+            this._ripple.active = false;
+            this._ripple.destroy();
+        }
+        this._player = null;
+        this._area = null;
     }
 
     protected update(dt: number): void {
@@ -79,7 +141,8 @@ export class ZRSJZ_FishingLine extends Component {
     }
 
     private Draw(): void {
-        if (!isValid(this._player, true) || !isValid(this._area, true) || !this._graphics) return;
+        if (this._disposed || !this.node.activeInHierarchy || !this._player?.IsFishing
+            || !isValid(this._player, true) || !isValid(this._area, true) || !this._graphics) return;
         const skeleton = this._player.PlayerSkeleton?.Skeleton;
         const bone = skeleton?.findBone('dy');
         this._graphics.clear();
@@ -112,6 +175,38 @@ export class ZRSJZ_FishingLine extends Component {
         // 与战斗方向指示器使用相同投影，鱼线显示在当前玩家的 UI 控制区域。
         const start = camera.convertToUINode(this._start, this.node);
         const end = camera.convertToUINode(this._end, this.node);
+        let drawLine = true;
+        if (this._state === 'finishing' && this._catchName) {
+            const track = skeleton.getCurrent(0);
+            const duration = skeleton.findAnimation('dy4')?.duration || 0.667;
+            if (track?.animation?.name === 'dy4') {
+                this._catchProgress = Math.max(this._catchProgress, Math.min(1, Math.max(0, track.trackTime / duration)));
+            }
+            const progress = this._catchProgress;
+            const origin = camera.convertToUINode(this._catchOrigin, this.node);
+            const target = camera.convertToUINode(this._player.node.worldPosition, this.node);
+            target.y += 60;
+            // 使用锁定的竿尖高度设置真实顶点（不是贝塞尔控制点），先高抛再落到角色身上。
+            const rodTip = camera.convertToUINode(this._catchRodTip, this.node);
+            const apex = Math.max(rodTip.y + 80, origin.y + 180, target.y + 180);
+            const rise = Math.sqrt(apex - origin.y);
+            const fall = Math.sqrt(apex - target.y);
+            const peakTime = rise / (rise + fall);
+            const gravity = (rise + fall) * (rise + fall);
+            end.x = origin.x + (target.x - origin.x) * progress;
+            end.y = apex - gravity * (progress - peakTime) * (progress - peakTime);
+            this._ripple.active = progress < 0.12;
+            // 鱼离水后脱离鱼线飞入角色，收竿后半段不再显示回摆的长线。
+            drawLine = progress < 0.25;
+            if (isValid(this._fish, true)) {
+                this._fish.active = progress < 1;
+                this._fish.setPosition(end.x, end.y, 0);
+                const scale = 1 - Math.max(0, (progress - 0.8) / 0.2) * 0.8;
+                this._fish.setScale(scale, scale, 1);
+                this._fish.setRotationFromEuler(0, 0, Math.sin(progress * Math.PI) * 18);
+            }
+        }
+        if (!drawLine) return;
         const graphics = this._graphics;
         graphics.lineWidth = ZRSJZ_FISHING_CONFIG.LineWidth;
         graphics.strokeColor = new Color(247, 247, 226, 235);
