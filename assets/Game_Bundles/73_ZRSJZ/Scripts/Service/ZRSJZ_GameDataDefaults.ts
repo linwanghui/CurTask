@@ -1,5 +1,7 @@
 import {
     ZRSJZ_AMMO_MAX_COUNT,
+    ZRSJZ_ACTION_CONFIG,
+    ZRSJZ_ACTION_MAX_EQUIPPED,
     ZRSJZ_ACHIEVEMENT_CONFIG,
     ZRSJZ_GridData,
     ZRSJZ_INVENTORY,
@@ -18,6 +20,8 @@ import { CreateMatrixState } from '../ZRSJZ_MatrixState';
 /** 新存档初始化和旧存档迁移。此类不触发事件，也不主动写盘。 */
 export class ZRSJZ_GameDataDefaults {
     public static Initialize(data: ZRSJZ_GameData): void {
+        data.UnlockedActions = ZRSJZ_ACTION_CONFIG.filter(item => item.Unlock.Type === 'default').map(item => item.Name);
+        data.EquippedActions = data.UnlockedActions.slice(0, ZRSJZ_ACTION_MAX_EQUIPPED);
         data.Gold = 100000;
         data.CurMap = "新手村";
         data.BossExtractionCompleted = {};
@@ -50,6 +54,15 @@ export class ZRSJZ_GameDataDefaults {
         }
 
         const loadData = () => {
+            if (data.Versions === 29) {
+                const names = new Set(ZRSJZ_ACTION_CONFIG.map(item => item.Name));
+                const defaults = ZRSJZ_ACTION_CONFIG.filter(item => item.Unlock.Type === 'default').map(item => item.Name);
+                const owned = Array.isArray(savedData.UnlockedActions) ? savedData.UnlockedActions : defaults;
+                data.UnlockedActions = Array.from(new Set<string>([...owned.filter(name => names.has(name)), ...defaults]));
+                const equipped = Array.isArray(savedData.EquippedActions) ? savedData.EquippedActions : defaults;
+                data.EquippedActions = Array.from(new Set<string>(equipped.filter(name => data.UnlockedActions.includes(name))))
+                    .slice(0, ZRSJZ_ACTION_MAX_EQUIPPED);
+            }
             if (data.Versions === 28 && !savedData.FishingFestival) {
                 data.FishingFestival = { points: 0, offers: [], pending: null };
             }

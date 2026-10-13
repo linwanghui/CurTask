@@ -17,7 +17,7 @@ import { CreateMatrixState, MatrixState } from './ZRSJZ_MatrixState';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 29;//当前版本：渔获丰收活动存档
+    public static readonly Versions = 30;//当前版本：动作系统，保留旧存档逐级迁移
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -79,6 +79,10 @@ export class ZRSJZ_GameData {
     public MusicMute: boolean = false;
     public SoundMute: boolean = false;
     public IsTutorial: boolean = false;
+
+    /** 当前解锁动作和按圆盘顺序装备的动作（最多4个）。 */
+    public UnlockedActions: string[] = [];
+    public EquippedActions: string[] = [];
 
     public Gold: number = 0;
     public Matrix: MatrixState = CreateMatrixState();

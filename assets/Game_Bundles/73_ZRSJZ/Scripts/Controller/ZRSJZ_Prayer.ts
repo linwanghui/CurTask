@@ -1,6 +1,7 @@
 import { _decorator, Button, Component, instantiate, isValid, Node, sp, UIOpacity, Vec3 } from 'cc';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_MAP_CONFIG, ZRSJZ_PRAYER_BOX_CONFIG, ZRSJZ_PRAYER_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
@@ -97,6 +98,7 @@ export class ZRSJZ_Prayer extends Component {
         fire.spine.timeScale = ZRSJZ_Game.Instance?.GamePaused ? 0 : 1;
         if (lit) {
             fire.spine.setAnimation(0, ZRSJZ_PRAYER_CONFIG.LightAnimation, false);
+            ZRSJZ_AudioManager.Instance?.PlaySound('火把燃起');
             fire.spine.addAnimation(0, ZRSJZ_PRAYER_CONFIG.BurnAnimation, true, 0);
         } else fire.spine.setAnimation(0, ZRSJZ_PRAYER_CONFIG.ExtinguishAnimation, false);
         this.UpdateHints();
@@ -112,7 +114,7 @@ export class ZRSJZ_Prayer extends Component {
                 void this.CompletePrayer();
             } else {
                 this._fires.forEach(fire => this.SetFire(fire, false));
-                void ZRSJZ_UIManager.Instance.ShowTip('祈祷失败，所有篝火已熄灭');
+                void ZRSJZ_UIManager.Instance.ShowTip('祈祷失败，请按照提示点亮火把');
             }
         } else {
             const fire = this.FindFire(player);
