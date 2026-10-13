@@ -5,6 +5,7 @@ import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_ActivityService as Activity } from '../Service/ZRSJZ_ActivityService';
 import { ZRSJZ_MidAutumnPage } from '../UI/ZRSJZ_MidAutumnPage';
+import { ZRSJZ_FishingFestivalPage } from '../UI/ZRSJZ_FishingFestivalPage';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_ActivityPanel')
@@ -16,10 +17,11 @@ export class ZRSJZ_ActivityPanel extends ZRSJZ_Panel {
     private page: Node;
     private busy = false;
     private moon: ZRSJZ_MidAutumnPage;
-    public get CanClose(): boolean { return !this.busy && !this.moon?.busy; }
+    private fishing: ZRSJZ_FishingFestivalPage;
+    public get CanClose(): boolean { return !this.busy && !this.moon?.busy && !this.fishing?.busy; }
     protected onEnable(): void { this.schedule(this.RefreshMoon, 1); }
     protected onDisable(): void { this.unschedule(this.RefreshMoon); }
-    private RefreshMoon(): void { this.moon?.Render(); }
+    private RefreshMoon(): void { this.moon?.Render(); this.fishing?.Render(); }
 
     Show(): void {
         this.Panel = this.node.getChildByName('Panel');
@@ -31,11 +33,15 @@ export class ZRSJZ_ActivityPanel extends ZRSJZ_Panel {
         }
         this.Initialize();
         if (!this.moon) this.moon = new ZRSJZ_MidAutumnPage(this.Panel.getChildByPath('右栏/月满金秋'));
+        const fishingPage = this.Panel.getChildByPath('右栏/渔获丰收');
+        if (!this.fishing && fishingPage) this.fishing = new ZRSJZ_FishingFestivalPage(fishingPage);
         super.Show();
-        this.SelectActivity('战备冲刺', false);
+        this.SelectActivity(this.fishing ? '渔获丰收' : '战备冲刺', false);
         this.Render();
         this.moon.Render();
         void this.moon.Exchange();
+        this.fishing?.Render();
+        void this.fishing?.Exchange();
         this.scheduleOnce(() => this.page.getChildByName('任务列表').getComponent(ScrollView).scrollToTop(0), 0);
     }
 
@@ -112,6 +118,9 @@ export class ZRSJZ_ActivityPanel extends ZRSJZ_Panel {
         } else selected.setPosition(tab.position);
         for (const page of this.Panel.getChildByName('右栏').children) page.active = page.name === name;
         this.Panel.getChildByName('中秋背景').active = name === '月满金秋';
+        const fishBackground = this.Panel.getChildByName('钓鱼背景');
+        if (fishBackground) fishBackground.active = name === '渔获丰收';
+        this.fishing?.Render();
         this.moon?.Render();
     }
 

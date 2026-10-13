@@ -17,7 +17,7 @@ import { CreateMatrixState, MatrixState } from './ZRSJZ_MatrixState';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 28;//当前版本：新枪及三把锻造枪价格同步
+    public static readonly Versions = 29;//当前版本：渔获丰收活动存档
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -94,6 +94,9 @@ export class ZRSJZ_GameData {
         cakes: 0, date: '', videos: 0, offers: [], pending: null,
     };
     public ActivityTaskClaimed: number[] = [];
+    public FishingFestival: import('./Service/ZRSJZ_FishingFestivalService').FishingFestivalState = {
+        points: 0, offers: [], pending: null,
+    };
     public ActivityRewardClaimed: number[] = [];
     public MandellBricks: number = 0;
     public MandellFreeTenDate: string = '';

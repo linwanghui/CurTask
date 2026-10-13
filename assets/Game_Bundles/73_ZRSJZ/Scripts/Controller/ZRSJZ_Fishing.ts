@@ -9,6 +9,9 @@ import { ZRSJZ_Joystick_Attack } from './ZRSJZ_Joystick_Attack';
 import { ZRSJZ_FishingRound } from '../Service/ZRSJZ_FishingRound';
 import { ZRSJZ_AccountService } from '../Service/ZRSJZ_AccountService';
 import { ZRSJZ_GradeService } from '../Service/ZRSJZ_GradeService';
+import { ZRSJZ_Joystick_Drug } from './ZRSJZ_Joystick_Drug';
+import { ZRSJZ_FishingBaitBar } from '../UI/ZRSJZ_FishingBaitBar';
+import { ZRSJZ_FishingBaitService } from '../Service/ZRSJZ_FishingBaitService';
 
 const { ccclass } = _decorator;
 type FishingState = 'ready' | 'waiting' | 'pulling' | 'finishing';
@@ -32,6 +35,9 @@ interface FishingSession {
     rotation: import('cc').Quat;
     rewards: Promise<ZRSJZ_MainTaskAwardConfig[]>;
     line: ZRSJZ_FishingLine;
+    baitBar?: ZRSJZ_FishingBaitBar;
+    bait?: string;
+    drugNodes?: { node: Node; active: boolean }[];
 }
 
 /** 城镇钓鱼协调器：复用每名玩家现有控制根节点，分开保存钓鱼状态。 */
@@ -162,6 +168,12 @@ export class ZRSJZ_Fishing extends Component {
             session.line.Init(player, area, ripple);
         }
         this._sessions.push(session);
+        const baitRoot = ui.getChildByName('鱼饵栏');
+        if (baitRoot) session.baitBar = new ZRSJZ_FishingBaitBar(baitRoot, player.PlayerIndex, () => session.state === 'ready' && !game.GamePaused);
+        session.drugNodes = attack.node.parent.getComponentsInChildren(ZRSJZ_Joystick_Drug)
+            .filter(drug => drug.PlayerIndex === player.PlayerIndex)
+            .map(drug => ({ node: drug.node, active: drug.node.active }));
+        session.drugNodes.forEach(item => item.node.active = false);
         session.cast.on(Button.EventType.CLICK, () => this.Cast(session), this);
         // Button.CLICK 每次点击只触发一次；不监听长按和 TOUCH_START。
         session.reel.on(Button.EventType.CLICK, () => {
@@ -256,6 +268,13 @@ export class ZRSJZ_Fishing extends Component {
 
     private Cast(session: FishingSession): void {
         if (session.state !== 'ready' || ZRSJZ_Game.Instance.GamePaused) return;
+        const bait = session.baitBar?.selected ?? '';
+        if (!ZRSJZ_FishingBaitService.Consume(bait, session.player.PlayerIndex)) {
+            void ZRSJZ_UIManager.Instance.ShowTip('背包和仓库鱼饵不足，请更换鱼饵或选择空鱼饵');
+            session.baitBar?.Render(); return;
+        }
+        session.bait = bait;
+        session.baitBar?.Render();
         session.state = 'waiting';
         session.elapsed = 0;
         session.biteTime = 1 + Math.random() * 2;
@@ -293,7 +312,7 @@ export class ZRSJZ_Fishing extends Component {
                 session.elapsed = 0;
                 session.reel.active = false;
                 this.PlayAnimation(session, 'dy4', false);
-                if (session.round.Result === 'success') session.rewards = this.GrantReward(session.round.WindowWidth).catch(error => {
+                if (session.round.Result === 'success') session.rewards = this.GrantReward(session.round.WindowWidth, session.bait).catch(error => {
                     console.error('[钓鱼] 发放奖励失败', error);
                     void ZRSJZ_UIManager.Instance.ShowTip('钓鱼奖励发放失败，请检查奖励配置');
                     return [];
@@ -347,8 +366,8 @@ export class ZRSJZ_Fishing extends Component {
         session.pointer.setRotationFromEuler(0, 0, -angle * 180 / Math.PI);
     }
 
-    private async GrantReward(width: number): Promise<ZRSJZ_MainTaskAwardConfig[]> {
-        const awards = ZRSJZ_RollFishingRewards(width);
+    private async GrantReward(width: number, bait = ''): Promise<ZRSJZ_MainTaskAwardConfig[]> {
+        const awards = ZRSJZ_RollFishingRewards(width, Math.random, bait);
         // 成功当场发放，弹窗只展示，关闭弹窗不会再发一次。
         const props: { PropName: string; Count: number }[] = [];
         for (const award of awards) {
@@ -378,6 +397,7 @@ export class ZRSJZ_Fishing extends Component {
             session.player.EndFishing();
         }
         if (isValid(session.attack, true)) session.attack.node.active = true;
+        session.drugNodes?.forEach(item => { if (isValid(item.node, true)) item.node.active = item.active; });
     }
 
     protected onDisable(): void {

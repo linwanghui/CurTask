@@ -203,6 +203,19 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
 
 
     //1x1 --  红
+    ["青背鲫", { Name: "青背鲫", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 8000, MaxCount: 1, Description: "城镇钓鱼可获得的绿色渔获，可在渔获丰收活动中提交兑换积分。" }],
+    ["银鳍鲈", { Name: "银鳍鲈", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 12000, MaxCount: 1, Description: "城镇钓鱼可获得的绿色渔获，可在渔获丰收活动中提交兑换积分。" }],
+    ["蓝纹鳟", { Name: "蓝纹鳟", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 30000, MaxCount: 1, Description: "城镇钓鱼可获得的蓝色渔获，可在渔获丰收活动中提交兑换积分。" }],
+    ["翡翠河豚", { Name: "翡翠河豚", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 40000, MaxCount: 1, Description: "城镇钓鱼可获得的蓝色渔获，可在渔获丰收活动中提交兑换积分。" }],
+    ["紫晶神仙鱼", { Name: "紫晶神仙鱼", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 80000, MaxCount: 1, Description: "城镇钓鱼可获得的紫色渔获，可在渔获丰收活动中提交兑换积分。" }],
+    ["月光鳗", { Name: "月光鳗", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 100000, MaxCount: 1, Description: "城镇钓鱼可获得的紫色渔获，可在渔获丰收活动中提交兑换积分。" }],
+    ["黄金锦鲤", { Name: "黄金锦鲤", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 200000, MaxCount: 1, Description: "城镇钓鱼可获得的金色渔获，可在渔获丰收活动中提交兑换积分。" }],
+    ["鎏金剑鱼", { Name: "鎏金剑鱼", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 260000, MaxCount: 1, Description: "城镇钓鱼可获得的金色渔获，可在渔获丰收活动中提交兑换积分。" }],
+    ["赤焰龙鱼", { Name: "赤焰龙鱼", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 800000, MaxCount: 1, Description: "城镇钓鱼可获得的红色渔获，可在渔获丰收活动中提交兑换积分。也可放入收藏室的食用品分类。" }],
+    ["星海幻鲲", { Name: "星海幻鲲", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 1200000, MaxCount: 1, Description: "城镇钓鱼可获得的红色渔获，可在渔获丰收活动中提交兑换积分。也可放入收藏室的食用品分类。" }],
+    ["玉米鱼饵", { Name: "玉米鱼饵", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 1200, MaxCount: 20, Description: "钓鱼消耗品。可直接使用当前玩家背包或仓库库存，每次抛竿消耗1个，优先扣除背包；品级越高越容易钓到珍稀鱼。" }],
+    ["鲜虾鱼饵", { Name: "鲜虾鱼饵", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 8000, MaxCount: 20, Description: "钓鱼消耗品。可直接使用当前玩家背包或仓库库存，每次抛竿消耗1个，优先扣除背包；品级越高越容易钓到珍稀鱼。" }],
+    ["磷光鱼饵", { Name: "磷光鱼饵", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 25000, MaxCount: 20, Description: "钓鱼消耗品。可直接使用当前玩家背包或仓库库存，每次抛竿消耗1个，优先扣除背包；品级越高越容易钓到珍稀鱼。" }],
     ["炫彩月饼", { Name: "炫彩月饼", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 1000000, MaxCount: 1 }],
     ["纵横", { Name: "纵横", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 250000, MaxCount: 1 }],
     ["金条", { Name: "金条", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 220000, MaxCount: 1 }],
@@ -640,7 +653,7 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
 
 
 ZRSJZ_PROP_CONFIG.forEach((config, name) => {
-    config.Description = ZRSJZ_PROP_DESCRIPTION.get(name) || `一件名为“${name}”的道具。`;
+    config.Description = config.Description || ZRSJZ_PROP_DESCRIPTION.get(name) || `一件名为“${name}”的道具。`;
 });
 
 //配置道具的属性
@@ -2842,58 +2855,75 @@ export const ZRSJZ_FISHING_CONFIG = {
     LossPerSecond: 0.12,
 };
 
-/**
- * MaxWidth 为 [最小宽度, 最大宽度]，左闭右开，最后一档包含 0.2。
- * Probability 为同一宽度下的抽取权重；当前各档合计100，即百分比。
- * Awards 指定大红；QualityWeights 按白、绿、蓝、紫、金配置普通物品品质权重。
- * 每次成功抽取一组奖励，普通物品数量为1；成功入仓库，满仓按既有规则转邮件。
- */
-export const ZRSJZ_FISHING_REWARDS: ReadonlyArray<{
-    MaxWidth: readonly [number, number];
-    Probability: number;
-    Awards?: ReadonlyArray<ZRSJZ_MainTaskAwardConfig>;
-    QualityWeights?: readonly [number, number, number, number, number];
-}> = [
-        { MaxWidth: [0.05, 0.08], Probability: 5, Awards: [{ TaskAwardName: '红珊瑚鲤鱼', TaskAwardCount: 1 }] },
-        { MaxWidth: [0.05, 0.08], Probability: 95, QualityWeights: [1, 4, 10, 25, 60] },
-        { MaxWidth: [0.08, 0.12], Probability: 8, Awards: [{ TaskAwardName: '彩金色鲤鱼', TaskAwardCount: 1 }] },
-        { MaxWidth: [0.08, 0.12], Probability: 92, QualityWeights: [3, 7, 20, 45, 25] },
-        { MaxWidth: [0.12, 0.16], Probability: 10, Awards: [{ TaskAwardName: '钻石级鱼子酱', TaskAwardCount: 1 }] },
-        { MaxWidth: [0.12, 0.16], Probability: 90, QualityWeights: [10, 25, 45, 15, 5] },
-        { MaxWidth: [0.16, 0.2], Probability: 100, QualityWeights: [55, 30, 10, 4, 1] },
-    ];
-
-/** 使用实际绿色区域宽度抽奖；随机品质池仅包含白到金的普通物品。 */
-export function ZRSJZ_RollFishingRewards(width: number, random: () => number = Math.random): ZRSJZ_MainTaskAwardConfig[] {
+/** Only these ten fish are eligible fishing rewards. Points are event currency, not inventory items. */
+export const ZRSJZ_FISH_CATALOG = [
+    {
+        "name": "青背鲫",
+        "quality": "绿色",
+        "points": 2
+    },
+    {
+        "name": "银鳍鲈",
+        "quality": "绿色",
+        "points": 3
+    },
+    {
+        "name": "蓝纹鳟",
+        "quality": "蓝色",
+        "points": 6
+    },
+    {
+        "name": "翡翠河豚",
+        "quality": "蓝色",
+        "points": 8
+    },
+    {
+        "name": "紫晶神仙鱼",
+        "quality": "紫色",
+        "points": 16
+    },
+    {
+        "name": "月光鳗",
+        "quality": "紫色",
+        "points": 20
+    },
+    {
+        "name": "黄金锦鲤",
+        "quality": "金色",
+        "points": 40
+    },
+    {
+        "name": "鎏金剑鱼",
+        "quality": "金色",
+        "points": 50
+    },
+    {
+        "name": "赤焰龙鱼",
+        "quality": "红色",
+        "points": 120
+    },
+    {
+        "name": "星海幻鲲",
+        "quality": "红色",
+        "points": 160
+    }
+];
+export const ZRSJZ_FISHING_BAITS = [
+    { name: '', weights: [65, 25, 8, 1.8, 0.2] },
+    { name: '玉米鱼饵', weights: [45, 32, 17, 5, 1] },
+    { name: '鲜虾鱼饵', weights: [25, 33, 27, 12, 3] },
+    { name: '磷光鱼饵', weights: [10, 23, 35, 24, 8] },
+];
+export function ZRSJZ_RollFishingRewards(width: number, random: () => number = Math.random, bait = ''): ZRSJZ_MainTaskAwardConfig[] {
     if (!Number.isFinite(width)) return [];
-    const boundedWidth = Math.max(ZRSJZ_FISHING_CONFIG.MinWidth, Math.min(ZRSJZ_FISHING_CONFIG.MaxWidth, width));
-    const candidates = ZRSJZ_FISHING_REWARDS.filter(item => item.Probability > 0
-        && boundedWidth >= item.MaxWidth[0]
-        && (boundedWidth < item.MaxWidth[1]
-            || (boundedWidth === ZRSJZ_FISHING_CONFIG.MaxWidth && boundedWidth === item.MaxWidth[1])));
-    const pick = (weights: readonly number[]): number => {
-        const total = weights.reduce((sum, weight) => sum + Math.max(0, weight), 0);
-        if (total <= 0) return -1;
-        let roll = Math.max(0, Math.min(1 - Number.EPSILON, random())) * total;
-        for (let i = 0; i < weights.length; i++) {
-            roll -= Math.max(0, weights[i]);
-            if (roll < 0) return i;
-        }
-        return -1;
-    };
-    const selected = candidates[pick(candidates.map(item => item.Probability))];
-    if (!selected) return [];
-    if (selected.Awards) return selected.Awards.map(award => ({ ...award }));
-    if (!selected.QualityWeights) return [];
-    const qualities = [ZRSJZ_PROP_QUALITY.白色, ZRSJZ_PROP_QUALITY.绿色, ZRSJZ_PROP_QUALITY.蓝色,
-    ZRSJZ_PROP_QUALITY.紫色, ZRSJZ_PROP_QUALITY.金色];
-    const pools = qualities.map(quality => Array.from(ZRSJZ_PROP_CONFIG.values())
-        .filter(prop => prop.PropType === '物品' && prop.Quality === quality));
-    const qualityIndex = pick(selected.QualityWeights.map((weight, index) => pools[index].length ? weight : 0));
-    if (qualityIndex < 0) return [];
-    const pool = pools[qualityIndex];
-    const prop = pool[Math.floor(Math.max(0, Math.min(1 - Number.EPSILON, random())) * pool.length)];
-    return [{ TaskAwardName: prop.Name, TaskAwardCount: 1 }];
+    const weights = [...(ZRSJZ_FISHING_BAITS.find(b => b.name === bait) ?? ZRSJZ_FISHING_BAITS[0]).weights];
+    // Narrower green window modestly rewards harder catches, without changing bait ordering.
+    const bonus = Math.max(0, Math.min(1, (0.2 - width) / 0.15)) * 4;
+    weights[0] -= bonus; weights[2] += bonus * 0.5; weights[3] += bonus * 0.35; weights[4] += bonus * 0.15;
+    let roll = Math.max(0, Math.min(1 - Number.EPSILON, random())) * 100, tier = 4;
+    for (let i = 0; i < weights.length; i++) { roll -= weights[i]; if (roll < 0) { tier = i; break; } }
+    const variant = Math.min(1, Math.max(0, Math.floor(random() * 2)));
+    return [{ TaskAwardName: ZRSJZ_FISH_CATALOG[tier * 2 + variant].name, TaskAwardCount: 1 }];
 }
 
 /** 城镇沼泽：每秒基础伤害走现有受伤/死亡逻辑，多个区域不叠加。 */

@@ -1,0 +1,82 @@
+const fs=require('fs'),crypto=require('crypto');
+const manifest=JSON.parse(fs.readFileSync('Tools/fishing_asset_manifest.json','utf8'));
+const uuid=name=>{const s=crypto.createHash('md5').update('zrsjz-fishing-'+name).digest('hex');return `${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20)}`};
+const patches=[];
+function add(path,data){if(fs.existsSync(path))return;patches.push('*** Add File: '+path+'\n'+JSON.stringify(data,null,2).split('\n').map(s=>'+'+s).join('\n'));}
+const sample=JSON.parse(fs.readFileSync('Sprites/Prop/新增大红/彩金色鲤鱼.png.meta','utf8'));
+function imageMeta(path,name,w,h,alpha){
+ const id=uuid(name),m=JSON.parse(JSON.stringify(sample).replaceAll(sample.uuid,id).replaceAll('彩金色鲤鱼',name));
+ const d=m.subMetas.f9941.userData;Object.assign(d,{width:w,height:h,rawWidth:w,rawHeight:h,trimType:'none'});
+ d.vertices={rawPosition:[-w/2,-h/2,0,w/2,-h/2,0,-w/2,h/2,0,w/2,h/2,0],indexes:[0,1,2,2,1,3],uv:[0,h,w,h,0,0,w,0],nuv:[0,0,1,0,0,1,1,1],minPos:[-w/2,-h/2,0],maxPos:[w/2,h/2,0]};m.userData.hasAlpha=alpha;add(path+'.meta',m);
+}
+manifest.assets.forEach(a=>imageMeta('Sprites/Prop/钓鱼活动/'+a.name+'.png',a.name,192,192,true));
+imageMeta('../73_ZRSJZ_DLC/Sprites/活动界面/钓鱼活动/背景.jpg','渔获丰收背景',1600,900,false);
+for(const folder of ['Sprites/Prop/钓鱼活动','../73_ZRSJZ_DLC/Sprites/活动界面/钓鱼活动'])add(folder+'.meta',{ver:'1.2.0',importer:'directory',imported:true,uuid:uuid(folder),files:[],subMetas:{},userData:{}});
+for(const f of ['Scripts/Service/ZRSJZ_FishingBaitService.ts','Scripts/Service/ZRSJZ_FishingFestivalService.ts','Scripts/UI/ZRSJZ_FishingBaitBar.ts','Scripts/UI/ZRSJZ_FishingFestivalPage.ts'])add(f+'.meta',{ver:'4.0.24',importer:'typescript',imported:true,uuid:uuid(f),files:[],subMetas:{},userData:{}});
+const activityPath='../73_ZRSJZ_DLC/Prefabs/Panel/活动界面.prefab';
+const source=JSON.parse(fs.readFileSync(activityPath,'utf8'));
+const copy=x=>JSON.parse(JSON.stringify(x));
+const templates=Object.fromEntries(['cc.Node','cc.UITransform','cc.Sprite','cc.Label','cc.Button','cc.Widget','cc.PrefabInfo','cc.CompPrefabInfo'].map(t=>[t,source.find(x=>x.__type__===t)]));
+const ref=i=>({__id__:i});
+const col=(r,g,b,a=255)=>({__type__:'cc.Color',r,g,b,a});
+function edit(file,build){
+ const a=JSON.parse(fs.readFileSync(file,'utf8')),old=copy(a),root=a[0].data.__id__;
+ if(a.some(n=>n.__type__==='cc.Node'&&n._name==='渔获丰收')||file.includes('FishJoystick')&&a.some(n=>n._name==='鱼饵栏'))return;
+ function push(x){a.push(x);return a.length-1;}
+ function component(n,type,opts={}){const c=Object.assign(copy(templates[type]),opts);c.node=ref(n);c.__prefab=ref(push({__type__:'cc.CompPrefabInfo',fileId:uuid(file+':c:'+a.length)}));a[n]._components.push(ref(push(c)));return c;}
+ function node(parent,name,x,y,w,h){const n=copy(templates['cc.Node']);Object.assign(n,{_name:name,_parent:ref(parent),_children:[],_components:[],_active:true,_lpos:{__type__:'cc.Vec3',x,y,z:0},_layer:a[root]._layer});const i=push(n);n._prefab=ref(push({...copy(templates['cc.PrefabInfo']),root:ref(root),fileId:uuid(file+':n:'+i)}));a[parent]._children.push(ref(i));component(i,'cc.UITransform',{_contentSize:{__type__:'cc.Size',width:w,height:h}});return i;}
+ function sprite(n,frame,color=col(255,255,255)){return component(n,'cc.Sprite',{_spriteFrame:frame?{__uuid__:frame,__expectedType__:'cc.SpriteFrame'}:null,_sizeMode:0,_color:color,_type:0});}
+ function label(parent,name,text,x,y,w,h,size=28,color=col(255,255,255)){const n=node(parent,name,x,y,w,h);component(n,'cc.Label',{_string:text,_fontSize:size,_actualFontSize:size,_lineHeight:size+4,_overflow:2,_color:color});return n;}
+ function button(n){component(n,'cc.Button',{clickEvents:[],_target:ref(n),_transition:3,_zoomScale:1.02});}
+ function path(start,p){return p.split('/').reduce((i,s)=>a[i]._children.find(r=>a[r.__id__]._name===s)?.__id__,start);}
+ const art={};
+ // Reuse the game's existing image-based buttons and cards, not runtime drawing.
+ for(const n of source.filter(n=>n.__type__==='cc.Node')){const s=n._components.map(r=>source[r.__id__]).find(c=>c.__type__==='cc.Sprite');if(s?._spriteFrame)art[n._name]??=s._spriteFrame.__uuid__;}
+ build({a,root,node,sprite,label,button,component,path,art});
+ function obj(x){return JSON.stringify(x,null,2).split('\n').map(s=>'  '+s).join('\n');}
+ const hunks=[];
+ for(let i=0;i<old.length-1;i++)if(JSON.stringify(old[i])!==JSON.stringify(a[i]))hunks.push('@@\n'+(obj(old[i])+',').split('\n').map(s=>'-'+s).join('\n')+'\n'+(obj(a[i])+',').split('\n').map(s=>'+'+s).join('\n'));
+ hunks.push('@@\n'+(obj(old.at(-1))+'\n]').split('\n').map(s=>'-'+s).join('\n')+'\n'+(a.slice(old.length-1).map(obj).join(',\n')+'\n]').split('\n').map(s=>'+'+s).join('\n'));
+ patches.push('*** Update File: '+file+'\n'+hunks.join('\n'));
+}
+edit(activityPath,({a,root,node,sprite,label,button,path,art})=>{
+ const panel=path(root,'Panel'),tabs=path(panel,'活动选项'),right=path(panel,'右栏');
+ const bgId=JSON.parse(fs.readFileSync('../73_ZRSJZ_DLC/Sprites/活动界面/钓鱼活动/背景.jpg.meta','utf8')).uuid;
+ const bg=node(panel,'钓鱼背景',0,0,2340,1080);sprite(bg,bgId+'@f9941');a[bg]._active=false;
+ a[panel]._children=a[panel]._children.filter(r=>r.__id__!==bg);a[panel]._children.splice(1,0,ref(bg));
+ const tab=label(tabs,'渔获丰收','渔获丰收',0,-63,392,143,50);button(tab);
+ const page=node(right,'渔获丰收',0,0,1843,1080);a[page]._active=false;
+ // Use existing rounded light panel as the card artwork.
+ const card=art['兑换框']||art['兑换模板']||art['背景']||art['任务条目模板'];
+ const btn='955b5731-5381-4575-9f5f-732182473737@f9941';
+ const tile='16adc38a-0657-4344-9ddb-da39e6382039@f9941';
+ const backdrop=node(page,'内容底',0,-30,1780,980);sprite(backdrop,card,col(34,65,80,230));
+ label(page,'兑换标题','渔获丰收 · 珍品兑换',-420,430,820,70,40);
+ label(page,'积分','渔获积分：0',460,430,820,70,40,col(255,221,68));
+ label(page,'提交标题','提交仓库渔获，获得积分',350,340,860,65,32);
+ function slot(name,x,y,w,h,fish){
+  const n=node(page,name,x,y,w,h);sprite(n,card,col(229,243,243));
+  label(n,'名称',fish?'青背鲫':'珍品',0,h/2-28,w-10,48,fish?24:28);
+  const f=node(n,'品质框',0,fish?4:18,fish?98:155,fish?98:155);sprite(f,tile);
+  sprite(node(n,'图标',0,fish?4:18,fish?90:140,fish?90:140),null);
+  const hit=node(n,'详情',0,fish?4:18,fish?105:165,fish?105:165);button(hit);
+  if(fish)label(n,'数量','仓库 ×0',0,-54,w-8,34,22);
+  const b=node(n,'按钮',0,-h/2+32,w-16,52);sprite(b,btn,col(90,220,234));button(b);label(b,'文字',fish?'提交':'积分兑换',0,0,w-22,46,fish?22:26);
+  if(!fish){const sold=label(n,'售罄','已兑换',0,-h/2+32,w-16,52,28,col(185,185,185));a[sold]._active=false;}
+ }
+ slot('兑换模板',-695,190,245,300,false);slot('渔获模板',15,195,158,210,true);
+ const refresh=node(page,'刷新',-430,-410,330,80);sprite(refresh,btn);button(refresh);label(refresh,'文字','刷新奖励 · 5积分',0,0,315,70,30);
+ for(let i=0;i<3;i++){const b=node(page,'购买鱼饵'+i,140+i*270,-325,245,100);sprite(b,btn,col(100,224,242));button(b);label(b,'文字','购买鱼饵',0,0,235,95,25);}
+ label(page,'说明','鱼饵需携带入场，每次抛竿消耗1个\n不使用鱼饵也能钓鱼；珍稀鱼也可留作收藏',345,-425,920,100,26);
+});
+edit('../73_ZRSJZ_DLC/Prefabs/FishJoystick.prefab',({a,root,node,sprite,label,button,component,art})=>{
+ const bar=node(root,'鱼饵栏',0,-420,560,170);
+ component(bar,'cc.Widget',{_alignFlags:20,_bottom:25,_horizontalCenter:0,_originalWidth:560,_originalHeight:170});
+ label(bar,'标题','选择鱼饵（背包）',0,94,560,36,24);
+ const n=node(bar,'鱼饵模板',-195,0,120,145);button(n);sprite(n,'16adc38a-0657-4344-9ddb-da39e6382039@f9941',col(90,107,121));
+ const sel=node(n,'选中',0,0,126,151);sprite(sel,'f1f3f14c-3330-4b53-8ca7-f957425e2595@f9941',col(255,231,84,230));
+ sprite(node(n,'图标',0,8,70,70),null);
+ label(n,'名称','空鱼饵',0,52,116,30,21);label(n,'数量','不消耗',0,-48,116,30,23);
+});
+const output='*** Begin Patch\n'+patches.join('\n')+'\n*** End Patch';
+process.stdout.write(process.argv[2] ? output.slice(Number(process.argv[2]),Number(process.argv[2])+60000) : output);

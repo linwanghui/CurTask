@@ -50,6 +50,9 @@ export class ZRSJZ_GameDataDefaults {
         }
 
         const loadData = () => {
+            if (data.Versions === 28 && !savedData.FishingFestival) {
+                data.FishingFestival = { points: 0, offers: [], pending: null };
+            }
             if (data.Versions === 27) {
                 // Only refresh cached prices; preserve ownership, inventory slots and counts.
                 const repriced = new Set([...(ZRSJZ_SHOP_CONFIG.get('武器') ?? []), '霜月狼', '裂海鲨', '焚天龙']);

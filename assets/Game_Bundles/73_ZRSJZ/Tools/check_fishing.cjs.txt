@@ -1,0 +1,42 @@
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+const root=path.resolve(__dirname,'..');
+function load(file,req){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root,file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{exports,require:req,console,Date,Math});return exports;}
+const config=load('Scripts/ZRSJZ_Constant.ts',()=>{throw Error('dependency');});
+const Data={Instance:{PropData:{},PropID:0,Gold:1000000,HeroFragments:0,PetFragments:0},SaveData(){}};
+const events={ZRSJZ_EventManager:{EmitPersist(){}},ZRSJZ_MyEvent:{}};
+const fragment=load('Scripts/Service/ZRSJZ_FragmentService.ts',id=>id.includes('GameData')?{ZRSJZ_GameData:Data}:events);
+const req=id=>id.includes('GameData')?{ZRSJZ_GameData:Data}:id.includes('FragmentService')?fragment:id.includes('EventManager')?events:config;
+const Fish=load('Scripts/Service/ZRSJZ_FishingFestivalService.ts',req).ZRSJZ_FishingFestivalService;
+const Bait=load('Scripts/Service/ZRSJZ_FishingBaitService.ts',req).ZRSJZ_FishingBaitService;
+assert.equal(config.ZRSJZ_FISH_CATALOG.length,10);assert.equal(config.ZRSJZ_FISHING_BAITS[1].name,'玉米鱼饵');assert.equal(config.ZRSJZ_PROP_CONFIG.has('蚯蚓鱼饵'),false);
+for(const b of config.ZRSJZ_FISHING_BAITS){assert.equal(b.weights.reduce((a,b)=>a+b,0),100);for(let i=0;i<1000;i++){const award=config.ZRSJZ_RollFishingRewards(.15,()=>i/1000,b.name)[0];assert.ok(config.ZRSJZ_FISH_CATALOG.some(f=>f.name===award.TaskAwardName));}}
+const inv=config.ZRSJZ_INVENTORY;
+Data.Instance.PropData={store:{Name:'玉米鱼饵',CurCount:20,CurInventory:inv.仓库_全部},other:{Name:'玉米鱼饵',CurCount:2,CurInventory:inv.背包,OwnerPlayerIndex:1}};
+assert.equal(Bait.Count('玉米鱼饵',0),20);assert.equal(Bait.Consume('玉米鱼饵',0),true);assert.equal(Data.Instance.PropData.store.CurCount,19);assert.equal(Bait.Consume('',0),true);
+Data.Instance.PropData.mine={Name:'玉米鱼饵',CurCount:1,CurInventory:inv.背包,OwnerPlayerIndex:0};assert.equal(Bait.Count('玉米鱼饵',0),20);assert.equal(Bait.Consume('玉米鱼饵',0),true);assert.equal(Data.Instance.PropData.mine,undefined);assert.equal(Data.Instance.PropData.store.CurCount,19);assert.equal(Bait.Consume('玉米鱼饵',0),true);assert.equal(Data.Instance.PropData.other.CurCount,2);assert.equal(Data.Instance.PropData.store.CurCount,18);
+delete Data.Instance.PropData.store;assert.equal(Bait.Count('玉米鱼饵',0),0);assert.equal(Bait.Consume('玉米鱼饵',0),false);
+for(const location of [inv.仓库_全部,inv.仓库_物品,inv.仓库_装备,inv.仓库_武器,inv.仓库_弹药]){Data.Instance.PropData.store={Name:'玉米鱼饵',CurCount:1,CurInventory:location};assert.equal(Bait.Count('玉米鱼饵',0),1);assert.equal(Bait.Consume('玉米鱼饵',0),true);assert.equal(Data.Instance.PropData.store,undefined);}
+Fish.Ensure();assert.equal(Fish.State.offers.length,6);assert.ok(Fish.Refresh());
+Data.Instance.PropData.fish={Name:'青背鲫',CurCount:2,CurInventory:inv.背包};assert.ok(Fish.Submit('青背鲫'));Data.Instance.PropData.fish.CurInventory=inv.仓库_物品;
+assert.equal(Fish.Submit('青背鲫'),'');assert.equal(Fish.State.points,2);assert.equal(Data.Instance.PropData.fish.CurCount,1);
+Fish.State.points=10000;assert.equal(Fish.BeginExchange(0),'');const points=Fish.State.points;assert.ok(Fish.BeginExchange(0));assert.ok(Fish.Refresh());assert.equal(Fish.State.points,points);assert.ok(Fish.State.pending.ids.length);Fish.CompleteExchange();assert.ok(Fish.BeginExchange(0));assert.equal(Fish.Refresh(),'');
+assert.equal(Fish.BuyBait('玉米鱼饵'),'');assert.equal(Fish.State.pending.count,5);assert.equal(Data.Instance.Gold,994000);assert.ok(Fish.BuyBait('玉米鱼饵'));Fish.CompleteExchange();
+for(const f of config.ZRSJZ_FISH_CATALOG)assert.ok(Fish.Cost(f.name)>f.points);
+const collection=load('../73_ZRSJZ_DLC/Scripts/ZRSJZ_BoxroomConstant.ts',()=>({}));for(const n of ['赤焰龙鱼','星海幻鲲'])assert.equal(collection.GetBoxroomCategory(n),'食用品');
+for(const file of ['../73_ZRSJZ_DLC/Prefabs/Panel/活动界面.prefab','../73_ZRSJZ_DLC/Prefabs/FishJoystick.prefab']){const a=JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));function check(o){if(!o||typeof o!=='object')return;if('__id__'in o)assert.ok(a[o.__id__]);for(const v of Object.values(o))check(v);}a.forEach(check);assert.equal(a.filter(n=>n.__type__==='cc.Node'&&n._name===(file.includes('FishJoystick')?'鱼饵模板':'兑换模板')).length,1);}
+console.log('PASS: 10 fish pools; corn replacement; backpack-first then warehouse bait, excluding teammate backpack; points; purchase/claim guards; collection; prefab references.');
+Data.Versions=29;
+const defaults=load('Scripts/Service/ZRSJZ_GameDataDefaults.ts',id=>id.includes('GameData')?{ZRSJZ_GameData:Data}:id.includes('Constant')?config:{}).ZRSJZ_GameDataDefaults;
+const legacy={Versions:28,Gold:1234567,PropData:{keep:{Name:'金条',CurCount:2,CurInventory:inv.仓库_全部}},InventoryRow:{仓库_全部:25},ActivityExtractionValue:9000000,ActivityTaskClaimed:[0,1],OwnedTitles:['勇者'],EquippedTitle:'勇者',OwnedAvatarFrames:['1'],CurrentAvatarFrame:'1'};
+const props=JSON.stringify(legacy.PropData);defaults.Migrate(legacy,JSON.parse(JSON.stringify(legacy)));assert.equal(legacy.Versions,29);assert.equal(legacy.FishingFestival.points,0);assert.equal(legacy.Gold,1234567);assert.equal(legacy.InventoryRow.仓库_全部,25);assert.equal(JSON.stringify(legacy.PropData),props);assert.deepEqual(legacy.ActivityTaskClaimed,[0,1]);legacy.FishingFestival.points=77;defaults.Migrate(legacy,JSON.parse(JSON.stringify(legacy)));assert.equal(legacy.FishingFestival.points,77);
+assert.ok(config.ZRSJZ_PROP_CONFIG.get('玉米鱼饵').Description.includes('钓鱼'));
+const meta=JSON.parse(fs.readFileSync(path.join(root,'../73_ZRSJZ_DLC/Sprites/活动界面/钓鱼活动/背景.jpg.meta'),'utf8'));
+const prefab=JSON.parse(fs.readFileSync(path.join(root,'../73_ZRSJZ_DLC/Prefabs/Panel/活动界面.prefab'),'utf8'));const bg=prefab.find(n=>n._name==='钓鱼背景');assert.equal(bg._components.map(r=>prefab[r.__id__]).find(c=>c.__type__==='cc.Sprite')._spriteFrame.__uuid__,meta.uuid+'@f9941');
+const tabs=prefab.find(n=>n._name==='活动选项')._children.map(r=>prefab[r.__id__]).filter(n=>['渔获丰收','战备冲刺','月满金秋'].includes(n._name));assert.deepEqual(tabs.map(n=>n._name),['渔获丰收','战备冲刺','月满金秋']);assert.ok(tabs[0]._lpos.y>tabs[1]._lpos.y&&tabs[1]._lpos.y>tabs[2]._lpos.y);
+for(const a of JSON.parse(fs.readFileSync(path.join(root,'Tools/fishing_asset_manifest.json'),'utf8')).assets){const f=path.join(root,'Sprites/Prop/钓鱼活动',a.name+'.png');assert.ok(fs.statSync(f).size<=45000);assert.ok(fs.existsSync(f+'.meta'));}
+console.log('PASS: v28 -> v29 preserves inventory, currency, rows and task progress; repeated migration preserves points; asset limits and background UUID.');
+const configPath=path.resolve(root,'../../../tsconfig.json'),c=ts.readConfigFile(configPath,ts.sys.readFile),parsed=ts.parseJsonConfigFileContent(c.config,ts.sys,path.dirname(configPath));
+const p=ts.createProgram(parsed.fileNames.filter(f=>f.endsWith('.ts')),{...parsed.options,noEmit:true});
+const errors=ts.getPreEmitDiagnostics(p).filter(d=>d.file&&/Game_Bundles[\\/]73_ZRSJZ(?:_DLC)?[\\/]/.test(d.file.fileName));
+errors.forEach(d=>console.log(d.file.fileName,ts.flattenDiagnosticMessageText(d.messageText,'\n')));console.log('main/DLC diagnostics:',errors.length);if(errors.length)process.exitCode=1;
