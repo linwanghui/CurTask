@@ -32,7 +32,7 @@ import { ZRSJZ_BoosterShotService } from "../Service/ZRSJZ_BoosterShotService";
 import { ZRSJZ_Laser } from "../Skill/ZRSJZ_Laser";
 import { ZRSJZ_UluSkill } from '../Skill/ZRSJZ_UluSkill';
 import { ZRSJZ_LunaSkill } from '../Skill/ZRSJZ_LunaSkill';
-import { assetManager, Prefab, sp } from 'cc';
+import { assetManager, Director, Prefab, sp } from 'cc';
 import { ZRSJZ_FENGYI_HEAL_CONFIG } from '../ZRSJZ_Constant';
 const { ccclass, property } = _decorator;
 
@@ -112,8 +112,18 @@ export class ZRSJZ_Player extends Component {
         this._freezeRemaining = 0;
         this._freezeBreakSoundPlayed = false;
         this._freezeDamageElapsed = 0;
-        if (isValid(this._freezeEffect, true)) this._freezeEffect.destroy();
+        const effect = this._freezeEffect;
         this._freezeEffect = null;
+        if (isValid(effect, true)) {
+            // 3.8.6 原生 Spine 的 removeTimer 仅排队，直到下一次 middleware
+            // update 才移出渲染列表。现在 destroy 会在本帧渲染前清空 entity，
+            // 导致 SkeletonRenderer::render 空指针。先停用，跨过本帧再销毁。
+            effect.active = false;
+            effect.removeFromParent(); // 玩家/场景同时销毁时也不能提前销毁此 Spine。
+            director.once(Director.EVENT_AFTER_DRAW, () => {
+                if (isValid(effect, true)) effect.destroy();
+            });
+        }
         if (this.RigidBody && this._freezeBodyType !== null) this.RigidBody.type = this._freezeBodyType;
         this._freezeBodyType = null;
         const spine = this.PlayerSkeleton?.Skeleton;

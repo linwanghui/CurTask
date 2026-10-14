@@ -1,4 +1,4 @@
-import { _decorator, Component, EventKeyboard, EventTouch, Touch, Input, input, KeyCode, Node, UITransform, Vec2, Vec3, SpriteFrame, Sprite, Label } from 'cc';
+import { _decorator, Component, EventKeyboard, EventTouch, Touch, Input, input, KeyCode, Node, UITransform, Vec2, Vec3, SpriteFrame, Sprite, Label, instantiate, isValid } from 'cc';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_KNIFE, ZRSJZ_PANEL, ZRSJZ_ROLE_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
@@ -13,6 +13,9 @@ import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 import { ZRSJZ_EnhancementService } from '../Service/ZRSJZ_EnhancementService';
 import { ZRSJZ_SpecialOperationsTaskIcon } from '../Unit/ZRSJZ_SpecialOperationsTaskIcon';
 import { ZRSJZ_Mailbox } from '../Unit/ZRSJZ_Mailbox';
+import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
+import { ZRSJZ_ActionButton } from './ZRSJZ_ActionButton';
+import { ZRSJZ_ActionService } from '../Service/ZRSJZ_ActionService';
 const { ccclass, property } = _decorator;
 
 @ccclass('ZRSJZ_Joystick_Attack')
@@ -52,6 +55,35 @@ export class ZRSJZ_Joystick_Attack extends Component {
     private _bulletCount: Label = null;
     /** 用于识别最后一发子弹刚刚被打出的瞬间，避免初始空弹匣误触发自动换弹。 */
     private _previousMagazineAmmoCount: number = -1;
+    private _actionButton: Node = null;
+    private _actionButtonLoading = false;
+
+    /** 占位节点负责位置适配，DLC 按钮以局部原点挂载。 */
+    private async EnsureActionButton(): Promise<void> {
+        if (!ZRSJZ_UIManager.ZRSJZ_DLC || this._actionButtonLoading || isValid(this._actionButton, true)) return;
+        const holder = this.node.getChildByName('动作按钮');
+        if (!holder) return;
+        this._actionButtonLoading = true;
+        try {
+            const prefab = await ZRSJZ_Tools.LoadPrefabByBundle('73_ZRSJZ_DLC', 'Prefabs/动作按钮');
+            if (!isValid(this, true) || !isValid(holder, true) || !ZRSJZ_UIManager.ZRSJZ_DLC) return;
+            ZRSJZ_ActionService.RefreshUnlocks();
+            const button = instantiate(prefab);
+            button.setPosition(0, 0, 0);
+            const setLayer = (node: Node): void => {
+                node.layer = holder.layer;
+                node.children.forEach(setLayer);
+            };
+            setLayer(button);
+            if (!button.getComponent(ZRSJZ_ActionButton)) button.addComponent(ZRSJZ_ActionButton);
+            holder.addChild(button);
+            this._actionButton = button;
+        } catch (error) {
+            console.error('[动作] 局内按钮加载失败', error);
+        } finally {
+            this._actionButtonLoading = false;
+        }
+    }
 
     start() {
         this._searchButton = this.node.getChildByName('Search');
@@ -74,6 +106,8 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     protected onEnable(): void {
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.EnsureActionButton, this);
+        void this.EnsureActionButton();
         input.on(Input.EventType.KEY_DOWN, this.OnKeyDown, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);
@@ -83,6 +117,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     protected onDisable(): void {
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.EnsureActionButton, this);
         input.off(Input.EventType.KEY_DOWN, this.OnKeyDown, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_SEARCH, this.ShowSearch, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_PLAYER_DOOR, this.ShowDoor, this);

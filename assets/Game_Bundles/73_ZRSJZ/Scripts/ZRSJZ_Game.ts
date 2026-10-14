@@ -1,6 +1,7 @@
 import { _decorator, Camera, Color, Component, director, Director, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_ActivityService } from './Service/ZRSJZ_ActivityService';
+import { InstallZRSJZNativeTileMapFix } from './Service/ZRSJZ_NativeTileMapFix';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
@@ -891,6 +892,8 @@ export class ZRSJZ_Game extends Component {
 
     /** 双人对局准备接管 TileMap 裁剪（包括存活玩家全屏）；单人对局保持引擎原始行为。 */
     private ConfigureTileMapForPlayerCount(): void {
+        // 在地图首次提交渲染数据前安装；单人/双人均可能触发原生共享索引覆盖。
+        InstallZRSJZNativeTileMapFix();
         this.RestoreBuiltInTileMapCulling();
         this._tiledLayers.length = 0;
         if (!this.CurMap?.node?.isValid) return;
