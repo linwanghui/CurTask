@@ -1,11 +1,14 @@
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, Component, isValid, sp, Texture2D } from 'cc';
+import { _decorator, Component, Director, director, isValid, sp, Texture2D } from 'cc';
+import { NATIVE } from 'cc/env';
 import { ZRSJZ_KNIFE, ZRSJZ_SKIN_CONFIG, ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_Tools } from "../ZRSJZ_Tools";
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass } = _decorator;
+const ACTION_POSE_EVENT = NATIVE ? Director.EVENT_AFTER_UPDATE : Director.EVENT_BEFORE_DRAW;
 
 /** 角色统一使用一套完整 Spine，皮肤、动画和全部装备均操作同一个 Skeleton。 */
 @ccclass('ZRSJZ_Skeleton')
@@ -15,6 +18,70 @@ export class ZRSJZ_Skeleton extends Component {
     SkinName: string = null;
     AniName: string = "";
     WeaponryName: string = "";
+    public get IsPerformingAction(): boolean { return !!this._actionName; }
+    private _actionName = '';
+    private _actionVersion = 0;
+    private _actionComplete = false;
+    private _actionReturnAnimation = '';
+    private _actionStopped: (() => void) = null;
+    private _actionSoundStop: (() => void) = null;
+
+    /** 动作独占基础轨道；完成回调只置标记，避免在原生 Spine 回调栈中切轨。 */
+    public PlayAction(animation: string, returnAnimation: string, stopped?: () => void): boolean {
+        if (!this.enabledInHierarchy || !this.Skeleton?.findAnimation(animation)) return false;
+        this.StopAction();
+        this.OnActionStarting();
+        this._actionName = animation;
+        this._actionReturnAnimation = returnAnimation;
+        this._actionStopped = stopped ?? null;
+        this._actionComplete = false;
+        const version = ++this._actionVersion;
+        this.Skeleton.clearTracks();
+        this.Skeleton.setToSetupPose();
+        const entry = this.Skeleton.setAnimation(0, animation, false);
+        this.Skeleton.setTrackCompleteListener(entry, () => {
+            if (version === this._actionVersion) this._actionComplete = true;
+        });
+        director.on(ACTION_POSE_EVENT, this.UpdateActionPose, this);
+        this.HideActionWeapons();
+        this._actionSoundStop = ZRSJZ_AudioManager.Instance?.PlayActionSound(
+            animation, director.getScene()?.name === 'ZRSJZ_Start') ?? null;
+        return true;
+    }
+
+    public StopAction(restore = true): void {
+        if (!this.IsPerformingAction) return;
+        ++this._actionVersion;
+        this._actionName = '';
+        this._actionComplete = false;
+        this._actionSoundStop?.();
+        this._actionSoundStop = null;
+        director.off(ACTION_POSE_EVENT, this.UpdateActionPose, this);
+        const stopped = this._actionStopped;
+        this._actionStopped = null;
+        if (isValid(this.Skeleton, true)) {
+            this.Skeleton.clearTrack(0);
+            // 还原踢球等动作独有的槽位和骨骼，防止球或变形残留。
+            this.Skeleton.setToSetupPose();
+            if (restore) {
+                this.RefreshEquipmentAppearance();
+                if (this._actionReturnAnimation) this.PlayAni(this._actionReturnAnimation, true);
+            }
+        }
+        if (restore) stopped?.();
+    }
+
+    private UpdateActionPose(): void {
+        if (!this.enabledInHierarchy) { this.StopAction(false); return; }
+        if (this._actionComplete) { this.StopAction(); return; }
+        this.HideActionWeapons();
+    }
+
+    private HideActionWeapons(): void {
+        this.Skeleton.findSlot('dao')?.setAttachment(null);
+        ZRSJZ_WEAPONRY_TYPE.forEach((_names, slot) => this.Skeleton.findSlot(slot)?.setAttachment(null));
+    }
+    protected OnActionStarting(): void { }
 
     /**
      * Cocos 3.8.6 的 Android JSB 会在 getAttachment/getAttachmentByName 查询不到
@@ -62,6 +129,7 @@ export class ZRSJZ_Skeleton extends Component {
     }
 
     protected onDestroy(): void {
+        this.StopAction(false);
         if (!this.UsesPlayerDLCAppearance) return;
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.LoadDLCSkeleton, this);
     }
@@ -112,6 +180,7 @@ export class ZRSJZ_Skeleton extends Component {
     protected OnSkeletonDataChanged(): void { }
 
     SetSkin(skinName: string): void {
+        this.StopAction();
         if (!this.UsesPlayerDLCAppearance) {
             const skinConfig = ZRSJZ_SKIN_CONFIG.get(skinName);
             if (!skinConfig || !this.Skeleton) return;

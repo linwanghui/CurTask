@@ -41,6 +41,33 @@ export class ZRSJZ_Player extends Component {
     /** 0 为玩家1，1 为玩家2；所有战斗输入和装备读取都以此隔离。 */
     PlayerIndex: number = 0;
     public IsFishing = false;
+    public get IsPerformingAction(): boolean { return !!this.PlayerSkeleton?.IsPerformingAction; }
+
+    public BeginAction(animation: string): boolean {
+        const game = ZRSJZ_Game.Instance;
+        if (!game || game.GamePaused || game.IsGameFinished || this.IsDead || !this.enabledInHierarchy
+            || this.IsFrozen || this.IsFishing || this._isSlide || this._isStop || this._isLaserCasting
+            || this._uluCastLoading || this._lunaLoading || this.PlayerSkeleton?.IsUluSkillPlaying
+            || !this.PlayerSkeleton?.Skeleton?.findAnimation(animation)) return false;
+        this.CancelGunAttackState();
+        this.CancelKnifeAttackState();
+        this.Reload(0, true, this.PlayerIndex);
+        this.ResetMovement();
+        for (const root of [game.OnePlayerModel, game.TwoPlayerModel]) {
+            if (!isValid(root, true)) continue;
+            for (const control of root.getComponentsInChildren('ZRSJZ_Joystick_Attack') as any[]) {
+                if (control.PlayerIndex === this.PlayerIndex) control.ResetFishingInput();
+            }
+        }
+        game.CancelEvacuation(this.PlayerIndex);
+        return this.PlayerSkeleton.PlayAction(animation,
+            this.WeaponType === '枪' ? ZRSJZ_ANI.Idle_Q : ZRSJZ_ANI.Idle_D1, () => {
+                this._aniName = '';
+                if (this.enabledInHierarchy && !this.IsDead) this.AniSwitch();
+            });
+    }
+
+    public StopAction(): void { this.PlayerSkeleton?.StopAction(); }
     public get IsFrozen(): boolean { return this._freezeRemaining > 0; }
     private _freezeRemaining = 0;
     private _freezeDamageElapsed = 0;
@@ -55,6 +82,7 @@ export class ZRSJZ_Player extends Component {
         const game = ZRSJZ_Game.Instance;
         if (!game || game.GamePaused || game.IsGameFinished || this.IsDead || this.IsFrozen
             || !this.enabledInHierarchy || !ZRSJZ_UIManager.ZRSJZ_DLC) return;
+        this.StopAction();
         this.EndFishing();
         this.CancelUluSkill();
         this.CancelGunAttackState();
@@ -173,6 +201,7 @@ export class ZRSJZ_Player extends Component {
 
     /** 钓鱼不改装备数据，仅锁定战斗输入和切换外观。 */
     public BeginFishing(point: Node): boolean {
+        this.StopAction();
         const spine = this.PlayerSkeleton?.Skeleton;
         if (this.IsDead || this.IsFrozen || this.IsFishing || this._isStop || this._isSlide || this._isLaserCasting
             || this._uluCastLoading || this._lunaLoading || this._fengYiLoading || this.PlayerSkeleton.IsUluSkillPlaying
@@ -661,6 +690,7 @@ export class ZRSJZ_Player extends Component {
     }
 
     protected onDisable(): void {
+        this.PlayerSkeleton?.StopAction(false);
         this.ClearFrozen();
         this._lunaVersion++;
         this._lunaLoading = false;
@@ -699,6 +729,11 @@ export class ZRSJZ_Player extends Component {
             }
         }
         if (this.IsFishing) this.AlignFishingPoint();
+        if (this.IsPerformingAction) {
+            this.RigidBody.linearVelocity = v2(0, 0);
+            if (this.IsDead || ZRSJZ_Game.Instance.IsGameFinished) this.StopAction();
+            return;
+        }
         if (ZRSJZ_Game.Instance.GamePaused || this._isStop || this.IsFishing || this.IsFrozen) {
             this.RigidBody.linearVelocity = v2(0, 0);
             return;
@@ -787,9 +822,10 @@ export class ZRSJZ_Player extends Component {
 
     //#region 技能
     Skill(skillName: string, dirX?: number, dirY?: number, radius?: number, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        this.StopAction();
         if (this.IsFrozen) return;
         if (this.IsFishing) return;
-        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (skillName === '露娜' || skillName === '风翎') {
             void this.CastLuna();
             return;
@@ -1002,6 +1038,7 @@ export class ZRSJZ_Player extends Component {
 
     Move(x: number, y: number, radius: number, playerIndex?: number) {
         if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        if (x !== 0 || y !== 0) this.StopAction();
         if (this.IsFrozen || this.IsFishing || this._isStop || this.IsDead || (x === 0 && y === 0)) {
             this.ResetMovement();
             return;
@@ -1020,9 +1057,10 @@ export class ZRSJZ_Player extends Component {
     }
     //#region 攻击
     Attack(fireing: boolean, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        if (fireing) this.StopAction();
         if (this.IsFrozen) return;
         if (this.IsFishing) return;
-        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isSlide || this._isStop || this._isLaserCasting) return;
         if (!fireing) {
             if (this.WeaponType === "刀") {
@@ -1294,9 +1332,10 @@ export class ZRSJZ_Player extends Component {
     //#region 武器切换
     private _curKnifeName: string = "";
     SwitchWeapon(weaponType: string, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        this.StopAction();
         if (this.IsFrozen) return;
         if (this.IsFishing) return;
-        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (this._isLaserCasting) return;
         const weaponryIndex = weaponType === "枪" ? 0 : (weaponType === "刀" ? 4 : -1);
         const weaponID = weaponryIndex >= 0
@@ -1471,6 +1510,7 @@ export class ZRSJZ_Player extends Component {
 
     //#region 受到打击
     BeHit(harm: number) {
+        if (harm > 0) this.StopAction();
         const game = ZRSJZ_Game.Instance;
         // 暂停不会撤回已经触发的碰撞/动画攻击回调，伤害入口必须再次检查。
         if (!game || game.GamePaused || game.IsGameFinished || this.CurHP <= 0) return;
@@ -1588,9 +1628,10 @@ export class ZRSJZ_Player extends Component {
 
     //#region 换弹
     Reload(fill: number, isCancelled: boolean = false, playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        if (!isCancelled) this.StopAction();
         if (this.IsFrozen && !isCancelled) return;
         if (this.IsFishing && !isCancelled) return;
-        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         if (isCancelled) {
             this._isReloading = false;
             if (this.Reloading) this.Reloading.active = false;
@@ -1887,9 +1928,10 @@ export class ZRSJZ_Player extends Component {
 
     //#region 滑动
     Slide(playerIndex?: number) {
+        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
+        this.StopAction();
         if (this.IsFrozen) return;
         if (this.IsFishing) return;
-        if (playerIndex !== undefined && playerIndex !== this.PlayerIndex) return;
         // 挥刀使用 Track 1；中途清除会让刀光等附件停在当前帧，因此必须等待动画自然结束。
         if (
             this._isStop

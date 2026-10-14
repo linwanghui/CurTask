@@ -83,6 +83,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     }
 
     protected onDisable(): void {
+        this.StopAction(false);
         director.off(AIM_UPDATE_EVENT, this.UpdateAimAndAttack, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
@@ -169,6 +170,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
     /** Track 0：待机、移动、滑铲和死亡等基础全身状态。 */
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null): void {
+        this.StopAction();
         if (!this.Skeleton) return;
         this.AniName = aniName;
         this.Skeleton.setAnimation(0, aniName, loop);
@@ -275,7 +277,14 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     /** 动画事件只排队，待骨骼姿态与本帧绘制一致后执行。 */
     QueueAttackAfterAim(callback: () => void): void { this._afterAimAttack = callback; }
 
+    protected OnActionStarting(): void {
+        this.ClearAttackAnimation();
+        this.ClearUluSkill();
+        this._trackCompleteCallbacks.clear();
+    }
+
     private UpdateAimAndAttack(): void {
+        if (this.IsPerformingAction) return;
         if (this.IsFishing) this.RestoreFishingRod();
         this.ApplyAimDirection();
         const attack = this._afterAimAttack;

@@ -25,7 +25,7 @@ function fixture(native, oldEvent = false) {
     const aim = new Aim();
     Object.assign(aim, { _mzBone: { x: 0, y: 0 }, HasDirection: true, Facing: 1,
         AimAngleOffset: 17, _baseScale: { x: 1, y: 1, z: 1 }, _trackCompleteCallbacks: new Map(),
-        Show() {}, ClearAttackAnimation() { this._afterAimAttack = null; }, ClearUluSkill() {},
+        Show() {}, StopAction() {}, ClearAttackAnimation() { this._afterAimAttack = null; }, ClearUluSkill() {},
         node: { setScale(x) { aim.scale = x; } },
         Skeleton: { _skeleton: { updateWorldTransform() { aim.pose = [aim._mzBone.x, aim._mzBone.y, aim.scale]; } } },
     });

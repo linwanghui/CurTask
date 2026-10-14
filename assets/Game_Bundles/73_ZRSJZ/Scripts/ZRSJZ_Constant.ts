@@ -2996,11 +2996,12 @@ export const ZRSJZ_VORTEX_CONFIG = {
 /** 名称必须与 DLC/Sprites/动作系统/动作 中的图片名一致。 */
 export interface ZRSJZ_ActionConfig {
     Name: string;
+    Animation: string;
     Unlock: { Type: 'default' | 'level' | 'manual'; Level?: number; Description: string };
 }
 export const ZRSJZ_ACTION_MAX_EQUIPPED = 4;
 export const ZRSJZ_ACTION_CONFIG: ZRSJZ_ActionConfig[] = [
-    { Name: '浪子踢球', Unlock: { Type: 'default', Description: '默认解锁' } },
-    { Name: '狗熊哆嗦毛', Unlock: { Type: 'default', Description: '默认解锁' } },
-    { Name: '闪身步', Unlock: { Type: 'default', Description: '默认解锁' } },
+    { Name: '浪子踢球', Animation: '浪子踢球', Unlock: { Type: 'default', Description: '默认解锁' } },
+    { Name: '奶龙笑', Animation: '奶龙笑', Unlock: { Type: 'default', Description: '默认解锁' } },
+    { Name: '闪身步', Animation: '闪身步', Unlock: { Type: 'default', Description: '默认解锁' } },
 ];

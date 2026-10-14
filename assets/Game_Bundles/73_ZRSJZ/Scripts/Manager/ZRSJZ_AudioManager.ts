@@ -1,4 +1,4 @@
-import { _decorator, AudioClip, AudioSource, Component, error, Node } from 'cc';
+import { _decorator, AudioClip, AudioSource, Component, error, isValid, Node } from 'cc';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 const { ccclass, property } = _decorator;
 
@@ -12,6 +12,47 @@ export class ZRSJZ_AudioManager extends Component {
     private _curMusic: string = "";
     private _curMusicAudioSource: AudioSource = null;
     private _soleSoundName: string[] = [];
+    private readonly _actionSounds = new Set<{ name: string; source: AudioSource; users: number }>();
+
+    /** 返回本次播放的停止句柄，不复用普通音效池，避免旧动作误停后来播放的音效。 */
+    public PlayActionSound(name: string, shared = false): () => void {
+        if (ZRSJZ_GameData.Instance.SoundMute) return () => { };
+        const clip = this.AudioClipMaps.get(name + '_DLC');
+        if (!clip) return () => { }; // 未加载 DLC 音频时保持动作可用。
+        let sound: { name: string; source: AudioSource; users: number } = null;
+        if (shared) this._actionSounds.forEach(item => {
+            if (item.name === name) sound = item;
+        });
+        if (!sound) {
+            const node = new Node('动作音效_' + name);
+            this.node.addChild(node);
+            const source = node.addComponent(AudioSource);
+            source.clip = clip;
+            source.loop = false;
+            source.volume = 1;
+            sound = { name, source, users: 0 };
+            this._actionSounds.add(sound);
+            const current = sound;
+            node.once(AudioSource.EventType.ENDED, () => this.EndActionSound(current));
+            source.play();
+        }
+        const current = sound;
+        current.users++;
+        let released = false;
+        return () => {
+            if (released) return;
+            released = true;
+            if (--current.users === 0) this.EndActionSound(current);
+        };
+    }
+
+    private EndActionSound(sound: { name: string; source: AudioSource; users: number }): void {
+        if (!this._actionSounds.delete(sound)) return;
+        if (isValid(sound.source, true)) {
+            sound.source.stop();
+            sound.source.node.destroy();
+        }
+    }
 
     Init() {
         this.node.on(AudioSource.EventType.ENDED, this.onPlayEnded, this);

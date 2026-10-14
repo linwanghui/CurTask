@@ -75,7 +75,8 @@ export class ZRSJZ_Joystick_Attack extends Component {
                 node.children.forEach(setLayer);
             };
             setLayer(button);
-            if (!button.getComponent(ZRSJZ_ActionButton)) button.addComponent(ZRSJZ_ActionButton);
+            const action = button.getComponent(ZRSJZ_ActionButton) ?? button.addComponent(ZRSJZ_ActionButton);
+            action.PlayerIndex = this.PlayerIndex;
             holder.addChild(button);
             this._actionButton = button;
         } catch (error) {
@@ -194,6 +195,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
 
     //#region 射击
     OnTouchStart_Attack(event: EventTouch) {
+        ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.StopAction();
         if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) return;
         // 使用当前变更的触点，避免快速点击时 getTouches() 的活动触点列表为空或发生错配。
         if (!this._attackTouch && event.touch) this._attackTouch = event.touch;
@@ -249,6 +251,7 @@ export class ZRSJZ_Joystick_Attack extends Component {
     }
 
     OnButtonClick(event: EventTouch) {
+        ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.StopAction();
         if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) return;
         if (ZRSJZ_UIManager.Dragging) return;
         switch (event.getCurrentTarget().name) {

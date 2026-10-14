@@ -6,6 +6,7 @@ const { ccclass } = _decorator;
 
 @ccclass('ZRSJZ_ActionButton')
 export class ZRSJZ_ActionButton extends Component {
+    public PlayerIndex = 0;
     private disc: Node = null;
     private pointer: Node = null;
     private custom: Node = null;
@@ -125,7 +126,7 @@ export class ZRSJZ_ActionButton extends Component {
     }
     private Select(index: number): void {
         if (this.animating || !this.opened) return;
-        if (index >= 0 && index < 4) ZRSJZ_ActionService.Play(index);
+        if (index >= 0 && index < 4) ZRSJZ_ActionService.Play(index, this.PlayerIndex);
         this.CloseDisc();
     }
     private OpenDisc(): void {
