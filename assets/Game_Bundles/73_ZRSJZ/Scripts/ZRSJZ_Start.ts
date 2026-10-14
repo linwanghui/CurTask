@@ -1,3 +1,6 @@
+import { ZRSJZ_ActionButton } from './Controller/ZRSJZ_ActionButton';
+import { ZRSJZ_ActionService } from './Service/ZRSJZ_ActionService';
+import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_MainReminderService } from './Service/ZRSJZ_MainReminderService';
 import { ZRSJZ_BattlePassService } from './Service/ZRSJZ_BattlePassService';
 import { ZRSJZ_ActionSuppliesService } from './Service/ZRSJZ_ActionSuppliesService';
@@ -206,6 +209,8 @@ export class ZRSJZ_Start extends Component {
     }
 
     protected onEnable(): void {
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.EnsureActionButton, this);
+        void this.EnsureActionButton();
         this.RefreshSidebarUnlocks();
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE, this.RefreshMainReminders, this);
         ZRSJZ_EventManager.On(ZRSJZ_MyEvent.ZRSJZ_AUDIO_INIT, () => {
@@ -221,6 +226,7 @@ export class ZRSJZ_Start extends Component {
     }
 
     protected onDisable(): void {
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.EnsureActionButton, this);
         if (this._uiLoadedCallback) {
             ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_UI, this._uiLoadedCallback, this);
             this._uiLoadedCallback = null;
@@ -450,7 +456,37 @@ export class ZRSJZ_Start extends Component {
     private _petPreviewTimer = 0;
     private _petPreviews: Node[] = [];
 
+    private _actionButtonLoading = false;
+    private _actionButton: Node = null;
+    private _actionRetryTime = 0;
+    private async EnsureActionButton(): Promise<void> {
+        if (!ZRSJZ_UIManager.ZRSJZ_DLC || this._actionButtonLoading || isValid(this._actionButton, true)) return;
+        const visit = (node: Node): Node => {
+            if (node.name === '动作_主页') return node;
+            for (const child of node.children) { const found = visit(child); if (found) return found; }
+            return null;
+        };
+        // 控制脚本节点与 Canvas 是兄弟节点，挂载点位于 Canvas/UI 中。
+        const holder = visit(this.UIPanel ?? director.getScene() ?? this.node);
+        if (!holder) return;
+        this._actionButtonLoading = true;
+        try {
+            const prefab = await ZRSJZ_Tools.LoadPrefabByBundle('73_ZRSJZ_DLC', 'Prefabs/动作按钮');
+            if (!isValid(this, true) || !this.node.activeInHierarchy || !isValid(holder, true)) return;
+            ZRSJZ_ActionService.RefreshUnlocks();
+            const button = instantiate(prefab);
+            button.parent = holder; button.setPosition(0, 0, 0);
+            const setLayer = (node: Node): void => { node.layer = holder.layer; node.children.forEach(setLayer); };
+            setLayer(button);
+            if (!button.getComponent(ZRSJZ_ActionButton)) button.addComponent(ZRSJZ_ActionButton);
+            this._actionButton = button;
+        } catch (error) { console.error('[动作] 按钮加载失败', error); }
+        finally { this._actionButtonLoading = false; }
+    }
+
     protected update(dt: number): void {
+        this._actionRetryTime += dt;
+        if (this._actionRetryTime >= 1) { this._actionRetryTime = 0; void this.EnsureActionButton(); }
         this._petPreviewTimer += dt;
         if (this._petPreviewTimer < 0.3) return;
         this._petPreviewTimer = 0;

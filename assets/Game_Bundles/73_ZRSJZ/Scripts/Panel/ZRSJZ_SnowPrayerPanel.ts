@@ -3,6 +3,7 @@ import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_SnowPrayer, ZRSJZ_SNOW_PRAYER_PANEL } from '../Controller/ZRSJZ_SnowPrayer';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 const { ccclass } = _decorator;
 interface Stone { node: Node; home: Vec3; slot: Node; }
 
@@ -141,6 +142,7 @@ export class ZRSJZ_SnowPrayerPanel extends ZRSJZ_Panel {
             }
             stone.slot = target;
             stone.node.setWorldPosition(target.worldPosition);
+            ZRSJZ_AudioManager.Instance?.PlaySound('石板拖动');
         } else this.ReturnHome(stone);
         this.CheckSolution();
     }
@@ -165,7 +167,9 @@ export class ZRSJZ_SnowPrayerPanel extends ZRSJZ_Panel {
         this._highlight.active = true;
         const opacity = this._highlight.getComponent(UIOpacity) ?? this._highlight.addComponent(UIOpacity);
         opacity.opacity = 255;
-        tween(opacity).repeat(3, tween().to(0.18, { opacity: 40 }).to(0.18, { opacity: 255 }))
+        tween(opacity).repeat(3, tween().to(0.18, { opacity: 40 })
+            .call(() => { ZRSJZ_AudioManager.Instance?.PlaySound('叮'); })
+            .to(0.18, { opacity: 255 }))
             .call(() => { void finish(); }).start();
     }
 

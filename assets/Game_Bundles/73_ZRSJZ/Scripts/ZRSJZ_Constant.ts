@@ -2977,6 +2977,7 @@ export const ZRSJZ_ICE_BUTTERFLY_CONFIG = {
     DamageInterval: 0.3,
     EffectPath: 'Prefabs/Unit/Map/冰冻',
     AnimationName: 'bd', // 非循环播放完成后解除冻结。
+    BreakSoundTime: 1.5667, // bd 动画冰块开始淡出时播放破碎音效。
     EffectCenter: { x: 252.46, y: 130.87 }, // 父骨骼与冰块骨骼偏移相加，校正到玩家碰撞体中心。
 };
 
@@ -2987,3 +2988,19 @@ export const ZRSJZ_VORTEX_CONFIG = {
     CenterSoftRadius: 30, // 世界坐标像素；靠近中心时减弱，避免反复穿过中心。
     EdgeFadeRatio: 0.4, // 范围最外侧40%逐渐减弱。
 };
+
+
+//#region 动作系统
+
+
+/** 名称必须与 DLC/Sprites/动作系统/动作 中的图片名一致。 */
+export interface ZRSJZ_ActionConfig {
+    Name: string;
+    Unlock: { Type: 'default' | 'level' | 'manual'; Level?: number; Description: string };
+}
+export const ZRSJZ_ACTION_MAX_EQUIPPED = 4;
+export const ZRSJZ_ACTION_CONFIG: ZRSJZ_ActionConfig[] = [
+    { Name: '浪子踢球', Unlock: { Type: 'default', Description: '默认解锁' } },
+    { Name: '狗熊哆嗦毛', Unlock: { Type: 'default', Description: '默认解锁' } },
+    { Name: '闪身步', Unlock: { Type: 'default', Description: '默认解锁' } },
+];

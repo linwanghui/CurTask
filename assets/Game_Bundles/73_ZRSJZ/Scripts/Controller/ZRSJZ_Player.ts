@@ -44,6 +44,7 @@ export class ZRSJZ_Player extends Component {
     public get IsFrozen(): boolean { return this._freezeRemaining > 0; }
     private _freezeRemaining = 0;
     private _freezeDamageElapsed = 0;
+    private _freezeBreakSoundPlayed = false;
     private _freezeVersion = 0;
     private _freezeEffect: Node = null;
     private _freezeBodyType: ERigidBody2DType = null;
@@ -74,6 +75,8 @@ export class ZRSJZ_Player extends Component {
         }
         // 状态由冰冻动画完整播放完成解除，不用固定秒数倒计时。
         this._freezeRemaining = 1;
+        this._freezeBreakSoundPlayed = false;
+        ZRSJZ_AudioManager.Instance?.PlaySound('冰冻');
         this._freezeDamageElapsed = 0;
         this._freezePosition.set(this.node.worldPosition);
         const spine = this.PlayerSkeleton?.Skeleton;
@@ -107,6 +110,7 @@ export class ZRSJZ_Player extends Component {
     public ClearFrozen(): void {
         ++this._freezeVersion;
         this._freezeRemaining = 0;
+        this._freezeBreakSoundPlayed = false;
         this._freezeDamageElapsed = 0;
         if (isValid(this._freezeEffect, true)) this._freezeEffect.destroy();
         this._freezeEffect = null;
@@ -136,9 +140,15 @@ export class ZRSJZ_Player extends Component {
             spine.timeScale = game.GamePaused ? 0 : 1;
             return; // 首帧等待 Spine 将动画附件应用到槽位。
         }
-        if (!spine || track?.isComplete()) { this.ClearFrozen(); return; }
+        if (!spine) { this.ClearFrozen(); return; }
         spine.timeScale = game.GamePaused ? 0 : 1;
         if (game.GamePaused) return;
+        if (track && !this._freezeBreakSoundPlayed
+            && track.trackTime >= ZRSJZ_ICE_BUTTERFLY_CONFIG.BreakSoundTime) {
+            this._freezeBreakSoundPlayed = true;
+            ZRSJZ_AudioManager.Instance?.PlaySound('冰块破碎');
+        }
+        if (track?.isComplete()) { this.ClearFrozen(); return; }
         const elapsed = Math.max(0, dt);
         this._freezeDamageElapsed += elapsed;
         const interval = Math.max(0.05, ZRSJZ_ICE_BUTTERFLY_CONFIG.DamageInterval);

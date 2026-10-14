@@ -68,6 +68,20 @@ export class ZRSJZ_AudioManager extends Component {
         sound.play();
     }
 
+    public PlaySoundByDLC(audioName: string, valume: number = 1) {
+        if (ZRSJZ_GameData.Instance.SoundMute) return;
+        if (!this.AudioClipMaps.has(audioName + "_DLC")) {
+            error(`音频不存在: ${audioName}`);
+            return;
+        }
+
+        const sound = this.getIdleSource();
+        sound.clip = this.AudioClipMaps.get(audioName + "_DLC");
+        sound.loop = false;
+        sound.volume = valume;
+        sound.play();
+    }
+
     public PlaySoleSound(audioName: string, valume: number = 1) {
         if (ZRSJZ_GameData.Instance.SoundMute) return;
         if (!this.AudioClipMaps.has(audioName)) {
