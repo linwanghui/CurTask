@@ -1,0 +1,58 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+class Vec3{set(){}}
+const listeners=new Set();
+const cc={_decorator:{ccclass:()=>c=>c},Component:class{},Vec3,Director:{EVENT_BEFORE_DRAW:'draw'},director:{on:(e,f,c)=>listeners.add(c),off:(e,f,c)=>listeners.delete(c)},isValid:o=>!!o&&!o.destroyed};
+const game={GamePaused:false,IsGameFinished:false};let consumed=0,complete=false,animation='';
+class Round{Result='playing';Update(){};}
+function load(file,require){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText,{exports,require,console,Math});return exports;}
+const deps=id=>id==='cc'?cc:id.endsWith('/ZRSJZ_Game')?{ZRSJZ_Game:{Instance:game}}:id.endsWith('/ZRSJZ_FishingRound')?{ZRSJZ_FishingRound:Round}:id.endsWith('/ZRSJZ_FishingBaitService')?{ZRSJZ_FishingBaitService:{Consume(){consumed++;return true;}}}:{};
+const Line=load('Scripts/Controller/ZRSJZ_FishingLine.ts',deps).ZRSJZ_FishingLine;
+const Coordinator=load('Scripts/Controller/ZRSJZ_Fishing.ts',deps).ZRSJZ_Fishing;
+const coordinator=new Coordinator();
+coordinator.PlayAnimation=(s,a)=>{animation=a;};coordinator.RenderProgress=()=>{};
+function session(){
+ const line=new Line();line.node={active:true};let clears=0;
+ line._graphics={clear(){clears++;}};line._ripple={active:true,destroy(){this.destroyed=true;}};line._area={};
+ line.onEnable();const ripple=line._ripple;
+ const s={state:'ready',player:{PlayerIndex:0,node:{setWorldRotation(){}},PlayerSkeleton:{Skeleton:{getCurrent:()=>({animation:{name:animation},isComplete:()=>complete})}},EndFishing(){assert.equal(ripple.active,false);assert.equal(ripple.destroyed,true);assert.equal(listeners.has(line),false);}},line,cast:{active:true},reel:{active:false},progress:{active:false},attack:{node:{active:false}},ui:{active:true,destroy(){this.destroyed=true;}},drugNodes:[],rotation:{}};
+ return s;
+}
+for(let i=0;i<20;i++){
+ const s=session();coordinator._sessions.push(s);complete=false;
+ coordinator.Cast(s);assert.equal(s.state,'casting');assert.equal(s.line.node.active,false);assert.equal(animation,'dy1');
+ coordinator.UpdateSession(s,.1);assert.equal(s.state,'casting');
+ if(i%2){complete=true;coordinator.UpdateSession(s,.1);assert.equal(s.state,'waiting');assert.equal(animation,'dy2');coordinator.UpdateSession(s,4);assert.equal(s.state,'pulling');}
+ coordinator.Exit(s);assert.equal(coordinator._sessions.length,0);assert.equal(s.ui.active,false);assert.equal(s.attack.node.active,true);assert.equal(s.line._disposed,true);
+ s.line.SetState('waiting',1);s.line.onEnable();assert.equal(s.line.node.active,false);assert.equal(listeners.size,0);
+ const before=consumed;coordinator.Cast(s);coordinator.Exit(s);assert.equal(consumed,before);
+ s.line.onDestroy();assert.equal(listeners.size,0);
+}
+console.log('PASS: 20 cast/cancel/re-enter cycles; cast completion gates line display; immediate ripple cleanup and listener removal; stale session callbacks blocked; disposal idempotent.');
+
+// 实际 finishing 分支必须等 Spine 完成，再累计半秒；每次只触发展示一次。
+let shown=0;
+coordinator.ShowReward=async()=>{shown++;};
+const caught=session();coordinator._sessions.push(caught);
+caught.state='finishing';caught.elapsed=0;caught.round={Result:'success'};
+caught.rewards=Promise.resolve([{TaskAwardName:'青背鲫',TaskAwardCount:1}]);
+caught.player.PlayerSkeleton.Skeleton.findAnimation=()=>({duration:.667});
+animation='dy4';complete=false;
+coordinator.UpdateSession(caught,5);assert.equal(shown,0);assert.equal(caught.catchDelay,undefined);
+complete=true;coordinator.UpdateSession(caught,.016);assert.equal(caught.catchDelay,0);assert.equal(shown,0);
+coordinator.UpdateSession(caught,.3);assert.equal(shown,0);assert.equal(caught.state,'finishing');
+coordinator.UpdateSession(caught,.2);assert.equal(shown,1);assert.equal(caught.state,'ready');
+coordinator.UpdateSession(caught,1);assert.equal(shown,1);coordinator.Exit(caught);
+
+// 真实异步展示方法：退出旧会话后奖励发放完成，也不能在新界面突然弹窗。
+(async()=>{
+ let popups=0,resolve;
+ const ui={ShowPanel:async()=>{popups++;}};
+ const Actual=load('Scripts/Controller/ZRSJZ_Fishing.ts',id=>id.endsWith('/ZRSJZ_UIManager')?{ZRSJZ_UIManager:{Instance:ui}}:id.endsWith('/ZRSJZ_Constant')?{ZRSJZ_PANEL:{获取奖励弹窗:'reward'}}:deps(id)).ZRSJZ_Fishing;
+ const instance=new Actual(),s={};instance._sessions.push(s);
+ const pending=new Promise(r=>resolve=r);
+ const display=instance.ShowReward(pending,s);instance._sessions=[];
+ resolve([{TaskAwardName:'青背鲫',TaskAwardCount:1}]);await display;assert.equal(popups,0);
+ instance._sessions.push(s);await instance.ShowReward(Promise.resolve([{TaskAwardName:'青背鲫',TaskAwardCount:1}]),s);assert.equal(popups,1);
+ console.log('PASS: catch waits for Spine completion + 0.5s; popup once; exited session suppresses late reward popup.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

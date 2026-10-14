@@ -2910,16 +2910,17 @@ export const ZRSJZ_FISH_CATALOG = [
 ];
 export const ZRSJZ_FISHING_BAITS = [
     { name: '', weights: [65, 25, 8, 1.8, 0.2] },
-    { name: '玉米鱼饵', weights: [45, 32, 17, 5, 1] },
-    { name: '鲜虾鱼饵', weights: [25, 33, 27, 12, 3] },
-    { name: '磷光鱼饵', weights: [10, 23, 35, 24, 8] },
+    // 顺序：绿、蓝、紫、金、红；金红固定，其余按原绿蓝紫比例分配剩余概率。
+    { name: '玉米鱼饵', weights: [45.91, 32.65, 17.34, 3.6, 0.5] },
+    { name: '鲜虾鱼饵', weights: [27.09, 35.76, 29.25, 7, 0.9] },
+    { name: '磷光鱼饵', weights: [12.72, 29.26, 44.52, 12, 1.5] },
 ];
 export function ZRSJZ_RollFishingRewards(width: number, random: () => number = Math.random, bait = ''): ZRSJZ_MainTaskAwardConfig[] {
     if (!Number.isFinite(width)) return [];
     const weights = [...(ZRSJZ_FISHING_BAITS.find(b => b.name === bait) ?? ZRSJZ_FISHING_BAITS[0]).weights];
-    // Narrower green window modestly rewards harder catches, without changing bait ordering.
+    // 难度加成仅把绿色概率转为紫色，金色/红色始终保持鱼饵配置的精确概率。
     const bonus = Math.max(0, Math.min(1, (0.2 - width) / 0.15)) * 4;
-    weights[0] -= bonus; weights[2] += bonus * 0.5; weights[3] += bonus * 0.35; weights[4] += bonus * 0.15;
+    weights[0] -= bonus; weights[2] += bonus;
     let roll = Math.max(0, Math.min(1 - Number.EPSILON, random())) * 100, tier = 4;
     for (let i = 0; i < weights.length; i++) { roll -= weights[i]; if (roll < 0) { tier = i; break; } }
     const variant = Math.min(1, Math.max(0, Math.floor(random() * 2)));

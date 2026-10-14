@@ -3,6 +3,7 @@ import { ZRSJZ_Game } from '../ZRSJZ_Game';
 import { ZRSJZ_FISHING_CONFIG, ZRSJZ_RollFishingRewards, ZRSJZ_MainTaskAwardConfig, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
+import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Player } from './ZRSJZ_Player';
 import { ZRSJZ_FishingLine } from './ZRSJZ_FishingLine';
 import { ZRSJZ_Joystick_Attack } from './ZRSJZ_Joystick_Attack';
@@ -37,6 +38,7 @@ interface FishingSession {
     line: ZRSJZ_FishingLine;
     baitBar?: ZRSJZ_FishingBaitBar;
     bait?: string;
+    catchDelay?: number;
     drugNodes?: { node: Node; active: boolean }[];
 }
 
@@ -177,7 +179,8 @@ export class ZRSJZ_Fishing extends Component {
         session.cast.on(Button.EventType.CLICK, () => this.Cast(session), this);
         // Button.CLICK 每次点击只触发一次；不监听长按和 TOUCH_START。
         session.reel.on(Button.EventType.CLICK, () => {
-            if (session.state === 'pulling' && !game.GamePaused) {
+            if (this._sessions.includes(session) && session.state === 'pulling' && !game.GamePaused) {
+                ZRSJZ_AudioManager.Instance?.PlaySound('拉鱼线');
                 session.round.Pull();
                 session.line?.Pull();
                 this.PlayAnimation(session, 'dy3', true);
@@ -267,19 +270,20 @@ export class ZRSJZ_Fishing extends Component {
     }
 
     private Cast(session: FishingSession): void {
-        if (session.state !== 'ready' || ZRSJZ_Game.Instance.GamePaused) return;
+        if (!this._sessions.includes(session) || session.state !== 'ready' || ZRSJZ_Game.Instance.GamePaused) return;
         const bait = session.baitBar?.selected ?? '';
         if (!ZRSJZ_FishingBaitService.Consume(bait, session.player.PlayerIndex)) {
-            void ZRSJZ_UIManager.Instance.ShowTip('背包和仓库鱼饵不足，请更换鱼饵或选择空鱼饵');
+            void ZRSJZ_UIManager.Instance.ShowTip('暂无鱼饵，可以在活动-鱼获丰收购买');
             session.baitBar?.Render(); return;
         }
         session.bait = bait;
         session.baitBar?.Render();
-        session.state = 'waiting';
+        session.state = 'casting';
         session.elapsed = 0;
         session.biteTime = 1 + Math.random() * 2;
         session.round = new ZRSJZ_FishingRound();
         session.rewards = null;
+        session.catchDelay = undefined;
         session.line?.Cast();
         session.line?.SetState(session.state, 0);
         session.cast.active = false;
@@ -317,11 +321,15 @@ export class ZRSJZ_Fishing extends Component {
                 session.elapsed = 0;
                 session.reel.active = false;
                 this.PlayAnimation(session, 'dy4', false);
-                if (session.round.Result === 'success') session.rewards = this.GrantReward(session.round.WindowWidth, session.bait).catch(error => {
+                if (session.round.Result === 'success') {
+                    const awards = ZRSJZ_RollFishingRewards(session.round.WindowWidth, Math.random, session.bait);
+                    session.line?.ShowCatch(awards[0]?.TaskAwardName);
+                    session.rewards = this.GrantReward(awards).catch(error => {
                     console.error('[钓鱼] 发放奖励失败', error);
                     void ZRSJZ_UIManager.Instance.ShowTip('钓鱼奖励发放失败，请检查奖励配置');
                     return [];
-                });
+                    });
+                }
                 else void ZRSJZ_UIManager.Instance.ShowTip('鱼脱钩了，再试一次吧');
             }
         } else if (session.state === 'finishing') {
@@ -331,8 +339,14 @@ export class ZRSJZ_Fishing extends Component {
                 ? track?.animation?.name === 'dy4' && track.isComplete()
                 : session.elapsed >= duration;
             if (completed) {
+                if (session.round.Result === 'success') {
+                    // 完整播放收竿后额外停留半秒；暂停时 UpdateSession 不执行。
+                    if (session.catchDelay === undefined) { session.catchDelay = 0; return; }
+                    session.catchDelay += dt;
+                    if (session.catchDelay < 0.5) return;
+                }
                 // 以实际 Spine 播放完成为准，暂停或低帧率不会提前弹出奖励。
-                if (session.rewards) void this.ShowReward(session.rewards).catch(error => console.error('[钓鱼] 奖励弹窗失败', error));
+                if (session.rewards) void this.ShowReward(session.rewards, session).catch(error => console.error('[钓鱼] 奖励弹窗失败', error));
                 session.rewards = null;
                 session.state = 'ready';
                 session.line?.SetState(session.state, 1);
@@ -371,8 +385,7 @@ export class ZRSJZ_Fishing extends Component {
         session.pointer.setRotationFromEuler(0, 0, -angle * 180 / Math.PI);
     }
 
-    private async GrantReward(width: number, bait = ''): Promise<ZRSJZ_MainTaskAwardConfig[]> {
-        const awards = ZRSJZ_RollFishingRewards(width, Math.random, bait);
+    private async GrantReward(awards: ZRSJZ_MainTaskAwardConfig[]): Promise<ZRSJZ_MainTaskAwardConfig[]> {
         // 成功当场发放，弹窗只展示，关闭弹窗不会再发一次。
         const props: { PropName: string; Count: number }[] = [];
         for (const award of awards) {
@@ -384,9 +397,9 @@ export class ZRSJZ_Fishing extends Component {
         return awards;
     }
 
-    private async ShowReward(rewards: Promise<ZRSJZ_MainTaskAwardConfig[]>): Promise<void> {
+    private async ShowReward(rewards: Promise<ZRSJZ_MainTaskAwardConfig[]>, session: FishingSession): Promise<void> {
         const awards = await rewards;
-        if (awards.length && isValid(this, true) && !ZRSJZ_Game.Instance?.IsGameFinished) {
+        if (awards.length && isValid(this, true) && this._sessions.includes(session) && !ZRSJZ_Game.Instance?.IsGameFinished) {
             await ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.获取奖励弹窗, { Awards: awards, DisplayOnly: true });
         }
     }
@@ -395,8 +408,9 @@ export class ZRSJZ_Fishing extends Component {
         const index = this._sessions.indexOf(session);
         if (index < 0) return;
         this._sessions.splice(index, 1);
-        if (isValid(session.ui, true)) session.ui.destroy();
-        if (isValid(session.line, true)) session.line.node.destroy();
+        // destroy 在帧末生效；先同步停止绘制，再允许玩家重新进入。
+        if (isValid(session.line, true)) session.line.Dispose();
+        if (isValid(session.ui, true)) { session.ui.active = false; session.ui.destroy(); }
         if (isValid(session.player, true)) {
             session.player.node.setWorldRotation(session.rotation);
             session.player.EndFishing();

@@ -1,0 +1,45 @@
+// Exercise the current serialized prefab against the real fishing page controller.
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const ts=require('D:/CocosCreator/Creator/3.8.6/resources/app.asar.unpacked/node_modules/typescript/lib/typescript.js');
+class Button{static EventType={CLICK:'click'};}
+class Label{}
+class Sprite{static SizeMode={CUSTOM:0};getComponent(t){return this.node.getComponent(t);}}
+class UITransform{setContentSize(w,h){this.width=w;this.height=h;}}
+const types={'cc.Button':Button,'cc.Label':Label,'cc.Sprite':Sprite,'cc.UITransform':UITransform};
+const vector=v=>({...v,clone(){return vector(this);}});
+class Node{
+ constructor(name){this.name=name;this.children=[];this.components=[];this.active=true;this.scale=vector({x:1,y:1,z:1});this.position=vector({x:0,y:0,z:0});}
+ getChildByName(name){return this.children.find(n=>n.name===name)||null;}
+ getComponent(type){return this.components.find(c=>c instanceof type)||null;}
+ setPosition(x,y,z){this.position=vector({x,y,z});}
+ on(){}
+ clone(){const n=new Node(this.name);n.scale=vector(this.scale);n.position=vector(this.position);n.children=this.children.map(c=>c.clone());n.components=this.components.map(c=>{const next=Object.assign(new c.constructor(),c);next.node=n;return next;});return n;}
+}
+const a=JSON.parse(fs.readFileSync('../73_ZRSJZ_DLC/Prefabs/Panel/活动界面.prefab','utf8'));
+function build(i){const row=a[i],n=new Node(row._name);n.position=vector(row._lpos);n.scale=vector(row._lscale);n.children=row._children.map(r=>build(r.__id__));n.components=row._components.map(r=>a[r.__id__]).filter(c=>types[c.__type__]).map(c=>{const value=new types[c.__type__]();value.node=n;if(c._contentSize)Object.assign(value,c._contentSize);return value;});return n;}
+const page=build(a.findIndex(n=>n._name==='渔获丰收'&&n._children.length>3));
+const offers=Array.from({length:6},(_,i)=>({name:'item'+i,count:1,cost:10,sold:false}));
+const fish={State:{points:2,offers},Ensure(){},Count(){return 0;}};
+let size={width:200,height:100};
+const ui={Instance:{GetPropUI:()=>Promise.resolve({originalSize:size}),GetPropGridUI:()=>Promise.resolve({})}};
+const config={ZRSJZ_FISH_CATALOG:Array.from({length:10},(_,i)=>({name:'fish'+i,points:2})),ZRSJZ_FISHING_BAITS:[{name:''},{name:'玉米鱼饵'}],ZRSJZ_PROP_CONFIG:{get:()=>({Quality:'红色',UnitPrice:1200})},ZRSJZ_PANEL:{}};
+const output={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('Scripts/UI/ZRSJZ_FishingFestivalPage.ts','utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS}}).outputText,{exports:output,console,require:id=>id==='cc'?{Button,Label,Sprite,UITransform,Node,isValid:x=>!!x,instantiate:n=>n.clone()}:id.includes('FestivalService')?{ZRSJZ_FishingFestivalService:fish}:id.includes('Constant')?config:id.includes('UIManager')?{ZRSJZ_UIManager:ui}:{ZRSJZ_GameData:{Instance:{}}}});
+(async()=>{
+ const template=page.getChildByName('兑换模板'),origin={...template.position};
+ const icon=template.getChildByName('图标').getComponent(UITransform);icon.setContentSize(60,50);
+ const fishIcon=page.getChildByName('渔获模板').getChildByName('图标');
+ fishIcon.getComponent(UITransform).setContentSize(83,67);
+ fishIcon.getComponent(Sprite).sizeMode=Sprite.SizeMode.CUSTOM;
+ const controller=new output.ZRSJZ_FishingFestivalPage(page);controller.Render();await Promise.resolve();await Promise.resolve();
+ assert.equal(template.position.x,origin.x);assert.equal(template.position.y,origin.y);
+ assert.equal(template.getComponent(UITransform).width,225);assert.equal(template.getComponent(UITransform).height,319);
+ assert.equal(controller.offers.length,6);assert.equal(controller.fish.length,10);
+ for(const slot of controller.fish){const image=slot.getChildByName('图标');assert.equal(image.getComponent(UITransform).width,83);assert.equal(image.getComponent(UITransform).height,67);assert.equal(image.getComponent(Sprite).sizeMode,Sprite.SizeMode.CUSTOM);}
+ assert.equal(icon.width,60);assert.equal(icon.height,30);
+ size={width:100,height:200};offers[0].name='different';controller.Render();await Promise.resolve();await Promise.resolve();assert.equal(icon.width,25);assert.equal(icon.height,50);
+ // Deleted optional children/components must not prevent the rest of the page loading.
+ const minimal=page.clone();minimal.children=minimal.children.filter(n=>['兑换模板','渔获模板'].includes(n.name));minimal.children.forEach(n=>n.children=[]);
+ const reduced=new output.ZRSJZ_FishingFestivalPage(minimal);reduced.Render();
+ new output.ZRSJZ_FishingFestivalPage(new Node('empty')).Render();
+ console.log('PASS: actual edited prefab initializes/renders; deleted quality frame tolerated; template position/size preserved; icon bounds stable after refresh; optional children may be absent.');
+})().catch(e=>{console.error(e);process.exitCode=1;});
