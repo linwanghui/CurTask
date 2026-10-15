@@ -16,6 +16,8 @@ export class ZRSJZ_AudioManager extends Component {
 
     /** 返回本次播放的停止句柄，不复用普通音效池，避免旧动作误停后来播放的音效。 */
     public PlayActionSound(name: string, shared = false): () => void {
+        // Spine 内部动画仍叫“奶龙笑”，音效资源已改为面向玩家的新名称。
+        if (name === '奶龙笑') name = '捧腹大笑';
         if (ZRSJZ_GameData.Instance.SoundMute) return () => { };
         const clip = this.AudioClipMaps.get(name + '_DLC');
         if (!clip) return () => { }; // 未加载 DLC 音频时保持动作可用。

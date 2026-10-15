@@ -6,6 +6,7 @@ import {
     ZRSJZ_GridData,
     ZRSJZ_INVENTORY,
     ZRSJZ_MAIN_TASK_CONFIG,
+    ZRSJZ_MAIN_TASK_ORDER,
     ZRSJZ_PROP_CONFIG,
     ZRSJZ_SHOP_CONFIG,
     ZRSJZ_PropData,
@@ -19,6 +20,26 @@ import { CreateMatrixState } from '../ZRSJZ_MatrixState';
 
 /** 新存档初始化和旧存档迁移。此类不触发事件，也不主动写盘。 */
 export class ZRSJZ_GameDataDefaults {
+    /** 修复旧配置的乱码键；保留接取进度、领奖记录和发布时的经验快照。 */
+    private static RepairMainTaskNames(data: ZRSJZ_GameData): boolean {
+        const legacy = '\uFFFD'.repeat(6) + '补给';
+        const name = '弹药补给';
+        let changed = false;
+        if (data.NewMainTask === legacy) { data.NewMainTask = name; changed = true; }
+        if (data.CurMainTask?.TaskName === legacy) { data.CurMainTask.TaskName = name; changed = true; }
+        if (data.MainTaskComplete?.includes(legacy)) {
+            data.MainTaskComplete = Array.from(new Set(data.MainTaskComplete.map(task => task === legacy ? name : task)));
+            changed = true;
+        }
+        const awards = data.MainTaskExperienceAwards;
+        if (awards && Object.prototype.hasOwnProperty.call(awards, legacy)) {
+            if (awards[name] === undefined) awards[name] = awards[legacy];
+            delete awards[legacy];
+            changed = true;
+        }
+        return changed;
+    }
+
     public static Initialize(data: ZRSJZ_GameData): void {
         data.UnlockedActions = ZRSJZ_ACTION_CONFIG.filter(item => item.Unlock.Type === 'default').map(item => item.Name);
         data.EquippedActions = data.UnlockedActions.slice(0, ZRSJZ_ACTION_MAX_EQUIPPED);
@@ -47,13 +68,19 @@ export class ZRSJZ_GameDataDefaults {
 
     public static Migrate(data: ZRSJZ_GameData, savedData: any): boolean {
         // 逐级补充缺失字段，不覆盖玩家已有数据；版本4→5增加独立支线进度。
-        let flag = false;
+        let flag = this.RepairMainTaskNames(data);
         if (data.Versions == 0) {
             data.Versions++;
             if (savedData.IsTutorial === undefined) data.IsTutorial = false;
         }
 
         const loadData = () => {
+            if (data.Versions === 30) {
+                // 已接任务（包括完成待领奖）继续原目标；未接任务改为新顺序首个未领奖项。
+                // 不修改完成记录、奖励快照、物品和安全箱容量，也不在迁移中发奖。
+                data.NewMainTask = data.CurMainTask ? ''
+                    : ZRSJZ_MAIN_TASK_ORDER.find(name => !data.MainTaskComplete.includes(name)) ?? '';
+            }
             if (data.Versions === 29) {
                 const names = new Set(ZRSJZ_ACTION_CONFIG.map(item => item.Name));
                 const defaults = ZRSJZ_ACTION_CONFIG.filter(item => item.Unlock.Type === 'default').map(item => item.Name);

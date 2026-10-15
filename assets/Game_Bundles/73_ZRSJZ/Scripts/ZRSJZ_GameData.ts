@@ -17,7 +17,7 @@ import { CreateMatrixState, MatrixState } from './ZRSJZ_MatrixState';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 30;//当前版本：动作系统，保留旧存档逐级迁移
+    public static readonly Versions = 31;//主线按地图难度推进，保留旧任务进度和领奖记录
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;

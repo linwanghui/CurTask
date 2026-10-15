@@ -8,6 +8,20 @@ import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
 /** 装备数组的顺序对应圆盘上、右、下、左；卸下后后续动作向前补位。 */
 export class ZRSJZ_ActionService {
     private static icons = new Map<string, Promise<SpriteFrame>>();
+    /** 只在激励视频成功回调中调用；绑定发起时的动作，重复回调不会重复解锁。 */
+    public static CreateVideoReward(name: string): (() => boolean) | null {
+        const data = ZRSJZ_GameData.Instance;
+        const config = ZRSJZ_ACTION_CONFIG.find(item => item.Name === name);
+        if (config?.Unlock.Type !== '视频解锁' || data.UnlockedActions.includes(name)) return null;
+        let used = false;
+        return () => {
+            if (used || ZRSJZ_GameData.Instance !== data || data.UnlockedActions.includes(name)) return false;
+            used = true;
+            data.UnlockedActions.push(name);
+            ZRSJZ_GameData.SaveData();
+            return true;
+        };
+    }
     public static RefreshUnlocks(): void {
         const data = ZRSJZ_GameData.Instance;
         let changed = false;

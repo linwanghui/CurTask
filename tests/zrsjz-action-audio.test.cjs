@@ -14,7 +14,7 @@ class Node {
 }
 const Manager=vm.runInNewContext(js,{Node,AudioSource:{EventType:{ENDED:'ended'}},isValid:x=>x?.isValid,ZRSJZ_GameData:{Instance:data}});
 const m=new Manager();m.node={addChild(){}};m.AudioClipMaps=new Map();
-for(const name of ['闪身步','浪子踢球','奶龙笑']){
+for(const name of ['闪身步','浪子踢球','捧腹大笑']){
  assert.ok(fs.existsSync(`assets/Game_Bundles/73_ZRSJZ_DLC/Audios/${name}.mp3`));
  m.AudioClipMaps.set(name+'_DLC',{name});
 }

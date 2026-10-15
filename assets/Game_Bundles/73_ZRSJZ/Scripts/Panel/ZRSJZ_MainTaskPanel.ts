@@ -4,7 +4,7 @@ import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_MainTask } from '../UI/ZRSJZ_MainTask';
-import { ZRSJZ_MAIN_TASK_CONFIG, ZRSJZ_MainTaskAwardConfig, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_MAIN_TASK_ORDER, ZRSJZ_MainTaskAwardConfig, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_TaskService } from '../Service/ZRSJZ_TaskService';
 import { ZRSJZ_TaskAward } from '../UI/ZRSJZ_TaskAward';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
@@ -78,7 +78,7 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
     }
 
     private GetLineTasks(id: string): string[] {
-        return id === 'main' ? Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys())
+        return id === 'main' ? [...ZRSJZ_MAIN_TASK_ORDER]
             : ZRSJZ_SIDE_TASK_LINES.find(line => line.ID === id).Tasks.map(task => task.ID);
     }
 
