@@ -1,7 +1,7 @@
 import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { SpriteFrame } from "cc";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
-import { ZRSJZ_PROP_CONFIG } from "../ZRSJZ_Constant";
+import { ZRSJZ_PROP_CONFIG, ZRSJZ_GRADE_MAX_LEVEL } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_Tools } from "../ZRSJZ_Tools";
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -22,7 +22,7 @@ export interface ZRSJZ_ExperienceAddedInfo {
 
 /** 等级、账号统计及等级界面展示数据。 */
 export class ZRSJZ_GradeService {
-    public static readonly MAX_LEVEL: number = 60;
+    public static readonly MAX_LEVEL: number = ZRSJZ_GRADE_MAX_LEVEL;
 
     /**
      * 下标 0～59 对应等级 1～60；60 级为满级，因此升级需求为 0。

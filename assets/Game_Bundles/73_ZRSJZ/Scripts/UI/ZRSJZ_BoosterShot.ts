@@ -68,10 +68,14 @@ export class ZRSJZ_BoosterShot extends Component {
 
     RefreshUI() {
         this._curCount = ZRSJZ_BoosterShotService.GetBoosterShotCount(this.BoosterShotName);
-        this.Have.string = `已拥有：${this._curCount}`
+        const free = ZRSJZ_BoosterShotService.IsFree;
+        const config = ZRSJZ_BOOSTER_SHOT_CONFIG.get(this.BoosterShotName);
+        this.BuyBtn.active = !free && config?.UnlockType === '钞票';
+        this.VideoBtn.active = !free && config?.UnlockType === '视频';
+        this.Have.string = free ? '至尊权益：免费使用' : '已拥有：' + this._curCount;
         this.Used.active = ZRSJZ_BoosterShotService.GetCurBoosterShot() === this.BoosterShotName;
         this.UseBtn.active = ZRSJZ_BoosterShotService.GetCurBoosterShot() !== this.BoosterShotName;
-        this.UseBtnSprite.grayscale = this._curCount <= 0;
+        this.UseBtnSprite.grayscale = !free && this._curCount <= 0;
     }
 
     OnButtonClick(event: EventTouch) {
@@ -93,7 +97,7 @@ export class ZRSJZ_BoosterShot extends Component {
                 })
                 break;
             case "使用按钮":
-                if (this._curCount <= 0) {
+                if (!ZRSJZ_BoosterShotService.IsFree && this._curCount <= 0) {
                     void ZRSJZ_UIManager.Instance.ShowTip("当前没有可使用的增强针");
                     return;
                 }

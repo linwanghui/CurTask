@@ -1,3 +1,4 @@
+import { HasSupremeAccess } from '../Service/ZRSJZ_PurchaseState';
 import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { _decorator, EventTouch, find, Label, Node, Sprite, SpriteFrame, UIOpacity, UITransform, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
@@ -337,7 +338,7 @@ export class ZRSJZ_SelectPanel extends ZRSJZ_Panel {
             return { CanEnter: false, CurrentValue: currentValue, RequiredValue: 0, Reason: "该关卡暂未开放" };
         }
 
-        const requiredValue = Math.max(0, config.RequiredLoadoutValue || 0);
+        const requiredValue = HasSupremeAccess(ZRSJZ_GameData.Instance) ? 0 : Math.max(0, config.RequiredLoadoutValue || 0);
         const lockReason = ZRSJZ_LevelProgressService.GetLockReason(mapKey);
         if (lockReason) {
             return { CanEnter: false, CurrentValue: currentValue, RequiredValue: requiredValue, Reason: lockReason };

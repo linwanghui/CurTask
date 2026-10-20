@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, find, Node, SpriteFrame } from 'cc';
+import { _decorator, Component, EventTouch, find, Layout, Node, ScrollView, SpriteFrame, UITransform, Widget } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
@@ -25,14 +25,19 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
     private _awards: ZRSJZ_MainTaskAwardConfig[] = [];
     private _displayOnly: boolean = false;
     private _displayVersion = 0;
+    private _awardScroll: ScrollView = null;
+    private _awardView: Node = null;
 
     protected onLoad(): void {
         this.Award = find("Panel/Award/View/Content", this.node);
+        this._awardView = this.Award.parent;
+        this._awardScroll = find('Panel/Award', this.node)?.getComponent(ScrollView);
+        this.node.on(Node.EventType.SIZE_CHANGED, this.QueueAwardLayout, this);
+        this._awardView.on(Node.EventType.SIZE_CHANGED, this.QueueAwardLayout, this);
     }
 
     Show(...args: any[]): void {
-        super.Show(() => {
-        });
+        super.Show(() => this.QueueAwardLayout());
         const options = args.length === 1
             && args[0]?.DisplayOnly === true
             && Array.isArray(args[0]?.Awards)
@@ -48,17 +53,72 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
             ZRSJZ_PoolManager.Instance.PutNode(this.Award.children[i]);
         }
         this._awards = [...args];
-        args.forEach(award => {
-            ZRSJZ_PoolManager.Instance.GetNode("Prefabs/UI/TaskAward").then(awardNode => {
-                if (version !== this._displayVersion || !this.node.isValid || !this.node.activeInHierarchy) {
-                    ZRSJZ_PoolManager.Instance.PutNode(awardNode);
-                    return;
-                }
-                awardNode.parent = this.Award;
-                awardNode.active = true;
-                awardNode.getComponent(ZRSJZ_TaskAward).Init(award.TaskAwardName, award.TaskAwardCount, award.TaskAwardName, award.Icon);
-            })
-        })
+        this.RefreshAwardLayout();
+        // 等全部奖励加载完成后按传入顺序排版，避免异步加载顺序影响列表位置。
+        void Promise.all(args.map(async award => {
+            try {
+                const node = await ZRSJZ_PoolManager.Instance.GetNode('Prefabs/UI/TaskAward');
+                return { node, award };
+            } catch (error) {
+                console.error('[获取奖励弹窗] 奖励节点加载失败', error);
+                return null;
+            }
+        })).then(items => {
+            const ready = items.filter(item => item !== null);
+            if (version !== this._displayVersion || !this.node.isValid || !this.node.activeInHierarchy) {
+                ready.forEach(item => ZRSJZ_PoolManager.Instance.PutNode(item.node));
+                return;
+            }
+            ready.forEach(({ node, award }) => {
+                node.parent = this.Award;
+                node.active = true;
+                node.getComponent(ZRSJZ_TaskAward).Init(award.TaskAwardName, award.TaskAwardCount, award.TaskAwardName, award.Icon);
+            });
+            this.RefreshAwardLayout();
+            this.QueueAwardLayout();
+        });
+    }
+
+    private QueueAwardLayout(): void {
+        this.unschedule(this.RefreshAwardLayout);
+        this.scheduleOnce(this.RefreshAwardLayout, 0);
+    }
+
+    private RefreshAwardLayout(): void {
+        if (!this.Award?.isValid || !this._awardView?.isValid) return;
+        this._awardScroll?.stopAutoScroll();
+        this._awardView.parent?.getComponent(Widget)?.updateAlignment();
+        this._awardView.getComponent(Widget)?.updateAlignment();
+        const content = this.Award.getComponent(UITransform);
+        const viewport = this._awardView.getComponent(UITransform);
+        if (!content || !viewport) return;
+        const layout = this.Award.getComponent(Layout);
+        if (layout) {
+            // 左右留白相同，内容矩形居中时奖励本身也居中。
+            const padding = (layout.paddingLeft + layout.paddingRight) / 2;
+            layout.paddingLeft = padding;
+            layout.paddingRight = padding;
+            layout.updateLayout();
+        }
+        const hasAwards = this.Award.children.some(child => child.active);
+        if (!hasAwards) content.setContentSize(0, content.height);
+        const overflow = hasAwards && content.width * Math.abs(this.Award.scale.x) > viewport.width + 0.5;
+        if (this._awardScroll) {
+            this._awardScroll.horizontal = true;
+            this._awardScroll.vertical = false;
+            this._awardScroll.enabled = overflow;
+        }
+        this.Award.setPosition(
+            (0.5 - viewport.anchorX) * viewport.width + (content.anchorX - 0.5) * content.width * this.Award.scale.x,
+            (0.5 - viewport.anchorY) * viewport.height + (content.anchorY - 0.5) * content.height * this.Award.scale.y,
+            this.Award.position.z,
+        );
+        if (overflow) this._awardScroll?.scrollToPercentHorizontal(0.5, 0, false);
+    }
+
+    protected onDisable(): void {
+        this.unschedule(this.RefreshAwardLayout);
+        this._awardScroll?.stopAutoScroll();
     }
 
     OnButtonClick(event: EventTouch) {

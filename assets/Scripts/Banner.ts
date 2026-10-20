@@ -161,7 +161,7 @@ export default class Banner {
         }
     }
 
-    ShowVideoAd(callback, args?: any) {
+    ShowVideoAd(callback, args?: any, onFailure?: () => void) {
         console.log(`加载激励视频`);
         if (Banner.Mode == BannerMode.测试包) {
             if (args) {
@@ -193,7 +193,7 @@ export default class Banner {
             this.CreateXiaoMiVideoAd(callback, args);
         }
         if (Banner.IS_BYTEDANCE_MINI_GAME) {
-            this.CreateDYRewardedVideoAd(callback, args);
+            this.CreateDYRewardedVideoAd(callback, args, onFailure);
         }
         if (Banner.IS_KS_MINI_GAME) {
             this.CreateKSRewardedVideoAd(callback, args);
@@ -2002,7 +2002,9 @@ export default class Banner {
         }
     }
 
-    private CreateDYRewardedVideoAd(callback, args?: any) {
+    private CreateDYRewardedVideoAd(callback, args?: any, onFailure?: () => void) {
+        let settled = false;
+        const fail = () => { if (!settled) { settled = true; onFailure?.(); } };
         //调用广告函数
         this.DestroyDYVideoAd();
         this.rewardedVideoAd = tt.createRewardedVideoAd({
@@ -2011,8 +2013,9 @@ export default class Banner {
         this.rewardedVideoAd.onLoad(() => {
             console.log("广告加载完成");
         });
-        this.rewardedVideoAd.load();
+        this.rewardedVideoAd.load().catch(fail);
         this.rewardedVideoAd.onError((e) => {
+            fail();
             UIManager.ShowTip("展示视频失败");
             console.error('load ad error:' + JSON.stringify(e));
             const errCode = e.errCode
@@ -2020,7 +2023,9 @@ export default class Banner {
             console.log('展示广告失败:' + errMsg, errCode);
         })
         this.rewardedVideoAd.onClose((res) => {
-            if (res.isEnded) {
+            if (settled) return;
+            if (res?.isEnded) {
+                settled = true;
                 DyHttpUpBehavior.getInstance().videoUpdate();
                 if (args != null) {
                     callback(args);
@@ -2029,6 +2034,7 @@ export default class Banner {
                     callback();
                 }
             } else {
+                fail();
                 // Tools.emit(EventName.viedoFail);
                 UIManager.ShowTip("视频未观看完毕，无法获得奖励");
                 console.log("视频未观看完毕，无法获得奖励");
@@ -2186,6 +2192,129 @@ export default class Banner {
     /*** 分享*/
     shareRecorder() {
         DYRecorder.share();
+    }
+
+    /**
+    * 统一支付调用
+    * @param params 支付参数
+    */
+    TT_unifiedPayment(params: {
+        diamondAmount: number;      // 钻石数量（必填）
+        goodName?: string;          // 商品名称（选填，传了走道具直购）
+        orderAmount?: number;       // 金额单位分（道具直购时必填）
+        customId?: string;          // 自定义订单号（选填）
+        extraInfo?: any;            // 额外信息（选填）
+        zoneId?: string;            // 分区ID（选填，默认"1"）
+        onSuccess?: (res: any) => void;
+        onFail?: (res: any) => void;
+        onComplete?: (res: any) => void;
+    }) {
+        if (Banner.Mode == BannerMode.测试包) {
+            // 与真实支付保持相同的回调顺序，方便调用方在 complete 中关闭加载提示。
+            const testResult = { errMsg: "requestGamePayment:ok", isTest: true };
+            console.log("[抖音支付测试包] 跳过真实支付并直接发放奖励");
+            try {
+                params.onSuccess && params.onSuccess(testResult);
+            } finally {
+                params.onComplete && params.onComplete(testResult);
+            }
+            return;
+        }
+
+        // 生成订单号
+        const customId = params.customId || `ORDER_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`;
+        const zoneId = params.zoneId || "1";
+        const extraInfo = typeof params.extraInfo === 'string' ? params.extraInfo : JSON.stringify(params.extraInfo || {});
+
+        const success = (res: any) => {
+            console.log(`[抖音支付成功] order=${customId}`, JSON.stringify(res || {}));
+            params.onSuccess && params.onSuccess(res);
+        };
+        const fail = (res: any) => {
+            console.error(`[抖音支付失败] order=${customId}`, JSON.stringify(res || {}));
+            params.onFail && params.onFail(res || {});
+        };
+        const complete = (res: any) => {
+            console.log(`[抖音支付完成] order=${customId}`, JSON.stringify(res || {}));
+            params.onComplete && params.onComplete(res);
+        };
+
+        try {
+            // canIUse 只能判断接口能力，不能用于判断手机系统。
+            //@ts-ignore
+            const systemInfo = tt.getSystemInfoSync ? tt.getSystemInfoSync() : {};
+            const platform = String(systemInfo.platform || "").toLowerCase();
+            const system = String(systemInfo.system || "").toLowerCase();
+            const isIOS = platform === "ios" || system.indexOf("ios") !== -1;
+
+            console.log(`[抖音支付发起] order=${customId}, platform=${platform}, system=${system}`);
+
+            if (isIOS) {
+                // iOS 通过抖音钻石兑换发起支付。
+                //@ts-ignore
+                if (!tt.canIUse || !tt.canIUse('openAwemeCustomerService')) {
+                    fail({ errCode: -1, errMsg: "当前抖音版本不支持 iOS 支付，请升级抖音" });
+                    return;
+                }
+                //@ts-ignore
+                tt.openAwemeCustomerService({
+                    buyQuantity: params.diamondAmount,
+                    currencyType: "CNY",
+                    zoneId,
+                    customId,
+                    extraInfo,
+                    success,
+                    fail,
+                    complete
+                });
+                return;
+            }
+
+            // Android 道具直购需要客户端支持 goodType（抖音 32.0.0+）。
+            if (params.goodName && params.orderAmount != null) {
+                //@ts-ignore
+                if (tt.canIUse && !tt.canIUse('requestGamePayment.object.goodType')) {
+                    fail({ errCode: -1, errMsg: "当前抖音版本不支持道具直购，请升级抖音" });
+                    return;
+                }
+                //@ts-ignore
+                tt.requestGamePayment({
+                    mode: "game",
+                    env: 0,
+                    platform: "android",
+                    currencyType: "CNY",
+                    goodType: 2,
+                    goodName: params.goodName,
+                    orderAmount: params.orderAmount,
+                    zoneId,
+                    customId,
+                    extraInfo,
+                    success,
+                    fail,
+                    complete
+                });
+                return;
+            }
+
+            // Android 游戏币购买。
+            //@ts-ignore
+            tt.requestGamePayment({
+                mode: "game",
+                env: 0,
+                platform: "android",
+                currencyType: "CNY",
+                buyQuantity: params.diamondAmount,
+                zoneId,
+                customId,
+                extraInfo,
+                success,
+                fail,
+                complete
+            });
+        } catch (error) {
+            const errMsg = error && error.message ? error.message : String(error);
+            fail({ errCode: -1, errMsg: `调用支付接口异常：${errMsg}` });
+        }
     }
 
     //抖音排行榜

@@ -276,6 +276,10 @@ export class ZRSJZ_Start extends Component {
             }
         }
         switch (event.getCurrentTarget().name) {
+            case "礼包":
+                if (ZRSJZ_UIManager.ZRSJZ_DLC) ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.礼包界面);
+                else ZRSJZ_UIManager.Instance.ShowTip('礼包资源正在加载，请稍后再试');
+                break;
             case "超算矩阵":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.超算矩阵界面);
                 break;

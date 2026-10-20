@@ -1,3 +1,4 @@
+import { HasSupremeAccess } from './ZRSJZ_PurchaseState';
 import { sys } from 'cc';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_AccountService } from './ZRSJZ_AccountService';
@@ -19,6 +20,7 @@ export type ZRSJZ_ForgeActionResult = {
 
 export class ZRSJZ_ForgeService {
     private static readonly STORAGE_KEY = 'ZRSJZ_ForgeTask_v1';
+    public static get IsFreeInstant(): boolean { return HasSupremeAccess(ZRSJZ_GameData.Instance); }
 
     public static GetTask(): ZRSJZ_ForgeTask | null {
         const json = sys.localStorage.getItem(this.STORAGE_KEY);
@@ -45,15 +47,16 @@ export class ZRSJZ_ForgeService {
     }
 
     public static IsReady(task: ZRSJZ_ForgeTask = this.GetTask()): boolean {
-        return !!task && Date.now() >= task.finishAt;
+        return !!task && (this.IsFreeInstant || Date.now() >= task.finishAt);
     }
 
     public static GetRemainingMilliseconds(task: ZRSJZ_ForgeTask = this.GetTask()): number {
-        return task ? Math.max(0, task.finishAt - Date.now()) : 0;
+        return task && !this.IsFreeInstant ? Math.max(0, task.finishAt - Date.now()) : 0;
     }
 
     public static GetProgress(task: ZRSJZ_ForgeTask = this.GetTask()): number {
         if (!task) return 0;
+        if (this.IsFreeInstant) return 1;
         const duration = Math.max(1, task.finishAt - task.startedAt);
         return Math.max(0, Math.min(1, (Date.now() - task.startedAt) / duration));
     }
@@ -61,6 +64,7 @@ export class ZRSJZ_ForgeService {
     public static ValidateStart(recipe: ZRSJZ_ForgeRecipe): ZRSJZ_ForgeActionResult {
         if (!recipe || !GetForgeRecipe(recipe.itemName)) return { success: false, message: '该装备不可锻造' };
         if (this.GetTask()) return { success: false, message: '已有装备正在锻造' };
+        if (this.IsFreeInstant) return { success: true, message: '' };
         if (ZRSJZ_GameData.Instance.Gold < recipe.goldCost) {
             return { success: false, message: '所需货币不足' };
         }
@@ -75,13 +79,13 @@ export class ZRSJZ_ForgeService {
     public static Start(recipe: ZRSJZ_ForgeRecipe): ZRSJZ_ForgeActionResult {
         const validation = this.ValidateStart(recipe);
         if (!validation.success) return validation;
-        for (const material of recipe.materials) {
+        for (const material of this.IsFreeInstant ? [] : recipe.materials) {
             if (!ZRSJZ_InventoryService.ConsumeProp(material.name, material.count)) {
                 console.error('[ZRSJZ_ForgeService] 扣除锻造材料失败', material);
                 return { success: false, message: '材料扣除失败' };
             }
         }
-        ZRSJZ_AccountService.ChangeGold(-recipe.goldCost);
+        if (!this.IsFreeInstant) ZRSJZ_AccountService.ChangeGold(-recipe.goldCost);
         const startedAt = Date.now();
         const task: ZRSJZ_ForgeTask = {
             itemName: recipe.itemName,
@@ -89,7 +93,7 @@ export class ZRSJZ_ForgeService {
             finishAt: startedAt + recipe.durationHours * 60 * 60 * 1000,
         };
         sys.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(task));
-        return { success: true, message: '开始锻造' };
+        return this.IsFreeInstant ? this.Claim() : { success: true, message: '开始锻造' };
     }
 
     public static Claim(): ZRSJZ_ForgeActionResult {

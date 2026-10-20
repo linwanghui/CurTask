@@ -1,4 +1,8 @@
 //#region 常量
+export const ZRSJZ_GRADE_MAX_LEVEL = 60;
+/** 抖音内购低价测试开关：开启后所有钞票、礼包订单实付0.1元，奖励不变；正式价格保持false。 */
+export const ZRSJZ_PAYMENT_TEST_PRICE_ENABLED = false;
+
 //格子大小
 export const ZRSJZ_GRID_SIZE = 132;//格子大小
 export const ZRSJZ_GRID_INTERVAL = 5;//格子间隔
@@ -7,6 +11,9 @@ export const ZRSJZ_AMMO_MAX_COUNT = 300;
 
 //界面路径
 export enum ZRSJZ_PANEL {
+    英雄碎片购买弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/英雄碎片购买弹窗",
+    宠物碎片购买弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/宠物碎片购买弹窗",
+    礼包界面 = "73_ZRSJZ_DLC/Prefabs/Panel/礼包界面",
     超算矩阵界面 = "73_ZRSJZ_DLC/Prefabs/Panel/超算矩阵界面",
     界面引导弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/界面引导弹窗",
     曼德尔箱界面 = "73_ZRSJZ_DLC/Prefabs/Panel/曼德尔箱界面",
@@ -96,6 +103,7 @@ export const ZRSJZ_PANEL_PATH_CONFIG: Map<string, string> = new Map([
     ["曼德尔箱界面", "主页-曼德尔箱界面"],
     ["战令界面", "主页-战令界面"],
     ["活动界面", "主页-活动界面"],
+    ["礼包界面", "主页-礼包界面"]
 ])
 
 //物理层级
@@ -608,9 +616,9 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["噬星甲", "以噬星为主题的8级重型护甲，覆盖躯干要害，为高危行动提供保障。"],
     //背包
     ["一级包", "小型基础背包，结构简单，可额外携带少量行动物资。"],
-    ["二级包", "容量适中的战术背包，分区�����������理，能够容纳更多补给。"],
+    ["二级包", "容量适中的战术背包，分区设计合理，能够容纳更多补给。"],
     ["三级包", "大容量军用背包，结实耐磨，适合长时间搜集与行动。"],
-    ["四级包", "顶级扩容背包，拥有优秀承重与收纳��力，可携带大量战利品。"],
+    ["四级包", "顶级扩容背包，拥有优秀承重与收纳能力，可携带大量战利品。"],
     ["五级包", "采用模块化分区的军用运输背包，容量巨大且能稳定固定贵重物资。"],
     ["六级包", "为极限搜集行动打造的重型扩容背包，提供52格物资携带空间。"],
     ["兔绒包", "兔绒主题的2级背包，内置宽敞收纳空间，可携带56格行动物资。"],
@@ -621,13 +629,13 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["烬菱包", "以烬菱为主题的7级背包，内部设有76格容量，便于整理搜集到的物资。"],
     ["虚空匣", "以虚空为主题的8级携行匣，拥有80格收纳空间，可装载大量战利品。"],
     //枪
-    ["CN8-突击步枪", "性能均衡的制式突击���枪，后坐力稳定，适合中�������距���持续交�����。"],
+    ["CN8-突击步枪", "性能均衡的制式突击步枪，后坐力稳定，适合中近距离持续交火。"],
     ["DX9-冲锋枪", "紧凑轻便的高速冲锋枪，射速突出，擅长在狭窄区域快速压制目标。"],
     ["K50-轻机枪", "便携式班用轻机枪，火力持续性良好，能够有效封锁敌人的移动路线。"],
     ["RK77-轻机枪", "经过强化的重枪管轻机枪，单发威力更高，适合稳定进行中距离压制。"],
     ["FS-霰弹枪", "结构可靠的泵动霰弹枪，近距离弹丸覆盖广，可对无甲目标造成重创。"],
     ["KK41-霰弹枪", "强化弹仓与枪管的战术霰弹枪，爆发力更强，适合近距离连续作战。"],
-    ["ssv-狙击枪", "高威力远程狙��步枪，配有精密光学瞄具，擅长一击重创关键目标。"],
+    ["ssv-狙击枪", "高威力远程狙击步枪，配有精密光学瞄具，擅长一击重创关键目标。"],
     ["W76-狙击枪", "为超远距离射击设计的精确步枪，射程与弹容量兼顾，容错率更高。"],
     ["HK416-突击步枪", "沙色战术突击步枪，兼顾威力与稳定射速，是进阶战备的可靠选择。"],
     ["SCAR-H-战斗步枪", "厚重机匣与折叠枪托构成的重型战斗步枪，单发威力出色，适合中远距离压制。"],
@@ -1064,16 +1072,16 @@ export interface ZRSJZ_SkinConfig {
 
 export const ZRSJZ_SKIN_CONFIG: ReadonlyMap<string, Readonly<ZRSJZ_SkinConfig>> = new Map([
     ["威蓝", { Name: "威蓝", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/蓝狼/ll1", Headset: ["ll-_0000_前刘海_蓝狼"], EntranceAnis: ["cc_ll"] }],
-    ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 10, Skin: "角色/蓝狼/ll2", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
-    ["弑岚", { Name: "弑岚", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "签到解锁", UnlockPrice: 35, Skin: "角色/蓝狼/ll3", Headset: ["蓝狼3_0011_右角", "蓝狼3_0012_左角"], EntranceAnis: ["cc_ll"] }],
+    ["烬猎", { Name: "烬猎", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/蓝狼/ll2", Headset: ["llpf1__0000s_0001_前刘海"], EntranceAnis: ["cc_ll"] }],
+    ["弑岚", { Name: "弑岚", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "签到解锁", UnlockPrice: 50, Skin: "角色/蓝狼/ll3", Headset: ["蓝狼3_0011_右角", "蓝狼3_0012_左角"], EntranceAnis: ["cc_ll"] }],
 
     ["泠汐", { Name: "泠汐", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/麦小温/m1", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
     ["夜喵", { Name: "夜喵", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/麦小温/m2", Headset: [], EntranceAnis: ["cc_m", "cc_m2"] }],
-    ["绯朔", { Name: "绯朔", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 40, Skin: "角色/麦小温/m3", Headset: ["m3_0011_右角", "m3_0012_左角"], EntranceAnis: ["cc_m", "cc_m2"] }],
+    ["绯朔", { Name: "绯朔", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/麦小温/m3", Headset: ["m3_0011_右角", "m3_0012_左角"], EntranceAnis: ["cc_m", "cc_m2"] }],
 
     ["灼戈", { Name: "灼戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/左亚/w1", Headset: [], EntranceAnis: ["cc_w"] }],
     ["星栗", { Name: "星栗", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/左亚/w2", Headset: ["wzt"], EntranceAnis: ["cc_w"] }],
-    ["黯祁", { Name: "黯祁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "战令解锁", UnlockPrice: 0, Skin: "角色/左亚/w3", Headset: ["w3_0013_帽子"], EntranceAnis: ["cc_w"] }],
+    ["黯祁", { Name: "黯祁", Quality: ZRSJZ_PROP_QUALITY.红色, UnlockType: "战令解锁", UnlockPrice: 50, Skin: "角色/左亚/w3", Headset: ["w3_0013_帽子"], EntranceAnis: ["cc_w"] }],
 
     ["沧戈", { Name: "沧戈", Quality: ZRSJZ_PROP_QUALITY.白色, UnlockType: "英雄碎片", UnlockPrice: 50, Skin: "角色/乌鲁鲁/乌鲁", Headset: ["乌鲁__头发"], EntranceAnis: ["cc_乌鲁"] }],
     ["狩荒", { Name: "狩荒", Quality: ZRSJZ_PROP_QUALITY.紫色, UnlockType: "英雄碎片", UnlockPrice: 20, Skin: "角色/乌鲁鲁/乌鲁2", Headset: ["乌鲁2_0019_帽子前", "乌鲁2_0014_帽子后",], EntranceAnis: ["cc_乌鲁"] }],

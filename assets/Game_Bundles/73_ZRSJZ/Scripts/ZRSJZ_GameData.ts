@@ -1,3 +1,4 @@
+import { BindPurchaseGold } from './Service/ZRSJZ_PurchaseState';
 import { sys } from "cc";
 import { ZRSJZ_INVENTORY, ZRSJZ_MailConfig, ZRSJZ_PropData, ZRSJZ_UpgradeFacilityName } from "./ZRSJZ_Constant";
 import { ZRSJZ_GameDataDefaults } from "./Service/ZRSJZ_GameDataDefaults";
@@ -17,7 +18,7 @@ import { CreateMatrixState, MatrixState } from './ZRSJZ_MatrixState';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 31;//主线按地图难度推进，保留旧任务进度和领奖记录
+    public static readonly Versions = 35;//至尊五类仓库额外扩容两行
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -85,6 +86,19 @@ export class ZRSJZ_GameData {
     public EquippedActions: string[] = [];
 
     public Gold: number = 0;
+    public PurchasedGifts: Record<string, boolean> = {};
+    public PaymentOrders: string[] = [];
+    public PermanentBackpackRows: number = 0;
+    public InfiniteGold: boolean = false;
+    /** 兼容旧版待发放标记；至尊权限已由购买记录授予。 */
+    public AllPermissionsPending: boolean = false;
+    public SupremeEntitlementVersion: number = 0;
+    /** 至尊支线奖励允许逐项手动领取，ID用于防止重复发奖。 */
+    public SupremeTaskRewardsClaimed: string[] = [];
+    /** 五类仓库各额外两行，一次性补发，不占用任务奖励。 */
+    public SupremeWarehouseExpansionGranted: boolean = false;
+
+    constructor() { BindPurchaseGold(this); }
     public Matrix: MatrixState = CreateMatrixState();
     public SupplyLastClaimTime: number = 0;
     /** -1 没有待领取补给，0/1 为固定的奖励方案。 */

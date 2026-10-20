@@ -1,3 +1,5 @@
+import { sys } from 'cc';
+import { ZRSJZ_SupremeService } from './ZRSJZ_SupremeService';
 import {
     ZRSJZ_AMMO_MAX_COUNT,
     ZRSJZ_ACTION_CONFIG,
@@ -69,6 +71,14 @@ export class ZRSJZ_GameDataDefaults {
     public static Migrate(data: ZRSJZ_GameData, savedData: any): boolean {
         // 逐级补充缺失字段，不覆盖玩家已有数据；版本4→5增加独立支线进度。
         let flag = this.RepairMainTaskNames(data);
+        if (!data.PurchasedGifts || typeof data.PurchasedGifts !== 'object' || Array.isArray(data.PurchasedGifts)) {
+            data.PurchasedGifts = {}; flag = true;
+        }
+        if (!Array.isArray(data.PaymentOrders)) { data.PaymentOrders = []; flag = true; }
+        data.InfiniteGold = data.InfiniteGold === true;
+        data.AllPermissionsPending = data.AllPermissionsPending === true;
+        data.PermanentBackpackRows = Number.isSafeInteger(data.PermanentBackpackRows)
+            ? Math.max(0, data.PermanentBackpackRows) : 0;
         if (data.Versions == 0) {
             data.Versions++;
             if (savedData.IsTutorial === undefined) data.IsTutorial = false;
@@ -205,6 +215,17 @@ export class ZRSJZ_GameDataDefaults {
                 flag = true;
             }
         }
+        let taskBackup: Pick<ZRSJZ_GameData, 'MainTaskComplete' | 'TaskLines'> | undefined;
+        if (data.PurchasedGifts?.['至尊礼包'] && data.SupremeEntitlementVersion === 1) {
+            try {
+                const prior = JSON.parse(sys.localStorage.getItem('ZRSJZ_GameData_before_v33') || 'null');
+                if (prior?.PurchasedGifts?.['至尊礼包'] === true && !prior.SupremeEntitlementVersion
+                    && Array.isArray(prior.MainTaskComplete) && prior.TaskLines && typeof prior.TaskLines === 'object') {
+                    taskBackup = prior;
+                }
+            } catch (error) { console.warn('[至尊礼包] 旧任务备份无效，保留现有领取记录', error); }
+        }
+        if (ZRSJZ_SupremeService.Apply(data, taskBackup)) flag = true;
         return flag;
     }
 

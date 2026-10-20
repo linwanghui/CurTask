@@ -1,3 +1,4 @@
+import { HasSupremeAccess } from './ZRSJZ_PurchaseState';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_AccountService } from './ZRSJZ_AccountService';
 import { ZRSJZ_ACHIEVEMENT_CONFIG, ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG, ZRSJZ_AchievementConfig, ZRSJZ_AchievementReward, ZRSJZ_PROP_CONFIG, ZRSJZ_MAIL_TYPE } from '../ZRSJZ_Constant';
@@ -17,6 +18,7 @@ export class ZRSJZ_AchievementService {
     private static lowHpEnemyKillStreak = 0;
 
     public static GetProgress(id: string): number {
+        if (HasSupremeAccess(ZRSJZ_GameData.Instance)) return this.Items.find(item => item.id === id)?.target ?? 0;
         const data = ZRSJZ_GameData.Instance;
         switch (id) {
             case '枪火洗礼': return Math.max(data.TotalEvacuation || 0, data.AchievementProgress?.[id] || 0);

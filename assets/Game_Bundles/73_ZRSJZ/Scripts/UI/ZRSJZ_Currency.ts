@@ -36,7 +36,12 @@ export class ZRSJZ_Currency extends Component {
     }
 
     Show() {
-        Tween.stopAllByTarget(this._curTween);
+        this._curTween?.stop();
+        if (ZRSJZ_GameData.Instance.InfiniteGold) {
+            this._curCurrency = ZRSJZ_GameData.Instance.Gold;
+            if (this.Currency) this.Currency.string = '999999999999';
+            return;
+        }
 
         const object = { value: this._curCurrency };
 

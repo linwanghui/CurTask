@@ -1,6 +1,7 @@
+import { ZRSJZ_PurchaseService } from '../Service/ZRSJZ_PurchaseService';
 import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, Button, EventHandler, EventTouch, find, instantiate, isValid, Label, Node, Sprite, SpriteFrame, UITransform } from 'cc';
+import { _decorator, Button, EventHandler, EventTouch, find, instantiate, isValid, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_PANEL, ZRSJZ_PROP_QUALITY, ZRSJZ_ROLE_CONFIG, ZRSJZ_RoleConfig, ZRSJZ_SKIN_CONFIG } from '../ZRSJZ_Constant';
@@ -37,12 +38,15 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     SkinContent: Node = null;
 
     GoldButton: Node = null;
-    VideoButton: Node = null;
+    DiamondButton: Node = null;
     AppearedButton: Node = null;
     AppearButton: Node = null;
 
     GoldPrice: Label = null;
-    private _signInOnlyTip: Node = null;
+    DiamondPrice: Label = null;
+    private _isBuyingSkin = false;
+    public get CanClose(): boolean { return !this._isBuyingSkin; }
+    private _unlockTip: Node = null;
 
     private _curRoleData: Readonly<ZRSJZ_RoleConfig> = null;
     private _roleSkins: ZRSJZ_SkinItem[] = [];
@@ -77,7 +81,23 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         if (this._fragmentGlow) this._fragmentGlow.angle = (this._fragmentGlow.angle - dt * 45) % 360;
     }
 
+    private OpenFragmentPurchase(): void {
+        if (ZRSJZ_UIManager.Dragging) return;
+        ZRSJZ_AudioManager.Instance.PlaySound('点击');
+        if (!ZRSJZ_UIManager.ZRSJZ_DLC) {
+            ZRSJZ_UIManager.Instance.ShowTip('碎片购买资源正在加载，请稍后再试');
+            return;
+        }
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.英雄碎片购买弹窗);
+    }
+
     protected onLoad(): void {
+        const purchase = find('Panel/英雄碎片/加号', this.node);
+        if (purchase) {
+            const button = purchase.getComponent(Button) ?? purchase.addComponent(Button);
+            button.clickEvents = [];
+            purchase.on(Button.EventType.CLICK, this.OpenFragmentPurchase, this);
+        }
         const free = find("Panel/免费获取英雄碎片", this.node);
         if (free) {
             const button = free.getComponent(Button) ?? free.addComponent(Button);
@@ -97,24 +117,17 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         this.SkinContent = find("Panel/详情/SkinDesc/View/Content", this.node);
 
         this.GoldButton = find("Panel/状态/金币购买", this.node);
-        this.VideoButton = find("Panel/状态/视频获取", this.node);
+        this.DiamondButton = find("Panel/状态/抖币购买", this.node);
         this.AppearedButton = find("Panel/状态/已出场", this.node);
         this.AppearButton = find("Panel/状态/上场", this.node);
 
+        this.DiamondPrice = find('Panel/状态/抖币购买/Price', this.node)?.getComponent(Label);
         this.GoldPrice = find("Panel/状态/金币购买/Price", this.node).getComponent(Label);
-        this._signInOnlyTip = new Node("签到解锁提示");
-        this._signInOnlyTip.layer = this.GoldButton.layer;
-        this._signInOnlyTip.parent = this.GoldButton.parent;
-        this._signInOnlyTip.setPosition(this.GoldButton.position);
-        this._signInOnlyTip.addComponent(UITransform).setContentSize(480, 70);
-        const tip = this._signInOnlyTip.addComponent(Label);
-        tip.string = "该皮肤只能签到获得";
-        tip.font = this.GoldPrice.font;
-        tip.fontSize = 32;
-        tip.lineHeight = 40;
-        tip.horizontalAlign = Label.HorizontalAlign.CENTER;
-        tip.verticalAlign = Label.VerticalAlign.CENTER;
-        this._signInOnlyTip.active = false;
+        this._unlockTip = find('Panel/状态/UnlockTip', this.node);
+        if (this._unlockTip) {
+            this._unlockTip.layer = this.GoldButton.layer;
+            this._unlockTip.active = false;
+        }
     }
 
     protected async start(): Promise<void> {
@@ -146,18 +159,20 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
     }
 
     OnButtonClick(event: EventTouch) {
-        if (ZRSJZ_UIManager.Dragging) return;
+        if (ZRSJZ_UIManager.Dragging || this._isBuyingSkin) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
             case "Close":
                 ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.角色界面);
                 break;
             case "金币购买":
-            case "视频获取":
                 if (!this._curRoleData) return;
                 const error = ZRSJZ_AccountService.UnlockSkinWithFragments(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
                 ZRSJZ_UIManager.Instance.ShowTip(error || "解锁成功");
                 this.RefreshFragments();
+                break;
+            case "抖币购买":
+                this.BuySelectedSkin();
                 break;
             case "上场":
                 ZRSJZ_AccountService.SetCurSkin(this._curRoleData.Name, this._curRoleData.Skin[this._curRoleSkinIndex]);
@@ -169,6 +184,20 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
                 this.SwitchSkin(roleSkinIndex);
                 break;
         }
+    }
+
+    private BuySelectedSkin(): void {
+        if (!this._curRoleData || this._isBuyingSkin) return;
+        const role = this._curRoleData.Name;
+        const skin = this._curRoleData.Skin[this._curRoleSkinIndex];
+        this._isBuyingSkin = true;
+        this.ShowButton();
+        ZRSJZ_PurchaseService.BuySkin(role, skin, (message, rewarded) => {
+            this._isBuyingSkin = false;
+            if (!isValid(this, true)) return;
+            this.RefreshFragments();
+            ZRSJZ_UIManager.Instance.ShowTip(rewarded ? skin + '解锁成功' : message);
+        });
     }
 
     ShowRoleDesc(roleName: string) {
@@ -289,16 +318,23 @@ export class ZRSJZ_RolePanel extends ZRSJZ_Panel {
         const skinConfig = ZRSJZ_SKIN_CONFIG.get(this._curRoleData.Skin[this._curRoleSkinIndex]);
         const exclusiveTip = skinConfig?.UnlockType === "签到解锁" ? "该皮肤只能签到获得"
             : skinConfig?.UnlockType === "战令解锁" ? "该皮肤只能通过战令获得" : "";
-        this._signInOnlyTip.getComponent(Label).string = exclusiveTip;
-        this._signInOnlyTip.active = !!exclusiveTip
-            && !ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]);
-        this.VideoButton.active = false;
-        if (!ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]) && skinConfig?.UnlockType == "英雄碎片") {
-            this.GoldButton.active = true;
-            this.GoldPrice.string = `${skinConfig.UnlockPrice} 解锁`;
-        } else {
-            this.GoldButton.active = false;
+        if (this._unlockTip) {
+            const tip = this._unlockTip.getComponent(Label);
+            if (tip) tip.string = exclusiveTip;
+            this._unlockTip.active = !!exclusiveTip
+                && !ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex]);
         }
+        const canUnlock = !ZRSJZ_GameData.Instance.HaveSkin.includes(this._curRoleData.Skin[this._curRoleSkinIndex])
+            && skinConfig?.UnlockType === '英雄碎片';
+        this.GoldButton.active = canUnlock;
+        if (canUnlock) this.GoldPrice.string = skinConfig.UnlockPrice + '';
+        const yuan = canUnlock ? ZRSJZ_PurchaseService.GetSkinPaymentYuan(skinConfig.UnlockPrice) : 0;
+        this.DiamondButton.active = canUnlock && yuan > 0;
+        if (this.DiamondPrice) this.DiamondPrice.string = yuan + '元或抖钻支付';
+        const fragmentButton = this.GoldButton.getComponent(Button);
+        const paymentButton = this.DiamondButton.getComponent(Button);
+        if (fragmentButton) fragmentButton.interactable = !this._isBuyingSkin;
+        if (paymentButton) paymentButton.interactable = !this._isBuyingSkin;
     }
 
     private async InitSkinQualityFrames(): Promise<void> {

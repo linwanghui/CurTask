@@ -41,7 +41,23 @@ export class ZRSJZ_PetPanel extends ZRSJZ_Panel {
         if (this._fragmentGlow) this._fragmentGlow.angle = (this._fragmentGlow.angle - dt * 45) % 360;
     }
 
+    private OpenFragmentPurchase(): void {
+        if (ZRSJZ_UIManager.Dragging) return;
+        ZRSJZ_AudioManager.Instance.PlaySound('点击');
+        if (!ZRSJZ_UIManager.ZRSJZ_DLC) {
+            ZRSJZ_UIManager.Instance.ShowTip('碎片购买资源正在加载，请稍后再试');
+            return;
+        }
+        ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.宠物碎片购买弹窗);
+    }
+
     protected onLoad(): void {
+        const purchase = find('Panel/宠物碎片/加号', this.node);
+        if (purchase) {
+            const button = purchase.getComponent(Button) ?? purchase.addComponent(Button);
+            button.clickEvents = [];
+            purchase.on(Button.EventType.CLICK, this.OpenFragmentPurchase, this);
+        }
         this._fragmentGlow = find("Panel/免费获取宠物碎片/碎片背光", this.node);
         const fragments = find("Panel/免费获取宠物碎片", this.node);
         if (fragments) {

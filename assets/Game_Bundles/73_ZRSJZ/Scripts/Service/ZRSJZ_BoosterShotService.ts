@@ -1,9 +1,11 @@
+import { HasSupremeAccess } from './ZRSJZ_PurchaseState';
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
 import { ZRSJZ_BOOSTER_SHOT_CONFIG } from "../ZRSJZ_Constant";
 import { ZRSJZ_EnhancementService } from './ZRSJZ_EnhancementService';
 
 export class ZRSJZ_BoosterShotService {
+    public static get IsFree(): boolean { return HasSupremeAccess(ZRSJZ_GameData.Instance); }
     /** 调试开关：跨对局保留，重启游戏恢复关闭，不写入玩家存档。 */
     public static SuperHighDropEnabled: boolean = false;
 
@@ -22,10 +24,10 @@ export class ZRSJZ_BoosterShotService {
         const data = ZRSJZ_GameData.Instance;
         if (
             !ZRSJZ_BOOSTER_SHOT_CONFIG.has(boosterShot)
-            || this.GetBoosterShotCount(boosterShot) <= 0
+            || (!this.IsFree && this.GetBoosterShotCount(boosterShot) <= 0)
             || this.GetCurBoosterShot() === boosterShot
         ) return false;
-        data.BoosterShotData[boosterShot]--;
+        if (!this.IsFree) data.BoosterShotData[boosterShot]--;
         data.CurBoosterShot = boosterShot;
         ZRSJZ_GameData.SaveData();
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_BOOSTER_SHOT_REFRESH);

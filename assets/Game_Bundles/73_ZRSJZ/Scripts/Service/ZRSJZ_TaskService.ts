@@ -1,5 +1,6 @@
+import { HasSupremeAccess } from './ZRSJZ_PurchaseState';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
-import { ZRSJZ_MAIN_TASK_CONFIG, ZRSJZ_MAIN_TASK_ORDER, ZRSJZ_INVENTORY } from "../ZRSJZ_Constant";
+import { ZRSJZ_MAIN_TASK_CONFIG, ZRSJZ_MAIN_TASK_ORDER, ZRSJZ_INVENTORY, ZRSJZ_INVENTORY_CONFIG } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_GradeService } from "./ZRSJZ_GradeService";
 import { ZRSJZ_SIDE_TASK_CONFIG, ZRSJZ_SIDE_TASK_LINES, ZRSJZ_TaskObjective } from '../ZRSJZ_TaskLines';
@@ -21,6 +22,7 @@ export class ZRSJZ_TaskService {
 
     //领取任务奖励
     public static GetTaskAward(taskID?: string): boolean {
+        if (HasSupremeAccess(ZRSJZ_GameData.Instance)) return this.ClaimSupremeTask(taskID);
         if (taskID && ZRSJZ_SIDE_TASK_CONFIG.has(taskID)) {
             if (this.GetTaskState(taskID) !== 2) return false;
             const line = ZRSJZ_SIDE_TASK_LINES.find(line => line.Tasks.some(task => task.ID === taskID));
@@ -57,8 +59,45 @@ export class ZRSJZ_TaskService {
         return true;
     }
 
+    /** 至尊只跳过条件；仍由玩家点击领奖，记录和扩容在同一次存档中保存。 */
+    private static ClaimSupremeTask(taskID?: string): boolean {
+        const data = ZRSJZ_GameData.Instance;
+        const id = taskID ?? data.CurMainTask?.TaskName;
+        if (!id || this.GetTaskState(id) !== 2) return false;
+        const line = ZRSJZ_SIDE_TASK_LINES.find(line => line.Tasks.some(task => task.ID === id));
+        if (line) {
+            (data.SupremeTaskRewardsClaimed ??= []).push(id);
+            const progress = data.TaskLines[line.ID] ??= { index: 0, count: 0, accepted: false };
+            while (progress.index < line.Tasks.length
+                && data.SupremeTaskRewardsClaimed.includes(line.Tasks[progress.index].ID)) progress.index++;
+            progress.accepted = false; progress.count = 0;
+            const earnedRows = line.Tasks.reduce((rows, task, index) => rows +
+                (index < progress.index || data.SupremeTaskRewardsClaimed.includes(task.ID)
+                    ? task.TaskAwards[0]?.TaskAwardCount ?? 0 : 0), 0);
+            const baseRows = (ZRSJZ_INVENTORY_CONFIG.get(line.Warehouse)?.Row ?? 0)
+                + (data.SupremeWarehouseExpansionGranted === true ? 2 : 0);
+            const currentRows = data.InventoryRow[line.Warehouse] ?? baseRows;
+            const addRows = Math.max(0, baseRows + earnedRows - currentRows);
+            if (addRows > 0) ZRSJZ_InventoryService.AddInventoryRow(line.Warehouse, addRows);
+            else ZRSJZ_GameData.SaveData();
+        } else {
+            this.GetTaskExperienceAward(id);
+            data.MainTaskComplete.push(id);
+            if (data.CurMainTask?.TaskName === id) data.CurMainTask = null;
+            if (data.NewMainTask === id) data.NewMainTask = '';
+            if (id === '北境终局') {
+                const rows = data.InventoryRow[ZRSJZ_INVENTORY.保险箱] ?? 2;
+                if (rows < 3) ZRSJZ_InventoryService.AddInventoryRow(ZRSJZ_INVENTORY.保险箱, 3 - rows);
+            }
+            ZRSJZ_GameData.SaveData();
+        }
+        ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW);
+        return true;
+    }
+
     //领取任务
     public static GetNewTask(taskID?: string) {
+        if (HasSupremeAccess(ZRSJZ_GameData.Instance)) return;
         if (taskID && ZRSJZ_SIDE_TASK_CONFIG.has(taskID)) {
             if (this.GetTaskState(taskID) !== 0) return;
             const line = ZRSJZ_SIDE_TASK_LINES.find(line => line.Tasks.some(task => task.ID === taskID));
@@ -118,6 +157,15 @@ export class ZRSJZ_TaskService {
     public static GetTaskState(taskName: string) {
         const data = ZRSJZ_GameData.Instance;
         const line = ZRSJZ_SIDE_TASK_LINES.find(line => line.Tasks.some(task => task.ID === taskName));
+        if (HasSupremeAccess(data)) {
+            if (line) {
+                const index = line.Tasks.findIndex(task => task.ID === taskName);
+                return index < (data.TaskLines[line.ID]?.index ?? 0)
+                    || data.SupremeTaskRewardsClaimed?.includes(taskName) ? 3 : 2;
+            }
+            return ZRSJZ_MAIN_TASK_CONFIG.has(taskName)
+                ? data.MainTaskComplete.includes(taskName) ? 3 : 2 : -1;
+        }
         if (line) {
             const progress = data.TaskLines[line.ID];
             const index = line.Tasks.findIndex(task => task.ID === taskName);
@@ -143,6 +191,8 @@ export class ZRSJZ_TaskService {
 
     /** 当前是否存在需要玩家处理的主线任务。 */
     public static HasMainTaskReminder(): boolean {
+        if (HasSupremeAccess(ZRSJZ_GameData.Instance)) return [...ZRSJZ_MAIN_TASK_CONFIG.keys(), ...ZRSJZ_SIDE_TASK_CONFIG.keys()]
+            .some(id => this.GetTaskState(id) === 2);
         const data = ZRSJZ_GameData.Instance;
         const hasTaskToAccept = !!data.NewMainTask && ZRSJZ_MAIN_TASK_CONFIG.has(data.NewMainTask);
         return hasTaskToAccept || this.IsTaskReadyToClaim(data.CurMainTask?.TaskName)
@@ -164,6 +214,7 @@ export class ZRSJZ_TaskService {
     }
 
     public static GetProgress(taskID: string): number {
+        if (HasSupremeAccess(ZRSJZ_GameData.Instance)) return this.GetConfig(taskID)?.TaskTargets[0]?.TaskTargetCount ?? 0;
         const line = ZRSJZ_SIDE_TASK_LINES.find(line => line.Tasks.some(task => task.ID === taskID));
         if (this.GetTaskState(taskID) === 3) return this.GetConfig(taskID).TaskTargets[0].TaskTargetCount;
         if (line) return line.Tasks[ZRSJZ_GameData.Instance.TaskLines[line.ID].index]?.ID === taskID

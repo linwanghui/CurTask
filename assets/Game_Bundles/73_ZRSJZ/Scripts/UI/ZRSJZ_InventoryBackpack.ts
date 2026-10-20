@@ -41,7 +41,8 @@ export class ZRSJZ_InventoryBackpack extends ZRSJZ_Inventory {
 
     private GetCurrentBackpackRow(): number {
         const backpackID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerViewIndex)[3];
-        const expansionRows = ZRSJZ_InventoryService.IsBackpackExpanded(this.PlayerViewIndex) ? 2 : 0;
+        const expansionRows = (ZRSJZ_InventoryService.IsBackpackExpanded(this.PlayerViewIndex) ? 2 : 0)
+            + ZRSJZ_GameData.Instance.PermanentBackpackRows;
         if (!backpackID) return ZRSJZ_InventoryBackpack.DEFAULT_ROW + expansionRows;
 
         const backpackData = ZRSJZ_GameData.Instance.PropData[backpackID];

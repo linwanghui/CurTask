@@ -214,11 +214,11 @@ export class ZRSJZ_InventoryService {
         return (prop.OwnerPlayerIndex ?? 0) === this._activePlayerIndex;
     }
 
-    public static AddPropByName(propName: string, count: number = 1): string {
+    public static AddPropByName(propName: string, count: number = 1, save: boolean = true): string {
         const config = ZRSJZ_PROP_CONFIG.get(propName);
         if (!config) return "";
         const data = ZRSJZ_GameData.Instance;
-        const propID = this.GetPropID();
+        const propID = this.GetPropID(save);
         const prop = new ZRSJZ_PropData();
         prop.InstanceID = propID;
         prop.Name = propName;
@@ -231,7 +231,7 @@ export class ZRSJZ_InventoryService {
         prop.Height = Number(config.GridType[0]);
         prop.GridData = [this.CreateEmptyGridData(), this.CreateEmptyGridData()];
         data.PropData[propID] = prop;
-        ZRSJZ_GameData.SaveData();
+        if (save) ZRSJZ_GameData.SaveData();
         return propID;
     }
 
@@ -612,10 +612,10 @@ export class ZRSJZ_InventoryService {
         }
     }
 
-    private static GetPropID(): string {
+    private static GetPropID(save: boolean = true): string {
         const data = ZRSJZ_GameData.Instance;
         data.PropID++;
-        ZRSJZ_GameData.SaveData();
+        if (save) ZRSJZ_GameData.SaveData();
         return `ZRSJZ_PropID_${data.PropID}`;
     }
 

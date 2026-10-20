@@ -278,6 +278,7 @@ export class ZRSJZ_Inventory extends Component {
 
     protected onEnable(): void {
         if (this.IsInitialized) {
+            this.SyncWarehouseCapacity();
             this.ShowPropItem();
         }
         this.IsVisible = true;
@@ -304,6 +305,7 @@ export class ZRSJZ_Inventory extends Component {
         this.PlayerViewIndex = playerIndex === 1 ? 1 : 0;
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_CHECK_PROP, this.CheckProp, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SELL_PROP, this.RemoveProp, this);
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_ADD_ROW, this.AddInventoryRow, this);
         for (let i = this.node.children.length - 1; i >= 0; i--) {
             ZRSJZ_PoolManager.Instance.PutNode(this.node.children[i]);
         }
@@ -373,10 +375,19 @@ export class ZRSJZ_Inventory extends Component {
         this.UITransform = this.getComponent(UITransform);
         this.UITransform.height = height;
         this.IsInitialized = true;
+        // 初始化期间的扩容通知可能被忽略，结束时再与存档核对一次。
+        this.SyncWarehouseCapacity();
 
         if (this.node.active) {
             await this.ShowPropItem();
         }
+    }
+
+    /** 只向五类账号仓库补齐已存档的新增行，不重建或移动现有物品。 */
+    private SyncWarehouseCapacity(): void {
+        if (![ZRSJZ_INVENTORY.仓库_全部, ZRSJZ_INVENTORY.仓库_装备, ZRSJZ_INVENTORY.仓库_武器,
+            ZRSJZ_INVENTORY.仓库_弹药, ZRSJZ_INVENTORY.仓库_物品].includes(this.InventoryType)) return;
+        this.AddInventoryRow(this.InventoryType, 0);
     }
 
     AddInventoryRow(inventoryType: ZRSJZ_INVENTORY, addRow: number) {
@@ -407,6 +418,7 @@ export class ZRSJZ_Inventory extends Component {
             && this.InventoryType === inventoryType
             && this.PlayerViewIndex === normalizedIndex
         ) {
+            this.SyncWarehouseCapacity();
             await this.ShowPropItem();
             return;
         }

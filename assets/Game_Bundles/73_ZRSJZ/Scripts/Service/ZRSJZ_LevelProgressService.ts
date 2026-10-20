@@ -1,3 +1,5 @@
+import { HasSupremeAccess } from './ZRSJZ_PurchaseState';
+import { ZRSJZ_MAP_CONFIG } from '../ZRSJZ_Constant';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 
 /** 按地图和行动逐级解锁；仅保存同局击败 Boss 后成功撤离的记录。 */
@@ -17,6 +19,7 @@ export class ZRSJZ_LevelProgressService {
     }
 
     public static GetLockReason(mapKey: string): string {
+        if (HasSupremeAccess(ZRSJZ_GameData.Instance) && ZRSJZ_MAP_CONFIG.has(mapKey)) return '';
         const index = this.Levels.indexOf(mapKey);
         if (index < 0) return '该关卡暂未开放';
         if (index === 0) return '';

@@ -1,3 +1,4 @@
+import { HasSupremeAccess } from './ZRSJZ_PurchaseState';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { CreateBattlePassState, ZRSJZ_BATTLE_PASS_CONFIG as Config, ZRSJZ_BattlePassMetric, ZRSJZ_BattlePassPeriod, ZRSJZ_BattlePassTask, ZRSJZ_BattlePassTrack, ZRSJZ_BattlePassReward } from '../ZRSJZ_BattlePassConfig';
 import { ZRSJZ_AccountService } from './ZRSJZ_AccountService';
@@ -57,6 +58,17 @@ export class ZRSJZ_BattlePassService {
         if (state.daily.key === keys.daily) {
             for (const item of this.GetTasks('daily').filter(item => item.metric === 'login')) {
                 if (!state.daily.progress[item.id]) { state.daily.progress[item.id] = 1; changed = true; }
+            }
+        }
+        if (HasSupremeAccess(data)) {
+            if (!state.advancedUnlocked || state.exp !== Config.maxLevel * Config.expPerLevel) changed = true;
+            state.advancedUnlocked = true;
+            state.exp = Config.maxLevel * Config.expPerLevel;
+            for (const period of ['daily', 'weekly'] as const) {
+                for (const task of this.GetTasks(period)) {
+                    if (state[period].progress[task.id] !== task.target) changed = true;
+                    state[period].progress[task.id] = task.target;
+                }
             }
         }
         if (changed) ZRSJZ_GameData.SaveData();

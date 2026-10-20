@@ -354,8 +354,8 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
                 + '    价值 ' + this.FormatValue(recipe.value);
         }
         this.LoadPropSprite(this._itemSprite, recipe.itemName, 390, 260);
-        this._goldLabel.string = FormatMoney(recipe.goldCost, true);
-        this._timeLabel.string = recipe.durationHours + '小时';
+        this._goldLabel.string = ZRSJZ_ForgeService.IsFreeInstant ? '免费' : FormatMoney(recipe.goldCost, true);
+        this._timeLabel.string = ZRSJZ_ForgeService.IsFreeInstant ? '立即完成' : recipe.durationHours + '小时';
 
         this._materialContent.children.slice().forEach(slot => {
             if (slot === this._materialTemplate) return;
@@ -366,7 +366,7 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
         const gap = Math.min(145, 790 / slotCount);
         const startX = -(slotCount - 1) * gap * 0.5;
         for (let index = 0; index < slotCount; index++) {
-            const material = recipe.materials[index];
+            const material = ZRSJZ_ForgeService.IsFreeInstant ? undefined : recipe.materials[index];
             const slot = instantiate(this._materialTemplate);
             slot.name = material ? material.name : '空材料槽' + (index + 1);
             slot.active = true;
@@ -452,7 +452,7 @@ export class ZRSJZ_ForgePanel extends ZRSJZ_Panel {
         if (!task) {
             this._actionButton.active = true;
             this._statusLabel.node.active = false;
-            this._actionButtonLabel.string = '开始锻造';
+            this._actionButtonLabel.string = ZRSJZ_ForgeService.IsFreeInstant ? '立即锻造' : '开始锻造';
             return;
         }
 
