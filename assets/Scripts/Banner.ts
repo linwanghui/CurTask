@@ -29,10 +29,10 @@ export default class Banner {
     static AgeLimit: number = 9999999999;
     Company = Company.替换公司;
 
-    private _appId: string = "${Appid}";
+    private _appId: string = "tt179e612389e5888407";
 
-    private _videoId: string = "${激励}";
-    private _customId: string = "${原生}";
+    private _videoId: string = "f2943fcj1akj2fd01j";
+    private _customId: string = "dqc4il1er7j6k7p3jj";
     private _bannerId: string = "${banner}";
 
     //微信
@@ -2186,6 +2186,171 @@ export default class Banner {
     /*** 分享*/
     shareRecorder() {
         DYRecorder.share();
+    }
+
+    /**
+    * 统一支付调用
+    * @param params 支付参数
+    */
+    TT_unifiedPayment(params: {
+        diamondAmount: number;      // 钻石数量（必填）
+        goodName?: string;          // 商品名称（选填，传了走道具直购）
+        orderAmount?: number;       // 金额单位分（道具直购时必填）
+        customId?: string;          // 自定义订单号（选填）
+        extraInfo?: any;            // 额外信息（选填）
+        zoneId?: string;            // 分区ID（选填，默认"1"）
+        onSuccess?: (res: any) => void;
+        onFail?: (res: any) => void;
+        onComplete?: (res: any) => void;
+    }) {
+        if (Banner.Mode == BannerMode.测试包) {
+            // 与真实支付保持相同的回调顺序，方便调用方在 complete 中关闭加载提示。
+            const testResult = { errMsg: "requestGamePayment:ok", isTest: true };
+            console.log("[抖音支付测试包] 跳过真实支付并直接发放奖励");
+            try {
+                params.onSuccess && params.onSuccess(testResult);
+            } finally {
+                params.onComplete && params.onComplete(testResult);
+            }
+            return;
+        }
+
+        // 生成订单号
+        const customId = params.customId || `ORDER_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`;
+        const zoneId = params.zoneId || "1";
+        const extraInfo = typeof params.extraInfo === 'string' ? params.extraInfo : JSON.stringify(params.extraInfo || {});
+
+        let settled = false, completed = false;
+        let nativeTimer: ReturnType<typeof setTimeout> | null = null;
+        const success = (res: any) => {
+            if (settled) return; settled = true;
+            console.log(`[抖音支付成功] order=${customId}`, JSON.stringify(res || {}));
+            try { params.onSuccess && params.onSuccess(res); } finally { complete(res); }
+        };
+        const fail = (res: any) => {
+            if (settled) return; settled = true;
+            console.error(`[抖音支付失败] order=${customId}`, JSON.stringify(res || {}));
+            try { params.onFail && params.onFail(res || {}); }
+            finally { complete(res); }
+        };
+        const complete = (res: any) => {
+            if (!settled || completed) return; completed = true;
+            if (nativeTimer) clearTimeout(nativeTimer);
+            console.log(`[抖音支付完成] order=${customId}`, JSON.stringify(res || {}));
+            params.onComplete && params.onComplete(res);
+        };
+
+        const invoke = () => {
+            nativeTimer = setTimeout(() => fail({ errCode: -1, errMsg: '支付结果未确认，请勿重复付款；若已扣款请保留订单号：' + customId }), 65000);
+            try {
+                // canIUse 只能判断接口能力，不能用于判断手机系统。
+                //@ts-ignore
+                const systemInfo = tt.getSystemInfoSync ? tt.getSystemInfoSync() : {};
+                const platform = String(systemInfo.platform || "").toLowerCase();
+                const system = String(systemInfo.system || "").toLowerCase();
+                const isIOS = platform === "ios" || system.indexOf("ios") !== -1;
+
+                console.log('[抖音支付发起]', JSON.stringify({
+                    order: customId, platform, system, SDKVersion: systemInfo.SDKVersion,
+                    appVersion: systemInfo.version, goodType: params.goodName ? 2 : 0, orderAmount: params.orderAmount, goodName: params.goodName
+                }));
+                if (params.goodName && ['windows', 'mac', 'macos', 'darwin'].includes(platform)) {
+                    fail({ errCode: -15003, errMsg: 'PC端不支持当前现金道具直购，请使用手机抖音预览测试' }); return;
+                }
+
+                if (isIOS) {
+                    // iOS 通过抖音钻石兑换发起支付。
+                    //@ts-ignore
+                    if (!tt.canIUse || !tt.canIUse('openAwemeCustomerService')) {
+                        fail({ errCode: -1, errMsg: "当前抖音版本不支持 iOS 支付，请升级抖音" });
+                        return;
+                    }
+                    //@ts-ignore
+                    const direct = !!params.goodName && params.orderAmount != null;
+                    if (direct && (!(tt as any).canIUse || !(tt as any).canIUse('openAwemeCustomerService.object.goodType'))) {
+                        fail({ errCode: -15003, errMsg: '当前抖音版本不支持iOS道具直购，请升级抖音' }); return;
+                    }
+                    (tt as any).openAwemeCustomerService({
+                        ...(direct ? { goodType: 2, goodName: params.goodName, orderAmount: params.orderAmount } : { buyQuantity: params.diamondAmount }),
+                        currencyType: "CNY",
+                        zoneId,
+                        customId,
+                        extraInfo,
+                        success,
+                        fail,
+                        complete
+                    });
+                    return;
+                }
+
+                // Android 道具直购需要客户端支持 goodType（抖音 32.0.0+）。
+                if (params.goodName && params.orderAmount != null) {
+                    //@ts-ignore
+                    if (tt.canIUse && !tt.canIUse('requestGamePayment.object.goodType')) {
+                        fail({ errCode: -1, errMsg: "当前抖音版本不支持道具直购，请升级抖音" });
+                        return;
+                    }
+                    //@ts-ignore
+                    tt.requestGamePayment({
+                        mode: "game",
+                        env: 0,
+                        platform: "android",
+                        currencyType: "CNY",
+                        goodType: 2,
+                        goodName: params.goodName,
+                        orderAmount: params.orderAmount,
+                        zoneId,
+                        customId,
+                        extraInfo,
+                        success,
+                        fail,
+                        complete
+                    });
+                    return;
+                }
+
+                // Android 游戏币购买。
+                //@ts-ignore
+                tt.requestGamePayment({
+                    mode: "game",
+                    env: 0,
+                    platform: "android",
+                    currencyType: "CNY",
+                    buyQuantity: params.diamondAmount,
+                    zoneId,
+                    customId,
+                    extraInfo,
+                    success,
+                    fail,
+                    complete
+                });
+            } catch (error) {
+                const errMsg = error && error.message ? error.message : String(error);
+                fail({ errCode: -1, errMsg: `调用支付接口异常：${errMsg}` });
+            }
+        };
+        const api = (globalThis as any).tt;
+        if (!api || typeof api.checkSession !== 'function' || typeof api.login !== 'function') {
+            fail({ errCode: -16000, errMsg: '支付登录接口不可用，请在手机抖音或已登录的开发者工具测试' }); return;
+        }
+        if (params.goodName && (Array.from(params.goodName).length > 10 || !Number.isSafeInteger(params.orderAmount) || params.orderAmount <= 0)) {
+            fail({ errCode: -15002, errMsg: '商品名称或支付金额配置无效' }); return;
+        }
+        if (encodeURIComponent(extraInfo).replace(/%[A-F0-9]{2}|./g, 'x').length > 256) {
+            fail({ errCode: -15002, errMsg: '订单附加信息超过256字节' }); return;
+        }
+        let ready = false;
+        const timeout = setTimeout(() => { if (!ready) { ready = true; fail({ errCode: -16000, errMsg: '支付前登录检查超时，请重新进入抖音后重试' }); } }, 10000);
+        const start = () => { if (ready) return; ready = true; clearTimeout(timeout); invoke(); };
+        const loginFail = (error: any) => { if (ready) return; ready = true; clearTimeout(timeout); fail({ errCode: -16000, errMsg: '请先登录抖音后再购买', detail: error?.errMsg || '' }); };
+        try {
+            api.checkSession({
+                success: start, fail: () => {
+                    try { api.login({ force: true, success: (r: any) => r?.code && r.isLogin !== false ? start() : loginFail(r), fail: loginFail }); }
+                    catch (error) { loginFail(error); }
+                }
+            });
+        } catch (error) { loginFail(error); }
     }
 
     //抖音排行榜

@@ -1,3 +1,4 @@
+import { ZRSJZ_DouyinRanking } from './Service/ZRSJZ_DouyinRanking';
 import { _decorator, Camera, Color, Component, director, Director, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_ActivityService } from './Service/ZRSJZ_ActivityService';
@@ -1159,6 +1160,7 @@ export class ZRSJZ_Game extends Component {
             this._killCount,
             queueExperience,
         );
+        if (evacuationSuccess) void ZRSJZ_DouyinRanking.Upload(true);
         ZRSJZ_AchievementService.BattleFinished(
             evacuationSuccess, evacuationValue, this._elapsedGameTime,
             ZRSJZ_GameData.Instance.CurMap, this.IsTwoPlayerMode(),

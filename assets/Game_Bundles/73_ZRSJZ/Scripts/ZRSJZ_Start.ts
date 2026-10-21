@@ -131,7 +131,7 @@ export class ZRSJZ_Start extends Component {
         ZRSJZ_MerchantService.EnterHome();
 
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
-        this.RankingListBtn.active = Banner.IS_BYTEDANCE_MINI_GAME;
+        // this.RankingListBtn.active = Banner.IS_BYTEDANCE_MINI_GAME && ZRSJZ_UIManager.ZRSJZ_DLC;
         const cb: Function = () => {
             if (!isValid(this, true) || !this.node.activeInHierarchy) return;
             const startGame = () => {
@@ -371,8 +371,7 @@ export class ZRSJZ_Start extends Component {
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.成就界面);
                 break;
             case "排行榜":
-                Banner.Instance.TikTokRankingListPush(ZRSJZ_GradeService.GetTotalAssetValue());
-                Banner.Instance.TikTokRankingListGet();
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.排行榜界面);
                 break;
             case "战令":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.战令界面, { firstUnlock });
