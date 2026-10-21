@@ -48,11 +48,11 @@ export default class Banner {
 
     //抖音
     private TT_shareId: string = "5jcq5hggabo10lm80k";//抖音分享ID
-    private TT_tmplIds: string = "MSG1932124137157606039184285059364";//抖音订阅ID
+    private TT_tmplIds: string = "MSG22098589137157678601606539102514";//抖音订阅ID
     public static OpenWinTheCustomer: boolean = true;//是否开启获客流
     public static WinTheCustomerIsOver: boolean = false;//获客流是否已经准备就绪(进入就绪场景)
 
-    private TT_UpcontentIDs: string[] = ["", "", "CONTENT13619105538"];//抖音复访上报ID(订阅)
+    private TT_UpcontentIDs: string[] = ["", "", "CONTENT15151727106"];//抖音复访上报ID(订阅)
 
     //屏蔽时间
     private _year: number = -9999999998;
