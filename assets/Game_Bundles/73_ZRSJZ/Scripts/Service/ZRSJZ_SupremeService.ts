@@ -14,7 +14,7 @@ export class ZRSJZ_SupremeService {
     public static Apply(data: ZRSJZ_GameData, taskBackup?: Pick<ZRSJZ_GameData, 'MainTaskComplete' | 'TaskLines'>): boolean {
         if (!HasSupremeAccess(data)) return false;
         const before = JSON.stringify(data);
-        const union = <T>(owned: T[], all: Iterable<T>): T[] => Array.from(new Set([...(owned ?? []), ...all]));
+        const union = <T>(owned: T[], all: Iterable<T>): T[] => Array.from(new Set((owned ?? []).concat(Array.from(all))));
         data.InfiniteGold = true;
         data.AllPermissionsPending = false;
         if (data.SupremeEntitlementVersion === 1 && taskBackup) {

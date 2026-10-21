@@ -130,6 +130,11 @@ export class ZRSJZ_GameData {
     public CurRole: string[] = ["威蓝", "泠汐"];
     public HaveSkin: string[] = ["威蓝", "泠汐"];
     public CurSkin: string[] = ["威蓝", "泠汐"];
+    /** 服务端账本回传的累计实付金额（分），含退款修正。 */
+    public RankingVerifiedRechargeFen: number = 0;
+    /** 纯抖音模式累计成功支付回调金额；测试订单不计入。 */
+    public RankingLocalPaidFen: number = 0;
+    public RankingHasVerifiedRecharge: boolean = false;
     public CurrentAvatar: string = "威蓝";
     public CurrentAvatarFrame: string = "1";
     public OwnedAvatarFrames: string[] = ["1"];

@@ -1,7 +1,6 @@
-import { _decorator, Component, JsonAsset, Node, physics, PhysicsSystem, PhysicsSystem2D } from 'cc';
+import { _decorator, Component, PhysicsSystem, PhysicsSystem2D } from 'cc';
 import { Tools } from '../Utils/Tools';
-import { ResourceUtil } from '../Utils/ResourceUtil';
-import { DataManager, GameData } from './DataManager';
+import { GameData } from './DataManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('PhysicsManager')
@@ -12,12 +11,14 @@ export class PhysicsManager extends Component {
 
     //**获取当前物理分层数据 */
     public static LogCurrentCollisionMatrix() {
+        // 物理模块可能在发布包中被裁剪，优先输出本项目使用的2D矩阵。
+        const system = PhysicsSystem2D?.instance || PhysicsSystem?.instance;
+        if (!system) return;
         let str = ``;
         let str2 = '';
 
         for (let i = 1; i <= (1 << this.maxLayer); i <<= 1) {
-            // let binary = Tools.DecimalToBinaryWithPadding(PhysicsSystem2D.instance.collisionMatrix[i], this.maxLayer);
-            let binary = Tools.DecimalToBinaryWithPadding(PhysicsSystem.instance.collisionMatrix[i], this.maxLayer);
+            let binary = Tools.DecimalToBinaryWithPadding(system.collisionMatrix[i], this.maxLayer);
             str += `${i == (1 << this.maxLayer) ? `${binary}` : `${binary}-`}`
             str2 += `${binary}\n`
         }
@@ -34,10 +35,12 @@ export class PhysicsManager extends Component {
 
     //**设置物理分层 */
     public static SetCollisionMatrix(data: GameData) {
+        const systems = [PhysicsSystem2D?.instance, PhysicsSystem?.instance].filter(system => !!system);
+        if (!systems.length) return;
         this.LogCurrentCollisionMatrix();
         for (let i = 1; i <= (1 << this.maxLayer); i <<= 1) {
-            PhysicsSystem2D.instance.collisionMatrix[i] = data.GetMatrixByLayer(i);
-            PhysicsSystem.instance.collisionMatrix[i] = data.GetMatrixByLayer(i);
+            const mask = data.GetMatrixByLayer(i);
+            for (const system of systems) system.collisionMatrix[i] = mask;
         }
         this.LogCurrentCollisionMatrix();
     }

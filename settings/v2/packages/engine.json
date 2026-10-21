@@ -29,7 +29,7 @@
             "_value": true
           },
           "3d": {
-            "_value": true
+            "_value": false
           },
           "meshopt": {
             "_value": false
@@ -59,10 +59,10 @@
             "_value": true
           },
           "particle": {
-            "_value": true
+            "_value": false
           },
           "physics": {
-            "_value": true,
+            "_value": false,
             "_option": "physics-ammo"
           },
           "physics-ammo": {
@@ -106,7 +106,7 @@
             "_value": true
           },
           "primitive": {
-            "_value": true
+            "_value": false
           },
           "profiler": {
             "_value": true
@@ -127,7 +127,7 @@
             "_value": true
           },
           "video": {
-            "_value": true
+            "_value": false
           },
           "webview": {
             "_value": true
@@ -142,10 +142,10 @@
             "_value": false
           },
           "terrain": {
-            "_value": true
+            "_value": false
           },
           "light-probe": {
-            "_value": true
+            "_value": false
           },
           "tiled-map": {
             "_value": true
@@ -193,13 +193,11 @@
           }
         },
         "flags": {
-          "LOAD_SPINE_MANUALLY": false,
-          "LOAD_BULLET_MANUALLY": false
+          "LOAD_SPINE_MANUALLY": false
         },
         "name": "迁移生成的配置",
         "includeModules": [
           "2d",
-          "3d",
           "affine-transform",
           "animation",
           "audio",
@@ -210,23 +208,17 @@
           "graphics",
           "intersection-2d",
           "legacy-pipeline",
-          "light-probe",
           "marionette",
           "mask",
-          "particle",
           "particle-2d",
           "physics-2d-box2d",
-          "physics-ammo",
-          "primitive",
           "profiler",
           "rich-text",
           "skeletal-animation",
           "spine-3.8",
-          "terrain",
           "tiled-map",
           "tween",
           "ui",
-          "video",
           "websocket",
           "webview"
         ],

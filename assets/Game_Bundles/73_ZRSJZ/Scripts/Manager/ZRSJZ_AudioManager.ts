@@ -61,14 +61,14 @@ export class ZRSJZ_AudioManager extends Component {
     }
     public PlayMusic(audioName: string, loop: boolean = true, valume: number = 1) {
         if (ZRSJZ_GameData.Instance.MusicMute || this._curMusic == audioName) return;
-        if (!this.AudioClipMaps.has(audioName)) {
+        if (!this.AudioClipMaps.has(audioName) && !this.AudioClipMaps.has(audioName + "_DLC")) {
             error(`音频不存在: ${audioName}`);
             return;
         }
         this._curMusic = audioName;
         if (this._curMusicAudioSource) this.freeSource(this._curMusicAudioSource);
         this._curMusicAudioSource = this.getIdleSource();
-        this._curMusicAudioSource.clip = this.AudioClipMaps.get(audioName);
+        this._curMusicAudioSource.clip = this.AudioClipMaps.get(audioName) || this.AudioClipMaps.get(audioName + "_DLC");
         this._curMusicAudioSource.loop = loop;
         this._curMusicAudioSource.volume = valume;
         this._curMusicAudioSource.play();

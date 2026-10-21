@@ -1,3 +1,4 @@
+import { ZRSJZ_GiftEntitlementService } from './ZRSJZ_GiftEntitlementService';
 import { sys } from 'cc';
 import { ZRSJZ_SupremeService } from './ZRSJZ_SupremeService';
 import {
@@ -226,6 +227,7 @@ export class ZRSJZ_GameDataDefaults {
             } catch (error) { console.warn('[至尊礼包] 旧任务备份无效，保留现有领取记录', error); }
         }
         if (ZRSJZ_SupremeService.Apply(data, taskBackup)) flag = true;
+        if (ZRSJZ_GiftEntitlementService.Restore(data)) flag = true;
         return flag;
     }
 

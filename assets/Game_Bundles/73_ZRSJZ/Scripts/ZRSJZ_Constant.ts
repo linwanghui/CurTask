@@ -1,7 +1,7 @@
 //#region 常量
 export const ZRSJZ_GRADE_MAX_LEVEL = 60;
 /** 抖音内购低价测试开关：开启后所有钞票、礼包订单实付0.1元，奖励不变；正式价格保持false。 */
-export const ZRSJZ_PAYMENT_TEST_PRICE_ENABLED = false;
+export const ZRSJZ_PAYMENT_TEST_PRICE_ENABLED = true;
 
 //格子大小
 export const ZRSJZ_GRID_SIZE = 132;//格子大小
@@ -24,7 +24,7 @@ export enum ZRSJZ_PANEL {
     商店界面 = "73_ZRSJZ/Prefabs/Panel/商店界面",
     仓库界面 = "73_ZRSJZ/Prefabs/Panel/仓库界面",
     角色界面 = "73_ZRSJZ/Prefabs/Panel/角色界面",
-    作弊界面 = "73_ZRSJZ/Prefabs/Panel/作弊界面",
+    作弊界面 = "73_ZRSJZ_DLC/Prefabs/Panel/作弊界面",
     道具弹窗 = "73_ZRSJZ/Prefabs/Panel/道具弹窗",
     背包弹窗 = "73_ZRSJZ/Prefabs/Panel/背包弹窗",
     物资弹窗 = "73_ZRSJZ/Prefabs/Panel/物资弹窗",
@@ -69,6 +69,7 @@ export enum ZRSJZ_PANEL {
     行动补给弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/行动补给弹窗",
     神秘商人弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/神秘商人弹窗",
     成就界面 = "73_ZRSJZ_DLC/Prefabs/Panel/成就界面",
+    排行榜界面 = "73_ZRSJZ_DLC/Prefabs/Panel/排行榜界面",
     战令界面 = "73_ZRSJZ_DLC/Prefabs/Panel/战令界面",
     头像框弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/头像框弹窗",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",

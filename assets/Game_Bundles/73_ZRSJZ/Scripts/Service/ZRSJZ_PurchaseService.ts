@@ -1,3 +1,5 @@
+import { ZRSJZ_GiftEntitlementService } from './ZRSJZ_GiftEntitlementService';
+import { ZRSJZ_DouyinRanking } from './ZRSJZ_DouyinRanking';
 import { ZRSJZ_SupremeService } from './ZRSJZ_SupremeService';
 import { ZRSJZ_FragmentService, ZRSJZ_FragmentKind } from './ZRSJZ_FragmentService';
 import Banner from 'db://assets/Scripts/Banner';
@@ -87,14 +89,7 @@ export class ZRSJZ_PurchaseService {
                     data.PetFragments += 20; data.HeroFragments += 20; data.Gold += 2000000;
                     break;
                 case '豪华礼包':
-                    data.HaveRole = Array.from(new Set([...data.HaveRole, ...ZRSJZ_ROLE_CONFIG.keys()]));
-                    data.HaveSkin = Array.from(new Set([...data.HaveSkin, ...ZRSJZ_SKIN_CONFIG.keys()]));
-                    for (const [pet, config] of ZRSJZ_PET_CONFIG) {
-                        const owned = data.PetData[pet];
-                        data.PetData[pet] = owned
-                            ? { ...owned, Skins: Array.from(new Set([...owned.Skins, ...config.PetSkins])) }
-                            : { Skins: [...config.PetSkins], Level: 0 };
-                    }
+                    ZRSJZ_GiftEntitlementService.UnlockAllAppearances(data);
                     data.Gold += 5000000;
                     break;
                 case '至尊礼包':
@@ -123,7 +118,7 @@ export class ZRSJZ_PurchaseService {
             Banner.Instance.TT_unifiedPayment({
                 diamondAmount, goodName: name, orderAmount,
                 customId: order, extraInfo: { game: '73_ZRSJZ', product: name },
-                onSuccess: () => {
+                onSuccess: (paymentResult: any) => {
                     if (settled) return;
                     const data = ZRSJZ_GameData.Instance;
                     if (data.PaymentOrders.includes(order)) { finish('本订单奖励已到账', false); return; }
@@ -131,6 +126,8 @@ export class ZRSJZ_PurchaseService {
                     try {
                         grant();
                         data.PaymentOrders.push(order);
+                        // 与订单去重、发奖一起保存；测试包模拟支付不参与充值排行。
+                        if (!paymentResult?.isTest) data.RankingLocalPaidFen = Math.max(0, data.RankingLocalPaidFen || 0) + orderAmount;
                         // 奖励、礼包所有权与订单记录一起保存，避免部分发奖后重复领取。
                         ZRSJZ_GameData.SaveData();
                     } catch (error) {
@@ -152,6 +149,7 @@ export class ZRSJZ_PurchaseService {
                     ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_CURRENCY_CHANGE);
                     ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_PLAYER_INFO_CHANGE);
                     ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+                    void ZRSJZ_DouyinRanking.Upload(true);
                     finish('购买成功，奖励已到账', true);
                 },
                 onFail: (res: any) => finish(/cancel|取消/i.test(res?.errMsg ?? '')

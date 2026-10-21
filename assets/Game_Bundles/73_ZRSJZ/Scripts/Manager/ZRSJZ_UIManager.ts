@@ -1,3 +1,4 @@
+import { ZRSJZ_DouyinRanking } from '../Service/ZRSJZ_DouyinRanking';
 import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, AudioClip, AudioSource, Camera, Canvas, Component, director, Director, EventKeyboard, find, input, Input, instantiate, isValid, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
@@ -71,7 +72,9 @@ export class ZRSJZ_UIManager extends Component {
     }
     private static readonly _onDebugKeyDown = (event: EventKeyboard): void => {
         if (event.keyCode === KeyCode.KEY_P) {
-            ZRSJZ_UIManager.Instance?.ShowPanel(ZRSJZ_PANEL.作弊界面);
+            if (ZRSJZ_UIManager.ZRSJZ_DLC) {
+                ZRSJZ_UIManager.Instance?.ShowPanel(ZRSJZ_PANEL.作弊界面);
+            }
         }
     };
     public static get Instance(): ZRSJZ_UIManager {
@@ -149,6 +152,7 @@ export class ZRSJZ_UIManager extends Component {
         }
         this._panelNode = this.node.getChildByName("Panel");
         this.PropParent = this.node.getChildByName("PropParent");
+        ZRSJZ_DouyinRanking.StartSync(this);
         // 常驻节点只在教程场景中由 ZRSJZ_Tutorial 显示并绑定。
         const pass = this.node.getChildByName("Pass");
         if (pass) pass.active = false;
@@ -213,6 +217,7 @@ export class ZRSJZ_UIManager extends Component {
     private CleanupBeforeRecycle(): void {
         if (this._hasCleanedUp) return;
         this._hasCleanedUp = true;
+        ZRSJZ_DouyinRanking.StopSync();
         this.unscheduleAllCallbacks();
         this._panelRequestVersion++;
         this._playerPanelRequestVersions[0]++;

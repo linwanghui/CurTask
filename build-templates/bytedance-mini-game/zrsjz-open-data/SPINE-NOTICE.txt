@@ -1,0 +1,2 @@
+Spine 3.8 core from https://github.com/EsotericSoftware/spine-runtimes/tree/3.8/spine-ts
+Modifications: CommonJS export; permit this game's existing 3.8.75 JSON assets (same format); ignore missing optional atlas attachments in spine-player.js. Binary files are not used.
