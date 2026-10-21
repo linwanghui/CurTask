@@ -1,7 +1,7 @@
 //#region 常量
 export const ZRSJZ_GRADE_MAX_LEVEL = 60;
 /** 抖音内购低价测试开关：开启后所有钞票、礼包订单实付0.1元，奖励不变；正式价格保持false。 */
-export const ZRSJZ_PAYMENT_TEST_PRICE_ENABLED = true;
+export const ZRSJZ_PAYMENT_TEST_PRICE_ENABLED = false;
 
 //格子大小
 export const ZRSJZ_GRID_SIZE = 132;//格子大小

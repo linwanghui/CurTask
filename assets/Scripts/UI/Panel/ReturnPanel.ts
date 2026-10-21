@@ -15,7 +15,7 @@ export class ReturnPanel extends PanelBase {
     OnYesClick() {
         UIManager.HidePanel(Panel.ReturnPanel);
         director.getScene().emit("退出游戏");
-        director.loadScene("GameMode");
+        director.loadScene("Start");
     }
     //点击否
     OnNoClick() {
