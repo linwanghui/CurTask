@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "4621bbbb-ac72-427a-8dc7-5939dc98683c",
+  "uuid": "5cd2eb1f-ffc1-4286-afda-9ca94e016326",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "4621bbbb-ac72-427a-8dc7-5939dc98683c@6c48a",
-      "displayName": "下一把武器",
+      "uuid": "5cd2eb1f-ffc1-4286-afda-9ca94e016326@6c48a",
+      "displayName": "返回-铸枪",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "4621bbbb-ac72-427a-8dc7-5939dc98683c",
+        "imageUuidOrDatabaseUri": "5cd2eb1f-ffc1-4286-afda-9ca94e016326",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "4621bbbb-ac72-427a-8dc7-5939dc98683c@f9941",
-      "displayName": "下一把武器",
+      "uuid": "5cd2eb1f-ffc1-4286-afda-9ca94e016326@f9941",
+      "displayName": "返回-铸枪",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 397,
-        "height": 186,
-        "rawWidth": 397,
-        "rawHeight": 186,
+        "width": 342,
+        "height": 105,
+        "rawWidth": 342,
+        "rawHeight": 105,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -198.5,
-            -93,
+            -171,
+            -52.5,
             0,
-            198.5,
-            -93,
+            171,
+            -52.5,
             0,
-            -198.5,
-            93,
+            -171,
+            52.5,
             0,
-            198.5,
-            93,
+            171,
+            52.5,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            186,
-            397,
-            186,
+            105,
+            342,
+            105,
             0,
             0,
-            397,
+            342,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -198.5,
-            -93,
+            -171,
+            -52.5,
             0
           ],
           "maxPos": [
-            198.5,
-            93,
+            171,
+            52.5,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "4621bbbb-ac72-427a-8dc7-5939dc98683c@6c48a",
+        "imageUuidOrDatabaseUri": "5cd2eb1f-ffc1-4286-afda-9ca94e016326@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "4621bbbb-ac72-427a-8dc7-5939dc98683c@6c48a"
+    "redirect": "5cd2eb1f-ffc1-4286-afda-9ca94e016326@6c48a"
   }
 }
