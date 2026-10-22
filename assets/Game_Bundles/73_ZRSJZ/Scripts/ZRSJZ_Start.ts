@@ -131,7 +131,7 @@ export class ZRSJZ_Start extends Component {
         ZRSJZ_MerchantService.EnterHome();
 
         this.LoadPanel.active = !ZRSJZ_UIManager.ZRSJZ_UI;
-        // this.RankingListBtn.active = Banner.IS_BYTEDANCE_MINI_GAME && ZRSJZ_UIManager.ZRSJZ_DLC;
+        this.RefreshRankingButton();
         const cb: Function = () => {
             if (!isValid(this, true) || !this.node.activeInHierarchy) return;
             const startGame = () => {
@@ -209,6 +209,8 @@ export class ZRSJZ_Start extends Component {
     }
 
     protected onEnable(): void {
+        ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.RefreshRankingButton, this);
+        this.RefreshRankingButton();
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.EnsureActionButton, this);
         void this.EnsureActionButton();
         this.RefreshSidebarUnlocks();
@@ -226,6 +228,7 @@ export class ZRSJZ_Start extends Component {
     }
 
     protected onDisable(): void {
+        ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.RefreshRankingButton, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_DLC, this.EnsureActionButton, this);
         if (this._uiLoadedCallback) {
             ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADED_UI, this._uiLoadedCallback, this);
@@ -249,6 +252,12 @@ export class ZRSJZ_Start extends Component {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW, this.RefreshMainTaskTip, this);
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, this.RefreshMainTaskTip, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_MAIL_CHANGE, this.RefreshMailTip, this);
+    }
+
+    private RefreshRankingButton(): void {
+        if (isValid(this.RankingListBtn, true)) {
+            this.RankingListBtn.active = Banner.IS_BYTEDANCE_MINI_GAME && ZRSJZ_UIManager.ZRSJZ_DLC;
+        }
     }
 
     OnButtonClick(event: EventTouch) {
