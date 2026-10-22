@@ -78,5 +78,8 @@ export class ZRSJZ_Laser extends ZRSJZ_Skill {
         })
     }
 
+    Recycle() {
+    }
+
 }
 

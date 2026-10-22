@@ -40,6 +40,46 @@ export class ZRSJZ_GameDataDefaults {
         return changed;
     }
 
+    /** 同版本存档也可能缺少有效任务入口；只修复指针，不重置进度或补发奖励。 */
+    private static RepairMainTaskProgress(data: ZRSJZ_GameData): boolean {
+        if (data.Versions > ZRSJZ_GameData.Versions) return false;
+        let changed = false;
+        if (!Array.isArray(data.MainTaskComplete)) {
+            data.MainTaskComplete = [];
+            changed = true;
+        }
+        const current = data.CurMainTask;
+        if (current && !ZRSJZ_MAIN_TASK_CONFIG.has(current.TaskName)) {
+            // 旧任务名称失效时，只有目标能唯一对应现有任务才继承原计数。
+            const matches = ZRSJZ_MAIN_TASK_ORDER.filter(name =>
+                ZRSJZ_MAIN_TASK_CONFIG.get(name)?.TaskTargets[0]?.TaskTargetName === current.TaskTargetName);
+            if (matches.length === 1 && !data.MainTaskComplete.includes(matches[0])) {
+                data.CurMainTask = { ...current, TaskName: matches[0] };
+                const awards = data.MainTaskExperienceAwards;
+                if (awards?.[matches[0]] === undefined && awards?.[current.TaskName] !== undefined) {
+                    awards[matches[0]] = awards[current.TaskName];
+                }
+            } else {
+                // 无法识别的旧任务保留在读取器的原始存档备份中，不猜测完成或领奖状态。
+                data.CurMainTask = null;
+            }
+            changed = true;
+        }
+        if (data.CurMainTask && data.MainTaskComplete.includes(data.CurMainTask.TaskName)) {
+            data.CurMainTask = null;
+            changed = true;
+        }
+        const next = data.CurMainTask ? ''
+            : ZRSJZ_MAIN_TASK_CONFIG.has(data.NewMainTask) && !data.MainTaskComplete.includes(data.NewMainTask)
+                ? data.NewMainTask
+                : ZRSJZ_MAIN_TASK_ORDER.find(name => !data.MainTaskComplete.includes(name)) ?? '';
+        if (data.NewMainTask !== next) {
+            data.NewMainTask = next;
+            changed = true;
+        }
+        return changed;
+    }
+
     public static Initialize(data: ZRSJZ_GameData): void {
         data.UnlockedActions = ZRSJZ_ACTION_CONFIG.filter(item => item.Unlock.Type === 'default').map(item => item.Name);
         data.EquippedActions = data.UnlockedActions.slice(0, ZRSJZ_ACTION_MAX_EQUIPPED);
@@ -69,6 +109,11 @@ export class ZRSJZ_GameDataDefaults {
     public static Migrate(data: ZRSJZ_GameData, savedData: any): boolean {
         // 逐级补充缺失字段，不覆盖玩家已有数据；版本4→5增加独立支线进度。
         let flag = this.RepairMainTaskNames(data);
+        // 先归一化完成列表，供旧版本迁移中的 includes 使用。
+        if (!Array.isArray(data.MainTaskComplete)) {
+            data.MainTaskComplete = [];
+            flag = true;
+        }
         if (data.Versions == 0) {
             data.Versions++;
             if (savedData.IsTutorial === undefined) data.IsTutorial = false;
@@ -171,6 +216,7 @@ export class ZRSJZ_GameDataDefaults {
             loadData();
             flag = true;
         }
+        flag = this.RepairMainTaskProgress(data) || flag;
 
         if (!data.OwnedTitles?.includes('勇者')) {
             data.OwnedTitles = ['勇者', ...(data.OwnedTitles ?? [])];

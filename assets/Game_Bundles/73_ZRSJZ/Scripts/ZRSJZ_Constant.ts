@@ -97,6 +97,7 @@ export const ZRSJZ_PANEL_PATH_CONFIG: Map<string, string> = new Map([
     ["曼德尔箱界面", "主页-曼德尔箱界面"],
     ["战令界面", "主页-战令界面"],
     ["活动界面", "主页-活动界面"],
+    ["铸枪界面", "主页-铸枪界面"],
 ])
 
 //物理层级

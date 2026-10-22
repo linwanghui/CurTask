@@ -57,7 +57,15 @@ export class ZRSJZ_GameData {
         if (!hasVersions || !Number.isFinite(savedData.Versions)) savedData.Versions = 0;
 
         this._instance = Object.assign(new ZRSJZ_GameData(), savedData);
-        if (ZRSJZ_GameDataDefaults.Migrate(this._instance, savedData)) this.SaveData();
+        const taskState = (data: any) => JSON.stringify([data.CurMainTask, data.NewMainTask, data.MainTaskComplete, data.MainTaskExperienceAwards]);
+        const tasksBefore = taskState(savedData);
+        if (ZRSJZ_GameDataDefaults.Migrate(this._instance, savedData)) {
+            if (tasksBefore !== taskState(this._instance)) {
+                const backupKey = this.STORAGE_KEY + '_before_main_task_repair';
+                if (!sys.localStorage.getItem(backupKey)) sys.localStorage.setItem(backupKey, json);
+            }
+            this.SaveData();
+        }
         ZRSJZ_MailService.CheckExpired();//检查邮件是否过期
         return this._instance;
     }

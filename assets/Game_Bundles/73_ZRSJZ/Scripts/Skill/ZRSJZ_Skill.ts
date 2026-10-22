@@ -51,12 +51,17 @@ export class ZRSJZ_Skill extends Component {
 
         this.Skeleton.setCompleteListener(() => {
             cb && cb();
-            ZRSJZ_PoolManager.Instance.PutNode(this.node);
+            this.Recycle();
         })
 
         const angle = Math.atan2(this._dirY, this._dirX) * 180 / Math.PI;
         this.node.setWorldRotationFromEuler(0, 0, angle);
     }
+
+    Recycle() {
+        ZRSJZ_PoolManager.Instance.PutNode(this.node);
+    }
+
 
     Attack() {
 

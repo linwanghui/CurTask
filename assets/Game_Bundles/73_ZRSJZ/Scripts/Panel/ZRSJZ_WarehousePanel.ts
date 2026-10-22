@@ -1,7 +1,7 @@
 import { FormatMoney } from "../ZRSJZ_NumberFormat";
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { ZRSJZ_AccountService } from "../Service/ZRSJZ_AccountService";
-import { _decorator, EventTouch, find, Label, Node, ScrollView, tween, Tween, UIOpacity, UITransform, v2, Vec3 } from 'cc';
+import { _decorator, Button, EventTouch, find, Label, Node, ScrollView, tween, Tween, UIOpacity, UITransform, v2, Vec3 } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_UIManager } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_INVENTORY, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
@@ -45,6 +45,7 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         this.ScrollView = find("Panel/仓库", this.node).getComponent(ScrollView);
         this.CheckedNode = find("Panel/仓库/物品按键/Checked", this.node);
         this.SellMask = find("Panel/仓库/SellMask", this.node);
+        this.SellMask.getChildByName("全选")?.on(Button.EventType.CLICK, this.SelectAllSellProps, this);
         this.SellValue = find("总价值/Count", this.SellMask).getComponent(Label);
         this.ActualSellValue = find("卖出价值/Count", this.SellMask)?.getComponent(Label);
         this._warehouseNode = find("Panel/仓库/物品按键/全部", this.node);
@@ -377,6 +378,25 @@ export class ZRSJZ_WarehousePanel extends ZRSJZ_Panel {
         this._warehouseNode = target;
         find("默认", this._warehouseNode).active = false;
         find("选中", this._warehouseNode).active = true;
+    }
+
+    /** 只处理当前仓库实际占格的道具；全部选中时再次点击则全部取消。 */
+    private SelectAllSellProps(): void {
+        if (!this._isSelling || this._isOrganizing || ZRSJZ_UIManager.Dragging) return;
+        const inventory = this._curInventory?.getComponent(ZRSJZ_Inventory);
+        if (!this._curInventory?.isValid || !inventory?.IsInitialized
+            || inventory.InventoryType !== this.GetWarehouseInventory(this._warehouseName)) return;
+
+        ZRSJZ_AudioManager.Instance.PlaySound("点击");
+        const propIDs = [...new Set(inventory.Grids.flat())]
+            .filter(propID => !!propID && !!ZRSJZ_GameData.Instance.PropData[propID]);
+        const selected = new Set(this._sellPropID);
+        const allSelected = propIDs.length > 0 && propIDs.every(propID => selected.has(propID));
+        this._sellPropID = allSelected ? [] : propIDs;
+        ZRSJZ_EventManager.EmitPersist(
+            ZRSJZ_MyEvent.ZRSJZ_SELL_PROP_SHOW, inventory.InventoryType, this._sellPropID,
+        );
+        this.RefreshSellValue();
     }
 
     AddSellProp(propID: string) {

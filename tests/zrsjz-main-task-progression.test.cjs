@@ -180,3 +180,46 @@ const MainPanel = loadClass('Panel/ZRSJZ_MainTaskPanel.ts', 'MainPanel', {
 }, 'GetLineTasks');
 assert.deepEqual(Array.from(new MainPanel().GetLineTasks('main')), order);
 console.log('PASS: actual save read/write and backup, v29 chained upgrade and panel ordering');
+
+// 已经升级到31的存档不会再进入30→31迁移：旧代码在这些状态下会隐藏全部主线。
+const expansionsBeforeRepair = expansions;
+for (const pointer of ['', '已移除任务']) {
+    const f = fixture(); f.Versions = 31; f.NewMainTask = pointer;
+    gameData.Instance = f;
+    assert(order.every(name => Task.GetTaskState(name) === -1), 'reproduce empty 0/21 main list');
+    const unaffected = JSON.stringify([f.Gold, f.PropData, f.InventoryRow, f.TaskLines]);
+    assert.equal(FullDefaults.Migrate(f, JSON.parse(JSON.stringify(f))), true);
+    assert.equal(f.NewMainTask, order[0]); assert.equal(Task.GetTaskState(order[0]), 0);
+    assert.equal(JSON.stringify([f.Gold, f.PropData, f.InventoryRow, f.TaskLines]), unaffected);
+    assert.equal(FullDefaults.Migrate(f, JSON.parse(JSON.stringify(f))), false, 'same-version repair is idempotent');
+}
+const renamed = fixture(); renamed.Versions = 31; renamed.NewMainTask = '';
+renamed.CurMainTask = { TaskName: '旧任务名', TaskTargetName: config.get('弹药补给').TaskTargets[0].TaskTargetName, CurCount: 1 };
+renamed.MainTaskExperienceAwards = { 旧任务名: 357 };
+FullDefaults.Migrate(renamed, JSON.parse(JSON.stringify(renamed)));
+assert.equal(renamed.CurMainTask.TaskName, '弹药补给'); assert.equal(renamed.CurMainTask.CurCount, 1);
+assert.equal(renamed.MainTaskExperienceAwards['弹药补给'], 357); assert.equal(renamed.NewMainTask, '');
+gameData.Instance = renamed; assert.equal(Task.GetTaskState('弹药补给'), 2, 'recovered target preserves pending reward');
+const invalid = fixture(); invalid.Versions = 31;
+invalid.CurMainTask = { TaskName: '强化', TaskTargetName: '强化1次', CurCount: 1 };
+const invalidRaw = JSON.stringify(invalid);
+storage.delete('ZRSJZ_GameData_before_main_task_repair'); storage.set('ZRSJZ_GameData', invalidRaw);
+const repaired = Reader.ReadData();
+assert.equal(repaired.CurMainTask, null); assert.equal(repaired.NewMainTask, order[0]);
+assert.equal(storage.get('ZRSJZ_GameData_before_main_task_repair'), invalidRaw, 'retain exact unknown task progress in original backup');
+Reader.ReadData(); assert.equal(storage.get('ZRSJZ_GameData_before_main_task_repair'), invalidRaw);
+const healthy = fixture(); healthy.Versions = 31; healthy.NewMainTask = '';
+healthy.MainTaskComplete = order.slice(0, 5);
+healthy.CurMainTask = { TaskName: order[5], TaskTargetName: config.get(order[5]).TaskTargets[0].TaskTargetName, CurCount: 7 };
+healthy.MainTaskExperienceAwards[order[5]] = 357;
+const healthyBefore = JSON.stringify(healthy);
+assert.equal(FullDefaults.Migrate(healthy, JSON.parse(healthyBefore)), false); assert.equal(JSON.stringify(healthy), healthyBefore);
+const finished = fixture(); finished.Versions = 31; finished.MainTaskComplete = [...order]; finished.NewMainTask = '';
+const finishedBefore = JSON.stringify(finished);
+assert.equal(FullDefaults.Migrate(finished, JSON.parse(finishedBefore)), false); assert.equal(JSON.stringify(finished), finishedBefore);
+const stale = fixture(); stale.Versions = 31; stale.MainTaskComplete = order.slice(0, 2);
+stale.CurMainTask = { TaskName: order[1], TaskTargetName: config.get(order[1]).TaskTargets[0].TaskTargetName, CurCount: 1 };
+FullDefaults.Migrate(stale, JSON.parse(JSON.stringify(stale)));
+assert.equal(stale.CurMainTask, null); assert.equal(stale.NewMainTask, order[2]); assert.equal(stale.MainTaskComplete.length, 2);
+assert.equal(expansions, expansionsBeforeRepair, 'repair never grants expansions or rewards');
+console.log('PASS: reproduced empty 0/21, same-version invalid/missing pointers, target recovery, original backup, healthy/finished save preservation and no duplicate awards');

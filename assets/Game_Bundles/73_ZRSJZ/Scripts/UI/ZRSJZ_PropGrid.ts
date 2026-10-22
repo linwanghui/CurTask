@@ -987,10 +987,10 @@ export class ZRSJZ_PropGrid extends Component {
     }
 
     //开始售卖
-    SellShow(inventory: ZRSJZ_INVENTORY) {
+    SellShow(inventory: ZRSJZ_INVENTORY, selectedPropIDs: readonly string[] = []) {
         if (this._inventory == inventory && this.PropID != "") {
             this._isSelling = true;
-            this._isSellCheck = false;
+            this._isSellCheck = selectedPropIDs.includes(this.PropID);
             this.ShowSellButton();
         }
     }

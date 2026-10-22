@@ -855,7 +855,8 @@ export class ZRSJZ_Player extends Component {
                 }
                 this.PlayAni(ZRSJZ_ANI.Idle_Q);
                 const laserRequestGame = ZRSJZ_Game.Instance;
-                ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/LaserEffect").then((laser: Node) => {
+                ZRSJZ_Tools.LoadPrefabByBundle("73_ZRSJZ_DLC", "Prefabs/Effect/LaserEffect").then((pre: Prefab) => {
+                    const laser: Node = instantiate(pre);
                     if (!laser?.isValid) {
                         if (this.CanUseAsyncResult(laserRequestGame)) this.FinishLaserCasting(isKnife);
                         return;
