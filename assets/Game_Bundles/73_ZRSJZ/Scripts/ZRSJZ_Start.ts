@@ -1,3 +1,4 @@
+import { ZRSJZ_GunCastService } from './Service/ZRSJZ_GunCastService';
 import { ZRSJZ_ActionButton } from './Controller/ZRSJZ_ActionButton';
 import { ZRSJZ_ActionService } from './Service/ZRSJZ_ActionService';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
@@ -285,6 +286,9 @@ export class ZRSJZ_Start extends Component {
             }
         }
         switch (event.getCurrentTarget().name) {
+            case '铸枪':
+                ZRSJZ_UIManager.Instance.ShowPanel('73_ZRSJZ_DLC/Prefabs/Panel/' + (ZRSJZ_GunCastService.load().round ? '铸枪界面' : '铸枪入口弹窗'));
+                break;
             case "超算矩阵":
                 ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.超算矩阵界面);
                 break;

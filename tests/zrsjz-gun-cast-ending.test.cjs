@@ -1,0 +1,24 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),ts=require('../extensions/cocos-mcp-server-main/node_modules/typescript');
+const source=fs.readFileSync('assets/Game_Bundles/73_ZRSJZ/Scripts/Panel/ZRSJZ_GunCastPanel.ts','utf8');
+const ast=ts.createSourceFile('panel.ts',source,ts.ScriptTarget.Latest,true),cls=ast.statements.find(ts.isClassDeclaration);
+const names=['showEnding','cancelEnding','refreshSuperTimer','finish','update'];
+const methods=cls.members.filter(m=>names.includes(m.name?.getText(ast))).map(m=>m.getText(ast)).join('\n');
+let round={level:4,branch:0,broken:false,superUntil:Date.now()+2500},awards=0,closed=0,cleared=0,release,fail=false;
+const panels=[],active=new Map(),text=new Map(),modal={active:false},body={setScale(){}};
+const S={load:()=>({round}),item:()=>round.level===12?'branch':'gun',finish(){cleared++;round=null;},save(d){round=d.round;}};
+const UI={Instance:{ReceivePropAwards:async()=>{awards++;await new Promise(r=>release=r);if(fail)throw Error('failed');return {InvalidAwards:[],MailAwards:[]};},ShowTip(){},ShowPanel(...args){panels.push(args);}}};
+const tween=()=>({to(){return this;},start(){}});
+const code='class Subject {'+methods+'}\nSubject';
+const Subject=vm.runInNewContext(ts.transpileModule(code,{compilerOptions:{target:ts.ScriptTarget.ES2020}}).outputText,{S,UI,C:{weapons:Array(12).fill('gun'),branches:[{name:'branch'}]},ZRSJZ_PANEL:{获取奖励弹窗:'award'},Tween:{stopAllByTarget(){}},tween,v3:()=>({}),Date});
+const subject=new Subject();subject.busy=false;subject.timer=0;subject.node={name:'铸枪界面'};subject.at=p=>p==='结束弹板'?modal:p==='结束弹板/Panel'?body:null;subject.active=(p,v)=>{active.set(p,v);if(p==='结束弹板')modal.active=v;};subject.text=(p,v)=>text.set(p,v);subject.image=()=>{};subject.close=()=>closed++;subject.breathe=()=>{};subject.refresh=()=>{};subject.checkStrikeCompletion=()=>{};
+(async()=>{
+ subject.showEnding();assert(active.get('结束弹板/Panel/失败'));assert(!active.get('结束弹板/Panel/成功'));assert.equal(awards,0);assert(round);
+ subject.cancelEnding();assert(!modal.active);assert(round);assert.equal(closed,0);
+ subject.refreshSuperTimer(round);assert(active.get('超级时刻Timer'));assert.match(text.get('超级时刻Timer'),/^[123]:[0-9]{2}$/);
+ round.superUntil=Date.now()-1;subject.update(.3);assert.equal(round.superUntil,0);assert.equal(round.hits,0);assert(!active.get('超级时刻Timer'));
+ round.level=12;subject.showEnding();assert(active.get('结束弹板/Panel/成功'));assert(!active.get('结束弹板/Panel/失败'));
+ const pending=subject.finish();assert(subject.busy);await subject.finish();assert.equal(awards,1);release();await pending;assert.equal(cleared,1);assert.equal(closed,1);assert.equal(panels.length,1);assert(panels[0][1].DisplayOnly);assert.equal(panels[0][1].Awards[0].TaskAwardCount,1);
+ round={level:2,broken:false};fail=true;const rejected=subject.finish();release();await rejected;assert(round);assert.equal(cleared,1);assert(!subject.busy);
+ round={level:5,broken:true};await subject.finish();assert.equal(cleared,2);assert.equal(panels.length,1);assert.equal(awards,2);
+ console.log('PASS: ending confirmation/cancel, max-level success, timer expiry, one-time awards, retry on failure and destroyed-gun disposal.');
+})().catch(e=>{console.error(e);process.exitCode=1;});
