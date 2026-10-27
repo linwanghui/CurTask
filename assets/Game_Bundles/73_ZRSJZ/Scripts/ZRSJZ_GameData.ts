@@ -248,6 +248,8 @@ export class ZRSJZ_GameData {
     public PetFragments: number = 0;//宠物碎片数量
     public PetFragmentClaimDate: string = "";//免费碎片领取日期
     public PetFragmentClaimCount: number = 0;//当天免费碎片已领取次数
+    public GunCastItems: Record<string, number> = {};//成功带出的铸枪道具，账号共享且不占仓库
+    public GunCastItemEffects: Record<string, boolean> = {};//已使用但尚未触发的铸枪效果
     //#region 版本7之后新增
     public BossExtractionCompleted: Record<string, boolean> = {};//同局击败Boss并成功撤离的关卡
 }

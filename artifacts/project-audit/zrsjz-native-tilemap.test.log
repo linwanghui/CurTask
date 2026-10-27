@@ -1,0 +1,5 @@
+REPRODUCED: installed 3.8.6 overwrites an unchanged layer when another layer is culled
+PASS: partial updates, quad resizing, chunk reuse, retained layers, buffer resets and multiple buffers
+PASS: no patch in web/quick-game runtime or newer engine versions; repeated installation is safe
+REPRODUCED: retained native batch count draws a translucent shadow twice on the next frame
+PASS: 500 native batch frames blend shadows once; dirty updates, subnodes and destroyed layers are safe

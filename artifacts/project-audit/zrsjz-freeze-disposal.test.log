@@ -1,0 +1,2 @@
+REPRODUCED: immediate freeze destruction clears the entity before native timer removal
+PASS: 100 freeze cleanup cycles, repeated cleanup, immediate control recovery and deferred native disposal

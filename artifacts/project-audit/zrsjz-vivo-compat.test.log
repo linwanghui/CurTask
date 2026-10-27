@@ -1,0 +1,4 @@
+PASS: loose-build cross-inventory swap, overlapping swap, locks and partial-coverage rejection
+PASS: loose-build reward popup receives merged reward objects, not MapIterator
+PASS: loose-build achievement popup merges actual reward objects
+PASS: weapon icon preserves original atlas frame, UV/rect/rotation and handles missing/disposed assets

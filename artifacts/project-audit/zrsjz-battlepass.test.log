@@ -1,0 +1,18 @@
+PASS: task progress, exact period boundaries, rollback, XP cap, claim idempotence, persistence and all 50 rewards.
+D:\CocosCreator\CurTask\tests\zrsjz-battlepass.test.cjs:16
+        if (!(name in imports)) throw new Error('Unexpected import ' + name);
+                                ^
+
+Error: Unexpected import ../ZRSJZ_MatrixState
+    at require (D:\CocosCreator\CurTask\tests\zrsjz-battlepass.test.cjs:16:39)
+    at evalmachine.<anonymous>:10:29
+    at Script.runInContext (node:vm:149:12)
+    at Script.runInNewContext (node:vm:154:17)
+    at Object.runInNewContext (node:vm:310:38)
+    at load (D:\CocosCreator\CurTask\tests\zrsjz-battlepass.test.cjs:15:8)
+    at Object.<anonymous> (D:\CocosCreator\CurTask\tests\zrsjz-battlepass.test.cjs:156:18)
+    at Module._compile (node:internal/modules/cjs/loader:1562:14)
+    at Object..js (node:internal/modules/cjs/loader:1699:10)
+    at Module.load (node:internal/modules/cjs/loader:1313:32)
+
+Node.js v22.13.0

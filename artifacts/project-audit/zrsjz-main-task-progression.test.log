@@ -1,0 +1,4 @@
+PASS: config IDs, first-to-third task progression, save/reload, duplicate claims, missing config and legacy save repair
+PASS: all 63 legacy task states, real v30→v31 migration, repeated reload, new player full route, completed saves and safe-box preservation
+PASS: actual save read/write and backup, v29 chained upgrade and panel ordering
+PASS: reproduced empty 0/21, same-version invalid/missing pointers, target recovery, original backup, healthy/finished save preservation and no duplicate awards

@@ -65,7 +65,7 @@ export class ZRSJZ_PoolManager extends Component {
         if (this._prefabMap.has(key)) {
             cb(this._prefabMap.get(key));
         } else {
-            ZRSJZ_Tools.LoadPrefab(path).then(prefab => cb(prefab));
+            this.LoadPoolPrefab(path).then(prefab => cb(prefab));
         }
     }
 
@@ -103,7 +103,16 @@ export class ZRSJZ_PoolManager extends Component {
             return this._prefabMap.get(key);
         }
 
-        return await ZRSJZ_Tools.LoadPrefab(path);
+        const prefab = await this.LoadPoolPrefab(path);
+        if (prefab) this._prefabMap.set(key, prefab);
+        return prefab;
+    }
+
+    private LoadPoolPrefab(path: string): Promise<Prefab> {
+        const prefix = '73_ZRSJZ_DLC/';
+        return path.startsWith(prefix)
+            ? ZRSJZ_Tools.LoadPrefabByBundle('73_ZRSJZ_DLC', path.slice(prefix.length))
+            : ZRSJZ_Tools.LoadPrefab(path);
     }
 
     private GetPoolKey(pathOrName: string): string {

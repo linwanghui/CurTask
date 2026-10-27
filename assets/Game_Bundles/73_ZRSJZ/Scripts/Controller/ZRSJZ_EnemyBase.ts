@@ -1,4 +1,5 @@
-import { _decorator, Collider2D, BoxCollider2D, CircleCollider2D, PolygonCollider2D, Intersection2D, Component, Node, PhysicsSystem2D, Rect, RigidBody2D, tween, Tween, v3, Vec2, Vec3, Material, EffectAsset, assetManager } from 'cc';
+import { _decorator, Collider2D, BoxCollider2D, CircleCollider2D, PolygonCollider2D, Intersection2D, Component, Node, PhysicsSystem2D, Rect, RigidBody2D, tween, Tween, v3, Vec2, Vec3, Material, EffectAsset, assetManager, Label, UITransform, Color } from 'cc';
+import { ZRSJZ_ElementState, ZRSJZ_ElementShot, ZRSJZ_CopyElementShot, ZRSJZ_GetElement } from '../Service/ZRSJZ_ElementCombat';
 import {
     ZRSJZ_ANI,
     ZRSJZ_BoxConfig,
@@ -87,7 +88,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             fx: this.EnemySkeleton?.node.scale.x || 1, fy: this.EnemySkeleton?.node.scale.y || 1,
             animation: skeleton?.getCurrent(0)?.animation?.name || '', hp: this._health,
             dead: this.IsDead, ax: this.EnemySkeleton?.AttackX || 0, ay: this.EnemySkeleton?.AttackY || 0,
-            aim: this.EnemySkeleton?.HasDirection || false, bossAim: this.EnemySkeleton?.IsBossAttackDirection || false, stun: this.IsPetStunned };
+            aim: this.EnemySkeleton?.HasDirection || false, bossAim: this.EnemySkeleton?.IsBossAttackDirection || false, stun: this.IsPetStunned || this.IsElementFrozen,
+            element: this.ElementDisplayState() };
     }
     public ApplyOnlineState(state: any): void {
         if (!this.onlineStarted || this.IsDead) return;
@@ -108,6 +110,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         else visual.ResetBossAttackDirection();
         const skeleton = visual.Skeleton;
         skeleton.paused = !!state.stun;
+        this.RefreshElementLabel(state.element);
         if (state.animation && skeleton.skeletonData?.getRuntimeData()?.findAnimation(state.animation)
             && skeleton.getCurrent(0)?.animation?.name !== state.animation) {
             skeleton.setAnimation(0, state.animation, true);
@@ -115,6 +118,83 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
     @property({ tooltip: '敌人配置名；留空时使用当前节点名' })
     EnemyName: string = '';
+
+    @property({ tooltip: '元素冻结使用精英时长0.4秒；普通敌人为0.8秒，Boss始终免疫' })
+    ElementElite = false;
+    @property({ tooltip: '基础护甲减伤百分比（0~100），灼甲每层降低2个百分点' })
+    ArmorReduction = 0;
+    private readonly _elements = new ZRSJZ_ElementState();
+    private _elementLabel: Label = null;
+    private _elementResistUntil = 0;
+    protected ElementActionVersion = 0;
+    public get IsElementFrozen(): boolean { return this._elements.frozen; }
+    protected get ElementIsBoss(): boolean { return ZRSJZ_BOSS_CONFIG.has(this.EnemyName.trim() || this.node.name); }
+    protected get CanElementSlowMovement(): boolean { return true; }
+
+    /** 房主统一处理元素伤害；回放子弹不会进入此入口。 */
+    public ReceiveElementHit(harm: number, hitX: number, hitY: number, input: ZRSJZ_ElementShot): void {
+        const shot = ZRSJZ_CopyElementShot(input);
+        if (!shot || this.IsDead || Coop.Stopped || !Number.isFinite(harm) || harm <= 0
+            || ZRSJZ_Game.Instance?.IsGameFinished || (ZRSJZ_Game.Instance?.GamePaused && !Online.Battle)) return;
+        if (Coop.Replica) {
+            if (this.OnlineID) Online.Combat({ kind: 'element_hit', id: this.OnlineID, harm, hitX, hitY, shot });
+            return;
+        }
+        const element = ZRSJZ_GetElement(shot.weapon);
+        const growth = element === '火' ? this._elements.growth(shot.source) : 0;
+        // 本次枪伤使用旧层数；毒素与寒意只加在结算后仍存活的目标身上。
+        this.BeHit(harm * (1 + growth), element === '冰' && this.ElementIsBoss ? 0 : hitX,
+            element === '冰' && this.ElementIsBoss ? 0 : hitY);
+        if (this.IsDead) return;
+        if (this._elements.hit(shot, this.ElementIsBoss, this.ElementElite)) this.BeginElementFreeze();
+        if (element === '冰' && this.ElementIsBoss) this._elementResistUntil = this._elements.time + .8;
+        this.RefreshElementLabel(this.ElementDisplayState());
+    }
+
+    protected OnElementFreeze(): void { }
+    private BeginElementFreeze(): void {
+        this.ElementActionVersion++;
+        this.OnElementFreeze();
+        this._pendingRecoil.set(0, 0); this._recoilOffset.set(0, 0);
+        this._recoilHold = this._recoilReturnRemaining = 0;
+        this.ClearNavigation(); this.StopMoving();
+        this.Target = null; this._targetSearchRemaining = 0;
+        if (this.EnemySkeleton) {
+            this.EnemySkeleton.HasDirection = false;
+            // 切到待机清掉当前普攻；解冻后重新判断目标，不续播旧攻击。
+            this.RestartAnimation(this.EnemyConfig.IdleAnimation);
+            this.EnemySkeleton.Skeleton.paused = true;
+        }
+    }
+    /** 子类在攻击期间可能不调用 super.update；lateUpdate 保证毒伤/免疫仍推进。 */
+    protected lateUpdate(dt: number): void {
+        const game = ZRSJZ_Game.Instance;
+        if (Coop.Replica || Coop.Stopped || this.IsDead || !game || game.IsGameFinished || (game.GamePaused && !Online.Battle)) return;
+        const wasFrozen = this.IsElementFrozen;
+        this._elements.advance(dt, harm => this.BeHit(harm, 0, 0, true));
+        if (this.IsDead) return;
+        if (wasFrozen && !this.IsElementFrozen) {
+            this.Target = null; this._targetSearchRemaining = 0; this.ClearNavigation();
+            if (this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = this.IsPetStunned;
+        }
+        this.RefreshElementLabel(this.ElementDisplayState());
+    }
+    private ElementDisplayState(): any {
+        return { cold: this._elements.cold, fire: this._elements.fireStacks, poison: this._elements.poisonStacks,
+            frozen: this.IsElementFrozen, resist: this._elementResistUntil > this._elements.time };
+    }
+    private RefreshElementLabel(state: any): void {
+        const text = state ? [state.resist ? '抗性' : '', state.frozen ? '冻结' : state.cold ? '寒意×' + state.cold : '',
+            state.fire ? '灼甲×' + state.fire : '', state.poison ? '中毒×' + state.poison : ''].filter(Boolean).join(' ') : '';
+        if (!text && !this._elementLabel) return;
+        if (!this._elementLabel?.isValid) {
+            const node = new Node('元素状态'); node.layer = this.node.layer; this.node.addChild(node); node.setPosition(0, 150, 0);
+            node.addComponent(UITransform).setContentSize(480, 40);
+            this._elementLabel = node.addComponent(Label); this._elementLabel.fontSize = 20; this._elementLabel.lineHeight = 24;
+            this._elementLabel.color = new Color(160, 235, 255, 255);
+        }
+        this._elementLabel.string = text; this._elementLabel.node.active = !!text;
+    }
 
     Other: Node = null;
     Target: Node = null;
@@ -185,7 +265,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
     public ClearPetStun(source: object): void {
         this._petStunSources.delete(source);
-        if (!this.IsPetStunned && this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = false;
+        if (!this.IsPetStunned && !this.IsElementFrozen && this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = false;
     }
     private _patrolCenter: Vec3 = new Vec3();
     private _patrolTarget: Vec3 = new Vec3();
@@ -310,7 +390,9 @@ export abstract class ZRSJZ_EnemyBase extends Component {
 
         this._hitSlow = Math.max(0, this._hitSlow - dt);
         this._recoilCooldown = Math.max(0, this._recoilCooldown - dt);
-        this.ApplyPendingRecoil(dt);
+        if (!this.IsElementFrozen) this.ApplyPendingRecoil(dt);
+
+        if (this.IsElementFrozen) { this.StopMoving(); return; }
 
         if (this.IsPetStunned) {
             this._petStunRemaining = Math.max(0, this._petStunRemaining - dt);
@@ -362,6 +444,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected onDisable(): void {
+        this._elements.clear(); this._elementResistUntil = 0; this.ElementActionVersion++;
+        if (this._elementLabel?.isValid) this._elementLabel.node.active = false;
         this.unschedule(this.changeColor);
         this.changeColor();
         this._hitSlow = this._recoilCooldown = 0;
@@ -505,9 +589,12 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this.TryAttack();
     }
 
-    BeHit(harm: number, hitX = 0, hitY = 0) {
+    BeHit(harm: number, hitX = 0, hitY = 0, poison = false) {
         if (this.IsDead || !Number.isFinite(harm) || harm <= 0 || Coop.Stopped) return;
         if (Coop.Replica) { if (this.OnlineID) Online.Combat({ kind: 'hit', id: this.OnlineID, harm, hitX, hitY }); return; }
+        // 公共削甲取各来源最高值；独立毒伤不吃护甲、枪伤增益或击退。
+        if (!poison) harm *= 1 - Math.max(0, Math.min(1, this.ArmorReduction / 100) - this._elements.armorShred());
+        if (harm <= 0) return;
         const harmRequestGame = ZRSJZ_Game.Instance;
         const harmWorldPosition = this.node.worldPosition.clone();
         // 飘字使用本次实际扣除的生命值，避免致死溢出伤害被显示成实际扣血。
@@ -520,7 +607,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             ZRSJZ_AudioManager.Instance.PlaySound("受击");
             this.beHitEffect();
             const length = Math.hypot(hitX, hitY);
-            if (length > 0 && Number.isFinite(length)) {
+            if (!poison && !this.IsElementFrozen && length > 0 && Number.isFinite(length)) {
                 this._hitSlow = 0.16;
                 if (this._recoilCooldown <= 0 && this._recoilOffset.x === 0 && this._recoilOffset.y === 0) {
                     this._recoilCooldown = 0.22;
@@ -600,6 +687,10 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             return;
         }
 
+        this._elements.clear(); this._elementResistUntil = 0;
+        if (this._elementLabel?.isValid) this._elementLabel.node.active = false;
+        if (this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = false;
+
         this.unschedule(this.changeColor);
         this.changeColor();
 
@@ -659,7 +750,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     /** 子类可拦截 Spine 动画事件；默认将事件交给普通攻击处理。 */
     protected OnAnimationEvent(eventName: string, eventTime?: number): void {
         if (Coop.Replica || Coop.Stopped) return;
-        if (this.IsDead || this.IsPetStunned || (ZRSJZ_Game.Instance?.GamePaused && !Online.Battle) || ZRSJZ_Game.Instance?.IsGameFinished) return;
+        if (this.IsDead || this.IsPetStunned || this.IsElementFrozen || (ZRSJZ_Game.Instance?.GamePaused && !Online.Battle) || ZRSJZ_Game.Instance?.IsGameFinished) return;
         this.OnAttack(eventName, eventTime);
     }
 
@@ -1068,6 +1159,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         const directionX = offsetX / distance;
         const directionY = offsetY / distance;
         if (this._hitSlow > 0) speed *= 0.8;
+        if (this.CanElementSlowMovement) speed *= 1 - this._elements.slow(this.ElementIsBoss);
         this._moveVelocity.set(directionX * speed * dt, directionY * speed * dt);
 
         if (this.RigidBody && this.RigidBody.enabledInHierarchy) {

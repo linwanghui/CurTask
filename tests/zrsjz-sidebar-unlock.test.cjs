@@ -16,7 +16,7 @@ class Node {
     setScale() {}
 }
 let data = { Grade: 1 }, saves = 0, opened = [], hints = [];
-const names = ['锻造台', '宠物', '曼德尔箱', '战令', '活动'];
+const names = ['锻造台', '宠物', '铸枪', '曼德尔箱', '战令', '活动'];
 const buttons = [...names, '成就'].map(name => {
     const node = new Node(name);
     new Node('等级解锁').setParent(node);
@@ -31,19 +31,20 @@ const globals = { Button, Sprite, Label, isValid: n => !!n,
     ZRSJZ_GradeService: { GetGradeInfo: () => ({ Level: data.Grade }) },
     ZRSJZ_GameData: { get Instance() { return data; }, SaveData() { saves++; } },
     ZRSJZ_UIManager: ui, ZRSJZ_AudioManager: { Instance: { PlaySound() {} } },
+    ZRSJZ_GunCastService: { load: () => ({}) },
     ZRSJZ_PANEL: { 锻造界面: 'forge', 宠物界面: 'pet', 曼德尔箱界面: 'box', 战令界面: 'pass', 活动界面: 'activity' },
     ZRSJZ_MainReminderService: { GetReminders: () => ({ 宠物: true, 活动: true, 战令: true, 成就: true }) }
 };
 const Start = vm.runInNewContext(ts.transpileModule(code, { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText, globals);
 function create() {
-    return Object.assign(new Start(), { ForgeUnlockLevel: 5, PetUnlockLevel: 2, MandellBoxUnlockLevel: 8,
+    return Object.assign(new Start(), { ForgeUnlockLevel: 5, PetUnlockLevel: 2, GunCastUnlockLevel: 3, MandellBoxUnlockLevel: 8,
         BattlePassUnlockLevel: 6, ActivityUnlockLevel: 6, _mainReminderNodes: new Map(),
         UIPanel: { getComponentsInChildren: () => buttons } });
 }
 let start = create();
 const click = name => start.OnButtonClick({ getCurrentTarget: () => ({ name }) });
 // Boundary checks include already-claimable rewards and old saves with no visited field.
-for (const [name, level] of [['锻造台', 5], ['宠物', 2], ['曼德尔箱', 8], ['战令', 6], ['活动', 6]]) {
+for (const [name, level] of [['锻造台', 5], ['宠物', 2], ['铸枪', 3], ['曼德尔箱', 8], ['战令', 6], ['活动', 6]]) {
     const node = buttons.find(b => b.node.name === name).node;
     data.Grade = level - 1;
     start.RefreshMainReminders();
@@ -66,7 +67,13 @@ for (const [name, level] of [['锻造台', 5], ['宠物', 2], ['曼德尔箱', 8
     data = JSON.parse(JSON.stringify(data)); start = create(); start.RefreshMainReminders();
     assert.equal(node.getChildByName('第一次解锁红点').active, false, 'must remain dismissed after reload');
 }
-assert.equal(saves, 5);
+assert.equal(saves, 6);
 assert.equal(buttons.find(b => b.node.name === '宠物').node.getChildByName('红点').active, true, 'reward reminders remain independent');
 assert.equal(buttons.find(b => b.node.name === '成就').node.getChildByName('红点').active, true);
-console.log('PASS: five unlock boundaries, grayscale, lock labels, click gating, DLC readiness, persistent first reminder, independent reward reminders');
+const scene = JSON.parse(fs.readFileSync('assets/Game_Bundles/73_ZRSJZ/Scenes/ZRSJZ_Start.scene', 'utf8'));
+assert.equal(scene.find(c => c.PetUnlockLevel !== undefined).GunCastUnlockLevel, 3, 'editor scene persists gun cast unlock level');
+const gunButton = scene.find(n => n.__type__ === 'cc.Node' && n._name === '铸枪');
+assert(gunButton._children.some(r => scene[r.__id__]._name === '第一次解锁红点'));
+const lockNode = gunButton._children.map(r => scene[r.__id__]).find(n => n._name === '等级解锁');
+assert.equal(lockNode._components.map(r => scene[r.__id__]).find(c => c.__type__ === 'cc.Label')._string, '3级解锁');
+console.log('PASS: six unlock boundaries including gun cast at level 3, grayscale, lock labels, click gating, DLC readiness, persistent first reminder, independent reward reminders');

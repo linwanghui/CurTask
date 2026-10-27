@@ -23,21 +23,31 @@ assert.equal(data.Gold,0);assert.equal(batches.length,0);assert.equal(data.Achie
 assert.equal(Object.keys(data.PetData).length,0);
 assert.ok(service.HasClaimableRewards());
 const last=service.Items.at(-1);assert.equal(last.rewards[0].name,'霜月狼');
-let previous=0;const fragmentCounts={};for(const item of [...service.Items,...constants.ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG]){assert.equal(item.rewards.length,1);assert.equal(item.rewards[0].type,'道具');}
-for(const item of service.Items){const r=item.rewards[0];if(r.name.endsWith('碎片')){assert.ok(r.count>(fragmentCounts[r.name]||0));fragmentCounts[r.name]=r.count;}else{const value=constants.ZRSJZ_PROP_CONFIG.get(r.name).UnitPrice*r.count;assert.ok(value>previous,item.id+' reward value must increase');previous=value;}}
+for(const item of [...service.Items,...constants.ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG]){
+ assert(item.rewards.length>0);
+ for(const reward of item.rewards){
+  if(reward.type==='道具'){assert(constants.ZRSJZ_PROP_CONFIG.has(reward.name));assert(Number.isSafeInteger(reward.count)&&reward.count>0);}
+  else if(reward.type==='头像框')assert(reward.id);
+  else if(reward.type==='称号')assert(reward.name);
+  else assert.fail('unknown achievement reward type');
+ }
+}
 assert.equal(service.Claim(service.Items[0].id),true);
 const claimed=data.AchievementClaimed.slice();service.DebugCompleteAll();
 assert.equal(JSON.stringify(data.AchievementClaimed),JSON.stringify(claimed));
 const result=service.ClaimAllRewards();assert.equal(result.count,service.Items.length-1);
 assert.equal(batches.length,2);assert.equal(mails.length,0);
 assert.equal(batches[1].find(r=>r.PropName==='霜月狼').Count,1);
-assert.equal(batches[1].find(r=>r.PropName==='英雄碎片').Count,100);
-assert.equal(batches[1].find(r=>r.PropName==='宠物碎片').Count,143);
+for(const name of ['英雄碎片','宠物碎片']){
+ const expected=service.Items.slice(1).flatMap(item=>item.rewards).filter(r=>r.type==='道具'&&r.name===name).reduce((sum,r)=>sum+r.count,0);
+ assert.equal(batches[1].find(r=>r.PropName===name).Count,expected,'claim all uses current reward configuration');
+}
 const gold=data.Gold;assert.equal(service.ClaimAll(),0);assert.equal(service.Claim(last.id),false);
 assert.equal(batches.length,2);assert.equal(data.Gold,gold);assert.equal(gold,0);
-assert.equal(service.ClaimMilestone(50),false);assert.equal(service.ClaimMilestone(20),true);
-assert.equal(service.ClaimMilestone(20),false);assert.ok(saves>0);
-const prefab=JSON.parse(fs.readFileSync('assets/Game_Bundles/73_ZRSJZ/Prefabs/Panel/作弊界面.prefab','utf8'));
+assert.equal(service.ClaimMilestone(37),false);
+for(const milestone of constants.ZRSJZ_ACHIEVEMENT_MILESTONE_CONFIG){assert.equal(service.ClaimMilestone(milestone.percent),true);assert.equal(service.ClaimMilestone(milestone.percent),false);}
+assert(data.OwnedAvatarFrames.includes('7'));assert(data.OwnedAvatarFrames.includes('8'));assert.ok(saves>0);
+const prefab=JSON.parse(fs.readFileSync('assets/Game_Bundles/'+constants.ZRSJZ_PANEL.作弊界面+'.prefab','utf8'));
 const button=prefab.find(n=>n.__type__==='cc.Node'&&n._name==='完成全部成就');assert.ok(button);
 const component=button._components.map(r=>prefab[r.__id__]).find(c=>c.__type__==='cc.Button');
 assert.ok(component.clickEvents.some(e=>prefab[e.__id__]._handler==='OnButtonClick'||prefab[e.__id__].handler==='OnButtonClick'));

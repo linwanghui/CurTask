@@ -34,6 +34,8 @@ export class ZRSJZ_Start extends Component {
     ForgeUnlockLevel: number = 5;
     @property({ tooltip: '宠物解锁等级', min: 1, step: 1 })
     PetUnlockLevel: number = 2;
+    @property({ tooltip: '铸枪解锁等级', min: 1, step: 1 })
+    GunCastUnlockLevel: number = 3;
     @property({ tooltip: '曼德尔箱解锁等级', min: 1, step: 1 })
     MandellBoxUnlockLevel: number = 8;
     @property({ tooltip: '战令解锁等级', min: 1, step: 1 })
@@ -43,7 +45,7 @@ export class ZRSJZ_Start extends Component {
 
     private GetUnlockLevel(name: string): number {
         return ({
-            锻造台: this.ForgeUnlockLevel, 宠物: this.PetUnlockLevel,
+            锻造台: this.ForgeUnlockLevel, 宠物: this.PetUnlockLevel, 铸枪: this.GunCastUnlockLevel,
             曼德尔箱: this.MandellBoxUnlockLevel, 战令: this.BattlePassUnlockLevel,
             活动: this.ActivityUnlockLevel
         })[name] ?? 0;
@@ -137,6 +139,7 @@ export class ZRSJZ_Start extends Component {
             if (!isValid(this, true) || !this.node.activeInHierarchy) return;
             const startGame = () => {
                 if (!isValid(this, true) || !this.node.activeInHierarchy) return;
+                ZRSJZ_UIManager.ISTTShow = false;
                 if (!ZRSJZ_GameData.Instance.IsTutorial) {
                     // if (Banner.Mode == BannerMode.测试包) {
                     if (Banner.Mode != BannerMode.测试包 && !sys.isBrowser) {
@@ -432,7 +435,7 @@ export class ZRSJZ_Start extends Component {
 
     InitOpenWinTheCustomer() {
         ZRSJZ_GameData.Instance.CurMap = "五号小镇_机密行动";
-
+        ZRSJZ_UIManager.ISTTShow = true;
         //初始化装备
         if (ZRSJZ_GameData.Instance.WeaponryID[0] === "") {
             ZRSJZ_GameData.Instance.WeaponryID[0] = ZRSJZ_InventoryService.AddPropByName("CN8-突击步枪");

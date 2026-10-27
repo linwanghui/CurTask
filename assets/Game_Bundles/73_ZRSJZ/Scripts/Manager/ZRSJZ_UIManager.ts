@@ -1,5 +1,6 @@
 import { ZRSJZ_DouyinRanking } from '../Service/ZRSJZ_DouyinRanking';
 import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
+import { ZRSJZ_GunCastService } from '../Service/ZRSJZ_GunCastService';
 import { ZRSJZ_InventoryService } from "../Service/ZRSJZ_InventoryService";
 import { _decorator, AudioClip, AudioSource, Camera, Canvas, Component, director, Director, EventKeyboard, find, input, Input, instantiate, isValid, KeyCode, Node, Prefab, Sprite, SpriteFrame, Texture2D, UITransform, v2, Vec3, Widget } from 'cc';
 import { ZRSJZ_Panel } from '../Panel/ZRSJZ_Panel';
@@ -44,6 +45,7 @@ export class ZRSJZ_UIManager extends Component {
     public static IsBattle: boolean = false;//是否正在战斗界面
     /** 双人局中改用单人操作布局时记录唯一存活玩家；-1 表示正常分屏。 */
     public static SinglePlayerBattleIndex: number = -1;
+    public static ISTTShow: boolean = false;//是否正在展示抖音获客界面
 
     private static _instance: ZRSJZ_UIManager = null;
     private static _lifecycleVersion: number = 0;
@@ -202,6 +204,7 @@ export class ZRSJZ_UIManager extends Component {
     }
 
     private static ResetStaticState(): void {
+        ZRSJZ_UIManager.ISTTShow = false;
         ZRSJZ_UIManager.ZRSJZ_DLC = false;
         ZRSJZ_UIManager.ZRSJZ_UI = false;
         ZRSJZ_UIManager.Dragging = false;
@@ -518,7 +521,7 @@ export class ZRSJZ_UIManager extends Component {
                         ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
                     }
                 } else {
-                    ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
+                    if (!ZRSJZ_UIManager.ISTTShow) ProjectEventManager.emit(ProjectEvent.弹出窗口, "真人三角洲");
                 }
             }
         }
@@ -1117,6 +1120,10 @@ export class ZRSJZ_UIManager extends Component {
                 if (!Number.isSafeInteger(totalCount) || !Number.isSafeInteger(ZRSJZ_FragmentService.GetCount(award.PropName) + totalCount)) return false;
                 continue;
             }
+            if (ZRSJZ_GunCastService.isCastItem(award.PropName)) {
+                if (!Number.isSafeInteger(totalCount) || !Number.isSafeInteger(ZRSJZ_GunCastService.itemCount(award.PropName) + totalCount)) return false;
+                continue;
+            }
             const maxCount = Math.max(1, Math.floor(Number(propConfig.MaxCount) || 1));
             const stackCount = Math.ceil(totalCount / maxCount);
             const preferredInventory = ZRSJZ_Tools.GetInventoryByPropType(propConfig.PropType);
@@ -1152,6 +1159,10 @@ export class ZRSJZ_UIManager extends Component {
             const maxCount = Math.max(1, Math.floor(Number(propConfig.MaxCount) || 1));
             if (ZRSJZ_FragmentService.IsFragment(propName)) {
                 if (!ZRSJZ_FragmentService.Credit(propName, totalCount)) invalidAwards.push({ PropName: propName, Count: totalCount });
+                continue;
+            }
+            if (ZRSJZ_GunCastService.isCastItem(propName)) {
+                if (!ZRSJZ_GunCastService.creditItem(propName, totalCount)) invalidAwards.push({ PropName: propName, Count: totalCount });
                 continue;
             }
             let remaining = totalCount;
@@ -1616,6 +1627,7 @@ export class ZRSJZ_UIManager extends Component {
         const receivedPropIDs: string[] = [];
         let receivedFragments = 0;
         let receivedHeroFragments = 0;
+        const receivedCastItems = new Map<string, number>();
 
         for (const propID in ZRSJZ_GameData.Instance.PropData) {
             const propData = ZRSJZ_GameData.Instance.PropData[propID];
@@ -1644,6 +1656,13 @@ export class ZRSJZ_UIManager extends Component {
             }
 
             // 仅对本次可保留的碎片兑换，余额和道具删除共同存档，重复结算不会再发放。
+            if (ZRSJZ_GunCastService.isCastItem(propData.Name)) {
+                if (Number.isSafeInteger(propData.CurCount) && propData.CurCount > 0) {
+                    receivedCastItems.set(propData.Name, (receivedCastItems.get(propData.Name) ?? 0) + propData.CurCount);
+                }
+                delete ZRSJZ_GameData.Instance.PropData[propID];
+                continue;
+            }
             if (ZRSJZ_FragmentService.IsFragment(propData.Name)) {
                 if (Number.isSafeInteger(propData.CurCount) && propData.CurCount > 0) {
                     if (propData.Name === "英雄碎片") receivedHeroFragments += propData.CurCount;
@@ -1665,7 +1684,10 @@ export class ZRSJZ_UIManager extends Component {
             receivedPropIDs.push(propID);
         }
 
-        if (receivedFragments > 0 || receivedHeroFragments > 0) {
+        for (const [kind, count] of receivedCastItems) {
+            if (ZRSJZ_GunCastService.isCastItem(kind)) ZRSJZ_GunCastService.creditItem(kind, count, false);
+        }
+        if (receivedFragments > 0 || receivedHeroFragments > 0 || receivedCastItems.size > 0) {
             ZRSJZ_FragmentService.Credit('宠物碎片', receivedFragments, false);
             ZRSJZ_FragmentService.Credit('英雄碎片', receivedHeroFragments, false);
             ZRSJZ_GameData.SaveData();

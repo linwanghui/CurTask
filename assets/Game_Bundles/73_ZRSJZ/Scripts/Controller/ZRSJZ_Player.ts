@@ -14,6 +14,8 @@ import { ZRSJZ_PlayerSkeleton } from './ZRSJZ_PlayerSkeleton';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_Bullet } from './ZRSJZ_Bullet';
+import { ZRSJZ_ElementShot, ZRSJZ_GetElement, ZRSJZ_ElementBulletPath } from '../Service/ZRSJZ_ElementCombat';
+import { ZRSJZ_OnlineService as Online } from '../Service/ZRSJZ_OnlineService';
 import { ZRSJZ_EnemyBase } from './ZRSJZ_EnemyBase';
 import { ZRSJZ_HP } from '../UI/ZRSJZ_HP';
 import { ZRSJZ_Game } from '../ZRSJZ_Game';
@@ -456,6 +458,8 @@ export class ZRSJZ_Player extends Component {
     private _preparingGunAttack: boolean = false;
     private _reservedGunBullet: Node = null;
     private _reservedGunAmmoName: string = "";
+    private _reservedElementShot: ZRSJZ_ElementShot = null;
+    private _reservedGunID = '';
     private _gunAttackRequestId: number = 0;
     /** 最近一次有效枪口相对玩家的位置；骨骼短暂不可读时跟随玩家，而不是使用旧世界坐标。 */
     private _lastValidMuzzleOffset: Vec3 = null;
@@ -1115,9 +1119,15 @@ export class ZRSJZ_Player extends Component {
     private FireReservedGunBullet(): void {
         // 由 Track 1 开枪事件排队，在瞄准骨骼刷新后生成主子弹。
         if (!this._waitingFirstGunShot || !this._reservedGunBullet) return;
+        if (this._reservedGunID && this._reservedGunID !== ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[0]) {
+            this.CancelGunAttackState(); return;
+        }
 
         const bullet = this._reservedGunBullet;
         const ammoName = this._reservedGunAmmoName;
+        const elementShot = this._reservedElementShot;
+        this._reservedElementShot = null;
+        this._reservedGunID = '';
         this._reservedGunBullet = null;
         this._reservedGunAmmoName = "";
         this._waitingFirstGunShot = false;
@@ -1155,6 +1165,8 @@ export class ZRSJZ_Player extends Component {
                     bulletRange,
                     finalDamage,
                     bulletLevel,
+                    false,
+                    elementShot,
                 );
                 return spawnWorldPos.clone();
             } catch (error) {
@@ -1213,8 +1225,8 @@ export class ZRSJZ_Player extends Component {
             const cos = Math.cos(offsetRadian);
             const sin = Math.sin(offsetRadian);
 
-            void this.SpawnExtraBullet(mainBulletSpawnPos, attackX * cos - attackY * sin, attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
-            void this.SpawnExtraBullet(mainBulletSpawnPos, attackX * cos + attackY * sin, -attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel);
+            void this.SpawnExtraBullet(mainBulletSpawnPos, attackX * cos - attackY * sin, attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel, elementShot);
+            void this.SpawnExtraBullet(mainBulletSpawnPos, attackX * cos + attackY * sin, -attackX * sin + attackY * cos, bulletRange, finalDamage, bulletLevel, elementShot);
         }
         ZRSJZ_AudioManager.Instance.PlaySound(audioName);
 
@@ -1810,13 +1822,13 @@ export class ZRSJZ_Player extends Component {
         }
     }
 
-    private async SpawnExtraBullet(spawnWorldPos: Vec3, dirX: number, dirY: number, range: number, harm: number, bulletLevel: number): Promise<void> {
+    private async SpawnExtraBullet(spawnWorldPos: Vec3, dirX: number, dirY: number, range: number, harm: number, bulletLevel: number, shot: ZRSJZ_ElementShot = null): Promise<void> {
         // 在 await 之前保存本次开火位置，保证散弹的三颗弹丸来自同一个枪口点。
         const shotWorldPos = spawnWorldPos.clone();
         const bulletRequestGame = ZRSJZ_Game.Instance;
         let bullet: Node = null;
         try {
-            bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
+            bullet = await ZRSJZ_PoolManager.Instance.GetNode(ZRSJZ_ElementBulletPath(shot?.weapon));
             const bulletParent = bulletRequestGame?.CurMap?.BulletParent;
             const bulletComponent = bullet?.getComponent(ZRSJZ_Bullet);
             if (!bullet?.isValid || !this.CanUseAsyncResult(bulletRequestGame) || !bulletParent?.isValid || !bulletComponent) {
@@ -1824,7 +1836,7 @@ export class ZRSJZ_Player extends Component {
                 return;
             }
             bullet.parent = bulletParent;
-            bulletComponent.Show(shotWorldPos, dirX, dirY, range, harm, bulletLevel);
+            bulletComponent.Show(shotWorldPos, dirX, dirY, range, harm, bulletLevel, false, shot);
         } catch (error) {
             if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
             console.error("[ZRSJZ_Player] 散弹额外弹丸创建失败", error);
@@ -1847,15 +1859,27 @@ export class ZRSJZ_Player extends Component {
         this._preparingGunAttack = true;
         const bulletRequestGame = ZRSJZ_Game.Instance;
         const requestId = ++this._gunAttackRequestId;
+        const gunID = ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[0];
+        const weapon = ZRSJZ_GameData.Instance.PropData[gunID]?.Name ?? '';
+        // 毒伤快照只取武器攻击力及攻击属性，不叠加弹药和枪伤倍率。
+        const shot: ZRSJZ_ElementShot = ZRSJZ_GetElement(weapon) ? {
+            weapon, source: Online.Battle ? (Online.BattleHost ? 'host:' : 'peer:') + this.PlayerIndex : this.node.uuid,
+            attack: this.GetGunProperty('伤害', 0) * (1 + ZRSJZ_BoosterShotService.GetBooster('攻击针'))
+                * (1 + ZRSJZ_EnhancementService.GetBonus('攻击') / 100),
+        } : null;
         let bullet: Node = null;
         try {
-            bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/PlayerBullet");
+            bullet = await ZRSJZ_PoolManager.Instance.GetNode(ZRSJZ_ElementBulletPath(weapon));
         } catch (error) {
             console.error("[ZRSJZ_Player] 主子弹预取异常，本轮不播放开枪动画", error);
         } finally {
             if (requestId === this._gunAttackRequestId) this._preparingGunAttack = false;
         }
         if (requestId !== this._gunAttackRequestId) {
+            if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
+            return;
+        }
+        if (gunID !== ZRSJZ_InventoryService.GetWeaponryIDs(this.PlayerIndex)[0]) {
             if (bullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(bullet);
             return;
         }
@@ -1877,6 +1901,8 @@ export class ZRSJZ_Player extends Component {
         }
 
         this._reservedGunBullet = bullet;
+        this._reservedElementShot = shot;
+        this._reservedGunID = gunID;
         this._reservedGunAmmoName = bulletRequestGame.UnlimitedFirepower
             ? (this._magazineAmmo[0] ?? "1级子弹")
             : (this._magazineAmmo.shift() ?? "");
@@ -1892,6 +1918,8 @@ export class ZRSJZ_Player extends Component {
     }
 
     private CancelGunAttackState(): void {
+        this._reservedElementShot = null;
+        this._reservedGunID = '';
         this._gunShotPending = false;
         this._gunAttackRequestId++;
         this._isFireing = false;
@@ -1914,6 +1942,8 @@ export class ZRSJZ_Player extends Component {
         if (this._gunShotPending) return;
         // 子弹只由 Spine 开枪事件生成；动画完成����再补发子弹。
         if (this._waitingFirstGunShot) {
+            this._reservedElementShot = null;
+            this._reservedGunID = '';
             console.error("[ZRSJZ_Player] 开枪动画未触发 kq/gj_jjq 事件，本轮取消且退回弹药");
             if (this._reservedGunBullet?.isValid) ZRSJZ_PoolManager.Instance.PutNode(this._reservedGunBullet);
             if (!ZRSJZ_Game.Instance.UnlimitedFirepower && this._reservedGunAmmoName) {

@@ -1048,6 +1048,16 @@ export class ZRSJZ_Inventory extends Component {
         const propData = ZRSJZ_GameData.Instance.PropData[id];
         if (!propData || !this.IsAdaptive(id)) return false;
 
+        // 空间不足前先尝试补满已有材料叠；未合并完的数量再寻找空格。
+        if (ZRSJZ_InventoryService.IsSearchStackable(propData.Name)) {
+            const targetIDs = new Set(this.Grids.flat().filter(targetID => targetID && targetID !== id));
+            for (const targetID of targetIDs) {
+                if (canContinue && !canContinue()) return false;
+                await this.MergeSearchStack(id, targetID);
+                if (!ZRSJZ_GameData.Instance.PropData[id]) return true;
+            }
+        }
+
         if (organizeBeforePlacement) {
             // 总空格数量不足时，任何整理或旋转都无法放入，直接返回空间不足。
             if (!this.HasEnoughEmptyGridCount(id)) return false;
@@ -1144,6 +1154,13 @@ export class ZRSJZ_Inventory extends Component {
                 const pos: Vec3 = this.UITransform.convertToNodeSpaceAR(worldPos);
                 const propData = ZRSJZ_GameData.Instance.PropData[id];
                 if (!propData) return;
+                const stackGrid = this.GetGridPositionByCenter(pos.x, pos.y, 1, 1);
+                const stackID = this.Grids[stackGrid.gridY]?.[stackGrid.gridX];
+                if (this.IsAdaptive(id) && ZRSJZ_InventoryService.CanMergeSearchStack(id, stackID)) {
+                    if (isConfirm) await this.MergeSearchStack(id, stackID);
+                    else ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_GRID_SHOW, this.InventoryType, stackGrid.gridX, stackGrid.gridY, '绿');
+                    return;
+                }
                 let placement = this.GetDropPlacement(propData, pos.x, pos.y, id);
                 let swapPlan: ZRSJZ_SwapPlacement[] = null;
                 if (!placement) {
@@ -1214,6 +1231,29 @@ export class ZRSJZ_Inventory extends Component {
                 // console.error(gridX, gridY,);
             }
         }
+    }
+
+    private async MergeSearchStack(incomingID: string, targetID: string): Promise<boolean> {
+        const target = ZRSJZ_GameData.Instance.PropData[targetID];
+        if (!target || !this.BelongsToInventory(target, this.InventoryType) || !this.IsAdaptive(incomingID)) return false;
+        if (!ZRSJZ_InventoryService.MergeSearchStackCounts(incomingID, targetID)) return false;
+        const inventories = ZRSJZ_UIManager.Instance.GetAllInventoryNodes()
+            .map(node => node.getComponent(ZRSJZ_Inventory)).filter(inventory => !!inventory);
+        if (ZRSJZ_GameData.Instance.PropData[incomingID].CurCount <= 0) {
+            for (const inventory of inventories) {
+                if (inventory.Grids.some(row => row.includes(incomingID))) await inventory.RemoveProp(incomingID);
+            }
+            ZRSJZ_InventoryService.RemovePropID(incomingID);
+        } else ZRSJZ_GameData.SaveData();
+        for (const inventory of inventories) for (const node of inventory.node.children) {
+            const grid = node.getComponent(ZRSJZ_PropGrid);
+            if (grid && (grid.PropID === incomingID || grid.PropID === targetID)) {
+                const data = ZRSJZ_GameData.Instance.PropData[grid.PropID];
+                if (data && grid.CountLabel) grid.CountLabel.string = 'x' + data.CurCount;
+            }
+        }
+        ZRSJZ_EventManager.EmitPersist(ZRSJZ_MyEvent.ZRSJZ_INVENTORY_CHANGE);
+        return true;
     }
 
     async ChangeGrid(inventory: ZRSJZ_INVENTORY, id: string, gridX: number, gridY: number, width: number, height: number, isRotate: boolean = false, canContinue: (() => boolean) = null): Promise<boolean> {

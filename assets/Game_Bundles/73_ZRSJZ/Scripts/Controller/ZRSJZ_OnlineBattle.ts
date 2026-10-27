@@ -325,10 +325,11 @@ export class ZRSJZ_OnlineBattle extends Component {
     private OnCombat(packet: any): void {
         if (!this.isValid || Online.BattleEnded) return;
         if (packet.kind === 'pet') { this.petState = packet.pet; return; }
-        if (Online.BattleHost && ['hit', 'stun', 'pull'].includes(packet.kind)) {
+        if (Online.BattleHost && ['hit', 'stun', 'pull', 'element_hit'].includes(packet.kind)) {
             const enemy = ZRSJZ_EnemyBase.OnlineEnemies.get(packet.id);
             if (!enemy?.isValid || !enemy.node.activeInHierarchy || enemy.IsDead) return;
-            if (packet.kind === 'hit') enemy.BeHit(packet.harm, packet.hitX || 0, packet.hitY || 0);
+            if (packet.kind === 'element_hit') enemy.ReceiveElementHit(packet.harm, packet.hitX || 0, packet.hitY || 0, packet.shot);
+            else if (packet.kind === 'hit') enemy.BeHit(packet.harm, packet.hitX || 0, packet.hitY || 0);
             else if (packet.kind === 'stun') enemy.ApplyPetStun(packet.duration);
             else enemy.ApplyPetPull(new Vec3(packet.x, packet.y), packet.distance);
             return;
@@ -345,6 +346,7 @@ export class ZRSJZ_OnlineBattle extends Component {
         const game = ZRSJZ_Game.Instance;
         if (!game?.CurMap?.BulletParent?.isValid || game.IsGameFinished) return;
         const path = packet.kind === 'flame' ? 'Prefabs/Effect/Skill/FlamethrowerEffect'
+            : packet.kind === 'player_shot' && packet.elementShot ? '73_ZRSJZ_DLC/Prefabs/Unit/元素子弹'
             : 'Prefabs/Unit/' + (packet.kind === 'shot' ? 'EnemyBullet' : 'PlayerBullet');
         try {
             const node = await ZRSJZ_PoolManager.Instance.GetNode(path);
@@ -359,7 +361,7 @@ export class ZRSJZ_OnlineBattle extends Component {
                 const bullet = node.getComponent(ZRSJZ_Bullet);
                 bullet.MoveSpeed = packet.speed;
                 // 队友子弹只展示；真正命中只由开枪客户端上报，避免重复扣血。
-                bullet.Show(pos, packet.dx, packet.dy, packet.range, packet.kind === 'player_shot' ? 0 : packet.harm, 1, true);
+                bullet.Show(pos, packet.dx, packet.dy, packet.range, packet.kind === 'player_shot' ? 0 : packet.harm, 1, true, packet.elementShot);
             }
         } catch (error) { console.error('[联机] 攻击资源加载失败', error); }
     }

@@ -329,7 +329,7 @@ export class ZRSJZ_Game extends Component {
         await ZRSJZ_UIManager.Instance.InitializeBattleInventories();
         this.LoadMap();
         this.InitMiniMap();
-        ProjectEventManager.emit(ProjectEvent.游戏开始, "真人三角洲");
+        if (!ZRSJZ_UIManager.ISTTShow) ProjectEventManager.emit(ProjectEvent.游戏开始, "真人三角洲");
     }
 
     protected onEnable(): void {
@@ -361,7 +361,10 @@ export class ZRSJZ_Game extends Component {
         ZRSJZ_BoosterShotService.ClearCurrentBoosterShot();
         // 背包免费扩容同样仅在当前对局有效。
         ZRSJZ_InventoryService.ResetBackpackExpansion();
-        if (ZRSJZ_Game.Instance === this) ZRSJZ_Game.Instance = null;
+        if (ZRSJZ_Game.Instance === this) {
+            ZRSJZ_UIManager.ISTTShow = false;
+            ZRSJZ_Game.Instance = null;
+        }
     }
 
     protected lateUpdate(): void {
@@ -1137,6 +1140,7 @@ export class ZRSJZ_Game extends Component {
                         //获客启动，直接进入关卡
                         if (!Banner.WinTheCustomerIsOver) {
                             //默认直接进入第一个关卡，需要修改手动修改
+                            ZRSJZ_UIManager.ISTTShow = true;
                             Banner.Instance.TTuploading();
                             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAP_AUTO_SHOW);
                         }

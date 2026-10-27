@@ -188,8 +188,10 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["手雷", { Name: "手雷", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 11000, MaxCount: 1 }],
     ["鱼子酱", { Name: "鱼子酱", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 13000, MaxCount: 1 }],
     //1x1 --  紫
-    ["宠物碎片", { Name: "宠物碎片", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 0, MaxCount: 1 }],
-    ["英雄碎片", { Name: "英雄碎片", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 0, MaxCount: 1 }],
+    ["宠物碎片", { Name: "宠物碎片", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 0, MaxCount: 99 }],
+    ["英雄碎片", { Name: "英雄碎片", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 0, MaxCount: 99 }],
+    ["铸枪护盾", { Name: "铸枪护盾", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 0, MaxCount: 99, Description: "铸枪道具。使用后抵挡一次武器损毁，触发前一直保留。撤离后直接计入铸枪道具数量，不进入仓库。" }],
+    ["铸枪必成券", { Name: "铸枪必成券", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 0, MaxCount: 99, Description: "铸枪道具。使用后下一次有效敲击必定成功、提升一级。撤离后直接计入铸枪道具数量，不进入仓库。" }],
     ["柠檬茶", { Name: "柠檬茶", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 220000, MaxCount: 1 }],
     ["古玩钱币", { Name: "古玩钱币", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 29000, MaxCount: 1 }],
     ["镜子", { Name: "镜子", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 29000, MaxCount: 1 }],
@@ -420,6 +422,10 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     ["霜月狼", { Name: "霜月狼", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 36000000, MaxCount: 1 }],
     ["裂海鲨", { Name: "裂海鲨", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 48000000, MaxCount: 1 }],
     ["焚天龙", { Name: "焚天龙", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 65000000, MaxCount: 1 }],
+
+    ["冰霜裁决", { Name: "冰霜裁决", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 65000000, MaxCount: 1 }],
+    ["烈焰破军", { Name: "烈焰破军", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 65000000, MaxCount: 1 }],
+    ["蚀骨毒牙", { Name: "蚀骨毒牙", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._1x2, PropType: "枪", UnitPrice: 65000000, MaxCount: 1 }],
     //刀
     ["战术匕首", { Name: "战术匕首", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 8400, MaxCount: 1 }],
     ["刺厌", { Name: "刺厌", Quality: ZRSJZ_PROP_QUALITY.绿色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "刀", UnitPrice: 100000, MaxCount: 1 }],
@@ -557,7 +563,7 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["嘟嘟骑士", "我的订单都敢抢，你的胆子真是肥嘟嘟的。"],
 
     ["光头弹药箱", "采用军用复合材料打造的重型弹药箱，内部整齐封存着大口径弹药；坚固外壳布满实战痕迹，是火力与胆识的象征。"],
-    ["战神勋章", "以猩红战斧与狰狞铁面铸成的荣誉勋章，只有从无数恶战中凯旋的勇士才有资格佩戴，冰冷锋芒间仍残留着战场的肃杀气息。"],
+    ["战神勋章", "以猩红战斧与狰狞铁面铸成的荣誉勋章，只有从无数恶战中凯旋的勇士才有资格佩戴，冰冷锋芒间仍残留着���场的肃杀气息。"],
     ["混乱勋章", "金色左轮与黑鸦羽翼交织而成的神秘勋章，中央红宝石闪烁着危险微光，据说它曾见证秩序崩塌前最疯狂的一场决斗。"],
     ["裂空之弩", "搭载高倍率瞄具与赤红能量核心的战术强弩，精密弩臂可将力量汇聚于一点，离弦弩箭仿佛连空气都能撕裂。"],
     ["高科技护目镜", "集成目标识别、环境扫描与战术标记模块的智能护目镜，湛蓝显示屏能实时捕捉战场信息，是尖端科技凝结而成的珍贵装备。"],
@@ -644,6 +650,9 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["霜月狼", "以霜月与孤狼为主题的红色品质步枪，射程出色，适合在较远距离持续压制目标。"],
     ["裂海鲨", "以裂海狂鲨为主题的红色品质步枪，射速突出，擅长用密集火力快速压制敌人。"],
     ["焚天龙", "以焚天巨龙为主题的红色品质步枪，单发伤害较高，适合稳步推进时重创目标。"],
+    ["冰霜裁决", "命中叠加寒意，减速并冻结敌人，为换弹与集火创造机会。"],
+    ["烈焰破军", "持续命中叠加灼甲，削弱敌人护甲，越战越强。"],
+    ["蚀骨毒牙", "命中叠加毒素，造成持续毒伤，擅长对付高生命目标。"],
     //刀
     ["战术匕首", "轻巧锋利的战术短刀，便于隐藏，可用于快速近身攻击。"],
     ["刺厌", "造型凌厉的特殊近战兵器，尖锐刃口适合穿刺与连续攻击。"],
@@ -731,6 +740,9 @@ export const ZRSJZ_PROP_PROPERTY: Map<string, { [Key: string]: number }> = new M
     ["霜月狼", { "伤害": 150, "射程": 2400, "射速": 780, "弹夹": 50 }],
     ["裂海鲨", { "伤害": 170, "射程": 2100, "射速": 900, "弹夹": 65 }],
     ["焚天龙", { "伤害": 240, "射程": 2300, "射速": 840, "弹夹": 60 }],
+    ["冰霜裁决", { "伤害": 88, "射程": 1900, "射速": 720, "弹夹": 42 }],
+    ["烈焰破军", { "伤害": 90, "射程": 1800, "射速": 660, "弹夹": 45 }],
+    ["蚀骨毒牙", { "伤害": 72, "射程": 1700, "射速": 780, "弹夹": 50 }],
     //刀
     ["战术匕首", { "伤害": 65 }],
     ["刺厌", { "伤害": 85 }],
@@ -754,7 +766,7 @@ export const ZRSJZ_PROP_PROPERTY_MAX: Map<string, number> = new Map([
 
 
 export const ZRSJZ_WEAPONRY_TYPE: Map<string, string[]> = new Map([
-    ["步枪", ["CN8-突击步枪", "DX9-冲锋枪", "K50-轻机枪", "RK77-轻机枪", "HK416-突击步枪", "SCAR-H-战斗步枪", "MCX-突击步枪", "AK12-突击步枪", "M249-轻机枪", "MG5-轻机枪", "霜月狼", "裂海鲨", "焚天龙"]],
+    ["步枪", ["CN8-突击步枪", "DX9-冲锋枪", "K50-轻机枪", "RK77-轻机枪", "HK416-突击步枪", "SCAR-H-战斗步枪", "MCX-突击步枪", "AK12-突击步枪", "M249-轻机枪", "MG5-轻机枪", "霜月狼", "裂海鲨", "焚天龙", "冰霜裁决", "烈焰破军", "蚀骨毒牙"]],
     ["狙击枪", ["ssv-狙击枪", "W76-狙击枪", "AWM-狙击枪", "M82A1-狙击枪"]],
     ["散弹枪", ["FS-霰弹枪", "KK41-霰弹枪", "AA12-霰弹枪", "DP12-霰弹枪"]],
 ])
@@ -3022,11 +3034,26 @@ export const ZRSJZ_ACTION_CONFIG: ZRSJZ_ActionConfig[] = [
 /** 铸枪独立玩法配置；不修改线上道具价格。等级1对应档位+0。 */
 export const ZRSJZ_GUN_CAST_CONFIG = {
     entryCost: 1000000, recoveryAds: 3, superHits: 10,
+    // 每把铸枪损毁后恢复所需的视频次数；未配置的武器使用 recoveryAds。
+    recoveryAdsByWeapon: {
+        'CN8-突击步枪': 1,
+        'DX9-冲锋枪': 1,
+        'K50-轻机枪': 1,
+        'RK77-轻机枪': 1,
+        'KK41-霰弹枪': 2,
+        'HK416-突击步枪': 2,
+        'SCAR-H-战斗步枪': 2,
+        'MCX-突击步枪': 2,
+        'AK12-突击步枪': 3,
+        'M249-轻机枪': 3,
+        'MG5-轻机枪': 3,
+        'M82A1-狙击枪': 3,
+    } as Record<string, number>,
     // 超级时刻持续时长（秒）；例如改成 4 即持续4秒，界面初始显示4:00。
     superDuration: 4,
     weapons: ['CN8-突击步枪', 'DX9-冲锋枪', 'K50-轻机枪', 'RK77-轻机枪', 'KK41-霰弹枪', 'HK416-突击步枪', 'SCAR-H-战斗步枪', 'MCX-突击步枪', 'AK12-突击步枪', 'M249-轻机枪', 'MG5-轻机枪', 'M82A1-狙击枪'],
     branches: [
-        { name: '冰霜裁决', item: '霜月狼' }, { name: '烈焰破军', item: '焚天龙' }, { name: '蚀骨毒牙', item: '裂海鲨' }
+        { name: '冰霜裁决', item: '冰霜裁决' }, { name: '烈焰破军', item: '烈焰破军' }, { name: '蚀骨毒牙', item: '蚀骨毒牙' }
     ],
     values: [12, 18, 32, 48, 85, 180, 280, 650, 980, 1750, 2600, 3000, 3000],
     recycleValues: [6, 9, 16, 24, 42.5, 90, 140, 325, 490, 875, 1300, 1500, 1500],

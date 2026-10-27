@@ -53,12 +53,13 @@ export class ZRSJZ_MapAutoShow extends Component {
     private _repathTime = 0;
     private _inputRoots: Node[] = [];
     private _inputCanvas: HTMLCanvasElement = null;
+    private _ownsTTShow = false;
     private readonly _onCanvasPointer = (event: Event) => {
         const rect = this._inputCanvas?.getBoundingClientRect();
         const point = (event as TouchEvent).changedTouches?.[0] ?? event as MouseEvent;
         // 预览器和网页可能在画布上覆盖 HTML 层；按画布范围判断点击。
         if (rect && point.clientX >= rect.left && point.clientX <= rect.right
-            && point.clientY >= rect.top && point.clientY <= rect.bottom) this.Stop();
+            && point.clientY >= rect.top && point.clientY <= rect.bottom) this.OnUserInput();
     };
 
     public get IsRunning(): boolean { return this._stage !== 'idle'; }
@@ -70,7 +71,7 @@ export class ZRSJZ_MapAutoShow extends Component {
 
     protected onDisable(): void {
         ZRSJZ_EventManager.Off(ZRSJZ_MyEvent.ZRSJZ_MAP_AUTO_SHOW, this.Begin, this);
-        this.Stop();
+        this.OnUserInput();
     }
 
     public Begin(): void {
@@ -82,14 +83,18 @@ export class ZRSJZ_MapAutoShow extends Component {
         if (!isValid(game, true) || game.IsGameFinished || game.GamePaused || !isValid(player, true) || player.IsDead
             || !isValid(this.Point, true) || !isValid(box, true) || !isValid(enemy, true) || enemy.IsDead) {
             console.warn('[地图自动展示] Point、Box、Enemy 或玩家状态无效');
+            if (!ZRSJZ_MapAutoShow._active) ZRSJZ_UIManager.ISTTShow = false;
             return;
         }
         if (box.RequiresRewardVideo() || (box.RequiresPassword() && !box.IsPasswordUnlocked())) {
             console.warn('[地图自动展示] 请配置无需广告或密码解锁的箱子');
+            if (!ZRSJZ_MapAutoShow._active) ZRSJZ_UIManager.ISTTShow = false;
             return;
         }
-        ZRSJZ_MapAutoShow._active?.Stop();
+        ZRSJZ_MapAutoShow._active?.OnUserInput();
         ZRSJZ_MapAutoShow._active = this;
+        this._ownsTTShow = true;
+        ZRSJZ_UIManager.ISTTShow = true;
         this._game = game; this._player = player; this._box = box; this._enemy = enemy;
         this._serial++;
         this._waypoints = isValid(this.PlayerPoints, true)
@@ -103,6 +108,7 @@ export class ZRSJZ_MapAutoShow extends Component {
         this.SetStage('box');
         input.on(Input.EventType.TOUCH_START, this.OnUserInput, this);
         input.on(Input.EventType.MOUSE_DOWN, this.OnUserInput, this);
+        input.on(Input.EventType.KEY_DOWN, this.OnUserInput, this);
         // Canvas 捕获阶段先于弹窗的 BlockInputEvents，确保 UI 点击也能中止。
         this._inputRoots = director.getScene()?.getComponentsInChildren(Canvas).map(c => c.node) ?? [];
         for (const root of this._inputRoots) {
@@ -119,7 +125,14 @@ export class ZRSJZ_MapAutoShow extends Component {
         }
     }
 
-    private OnUserInput(): void { this.Stop(); }
+    private OnUserInput(): void {
+        // 玩家真实输入表示接管；自动搜索或击杀结束不算接管。
+        if (this._ownsTTShow) {
+            this._ownsTTShow = false;
+            ZRSJZ_UIManager.ISTTShow = false;
+        }
+        this.Stop();
+    }
 
     public Stop(): void {
         const wasRunning = this.IsRunning;
@@ -129,8 +142,19 @@ export class ZRSJZ_MapAutoShow extends Component {
         this._waypoints = [];
         this._waypointIndex = 0;
         this._closingGoods = null;
+        // 自动流程结束不代表玩家接管，继续保留输入监听和展示状态。
+        if (!this._ownsTTShow) this.UnbindUserInput();
+        if (wasRunning && isValid(this._player, true)) this._player.StopAutoShowInput();
+        if (this._openedGoods) ZRSJZ_UIManager.Instance?.HidePlayerPanel(ZRSJZ_PANEL.物资弹窗, this.PlayerIndex);
+        this._openedGoods = false;
+        if (wasRunning && isValid(this._box, true)) this._box.EndSearch(this.PlayerIndex);
+        if (!this._ownsTTShow && ZRSJZ_MapAutoShow._active === this) ZRSJZ_MapAutoShow._active = null;
+    }
+
+    private UnbindUserInput(): void {
         input.off(Input.EventType.TOUCH_START, this.OnUserInput, this);
         input.off(Input.EventType.MOUSE_DOWN, this.OnUserInput, this);
+        input.off(Input.EventType.KEY_DOWN, this.OnUserInput, this);
         for (const root of this._inputRoots) {
             if (!isValid(root, true)) continue;
             root.off(Node.EventType.TOUCH_START, this.OnUserInput, this, true);
@@ -141,11 +165,6 @@ export class ZRSJZ_MapAutoShow extends Component {
         this._inputCanvas?.ownerDocument?.removeEventListener('mousedown', this._onCanvasPointer, true);
         this._inputCanvas?.ownerDocument?.removeEventListener('touchstart', this._onCanvasPointer, true);
         this._inputCanvas = null;
-        if (wasRunning && isValid(this._player, true)) this._player.StopAutoShowInput();
-        if (this._openedGoods) ZRSJZ_UIManager.Instance?.HidePlayerPanel(ZRSJZ_PANEL.物资弹窗, this.PlayerIndex);
-        this._openedGoods = false;
-        if (wasRunning && isValid(this._box, true)) this._box.EndSearch(this.PlayerIndex);
-        if (ZRSJZ_MapAutoShow._active === this) ZRSJZ_MapAutoShow._active = null;
     }
 
     private SetStage(stage: typeof this._stage): void {

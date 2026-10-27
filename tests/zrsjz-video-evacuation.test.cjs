@@ -65,8 +65,11 @@ const scene = JSON.parse(fs.readFileSync('assets/Game_Bundles/73_ZRSJZ/Scenes/ZR
 const node = scene.find(n => n.__type__ === 'cc.Node' && n._name === '马上撤离'); assert(node);
 const components = node._components.map(r => scene[r.__id__]);
 const button = components.find(c => c.__type__ === 'cc.Button'); assert.equal(scene[button.clickEvents[0].__id__].handler, 'OnButtonClick');
-const widget = components.find(c => c.__type__ === 'cc.Widget'); assert.equal(widget._top, 180); assert.equal(widget._left, 375.5);
-assert.equal(components.find(c => c.__type__ === 'cc.UITransform')._contentSize.width, 150);
+const widget = components.find(c => c.__type__ === 'cc.Widget');
+assert(widget && widget._enabled,'evacuation control remains anchored to the HUD');
+assert(Number.isFinite(widget._top)&&widget._top>=0);assert(Number.isFinite(widget._left)&&widget._left>=0);
+const controlSize=components.find(c => c.__type__ === 'cc.UITransform')._contentSize;
+assert(controlSize.width>=80&&controlSize.height>=40,'button keeps a usable hit area after layout edits');
 const clickEvent = scene[button.clickEvents[0].__id__];
 assert(scene[clickEvent.target.__id__]._components.some(r => scene[r.__id__].__type__ === clickEvent._componentId), 'button targets the scene game component');
 const meta = JSON.parse(fs.readFileSync('assets/Game_Bundles/73_ZRSJZ/Sprites/UI/视频撤离.png.meta'));

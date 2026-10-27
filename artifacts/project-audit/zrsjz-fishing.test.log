@@ -1,0 +1,17 @@
+evalmachine.<anonymous>:344
+({ Round: ZRSJZ_FishingRound, config: ZRSJZ_FISHING_CONFIG, rewards: ZRSJZ_FISHING_REWARDS, roll: ZRSJZ_RollFishingRewards, props: ZRSJZ_PROP_CONFIG, qualities: ZRSJZ_PROP_QUALITY });
+                                                                     ^
+
+ReferenceError: ZRSJZ_FISHING_REWARDS is not defined
+    at evalmachine.<anonymous>:344:70
+    at Script.runInContext (node:vm:149:12)
+    at Script.runInNewContext (node:vm:154:17)
+    at Object.runInNewContext (node:vm:310:38)
+    at Object.<anonymous> (D:\CocosCreator\CurTask\tests\zrsjz-fishing.test.cjs:11:63)
+    at Module._compile (node:internal/modules/cjs/loader:1562:14)
+    at Object..js (node:internal/modules/cjs/loader:1699:10)
+    at Module.load (node:internal/modules/cjs/loader:1313:32)
+    at Function._load (node:internal/modules/cjs/loader:1123:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+
+Node.js v22.13.0

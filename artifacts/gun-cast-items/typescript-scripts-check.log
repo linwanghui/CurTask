@@ -1,0 +1,369 @@
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/@types/jsb.d.ts:213:18 - error TS2304: Cannot find name 'TypedArray'.
+
+213         _data(): TypedArray;
+                     ~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/@types/jsb.d.ts:214:17 - error TS2304: Cannot find name 'TypedArray'.
+
+214         __data: TypedArray;
+                    ~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:38157:32 - error TS2314: Generic type 'Map<T>' requires 1 type argument(s).
+
+38157             get socketNodes(): Map<string, Node>;
+                                     ~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:38215:37 - error TS2314: Generic type 'Map<T>' requires 1 type argument(s).
+
+38215             protected _socketNodes: Map<string, Node>;
+                                          ~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:38216:39 - error TS2314: Generic type 'Map<T>' requires 1 type argument(s).
+
+38216             protected _cachedSockets: Map<string, __private._cocos_dragon_bones_ArmatureDisplay__BoneIndex>;
+                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:45116:24 - error TS2304: Cannot find name 'GPUCanvasContext'.
+
+45116         get context(): GPUCanvasContext;
+                             ~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:45132:29 - error TS2304: Cannot find name 'GPUDevice'.
+
+45132         get nativeDevice(): GPUDevice | null | undefined;
+                                  ~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:54982:19 - error TS2304: Cannot find name 'SafeArray'.
+
+54982         vertices: SafeArray<{
+                        ~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60068:55 - error TS2503: Cannot find namespace '____private'.
+
+60068             createEvaluatorForAnimationGraph(context: ____private._cocos_animation_marionette_animation_graph_animation_clip_binding__AnimationClipGraphBindingContext): _cocos_animation_exotic_animation_exotic_animation__ExoticNodeAnimationAGEvaluation | null;
+                                                            ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60084:125 - error TS2503: Cannot find namespace '____private'.
+
+60084             constructor(nodeAnimations: _cocos_animation_exotic_animation_exotic_animation__ExoticNodeAnimation[], context: ____private._cocos_animation_marionette_animation_graph_animation_clip_binding__AnimationClipGraphBindingContext);
+                                                                                                                                  ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60133:33 - error TS2304: Cannot find name '_Motion'.
+
+60133             constructor(motion: _Motion);
+                                      ~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60134:27 - error TS2304: Cannot find name '_Motion'.
+
+60134             get motion(): _Motion;
+                                ~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60136:47 - error TS2503: Cannot find namespace '____private'.
+
+60136             sample(progress: number, context: ____private._cocos_animation_marionette_animation_graph_context__AnimationGraphEvaluationContext): _cocos_animation_core_pose__Pose;
+                                                    ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60138:17 - error TS2503: Cannot find namespace '____private'.
+
+60138                 ____private._cocos_animation_marionette_graph_debug__RuntimeID,
+                      ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60141:33 - error TS2503: Cannot find namespace '____private'.
+
+60141             rebind(bindContext: ____private._cocos_animation_marionette_animation_graph_context__AnimationGraphBindingContext): void;
+                                      ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60148:50 - error TS2304: Cannot find name '_VariableDescription'.
+
+60148             addVariable(id: string, description: _VariableDescription): void;
+                                                       ~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60151:48 - error TS2304: Cannot find name '_Motion'.
+
+60151             protected createMotionEval(motion: _Motion): _editor_src_marionette_preview__MotionEvalRecord | null;
+                                                     ~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60152:54 - error TS2503: Cannot find namespace '____private'.
+
+60152             protected doEvaluate(_evaluationContext: ____private._cocos_animation_marionette_animation_graph_context__AnimationGraphEvaluationContext): _cocos_animation_core_pose__Pose | null;
+                                                           ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60158:27 - error TS2503: Cannot find namespace '____private'.
+
+60158             editorExtras: ____private._cocos_animation_marionette_pose_graph_graph_output_node__PoseGraphOutputNode[typeof editorExtrasTag];
+                                ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60161:21 - error TS2503: Cannot find namespace '_poseGraphOp'.
+
+60161             nodes: (_poseGraphOp.Node | _editor_src_marionette_pose_graph_editor_api__PoseGraphOutputNodeCopyInfo)[];
+                          ~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60164:27 - error TS2503: Cannot find namespace '_poseGraphOp'.
+
+60164                 inputKey: _poseGraphOp.InputKey;
+                                ~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60166:28 - error TS2503: Cannot find namespace '_poseGraphOp'.
+
+60166                 outputKey: _poseGraphOp.OutputKey;
+                                 ~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60173:19 - error TS2503: Cannot find namespace '____private'.
+
+60173             node: ____private._cocos_animation_marionette_pose_graph_pose_node__PoseNode,
+                        ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:60174:20 - error TS2304: Cannot find name '_PoseGraph'.
+
+60174             graph: _PoseGraph,
+                         ~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:62997:52 - error TS2307: Cannot find module 'pal/audio/type' or its corresponding type declarations.
+
+62997             static load(url: string, opts?: import('pal/audio/type').AudioLoadOptions): Promise<_pal_audio__AudioPlayer>;
+                                                         ~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:63005:58 - error TS2307: Cannot find module 'pal/audio/type' or its corresponding type declarations.
+
+63005             static loadNative(url: string, opts?: import('pal/audio/type').AudioLoadOptions): Promise<unknown>;
+                                                               ~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:63013:80 - error TS2307: Cannot find module 'pal/audio/type' or its corresponding type declarations.
+
+63013             static loadOneShotAudio(url: string, volume: number, opts?: import('pal/audio/type').AudioLoadOptions): Promise<_pal_audio__OneShotAudio>;
+                                                                                     ~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:63028:32 - error TS2307: Cannot find module 'pal/audio/type' or its corresponding type declarations.
+
+63028             get type(): import('pal/audio/type').AudioType;
+                                     ~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:63033:33 - error TS2307: Cannot find module 'pal/audio/type' or its corresponding type declarations.
+
+63033             get state(): import('pal/audio/type').AudioState;
+                                      ~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:63061:61 - error TS2307: Cannot find module 'pal/audio/type' or its corresponding type declarations.
+
+63061             public getPCMData(channelIndex: number): import('pal/audio/type').AudioPCMDataView | undefined;
+                                                                  ~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:66294:60 - error TS2307: Cannot find module 'pal/input/input-source' or its corresponding type declarations.
+
+66294         export type _pal_input__InputSourceButton = import('pal/input/input-source').InputSourceButton;
+                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:66295:58 - error TS2307: Cannot find module 'pal/input/input-source' or its corresponding type declarations.
+
+66295         export type _pal_input__InputSourceDpad = import('pal/input/input-source').InputSourceDpad;
+                                                               ~~~~~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:66296:59 - error TS2307: Cannot find module 'pal/input/input-source' or its corresponding type declarations.
+
+66296         export type _pal_input__InputSourceStick = import('pal/input/input-source').InputSourceStick;
+                                                                ~~~~~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:66297:62 - error TS2307: Cannot find module 'pal/input/input-source' or its corresponding type declarations.
+
+66297         export type _pal_input__InputSourcePosition = import('pal/input/input-source').InputSourcePosition;
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:66298:65 - error TS2307: Cannot find module 'pal/input/input-source' or its corresponding type declarations.
+
+66298         export type _pal_input__InputSourceOrientation = import('pal/input/input-source').InputSourceOrientation;
+                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:66784:21 - error TS2304: Cannot find name 'SafeArray'.
+
+66784             frames: SafeArray<_cocos_dragon_bones_ArmatureCache__ArmatureFrame>;
+                          ~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67217:24 - error TS2304: Cannot find name 'GPUBuffer'.
+
+67217             gpuBuffer: GPUBuffer | null;
+                             ~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67256:25 - error TS2304: Cannot find name 'GPUTexture'.
+
+67256             gpuTexture: GPUTexture | undefined;
+                              ~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67263:35 - error TS2304: Cannot find name 'GPUTextureView'.
+
+67263             getTextureView: () => GPUTextureView | null;
+                                        ~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67274:37 - error TS2304: Cannot find name 'GPUTextureView'.
+
+67274             getNativeTextureView(): GPUTextureView | null;
+                                          ~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67282:25 - error TS2304: Cannot find name 'GPUSampler'.
+
+67282             gpuSampler: GPUSampler | null;
+                              ~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67305:50 - error TS2304: Cannot find name 'GPUSampler'.
+
+67305             createGPUSampler(mipLevel?: number): GPUSampler | null;
+                                                       ~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67341:19 - error TS2304: Cannot find name 'GPUTextureView'.
+
+67341             view: GPUTextureView;
+                        ~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67352:29 - error TS2304: Cannot find name 'GPUTextureView'.
+
+67352             resolveTarget?: GPUTextureView;
+                                  ~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67380:19 - error TS2304: Cannot find name 'GPUTextureView'.
+
+67380             view: GPUTextureView;
+                        ~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67435:23 - error TS2304: Cannot find name 'GPUQuerySet'.
+
+67435             querySet: GPUQuerySet;
+                            ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67466:33 - error TS2304: Cannot find name 'GPUQuerySet'.
+
+67466             occlusionQuerySet?: GPUQuerySet;
+                                      ~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67500:24 - error TS2304: Cannot find name 'GPUBuffer'.
+
+67500             gpuBuffer: GPUBuffer | null;
+                             ~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67584:21 - error TS2304: Cannot find name 'GPUShaderModule'.
+
+67584             module: GPUShaderModule;
+                          ~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67789:30 - error TS2304: Cannot find name 'GPUBindGroupLayout'.
+
+67789             bindGroupLayout: GPUBindGroupLayout | null;
+                                   ~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67794:34 - error TS2304: Cannot find name 'GPUBindGroupLayout'.
+
+67794             gpuBindGroupLayouts: GPUBindGroupLayout[];
+                                       ~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67797:35 - error TS2304: Cannot find name 'GPUPipelineLayout'.
+
+67797             nativePipelineLayout: GPUPipelineLayout;
+                                        ~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:67807:21 - error TS2304: Cannot find name 'GPUPipelineLayout'.
+
+67807             layout: GPUPipelineLayout | __types_webGPU__GPUAutoLayoutMode;
+                          ~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:68057:48 - error TS2304: Cannot find name 'GPUBindGroupLayout'.
+
+68057             getBindGroupLayout(index: number): GPUBindGroupLayout;
+                                                     ~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:68081:24 - error TS2304: Cannot find name 'GPUBindGroup'.
+
+68081             bindGroup: GPUBindGroup;
+                             ~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:68082:30 - error TS2304: Cannot find name 'GPUBindGroupLayout'.
+
+68082             bindGroupLayout: GPUBindGroupLayout;
+                                   ~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:68180:21 - error TS2304: Cannot find name 'GPUDevice'.
+
+68180             device: GPUDevice;
+                          ~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:75452:109 - error TS2307: Cannot find module 'cc/editor/exotic-animation' or its corresponding type declarations.
+
+75452     import { exoticAnimationTag, ExoticAnimation, additiveSettingsTag, AnimationClipAdditiveSettings } from "cc/editor/exotic-animation";
+                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:75453:155 - error TS2307: Cannot find module 'cc/editor/embedded-player' or its corresponding type declarations.
+
+75453     import { EmbeddedPlayer, embeddedPlayerCountTag, getEmbeddedPlayersTag, addEmbeddedPlayerTag, removeEmbeddedPlayerTag, clearEmbeddedPlayersTag } from "cc/editor/embedded-player";
+                                                                                                                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:75454:60 - error TS2307: Cannot find module 'cc/editor/new-gen-anim' or its corresponding type declarations.
+
+75454     import { AnimationMask, __private as ___private } from "cc/editor/new-gen-anim";
+                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~
+../../cocos/Creator/3.8.6/resources/resources/3d/engine/bin/.declarations/cc.d.ts:75455:26 - error TS2307: Cannot find module 'cc/editor/serialization' or its corresponding type declarations.
+
+75455     import { CCON } from "cc/editor/serialization";
+                               ~~~~~~~~~~~~~~~~~~~~~~~~~
+assets/Game_Bundles/73_ZRSJZ/Scripts/Service/ZRSJZ_GiftEntitlementService.ts:26:18 - error TS2339: Property 'PurchasedGifts' does not exist on type 'ZRSJZ_GameData'.
+
+26         if (data.PurchasedGifts?.['豪华礼包'] !== true && data.PurchasedGifts?.['至尊礼包'] !== true) return false;
+                    ~~~~~~~~~~~~~~
+assets/Game_Bundles/73_ZRSJZ/Scripts/Service/ZRSJZ_GiftEntitlementService.ts:26:60 - error TS2339: Property 'PurchasedGifts' does not exist on type 'ZRSJZ_GameData'.
+
+26         if (data.PurchasedGifts?.['豪华礼包'] !== true && data.PurchasedGifts?.['至尊礼包'] !== true) return false;
+                                                              ~~~~~~~~~~~~~~
+assets/Scripts/DyHttpUpBehavior.ts:39:16 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+39         if (cc.sys.localStorage.getItem(DyHttpUpBehavior.serrectKey)) {
+                  ~~~
+assets/Scripts/DyHttpUpBehavior.ts:40:57 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+40             DyHttpUpBehavior.buyLstData = JSON.parse(cc.sys.localStorage.getItem(DyHttpUpBehavior.serrectKey));
+                                                           ~~~
+assets/Scripts/DyHttpUpBehavior.ts:44:34 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+44         console.log("这里的值:" + cc.sys.localStorage.getItem("dy_click_id"));
+                                    ~~~
+assets/Scripts/DyHttpUpBehavior.ts:45:43 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+45         DyHttpUpBehavior.dy_click_id = cc.sys.localStorage.getItem("dy_click_id");
+                                             ~~~
+assets/Scripts/DyHttpUpBehavior.ts:48:20 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+48             if (cc.sys.localStorage.getItem("dy_game_active") != 1) {
+                      ~~~
+assets/Scripts/DyHttpUpBehavior.ts:49:31 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+49                 let code = cc.sys.localStorage.getItem("dy_code");
+                                 ~~~
+assets/Scripts/DyHttpUpBehavior.ts:51:34 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+51                 let isLogin = cc.sys.localStorage.getItem("dy_is_login");
+                                    ~~~
+assets/Scripts/DyHttpUpBehavior.ts:55:50 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+55                 DyHttpUpBehavior.dy_open_id = cc.sys.localStorage.getItem("dy_open_id");
+                                                    ~~~
+assets/Scripts/DyHttpUpBehavior.ts:57:51 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+57                 DyHttpUpBehavior.dy_click_id = cc.sys.localStorage.getItem("dy_effective_click_id");
+                                                     ~~~
+assets/Scripts/DyHttpUpBehavior.ts:69:12 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+69         cc.sys.localStorage.setItem(this.serrectKey, JSON.stringify(this.buyLstData));
+              ~~~
+assets/Scripts/DyHttpUpBehavior.ts:97:16 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+97         if (cc.sys.localStorage.getItem("dy_game_active") != 1) {
+                  ~~~
+assets/Scripts/DyHttpUpBehavior.ts:99:34 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+99             let promotionid = cc.sys.localStorage.getItem("dy_promotionid");//计划id
+                                    ~~~
+assets/Scripts/DyHttpUpBehavior.ts:100:32 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+100             let projectid = cc.sys.localStorage.getItem("dy_projectid");//项目id
+                                   ~~~
+assets/Scripts/DyHttpUpBehavior.ts:101:32 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+101             let requestid = cc.sys.localStorage.getItem("dy_requestid");//请求id
+                                   ~~~
+assets/Scripts/DyHttpUpBehavior.ts:109:24 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+109                     cc.sys.localStorage.setItem("dy_open_id", data.open_id);
+                           ~~~
+assets/Scripts/DyHttpUpBehavior.ts:111:24 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+111                     cc.sys.localStorage.setItem("dy_effective_click_id", DyHttpUpBehavior.dy_click_id);
+                           ~~~
+assets/Scripts/DyHttpUpBehavior.ts:115:24 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+115                     cc.sys.localStorage.setItem("dy_game_active", 1);
+                           ~~~
+assets/Scripts/DyHttpUpBehavior.ts:125:50 - error TS2339: Property 'sys' does not exist on type 'never'.
+
+125                 DyHttpUpBehavior.dy_open_id = cc.sys.localStorage.getItem("dy_open_id");
+                                                     ~~~
+extensions/plugin-import-2x/creator/common/parseCode.ts:305:29 - error TS2741: Property '0' is missing in type 'string[]' but required in type 'RegExpMatchArray'.
+
+305                             params = params ? params[0].split(',') : [];
+                                ~~~~~~
+
+  extensions/cocos-mcp-server-main/node_modules/typescript/lib/lib.es5.d.ts:975:5
+    975     0: string;
+            ~
+    '0' is declared here.
+extensions/plugin-import-2x/creator/common/parseCode.ts:424:25 - error TS2741: Property '0' is missing in type 'string[]' but required in type 'RegExpMatchArray'.
+
+424                         params = params ? params[0].split(',') : [];
+                            ~~~~~~
+
+  extensions/cocos-mcp-server-main/node_modules/typescript/lib/lib.es5.d.ts:975:5
+    975     0: string;
+            ~
+    '0' is declared here.
+extensions/plugin-import-2x/creator/common/parseCode.ts:475:25 - error TS2741: Property '0' is missing in type 'string[]' but required in type 'RegExpMatchArray'.
+
+475                         params = params[0].split(',');
+                            ~~~~~~
+
+  extensions/cocos-mcp-server-main/node_modules/typescript/lib/lib.es5.d.ts:975:5
+    975     0: string;
+            ~
+    '0' is declared here.
+extensions/plugin-import-2x/creator/convertor/fbx.ts:44:9 - error TS2322: Type 'string[]' is not assignable to type 'RegExpMatchArray | []'.
+  Property '0' is missing in type 'string[]' but required in type 'RegExpMatchArray'.
+
+44         uuids = uuids.concat(metaContent.match(/(?<=__uuid__":")([a-zA-Z0-9-]+)(?=")/g) || []);
+           ~~~~~
+
+  extensions/cocos-mcp-server-main/node_modules/typescript/lib/lib.es5.d.ts:975:5
+    975     0: string;
+            ~
+    '0' is declared here.
+extensions/plugin-import-2x/creator/convertor/fbx.ts:44:30 - error TS2345: Argument of type 'RegExpMatchArray | undefined[]' is not assignable to parameter of type 'ConcatArray<never>'.
+  Type 'RegExpMatchArray' is not assignable to type 'ConcatArray<never>'.
+    The types returned by 'slice(...)' are incompatible between these types.
+      Type 'string[]' is not assignable to type 'never[]'.
+        Type 'string' is not assignable to type 'never'.
+
+44         uuids = uuids.concat(metaContent.match(/(?<=__uuid__":")([a-zA-Z0-9-]+)(?=")/g) || []);
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

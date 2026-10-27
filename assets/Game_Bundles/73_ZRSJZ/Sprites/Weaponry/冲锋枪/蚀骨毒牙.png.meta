@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "3d050885-05c1-4208-99cf-26d174488b7e",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "3d050885-05c1-4208-99cf-26d174488b7e@6c48a",
+      "displayName": "蚀骨毒牙",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "3d050885-05c1-4208-99cf-26d174488b7e",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "3d050885-05c1-4208-99cf-26d174488b7e@f9941",
+      "displayName": "蚀骨毒牙",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": -120,
+        "offsetY": -81.5,
+        "trimX": 123,
+        "trimY": 252,
+        "width": 413,
+        "height": 179,
+        "rawWidth": 899,
+        "rawHeight": 520,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -206.5,
+            -89.5,
+            0,
+            206.5,
+            -89.5,
+            0,
+            -206.5,
+            89.5,
+            0,
+            206.5,
+            89.5,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            123,
+            268,
+            536,
+            268,
+            123,
+            89,
+            536,
+            89
+          ],
+          "nuv": [
+            0.13681868743047831,
+            0.17115384615384616,
+            0.5962180200222469,
+            0.17115384615384616,
+            0.13681868743047831,
+            0.5153846153846153,
+            0.5962180200222469,
+            0.5153846153846153
+          ],
+          "minPos": [
+            -206.5,
+            -89.5,
+            0
+          ],
+          "maxPos": [
+            206.5,
+            89.5,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "3d050885-05c1-4208-99cf-26d174488b7e@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "hasAlpha": true,
+    "fixAlphaTransparencyArtifacts": false,
+    "redirect": "3d050885-05c1-4208-99cf-26d174488b7e@6c48a"
+  }
+}

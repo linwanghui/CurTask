@@ -15,6 +15,7 @@ export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
     BoneName: string = "";
 
     private _isAttacking: boolean = false;
+    protected OnElementFreeze(): void { this._isAttacking = false; }
 
     protected onLoad(): void {
         // 喷火兵攻击时固定在原地，并锁定本次攻击开始时的瞄准方向。
@@ -30,7 +31,7 @@ export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
 
     protected update(dt: number): void {
         if (Coop.Replica || Coop.Stopped) { super.update(dt); return; }
-        if (this.IsPetStunned || (ZRSJZ_Game.Instance?.GamePaused && !Online.Battle)) { super.update(dt); return; }
+        if (this.IsPetStunned || this.IsElementFrozen || (ZRSJZ_Game.Instance?.GamePaused && !Online.Battle)) { super.update(dt); return; }
         if (this._isAttacking && !this.IsDead) {
             this.StopMoving();
             return;
@@ -123,9 +124,10 @@ export class ZRSJZ_Enemy_Firebat extends ZRSJZ_EnemyBase {
         }
 
         const game = ZRSJZ_Game.Instance;
+        const actionVersion = this.ElementActionVersion;
         ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/Skill/FlamethrowerEffect").then((flame: Node) => {
             if (!flame) return;
-            if (!this.isValid || !this.node.activeInHierarchy || this.IsDead || Coop.Stopped
+            if (!this.isValid || !this.node.activeInHierarchy || this.IsDead || this.IsElementFrozen || actionVersion !== this.ElementActionVersion || Coop.Stopped
                 || game !== ZRSJZ_Game.Instance || !game?.CurMap?.BulletParent?.isValid) {
                 ZRSJZ_PoolManager.Instance.PutNode(flame); return;
             }

@@ -24,6 +24,7 @@ const { ccclass } = _decorator;
  */
 @ccclass('ZRSJZ_BossBase')
 export abstract class ZRSJZ_BossBase extends ZRSJZ_EnemyBase {
+    protected get CanElementSlowMovement(): boolean { return !this.IsCastingSkill && !this.IsNormalAttacking; }
     protected BossConfig: Readonly<ZRSJZ_BossConfig> = null;
     protected DamageMultiplier: number = 1;
 

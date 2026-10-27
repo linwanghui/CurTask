@@ -14,6 +14,7 @@ import { ZRSJZ_FragmentService } from "../Service/ZRSJZ_FragmentService";
 import { ZRSJZ_EnhancementService } from '../Service/ZRSJZ_EnhancementService';
 import { ZRSJZ_BattlePassService } from '../Service/ZRSJZ_BattlePassService';
 import { ZRSJZ_AchievementService } from '../Service/ZRSJZ_AchievementService';
+import { ZRSJZ_GunCastService } from '../Service/ZRSJZ_GunCastService';
 import { ZRSJZ_BATTLE_PASS_CONFIG } from '../ZRSJZ_BattlePassConfig';
 const { ccclass, property } = _decorator;
 
@@ -123,6 +124,10 @@ export class ZRSJZ_CheatingPanel extends ZRSJZ_Panel {
             return;
         }
         switch (target) {
+            case '下次铸枪100%成功':
+                ZRSJZ_GunCastService.guaranteeNextSuccess();
+                void ZRSJZ_UIManager.Instance.ShowTip('已开启：下次铸枪敲击100%成功，生效一次后自动取消');
+                break;
             case '经验加100':
                 if (ZRSJZ_GradeService.GetGradeInfo().IsMaxLevel) {
                     void ZRSJZ_UIManager.Instance.ShowTip('玩家已满级');

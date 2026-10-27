@@ -1,6 +1,7 @@
 import { ZRSJZ_DestructibleService } from '../Service/ZRSJZ_DestructibleService';
 import { ZRSJZ_FriendlyDamageService } from '../Service/ZRSJZ_FriendlyDamageService';
-import { _decorator, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, v2, Vec3 } from 'cc';
+import { _decorator, Animation, Collider2D, Component, Contact2DType, IPhysics2DContact, Node, RigidBody2D, v2, Vec3 } from 'cc';
+import { ZRSJZ_ElementShot, ZRSJZ_CopyElementShot, ZRSJZ_GetElement } from '../Service/ZRSJZ_ElementCombat';
 import { ZRSJZ_BulletTrail } from '../Effect/ZRSJZ_BulletTrail';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_TIER } from '../ZRSJZ_Constant';
@@ -32,6 +33,8 @@ export class ZRSJZ_Bullet extends Component {
     private _harm: number = 0;
     private _isRemove = false;
     private _trail: ZRSJZ_BulletTrail = null;
+    private _elementShot: ZRSJZ_ElementShot = null;
+    private _visualOnly = false;
     private readonly _initialScale: Vec3 = new Vec3(1, 1, 1);
 
     Init() {
@@ -48,17 +51,19 @@ export class ZRSJZ_Bullet extends Component {
         }
     }
 
-    Show(worldPos: Vec3, dirX: number, dirY: number, range: number, harm: number = 0, bulletLevel: number = 1, replay = false) {
+    Show(worldPos: Vec3, dirX: number, dirY: number, range: number, harm: number = 0, bulletLevel: number = 1, replay = false, shot: ZRSJZ_ElementShot = null) {
+        this._elementShot = ZRSJZ_CopyElementShot(shot);
+        this._visualOnly = replay && this.node.name !== 'EnemyBullet';
         // 本地枪弹只随机一次；联机广播最终方向，回放不再次散射。
-        if (!replay && (this.node.name === 'PlayerBullet' || this.node.name === 'EnemyBullet')) {
+        if (!replay && (this.node.name === 'PlayerBullet' || this.node.name === 'EnemyBullet' || this.node.name === '元素子弹')) {
             const angle = (Math.random() * 6 - 3) * Math.PI / 180;
             const x = dirX * Math.cos(angle) - dirY * Math.sin(angle);
             dirY = dirX * Math.sin(angle) + dirY * Math.cos(angle);
             dirX = x;
         }
-        if (!replay && Online.Battle && (this.node.name === 'PlayerBullet' || (this.node.name === 'EnemyBullet' && Online.BattleHost))) {
+        if (!replay && Online.Battle && (this.node.name === 'PlayerBullet' || this.node.name === '元素子弹' || (this.node.name === 'EnemyBullet' && Online.BattleHost))) {
             Online.Combat({ kind: this.node.name === 'EnemyBullet' ? 'shot' : 'player_shot', x: worldPos.x, y: worldPos.y,
-                dx: dirX, dy: dirY, range, harm, speed: this.MoveSpeed });
+                dx: dirX, dy: dirY, range, harm, speed: this.MoveSpeed, elementShot: this._elementShot });
         }
         // 对象池可能返回刚实例化的激活节点。先停用并设置好位置和状态，避免在旧位置触发首帧碰撞。
         this.node.active = false;
@@ -81,6 +86,15 @@ export class ZRSJZ_Bullet extends Component {
         this.node.setWorldPosition(worldPos.clone());
         const bulletVisual = this.node.getChildByName("子弹");
         if (bulletVisual) bulletVisual.active = true;
+        const element = ZRSJZ_GetElement(this._elementShot?.weapon);
+        for (const name of ['冰弹', '毒弹', '火弹']) {
+            const child = this.node.getChildByName(name);
+            if (!child) continue;
+            child.active = name === element + '弹';
+            const animation = child.getComponent(Animation);
+            animation?.stop();
+            if (child.active) animation?.play();
+        }
 
         if (this._rigidBody) {
             this._rigidBody.linearVelocity = v2(0, 0);
@@ -119,7 +133,7 @@ export class ZRSJZ_Bullet extends Component {
         if (contract) contract.disabled = true;
         if (this._isRemove) return;
 
-        if (ZRSJZ_DestructibleService.HitNode(otherCollider.node, this._harm)) {
+        if (!this._visualOnly && ZRSJZ_DestructibleService.HitNode(otherCollider.node, this._harm)) {
             this._isRemove = true;
             this.scheduleOnce(() => this.Recycle());
             return;
@@ -132,7 +146,7 @@ export class ZRSJZ_Bullet extends Component {
             this.scheduleOnce(() => {
                 this.Recycle();
             });
-        } else if (otherCollider.group === ZRSJZ_TIER.玩家 && ZRSJZ_FriendlyDamageService.DamageNode(otherCollider.node, this._harm)) {
+        } else if (!this._visualOnly && otherCollider.group === ZRSJZ_TIER.玩家 && ZRSJZ_FriendlyDamageService.DamageNode(otherCollider.node, this._harm)) {
             this._isRemove = true;
 
             this.CreateEffect2();
@@ -140,9 +154,13 @@ export class ZRSJZ_Bullet extends Component {
                 this.Recycle();
             });
             // this.Recycle();
-        } else if (otherCollider.group === ZRSJZ_TIER.敌人 && otherCollider.node.getComponent(ZRSJZ_EnemyBase)) {
+        } else if (otherCollider.group === ZRSJZ_TIER.敌人 && this.FindEnemy(otherCollider.node)) {
             this._isRemove = true;
-            otherCollider.node.getComponent(ZRSJZ_EnemyBase).BeHit(this._harm, this._dirX, this._dirY);
+            const enemy = this.FindEnemy(otherCollider.node);
+            if (!this._visualOnly) {
+                if (this._elementShot) enemy.ReceiveElementHit(this._harm, this._dirX, this._dirY, this._elementShot);
+                else enemy.BeHit(this._harm, this._dirX, this._dirY);
+            }
             this.CreateEffect2();
             this.scheduleOnce(() => {
                 this.Recycle();
@@ -150,6 +168,14 @@ export class ZRSJZ_Bullet extends Component {
             // this.Recycle();
 
         }
+    }
+
+    private FindEnemy(node: Node): ZRSJZ_EnemyBase {
+        for (let current = node; current; current = current.parent) {
+            const enemy = current.getComponent(ZRSJZ_EnemyBase);
+            if (enemy) return enemy;
+        }
+        return null;
     }
 
     protected update(dt: number): void {
@@ -188,6 +214,7 @@ export class ZRSJZ_Bullet extends Component {
         this._dirY = 0;
         this._harm = 0;
         this._isRemove = false;
+        this._elementShot = null; this._visualOnly = false;
         if (this._rigidBody) {
             this._rigidBody.linearVelocity = v2(0, 0);
             this._rigidBody.angularVelocity = 0;
@@ -201,11 +228,16 @@ export class ZRSJZ_Bullet extends Component {
     }
 
     async CreateEffect(): Promise<void> {
-        await this.CreateHitEffect("Prefabs/Effect/HitEffect", "墙体命中特效");
+        await this.CreateHitEffect(this.ElementHitEffectPath() || "Prefabs/Effect/HitEffect", "墙体命中特效");
     }
 
     async CreateEffect2(): Promise<void> {
-        await this.CreateHitEffect("Prefabs/Effect/绿色血雾", "单位命中特效");
+        await this.CreateHitEffect(this.ElementHitEffectPath() || "Prefabs/Effect/绿色血雾", "单位命中特效");
+    }
+
+    private ElementHitEffectPath(): string {
+        const element = ZRSJZ_GetElement(this._elementShot?.weapon);
+        return element ? '73_ZRSJZ_DLC/Prefabs/Unit/打击_' + element : '';
     }
 
     /**
@@ -250,6 +282,18 @@ export class ZRSJZ_Bullet extends Component {
         }
 
         const effect = hitEffect.getComponent(ZRSJZ_Effect);
+        const animation = hitEffect.getComponent(Animation);
+        if (animation && !effect) {
+            hitEffect.parent = effectParent;
+            hitEffect.setWorldPosition(effectWorldPosition);
+            hitEffect.setWorldRotationFromEuler(0, 0, Math.atan2(effectDirY, effectDirX) * 180 / Math.PI);
+            hitEffect.active = true;
+            animation.stop();
+            animation.off(Animation.EventType.FINISHED);
+            animation.once(Animation.EventType.FINISHED, () => ZRSJZ_PoolManager.Instance.PutNode(hitEffect));
+            animation.play();
+            return;
+        }
         if (!effect) {
             console.error(`[ZRSJZ_Bullet] ${effectName}创建失败：缺少 ZRSJZ_Effect 组件`, {
                 path,

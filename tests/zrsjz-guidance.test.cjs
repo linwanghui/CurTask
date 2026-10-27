@@ -119,10 +119,11 @@ assert.equal(closed,closedBefore+1);assert.equal(panel.node.active,false);
 currentPanelAllowed=true;panel.Show({steps,owner,feature:'播放中切换'});
 currentPanelAllowed=false;panel.update();assert.equal(panel.node.active,false);assert.equal(jobs.length,0);
 currentPanelAllowed=true;
-for (const [feature, prefab, count] of [['锻造台','锻造界面',5],['曼德尔箱','曼德尔箱界面',5],['战令','战令界面',6]]) {
+for (const [feature, prefab, count] of [['锻造台','锻造界面',5],['曼德尔箱','曼德尔箱界面',5],['战令','战令界面',6],['铸枪入口弹窗','铸枪入口弹窗',4],['铸枪界面','铸枪界面',8]]) {
     const entries = JSON.parse(fs.readFileSync(base+`Prefabs/Panel/${prefab}.prefab`));
     const configured = entries.filter(n=>n.TipNode&&n.TipLabel);
     assert.equal(configured.length,count);
+    if(feature.startsWith('铸枪')) assert.equal(entries.find(n=>n._name==='指导区域')._active,false,'guide templates stay hidden');
     for(const step of configured) {
         assert(entries[step.TipNode.__id__]);
         assert(entries[step.TipLabel.__id__]._string.trim());
@@ -142,6 +143,29 @@ for (const [feature, prefab, count] of [['锻造台','锻造界面',5],['曼德�
     delete data.StartedFeatureGuides[feature];owner.active=false;
     GuideService.ShowFirstEntry(owner,feature,true);assert.equal(opened.length,before+1);
 }
+
+// 铸枪两段引导分别记录；首次主页提醒已消除也不能丢失第二段，关闭或重载后不重复。
+data.ViewedSidebarFeatures={铸枪:true};
+const GunCast=loadClass(main+'Scripts/Panel/ZRSJZ_GunCastPanel.ts','ZRSJZ_GunCastPanel',globals,['Show']);
+for(const name of ['铸枪入口弹窗','铸枪界面']) {
+    const cast=new GunCast();cast.node=new Node(name);cast.initialized=true;
+    cast.refresh=cast.breathe=()=>{};
+    const region=child(child(cast.node,'Panel'),'指导区域');region.active=false;
+    region.getComponentsInChildren=()=>steps;
+    const before=opened.length;
+    currentPanelAllowed=false;cast.Show();cast.afterShow();
+    assert.equal(opened.length,before,'background panel cannot start a guide');
+    assert(!data.StartedFeatureGuides[name]);
+    currentPanelAllowed=true;cast.Show();
+    assert.equal(opened.length,before,'wait until the panel expansion finishes');
+    cast.afterShow();assert.equal(opened.length,before+1);
+    const request=opened.at(-1)[1];assert.equal(request.feature,name);
+    if(name==='铸枪入口弹窗') assert(!data.StartedFeatureGuides['铸枪界面']);
+    panel.Show(request);assert(data.StartedFeatureGuides[name]);panel.Hide();panel.onDisable();
+    data.StartedFeatureGuides=JSON.parse(JSON.stringify(data.StartedFeatureGuides));
+    cast.Show();cast.afterShow();assert.equal(opened.length,before+1,'each stage is persistent and plays once');
+}
+console.log('PASS: independent gun cast entry/gameplay guides, 4+8 configured steps, delayed launch, reload persistence and pending second-stage recovery');
 const entryCalls=[];globals.ZRSJZ_GuidanceService={ShowFirstEntry(...args){entryCalls.push(args);}};
 const Forge=loadClass(main+'Scripts/Panel/ZRSJZ_ForgePanel.ts','ZRSJZ_ForgePanel',globals,['Show']);
 const forge=new Forge();forge.node=new Node('forge');forge.InitializeRuntime=()=>Promise.resolve();forge.RefreshAll=()=>{};

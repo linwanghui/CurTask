@@ -235,6 +235,35 @@ export class ZRSJZ_InventoryService {
         return propID;
     }
 
+    /** 局内搜集的账号材料沿用弹药的同名合并操作，每叠最多99。 */
+    public static IsSearchStackable(name: string): boolean {
+        return ['宠物碎片', '英雄碎片', '铸枪护盾', '铸枪必成券'].includes(name);
+    }
+
+    public static CanMergeSearchStack(incomingID: string, targetID: string): boolean {
+        if (incomingID === targetID) return false;
+        const incoming = ZRSJZ_GameData.Instance.PropData[incomingID];
+        const target = ZRSJZ_GameData.Instance.PropData[targetID];
+        if (!incoming || !target || incoming.Name !== target.Name || !this.IsSearchStackable(incoming.Name)
+            || incoming.IsSearchLocked || incoming.IsRewardVideoLocked || target.IsSearchLocked || target.IsRewardVideoLocked
+            || !Number.isSafeInteger(incoming.CurCount) || incoming.CurCount <= 0
+            || !Number.isSafeInteger(target.CurCount) || target.CurCount <= 0 || target.CurCount >= 99) return false;
+        if ((incoming.OwnerPlayerIndex === 0 || incoming.OwnerPlayerIndex === 1)
+            && (target.OwnerPlayerIndex === 0 || target.OwnerPlayerIndex === 1)
+            && incoming.OwnerPlayerIndex !== target.OwnerPlayerIndex) return false;
+        return true;
+    }
+
+    /** 同步提交数量，异步清理格子前已完成扣减，避免连点重复合并。 */
+    public static MergeSearchStackCounts(incomingID: string, targetID: string): number {
+        if (!this.CanMergeSearchStack(incomingID, targetID)) return 0;
+        const incoming = ZRSJZ_GameData.Instance.PropData[incomingID], target = ZRSJZ_GameData.Instance.PropData[targetID];
+        const count = Math.min(incoming.CurCount, 99 - target.CurCount);
+        incoming.MaxCount = target.MaxCount = 99;
+        incoming.CurCount -= count; target.CurCount += count;
+        return count;
+    }
+
     /**
      * 按道具名称向综合仓库增加指定总数量，并按配置的最大堆叠数自动拆分。
      * 返回本次创建的实例 ID；名称不存在或数量无效时返回空数组。

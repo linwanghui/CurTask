@@ -50,6 +50,7 @@ assert.equal(data.HaveSkin.includes('黯祁'), false);
 data.HeroFragments = 0;
 const service = load('Service/ZRSJZ_BattlePassService.ts', {
     '../ZRSJZ_BattlePassConfig': configModule,
+    '../ZRSJZ_MatrixState': load('ZRSJZ_MatrixState.ts', {}),
     '../ZRSJZ_GameData': { ZRSJZ_GameData: { Instance: data, SaveData() { saves++; } } },
     './ZRSJZ_AccountService': { ZRSJZ_AccountService: { AddSkin: account.AddSkin.bind(account), ChangeGold(n) { gold += n; }, AddWeaponSkin(weaponName, skinName) { skins.push({ weaponName, skinName }); data.HaveWeaponSkin.push(skinName); return true; } } },
     '../Manager/ZRSJZ_UIManager': { ZRSJZ_UIManager: { Instance: rewardReceiver } },
@@ -159,6 +160,7 @@ const defaults = load('Service/ZRSJZ_GameDataDefaults.ts', {
     '../ZRSJZ_TaskLines': { ZRSJZ_SIDE_TASK_LINES: [] },
     '../ZRSJZ_EnhancementConfig': { MigrateLegacyEnhancement() {} },
     './ZRSJZ_MidAutumnService': { CreateMidAutumnState() { return {}; } },
+    '../ZRSJZ_MatrixState': load('ZRSJZ_MatrixState.ts', {}),
     '../ZRSJZ_BattlePassConfig': configModule,
 }).ZRSJZ_GameDataDefaults;
 const legacy = { Versions: 21, Gold: 12345, OwnedTitles: ['勇者'], EquippedTitle: '勇者', OwnedAvatarFrames: ['1'], CurrentAvatarFrame: '1', PropData: {} };
@@ -364,6 +366,7 @@ console.log('PASS: 100 reward nodes, inline reward/task tabs without panel navig
         ...constants,
         ZRSJZ_GameData: { Instance: data, SaveData() {} },
         ZRSJZ_FragmentService: { IsFragment: () => false },
+        ZRSJZ_GunCastService: { isCastItem: () => false },
         ZRSJZ_InventoryService: { AddPropByName(name, count) { const id=String(++nextId);data.PropData[id]={Name:name,CurCount:count,PropType:'物品'};return id; } },
         ZRSJZ_Tools: { GetInventoryByPropType: () => constants.ZRSJZ_INVENTORY.仓库_全部 },
         ZRSJZ_MailService: { AddMail(type, awards) { mails.push(awards);return String(mails.length); } },

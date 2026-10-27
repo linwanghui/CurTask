@@ -1,7 +1,8 @@
 import { _decorator, Node, Button, Label, Sprite, UITransform, Mask, Material, EffectAsset, SpriteFrame, assetManager, UIOpacity, Tween, tween, v3, sp, isValid } from 'cc';
 import { ZRSJZ_Panel } from './ZRSJZ_Panel';
 import { ZRSJZ_GUN_CAST_CONFIG as C, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
-import { ZRSJZ_GunCastService as S } from '../Service/ZRSJZ_GunCastService';
+import { ZRSJZ_GunCastService as S, ZRSJZ_GunCastItemKind } from '../Service/ZRSJZ_GunCastService';
+import { ZRSJZ_GuidanceService } from '../Service/ZRSJZ_GuidanceService';
 import { ZRSJZ_UIManager as UI } from '../Manager/ZRSJZ_UIManager';
 import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_Tools } from '../ZRSJZ_Tools';
@@ -23,6 +24,9 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
     private impactNodes = new Set<Node>();
     private resultFrames = new Map<number, SpriteFrame>();
     private resultVersion = 0;
+    private itemPopupKind: ZRSJZ_GunCastItemKind = null;
+    private itemAdRequest: object = null;
+    private itemUseEffectVersion = 0;
     get CanClose() { return !this.busy && !this.hammerPlaying && !this.breakingWeapon; }
     private at(path: string, root: Node = this.Panel): Node { return path.split('/').reduce((n, k) => n?.getChildByName(k), root); }
     private text(path: string, value: string) { const n = this.at(path); const l = n?.getComponent(Label) ?? n?.getComponentInChildren(Label); if (l) l.string = value; }
@@ -40,10 +44,28 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
             fn();
         }, this);
     }
-    Show(...args: any[]) { this.Panel = this.node.getChildByName('Panel'); if (!this.initialized) { this.initialized = true; this.init(); } this.endingRequested = false; super.Show(...args); if (this.anim && !this.busy) this.restoreHammerIdle(); this.refresh(); this.breathe(); }
+    Show(...args: any[]) {
+        this.Panel = this.node.getChildByName('Panel');
+        if (!this.initialized) { this.initialized = true; this.init(); }
+        this.endingRequested = false;
+        this.itemPopupKind = null;
+        const itemPopup = this.Panel?.getChildByName('道具弹窗');
+        if (itemPopup) itemPopup.active = false;
+        // 两个界面独立记录首次引导；入口关闭或退出后，尚未播放的下一段仍然有效。
+        super.Show(() => {
+            if (typeof args[0] === 'function') args[0]();
+            if (this.node.name === '铸枪入口弹窗' || this.node.name === '铸枪界面') {
+                ZRSJZ_GuidanceService.ShowFirstEntry(this.node, this.node.name, true);
+            }
+        });
+        if (this.anim && !this.busy) this.restoreHammerIdle();
+        this.refresh(); this.breathe();
+    }
     private close() { UI.Instance.HidePanel('73_ZRSJZ_DLC/Prefabs/Panel/' + this.node.name); }
     private open(name: string) { UI.Instance.ShowPanel('73_ZRSJZ_DLC/Prefabs/Panel/' + name); }
     private init() {
+        // 引导区域只提供遮罩范围和提示配置，实际提示由界面引导弹窗显示。
+        this.active('指导区域', false);
         if (this.node.name === '铸枪入口弹窗') {
             this.bind('关闭', () => this.close()); for (const free of [true, false]) this.bind(free ? '免费入场' : '付费入场', () => { const error = S.enter(free); if (error) { UI.Instance.ShowTip(error); return; } this.close(); this.open('铸枪界面'); });
         } else if (this.node.name === '枪械图鉴弹窗') {
@@ -54,12 +76,24 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
                 if (!this.busy) this.close();
             }, this);
         } else {
-            void this.prepareImpactEffects(); this.bind('中心', () => this.strike(), false); this.bind('返回', () => this.close()); this.bind('结束铸造', () => this.showEnding()); this.bind('图鉴', () => this.open('枪械图鉴弹窗'));
+            void this.prepareImpactEffects(); this.bind('中心', () => this.strike(), false);
+            // 外层“返回”是定位容器，实际可点击按钮在同名子节点中；退出仅隐藏界面，保留本炉存档。
+            this.bind('返回/返回', () => this.close()); this.bind('结束铸造', () => this.showEnding()); this.bind('图鉴', () => this.open('枪械图鉴弹窗'));
             this.bind('结束弹板/Panel/关闭', () => this.cancelEnding());
             this.bind('结束弹板/Panel/失败/取消', () => this.cancelEnding());
             this.bind('结束弹板/Panel/失败/带出', () => { void this.finish(); });
             this.bind('结束弹板/Panel/成功/带出', () => { void this.finish(); });
-            for (const name of ['关闭', '放弃本炉', '结束本炉']) this.bind('损毁弹板/Panel/' + name, () => this.finish());
+            this.bind('损毁弹板/Panel/关闭', () => this.close());
+            for (const kind of S.itemKinds) {
+                this.image('铸枪道具/' + kind + '/Icon', kind);
+                this.bind('铸枪道具/' + kind, () => this.openItemPopup(kind));
+            }
+            this.bind('道具弹窗/Mask', () => this.closeItemPopup());
+            this.bind('道具弹窗/Panel/关闭', () => this.closeItemPopup());
+            this.bind('道具弹窗/Panel/操作', () => {
+                if (this.itemPopupKind) this.useOrGetItem(this.itemPopupKind);
+            });
+            for (const name of ['放弃本炉', '结束本炉']) this.bind('损毁弹板/Panel/' + name, () => this.finish());
             this.bind('损毁弹板/Panel/观看视频', () => { const round = S.load().round; if (!round?.broken || round.recovered) return; const token = round; this.busy = true; let called = false; Banner.Instance.ShowVideoAd(() => { if (called) return; called = true; const r = S.load().round; if (r && r.id === token.id && r.level === token.level && r.ads === token.ads) { S.recover(); } this.busy = false; if (isValid(this.node)) this.refresh(); }); this.scheduleOnce(() => { this.busy = false; }, 2); });
             this.anim = this.at('锤子')?.getComponent(sp.Skeleton);
         }
@@ -86,10 +120,11 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
             ['冰', '毒', '火'].forEach((s, i) => { const b = [0, 2, 1][i], p = 'LV13/特殊武器底-' + s; this.image(p + '/Icon', C.branches[b].item); this.active(p + '/lock', !r || r.level < 12 || r.branch !== b); this.text(p + '/tip-001', C.branches[b].name); }); return;
         }
         if (!r) return;
-        const strikeButton = this.at('中心')?.getComponent(Button); if (strikeButton) strikeButton.interactable = !this.busy && !this.hammerPlaying && !this.breakingWeapon && !r.broken && !this.endingRequested && r.level < 12;
+        this.refreshItemCards();
+        const strikeButton = this.at('中心')?.getComponent(Button); if (strikeButton) strikeButton.interactable = !this.busy && !this.hammerPlaying && !this.breakingWeapon && !r.broken && !this.endingRequested && !this.itemPopupKind && r.level < 12;
         const weaponSprite = this.at('当前武器Icon')?.getComponent(Sprite); if (weaponSprite) weaponSprite.enabled = !r.broken;
         const name = r.level === 12 ? C.branches[r.branch].name : C.weapons[r.level]; this.text('当前武器名称', name + ' +' + r.level); this.text('当前武器价值', C.values[r.level] + '万'); this.text('当前武器/Tip', '第' + (r.level + 1) + '级');
-        this.image('当前武器/Icon', S.item(r)); this.image('当前武器Icon', S.item(r)); this.image('下一把武器/Icon', C.weapons[Math.min(11, r.level + 1)]); this.active('下一把武器/13级', r.level >= 11); this.active('下一把武器/Icon', r.level < 11); this.text('下一把武器/Tip', r.level >= 11 ? '13级' : '第' + (r.level + 2) + '级');
+        this.image('当前武器/Icon', S.item(r)); this.image('当前武器Icon', S.item(r)); this.image('下一把武器/Icon', C.weapons[Math.min(11, r.level + 1)]); this.active('下一把武器/13级', r.level >= 11); this.active('下一把武器/Icon', r.level < 11);
         this.refreshSuperTimer(r); const sup = r.superUntil > Date.now(); this.active('超级时刻Icon', sup); this.active('超级时刻Spine', sup); const spine = this.at('超级时刻Spine')?.getComponent(sp.Skeleton); if (sup && spine && !spine.animation) { const a = spine.skeletonData?.getAnimsEnum(); if (a) { const key = Object.keys(a).find(k => isNaN(Number(k))); if (key) spine.setAnimation(0, key, true); } }
         for (let i = 1; i <= 10; i++)this.active('铸造次数/Item' + i + '/Checked', i <= r.hits); this.text('铸造次数/当前次数', sup ? '超级时刻' : r.hits + '/10');
         this.refreshProbabilityBar(r.level);
@@ -99,9 +134,127 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
         damageBody?.children.filter(child => child.name === 'tip').slice(1)
             .forEach(child => { child.active = !r.recovered; });
         for (const k of ['观看视频', '放弃本炉', '加载条底', '加载条', 'tip-003', 'tip-004']) this.active('损毁弹板/Panel/' + k, !r.recovered);
-        this.active('损毁弹板/Panel/结束本炉', r.recovered); this.active('损毁弹板/Panel/tip-005', r.recovered); this.text('损毁弹板/Panel/tip-003', r.ads + '/' + C.recoveryAds); this.text('损毁弹板/Panel/结束本炉/tip-003', '结束本炉'); const bar = this.at('损毁弹板/Panel/加载条')?.getComponent(Sprite); if (bar) bar.fillRange = r.ads / C.recoveryAds;
+        const recoveryAds = S.recoveryAds(r);
+        this.active('损毁弹板/Panel/结束本炉', r.recovered); this.active('损毁弹板/Panel/tip-005', r.recovered); this.text('损毁弹板/Panel/tip-003', r.ads + '/' + recoveryAds); this.text('损毁弹板/Panel/结束本炉/tip-003', '结束本炉'); const bar = this.at('损毁弹板/Panel/加载条')?.getComponent(Sprite); if (bar) bar.fillRange = Math.min(1, r.ads / recoveryAds);
     }
     private probabilityTweenState: { progress: number } = null;
+
+    private refreshItemCards(): void {
+        for (const kind of S.itemKinds) {
+            const path = '铸枪道具/' + kind;
+            const count = S.itemCount(kind), active = S.itemEffect(kind);
+            this.text(path + '/数量', 'x' + count);
+            this.active(path + '/使用中', active);
+            const button = this.at(path)?.getComponent(Button);
+            if (button) button.interactable = this.CanClose && !this.endingRequested;
+        }
+        this.refreshItemPopup();
+    }
+
+    private openItemPopup(kind: ZRSJZ_GunCastItemKind): void {
+        if (!this.CanClose || this.endingRequested || !S.isCastItem(kind)) return;
+        this.itemPopupKind = kind;
+        this.active('道具弹窗', true);
+        this.image('道具弹窗/Panel/Icon', kind);
+        void this.setItemQuality(kind);
+        this.refresh();
+    }
+
+    private async setItemQuality(kind: ZRSJZ_GunCastItemKind): Promise<void> {
+        const sprite = this.at('道具弹窗/Panel/品质')?.getComponent(Sprite);
+        if (!sprite) return;
+        try {
+            const frame = await UI.Instance.GetPropGridUI(kind === '铸枪护盾' ? '金色格子1_1' : '红色格子1_1');
+            if (isValid(sprite) && this.itemPopupKind === kind) sprite.spriteFrame = frame;
+        } catch (error) { console.warn('[铸枪道具] 品质底图加载失败', error); }
+    }
+
+    private closeItemPopup(): void {
+        if (!this.CanClose) return;
+        this.itemPopupKind = null;
+        this.active('道具弹窗', false);
+        this.refresh();
+    }
+
+    private refreshItemPopup(): void {
+        const kind = this.itemPopupKind;
+        if (!kind) return;
+        const path = '道具弹窗/Panel', r = S.load().round;
+        const active = S.itemEffect(kind), count = S.itemCount(kind);
+        this.text(path + '/名称', kind);
+        this.text(path + '/说明', kind === '铸枪护盾'
+            ? '抵挡一次武器损毁。\n不抵挡降级损伤。\n效果触发后自动取消；\n未触发前，退出仍保留。'
+            : '下次有效敲击必定成功，\n武器提升一级。\n效果触发后自动取消；\n未触发前，退出仍保留。');
+        this.text(path + '/数量', '拥有数量：' + count);
+        this.text(path + '/状态', active ? '使用中 · 效果触发后自动取消' : '可通过搜索带出或观看视频获得');
+        const needsVideo = !active && count <= 0;
+        this.text(path + '/操作/文字', active ? '使用中' : count > 0 ? '使用道具' : '免费获取');
+        this.active(path + '/操作/视频角标黑色', needsVideo);
+        const actionLabel = this.at(path + '/操作/文字');
+        if (actionLabel) actionLabel.setPosition(needsVideo ? -24 : 0, 0, 0);
+        const button = this.at(path + '/操作')?.getComponent(Button);
+        if (button) button.interactable = this.CanClose && !!r && !r.broken && r.level < 12 && !this.endingRequested && !active;
+    }
+
+    private useOrGetItem(kind: ZRSJZ_GunCastItemKind): void {
+        const r = S.load().round;
+        if (!this.CanClose || !r || r.broken || r.level >= 12 || this.endingRequested) return;
+        if (S.itemCount(kind) > 0 || S.itemEffect(kind)) {
+            const error = S.useItem(kind);
+            UI.Instance.ShowTip(error || (kind === '铸枪护盾' ? '护盾已开启，将抵挡一次武器损毁' : '必成效果已开启，下次敲击必定成功'));
+            if (!error) {
+                this.closeItemPopup();
+            }
+            else this.refreshItemCards();
+            return;
+        }
+        const reward = S.createItemVideoReward(kind);
+        const request = this.itemAdRequest = {};
+        const release = () => {
+            if (this.itemAdRequest !== request) return;
+            this.itemAdRequest = null;
+            this.busy = false;
+        };
+        this.busy = true;
+        this.refreshItemCards();
+        Banner.Instance.ShowVideoAd(() => {
+            const granted = reward();
+            if (!isValid(this.node)) return;
+            release();
+            if (granted) UI.Instance.ShowTip(kind + ' +1');
+            this.refreshItemCards();
+        });
+        // 广告接口仅提供成功回调，取消或加载失败时也需要恢复界面操作。
+        this.scheduleOnce(() => {
+            if (!isValid(this.node)) return;
+            release();
+            this.refreshItemCards();
+        }, 2);
+    }
+
+    private async playItemUseEffect(kind: ZRSJZ_GunCastItemKind): Promise<void> {
+        const version = this.itemUseEffectVersion;
+        const source = this.at('铸枪道具/' + kind + '/Icon');
+        const origin = source?.worldPosition.clone();
+        try {
+            const frame = source?.getComponent(Sprite)?.spriteFrame ?? await UI.Instance.GetPropUI(kind);
+            if (!frame || version !== this.itemUseEffectVersion || !isValid(this.node) || !this.node.activeInHierarchy) return;
+            const effect = new Node('道具生效-' + kind);
+            effect.layer = this.Panel.layer; effect.parent = this.Panel;
+            effect.addComponent(UITransform).setContentSize(100, 100);
+            const sprite = effect.addComponent(Sprite); sprite.spriteFrame = frame;
+            sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+            const start = origin ? this.Panel.getComponent(UITransform).convertToNodeSpaceAR(origin) : v3(0, 0, 0);
+            effect.setPosition(start);
+            // 特效位于业务弹板下方，打开其他弹板时不会浮在遮罩上。
+            const modalIndex = this.Panel.children.findIndex(child => ['损毁弹板', '结束弹板', '道具弹窗'].includes(child.name));
+            if (modalIndex >= 0) effect.setSiblingIndex(modalIndex);
+            const opacity = effect.addComponent(UIOpacity); opacity.opacity = 255;
+            this.impactNodes.add(effect);
+            tween(effect).to(1.6, { position: v3(start.x, start.y + 180, start.z) }, { easing: 'sineOut' }).start();
+            tween(opacity).delay(0.45).to(1.15, { opacity: 0 }).call(() => this.removeImpactNode(effect)).start();
+        } catch (error) { console.warn('[铸枪道具] 生效特效加载失败', error); }
+    }
 
     private refreshProbabilityBar(level: number): void {
         const root = this.at('铸枪概率');
@@ -164,6 +317,7 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
         if (this.busy || this.hammerPlaying || this.breakingWeapon || this.hammerEntry) return;
         const r = S.load().round;
         if (!r || r.broken || this.endingRequested) return;
+        if (this.itemPopupKind) return;
         if (r.level >= 12) { UI.Instance.ShowTip('已达最高等级，请结束铸造'); return; }
         if (!this.anim?.findAnimation('qiaoji')) { UI.Instance.ShowTip('敲打动画尚未就绪'); return; }
         this.busy = true; this.hammerPlaying = true; this.settled = false;
@@ -242,10 +396,21 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
         const icon = this.at('当前武器Icon');
         const sprite = icon?.getComponent(Sprite);
         const struckFrame = sprite?.spriteFrame;
+        const pendingItems = S.itemKinds.filter(kind => S.itemEffect(kind));
         const result = S.hit();
         if (result < 0) return;
         this.settled = true;
+        ZRSJZ_AudioManager.Instance?.PlaySoundByDLC('敲打');
+        // 仅在本次敲击真正消耗了道具效果时播放，开启待用状态不播放。
+        for (const kind of pendingItems) {
+            if (!S.itemEffect(kind)) void this.playItemUseEffect(kind);
+        }
         const broken = !!S.load().round?.broken;
+        if (broken) {
+            ZRSJZ_AudioManager.Instance?.PlaySoundByDLC('敲打失败');
+        } else if (result === 0 || result === 1) {
+            ZRSJZ_AudioManager.Instance?.PlaySoundByDLC('敲打成功');
+        }
         this.breakingWeapon = broken;
         this.flashWeapon(struckFrame);
         const opacity = this.at('中心')?.getComponent(UIOpacity);
@@ -425,7 +590,7 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
             r.superUntil = 0; r.hits = 0; S.save(d); this.refresh();
         }
     }
-    onDisable() { this.strikeSequence++; this.completingStrike = false; this.clearImpactEffects(); this.breakingWeapon = false; this.hammerPlaying = false; this.hammerEntry = null; this.busy = false; if (this.probabilityTweenState) { Tween.stopAllByTarget(this.probabilityTweenState); this.probabilityTweenState = null; } const o = this.at('中心')?.getComponent(UIOpacity); if (o) Tween.stopAllByTarget(o); }
+    onDisable() { this.itemUseEffectVersion++; this.itemPopupKind = null; this.itemAdRequest = null; this.strikeSequence++; this.completingStrike = false; this.clearImpactEffects(); this.breakingWeapon = false; this.hammerPlaying = false; this.hammerEntry = null; this.busy = false; if (this.probabilityTweenState) { Tween.stopAllByTarget(this.probabilityTweenState); this.probabilityTweenState = null; } const o = this.at('中心')?.getComponent(UIOpacity); if (o) Tween.stopAllByTarget(o); }
     onDestroy(): void { this.clearImpactEffects(); this.flashMaterial?.destroy(); }
 }
 

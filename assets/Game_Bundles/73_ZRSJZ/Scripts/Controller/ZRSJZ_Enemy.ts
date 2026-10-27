@@ -63,9 +63,10 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
         }
 
         const game = ZRSJZ_Game.Instance;
+        const actionVersion = this.ElementActionVersion;
         const bullet = await ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Unit/EnemyBullet");
         if (!bullet) return;
-        if (!this.isValid || !this.node.activeInHierarchy || this.IsDead || Coop.Stopped
+        if (!this.isValid || !this.node.activeInHierarchy || this.IsDead || this.IsElementFrozen || actionVersion !== this.ElementActionVersion || Coop.Stopped
             || game !== ZRSJZ_Game.Instance || !game?.CurMap?.BulletParent?.isValid) {
             ZRSJZ_PoolManager.Instance.PutNode(bullet); return;
         }
@@ -91,7 +92,7 @@ export class ZRSJZ_Enemy extends ZRSJZ_EnemyBase {
     }
 
     Knife(range: number) {
-        if (this.IsDead) return;
+        if (this.IsDead || this.IsElementFrozen) return;
         ZRSJZ_DestructibleService.HitArea(this.node.worldPosition, range, this.AttackDamage);
         Coop.SendArea(this.node.worldPosition, range, this.AttackDamage);
         ZRSJZ_FriendlyDamageService.DamagePetsInRange(this.node.worldPosition, range, this.AttackDamage);
