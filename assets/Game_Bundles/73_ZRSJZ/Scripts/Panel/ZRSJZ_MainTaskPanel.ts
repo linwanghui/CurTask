@@ -4,7 +4,7 @@ import { ZRSJZ_AudioManager } from '../Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 import { ZRSJZ_MainTask } from '../UI/ZRSJZ_MainTask';
-import { ZRSJZ_MAIN_TASK_CONFIG, ZRSJZ_MainTaskAwardConfig, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
+import { ZRSJZ_MAIN_TASK_ORDER, ZRSJZ_MainTaskAwardConfig, ZRSJZ_PANEL } from '../ZRSJZ_Constant';
 import { ZRSJZ_TaskService } from '../Service/ZRSJZ_TaskService';
 import { ZRSJZ_TaskAward } from '../UI/ZRSJZ_TaskAward';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
@@ -78,7 +78,7 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
     }
 
     private GetLineTasks(id: string): string[] {
-        return id === 'main' ? Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys())
+        return id === 'main' ? [...ZRSJZ_MAIN_TASK_ORDER]
             : ZRSJZ_SIDE_TASK_LINES.find(line => line.ID === id).Tasks.map(task => task.ID);
     }
 
@@ -193,9 +193,51 @@ export class ZRSJZ_MainTaskPanel extends ZRSJZ_Panel {
         });
     }
 
+    /** 先领取已完成奖励，再接取各任务线新开放的任务，奖励只展示一次。 */
+    private ClaimAll(): void {
+        if (this._claiming || ZRSJZ_UIManager.Dragging) return;
+        this._claiming = true;
+        try {
+            const tasks = [...ZRSJZ_MAIN_TASK_ORDER, ...ZRSJZ_SIDE_TASK_LINES.flatMap(line => line.Tasks.map(task => task.ID))];
+            const awards = new Map<string, number>();
+            const pendingAwards = new Map<string, number>();
+            let claimed = 0;
+            let accepted = 0;
+            for (const taskID of tasks) {
+                if (ZRSJZ_TaskService.GetTaskState(taskID) !== 2) continue;
+                const taskAwards = this.ResolveAwards(taskID);
+                if (!ZRSJZ_TaskService.GetTaskAward(taskID)) continue;
+                claimed++;
+                for (const award of taskAwards) {
+                    awards.set(award.TaskAwardName, (awards.get(award.TaskAwardName) ?? 0) + award.TaskAwardCount);
+                    // 支线扩容已由任务服务发放，弹窗关闭时只发放主线奖励。
+                    if (!ZRSJZ_SIDE_TASK_CONFIG.has(taskID)) {
+                        pendingAwards.set(award.TaskAwardName, (pendingAwards.get(award.TaskAwardName) ?? 0) + award.TaskAwardCount);
+                    }
+                }
+            }
+            for (const taskID of tasks) {
+                if (ZRSJZ_TaskService.GetTaskState(taskID) !== 0) continue;
+                ZRSJZ_TaskService.GetNewTask(taskID);
+                if (ZRSJZ_TaskService.GetTaskState(taskID) !== 0) accepted++;
+            }
+            this.Refresh();
+            if (claimed) {
+                const toAwards = (items: Map<string, number>): ZRSJZ_MainTaskAwardConfig[] =>
+                    Array.from(items, ([TaskAwardName, TaskAwardCount]) => ({ TaskAwardName, TaskAwardCount }));
+                ZRSJZ_UIManager.Instance.ShowPanel(ZRSJZ_PANEL.获取奖励弹窗, {
+                    Awards: toAwards(awards), PendingAwards: toAwards(pendingAwards), DisplayOnly: pendingAwards.size === 0,
+                });
+            } else {
+                ZRSJZ_UIManager.Instance.ShowTip(accepted ? `已领取${accepted}个任务` : '暂无可领取的任务或任务奖励');
+            }
+        } finally { this._claiming = false; }
+    }
+
     OnButtonClick(event: EventTouch): void {
         ZRSJZ_AudioManager.Instance.PlaySound('点击');
         switch (event.getCurrentTarget().name) {
+            case '全部领取': this.ClaimAll(); break;
             case "Mask":
             case '关闭': ZRSJZ_UIManager.Instance.HidePanel(ZRSJZ_PANEL.主线任务界面); break;
             case '领取任务': ZRSJZ_TaskService.GetNewTask(this._selected); break;

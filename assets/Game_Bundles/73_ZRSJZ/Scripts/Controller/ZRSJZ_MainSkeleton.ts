@@ -35,7 +35,9 @@ export class ZRSJZ_MainSkeleton extends ZRSJZ_Skeleton {
     }
 
     protected GetEquippedWeaponryIDs(): string[] {
-        return ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex);
+        const ids = [...ZRSJZ_InventoryService.GetWeaponryIDs(this.CurPlayerIndex)];
+        ids[this.IsKnife ? 0 : 4] = '';
+        return ids;
     }
 
     protected onLoad(): void {
@@ -65,6 +67,7 @@ export class ZRSJZ_MainSkeleton extends ZRSJZ_Skeleton {
     }
 
     protected onDisable(): void {
+        this.StopAction(false);
         director.off(Director.EVENT_BEFORE_DRAW, this.ApplyWeaponHandSlots, this);
         this.ClearAttackAnimation();
         this._trackCompleteCallbacks.clear();
@@ -84,6 +87,7 @@ export class ZRSJZ_MainSkeleton extends ZRSJZ_Skeleton {
     }
 
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null): void {
+        this.StopAction();
         if (!this.Skeleton || !aniName) return;
         this.AniName = aniName;
         this.Skeleton.setAnimation(0, aniName, loop);
@@ -138,6 +142,7 @@ export class ZRSJZ_MainSkeleton extends ZRSJZ_Skeleton {
     }
 
     private ApplyWeaponHandSlots(): void {
+        if (this.IsPerformingAction) return;
         if (!this.isValid || !this.node?.isValid || !this.node.activeInHierarchy || !this.Skeleton?.isValid) return;
         const skeleton = this.Skeleton?._skeleton;
         if (!skeleton) return;
@@ -160,6 +165,11 @@ export class ZRSJZ_MainSkeleton extends ZRSJZ_Skeleton {
                 this.Skeleton.setAttachment(handSlot.name, handSlot.name);
             }
         }
+    }
+
+    protected OnActionStarting(): void {
+        this.ClearAttackAnimation();
+        this._trackCompleteCallbacks.clear();
     }
 
     private SetTrackCompleteCallback(trackIndex: number, cb: Function): void {

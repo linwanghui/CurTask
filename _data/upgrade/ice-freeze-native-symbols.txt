@@ -1,0 +1,4 @@
+cc::SkeletonRenderer::render(float) at D:/cocos/Creator/3.8.6/resources/resources/3d/engine/native/cocos/editor-support/spine-creator-support\SkeletonRenderer.cpp:275
+cc::middleware::MiddlewareManager::render(float) at D:/cocos/Creator/3.8.6/resources/resources/3d/engine/native/cocos/editor-support\MiddlewareManager.cpp:103
+js_cc_middleware_MiddlewareManager_render(se::State&) at D:/CocosCreator/CurTask/build/apk/proj/build/RelWithDebInfo/4q2q5x4x/arm64-v8a/generated/cocos/bindings/auto\jsb_editor_support_auto.cpp:845
+jsbFunctionWrapper(v8::FunctionCallbackInfo<v8::Value> const&, bool (*)(se::State&), char const*) at D:/cocos/Creator/3.8.6/resources/resources/3d/engine/native/cocos/bindings/jswrapper/v8\HelperMacros.cpp:99

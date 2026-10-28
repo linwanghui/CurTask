@@ -1,10 +1,15 @@
 import { _decorator, Director, director, sp, Vec3 } from 'cc';
+import { NATIVE } from 'cc/env';
 import { ZRSJZ_GameData } from '../ZRSJZ_GameData';
 import { ZRSJZ_WEAPONRY_TYPE } from '../ZRSJZ_Constant';
 import { ZRSJZ_Skeleton } from './ZRSJZ_Skeleton';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from '../Manager/ZRSJZ_EventManager';
 import { ZRSJZ_InventoryService } from '../Service/ZRSJZ_InventoryService';
 const { ccclass, property } = _decorator;
+// 原生 Spine 在 BEFORE_UPDATE 推进动画，在 BEFORE_DRAW 的引擎监听中
+// 生成顶点；业务 BEFORE_DRAW 监听注册更晚，此时改骨骼已赶不上本帧。
+// Web Spine 在系统 postUpdate 更新姿态，仍需等到 BEFORE_DRAW 再瞄准。
+const AIM_UPDATE_EVENT = NATIVE ? Director.EVENT_AFTER_UPDATE : Director.EVENT_BEFORE_DRAW;
 
 /** Track 0 移动，Track 1 攻击，Track 2 只叠加乌鲁炮架及发射特效。 */
 @ccclass('ZRSJZ_PlayerSkeleton')
@@ -72,13 +77,14 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
     protected onEnable(): void {
         this.Show();
-        director.on(Director.EVENT_BEFORE_DRAW, this.UpdateAimAndAttack, this);
+        director.on(AIM_UPDATE_EVENT, this.UpdateAimAndAttack, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
         ZRSJZ_EventManager.OnPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
     }
 
     protected onDisable(): void {
-        director.off(Director.EVENT_BEFORE_DRAW, this.UpdateAimAndAttack, this);
+        this.StopAction(false);
+        director.off(AIM_UPDATE_EVENT, this.UpdateAimAndAttack, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_SHOW_EQUIPMENT, this.OnEquipmentChanged, this);
         ZRSJZ_EventManager.OffPersist(ZRSJZ_MyEvent.ZRSJZ_LOADOUT_CHANGE, this.OnLoadoutChanged, this);
         this.ClearAttackAnimation();
@@ -164,6 +170,7 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
 
     /** Track 0：待机、移动、滑铲和死亡等基础全身状态。 */
     PlayAni(aniName: string, loop: boolean = true, cb: Function = null): void {
+        this.StopAction();
         if (!this.Skeleton) return;
         this.AniName = aniName;
         this.Skeleton.setAnimation(0, aniName, loop);
@@ -270,7 +277,14 @@ export class ZRSJZ_PlayerSkeleton extends ZRSJZ_Skeleton {
     /** 动画事件只排队，待骨骼姿态与本帧绘制一致后执行。 */
     QueueAttackAfterAim(callback: () => void): void { this._afterAimAttack = callback; }
 
+    protected OnActionStarting(): void {
+        this.ClearAttackAnimation();
+        this.ClearUluSkill();
+        this._trackCompleteCallbacks.clear();
+    }
+
     private UpdateAimAndAttack(): void {
+        if (this.IsPerformingAction) return;
         if (this.IsFishing) this.RestoreFishingRod();
         this.ApplyAimDirection();
         const attack = this._afterAimAttack;

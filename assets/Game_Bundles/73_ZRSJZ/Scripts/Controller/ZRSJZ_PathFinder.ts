@@ -69,6 +69,14 @@ export class ZRSJZ_PathFinder {
             );
     }
 
+    /** 按角色实际世界坐标检查站立空间，供动态生成单位复用地形碰撞判定。 */
+    public static IsPositionWalkable(
+        position: Readonly<Vec3>, options: Readonly<ZRSJZ_PathFindOptions>,
+    ): boolean {
+        if (options.GridSize <= 0) return false;
+        return this.IsWalkable(position.x / options.GridSize, position.y / options.GridSize, options, new Map());
+    }
+
     public static FindPath(
         start: Readonly<Vec3>,
         target: Readonly<Vec3>,

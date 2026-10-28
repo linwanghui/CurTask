@@ -63,6 +63,11 @@ export class ZRSJZ_PlayerMain extends Component {
     }
 
     protected update(dt: number): void {
+        if (this.PlayerSkeleton.IsPerformingAction) {
+            this._velocity.set(0, 0);
+            this.RigidBody.linearVelocity = this._velocity;
+            return;
+        }
         if (!this._isSliding) this.AniSwitch();
 
         const moveX = this._isSliding ? this._slideDirection : this._moveX;
@@ -81,7 +86,19 @@ export class ZRSJZ_PlayerMain extends Component {
         else this.ApplyKnifePose();
     }
 
+    public BeginAction(animation: string): boolean {
+        if (this._isSliding || !this.enabledInHierarchy || !this.PlayerSkeleton?.Skeleton?.findAnimation(animation)) return false;
+        this._moveX = 0;
+        this._moveY = 0;
+        return this.PlayerSkeleton.PlayAction(animation,
+            this._weaponType === '枪' ? ZRSJZ_ANI.Idle_Q : ZRSJZ_ANI.Idle_D1, () => {
+                this._aniName = '';
+                if (this.enabledInHierarchy) this.AniSwitch();
+            });
+    }
+
     Move(x: number, y: number, radius: number) {
+        if (x !== 0 || y !== 0) this.PlayerSkeleton.StopAction();
         this._moveX = x;
         this._moveY = y;
         if (x != 0) {
@@ -91,6 +108,7 @@ export class ZRSJZ_PlayerMain extends Component {
 
     /** 大厅场景切换枪和刀；只有对应装备存在时才允许切换。 */
     SwitchWeapon(): void {
+        this.PlayerSkeleton.StopAction();
         if (this._isSliding) return;
         const targetType = this._weaponType === "枪" ? "刀" : "枪";
         const targetIndex = targetType === "枪" ? 0 : 4;
@@ -141,6 +159,7 @@ export class ZRSJZ_PlayerMain extends Component {
 
     /** 大厅滑铲没有冷却；仅等待当前滑铲动作结束即可再次使用。 */
     Slide(): void {
+        this.PlayerSkeleton.StopAction();
         if (this._isSliding) return;
         this._isSliding = true;
         this.PlayerSkeleton.ClearAttackAnimation();

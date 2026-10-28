@@ -14,7 +14,9 @@ export interface ZRSJZ_AwardDisplayConfig extends ZRSJZ_MainTaskAwardConfig {
 }
 export interface ZRSJZ_GetAwardPanelOptions {
     Awards: ZRSJZ_AwardDisplayConfig[];
-    DisplayOnly: true;
+    DisplayOnly: boolean;
+    /** 混合展示已发放奖励时，仅发放此列表，避免扩容等即时奖励重复到账。 */
+    PendingAwards?: ZRSJZ_MainTaskAwardConfig[];
 }
 
 @ccclass('ZRSJZ_GetAwardPanel')
@@ -34,12 +36,13 @@ export class ZRSJZ_GetAwardPanel extends ZRSJZ_Panel {
         super.Show(() => {
         });
         const options = args.length === 1
-            && args[0]?.DisplayOnly === true
+            && typeof args[0]?.DisplayOnly === 'boolean'
             && Array.isArray(args[0]?.Awards)
             ? args[0] as ZRSJZ_GetAwardPanelOptions
             : null;
-        this._displayOnly = options !== null;
+        this._displayOnly = options?.DisplayOnly ?? false;
         this.ShowAward(...(options?.Awards ?? args));
+        if (options?.PendingAwards) this._awards = [...options.PendingAwards];
     }
 
     ShowAward(...args: ZRSJZ_AwardDisplayConfig[]) {

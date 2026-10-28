@@ -17,7 +17,7 @@ import { CreateMatrixState, MatrixState } from './ZRSJZ_MatrixState';
  * 业务规则统一放在 Scripts/Service 下，禁止在此处继续添加玩法逻辑。
  */
 export class ZRSJZ_GameData {
-    public static readonly Versions = 30;//当前版本：动作系统，保留旧存档逐级迁移
+    public static readonly Versions = 31;//主线按地图难度推进，保留旧任务进度和领奖记录
     private static readonly STORAGE_KEY = "ZRSJZ_GameData";
 
     private static _instance: ZRSJZ_GameData = null;
@@ -57,7 +57,15 @@ export class ZRSJZ_GameData {
         if (!hasVersions || !Number.isFinite(savedData.Versions)) savedData.Versions = 0;
 
         this._instance = Object.assign(new ZRSJZ_GameData(), savedData);
-        if (ZRSJZ_GameDataDefaults.Migrate(this._instance, savedData)) this.SaveData();
+        const taskState = (data: any) => JSON.stringify([data.CurMainTask, data.NewMainTask, data.MainTaskComplete, data.MainTaskExperienceAwards]);
+        const tasksBefore = taskState(savedData);
+        if (ZRSJZ_GameDataDefaults.Migrate(this._instance, savedData)) {
+            if (tasksBefore !== taskState(this._instance)) {
+                const backupKey = this.STORAGE_KEY + '_before_main_task_repair';
+                if (!sys.localStorage.getItem(backupKey)) sys.localStorage.setItem(backupKey, json);
+            }
+            this.SaveData();
+        }
         ZRSJZ_MailService.CheckExpired();//检查邮件是否过期
         return this._instance;
     }
@@ -116,6 +124,11 @@ export class ZRSJZ_GameData {
     public CurRole: string[] = ["威蓝", "泠汐"];
     public HaveSkin: string[] = ["威蓝", "泠汐"];
     public CurSkin: string[] = ["威蓝", "泠汐"];
+    /** 服务端账本回传的累计实付金额（分），含退款修正。 */
+    public RankingVerifiedRechargeFen: number = 0;
+    /** 纯抖音模式累计成功支付回调金额；测试订单不计入。 */
+    public RankingLocalPaidFen: number = 0;
+    public RankingHasVerifiedRecharge: boolean = false;
     public CurrentAvatar: string = "威蓝";
     public CurrentAvatarFrame: string = "1";
     public OwnedAvatarFrames: string[] = ["1"];

@@ -1,6 +1,8 @@
-import { _decorator, Camera, Color, Component, director, Director, EventTouch, find, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
+import { ZRSJZ_DouyinRanking } from './Service/ZRSJZ_DouyinRanking';
+import { _decorator, Camera, Color, Component, director, Director, EventTouch, find, game, Game, instantiate, Label, math, Node, Prefab, Rect, sp, Sprite, SpriteFrame, TiledLayer, tween, UITransform, v3, Vec3, Widget, } from 'cc';
 import { ZRSJZ_Tools } from './ZRSJZ_Tools';
 import { ZRSJZ_ActivityService } from './Service/ZRSJZ_ActivityService';
+import { InstallZRSJZNativeTileMapFix } from './Service/ZRSJZ_NativeTileMapFix';
 import { ZRSJZ_GameCamera } from './Camera/ZRSJZ_GameCamera';
 import { ZRSJZ_Map } from './Controller/ZRSJZ_Map';
 import { ZRSJZ_PoolManager } from './Manager/ZRSJZ_PoolManager';
@@ -9,6 +11,8 @@ import { ZRSJZ_UIManager } from './Manager/ZRSJZ_UIManager';
 import { GetSpecialOperationConfig, ZRSJZ_BOMB_PLOT_SPAWN_CONFIG, ZRSJZ_INVENTORY, ZRSJZ_MainTaskAwardConfig, ZRSJZ_MAP_CONFIG, ZRSJZ_PANEL, ZRSJZ_PROP_PROPERTY, ZRSJZ_SPECIAL_OPERATION_CONFIG, ZRSJZ_SpecialOperationConfig, ZRSJZ_SpecialOperationTaskType, ZRSJZ_SKIN_CONFIG } from './ZRSJZ_Constant';
 import { ZRSJZ_GameData } from './ZRSJZ_GameData';
 import { ZRSJZ_EnemyBase } from './Controller/ZRSJZ_EnemyBase';
+import { ZRSJZ_PathFinder } from './Controller/ZRSJZ_PathFinder';
+import { ZRSJZ_PATH_CONFIG, ZRSJZ_TIER } from './ZRSJZ_Constant';
 import { ZRSJZ_Player } from './Controller/ZRSJZ_Player';
 import { ZRSJZ_AudioManager } from './Manager/ZRSJZ_AudioManager';
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from './Manager/ZRSJZ_EventManager';
@@ -97,6 +101,7 @@ export class ZRSJZ_Game extends Component {
     readonly Cameras: ZRSJZ_GameCamera[] = [];
 
     private _localGamePaused = false;
+    private _videoEvacuationCleanup: (() => void) | null = null;
     get GamePaused(): boolean { return this._localGamePaused || ZRSJZ_OnlineService.Paused; }
     set GamePaused(value: boolean) { this._localGamePaused = value; }
     UnlimitedFirepower: boolean = false;
@@ -335,6 +340,7 @@ export class ZRSJZ_Game extends Component {
     }
 
     protected onDisable(): void {
+        this._videoEvacuationCleanup?.();
         director.off(Director.EVENT_BEFORE_DRAW, this.UpdateCombinedTileMapCulling, this);
         director.off(Director.EVENT_BEFORE_DRAW, this.FitPanoramaEffect, this);
         this.ClearPanoramaEffect();
@@ -573,7 +579,50 @@ export class ZRSJZ_Game extends Component {
         paracargoNode.parent = this.CurMap.Unit;
         this._paracargoTargetWorldPosition.set(targetWorldPosition);
         this._hasParacargoTarget = true;
-        paracargoBox.Deploy(targetWorldPosition, config, mapConfig);
+        const map = this.CurMap;
+        paracargoBox.Deploy(targetWorldPosition, config, mapConfig,
+            () => this.SpawnParacargoGuards(targetWorldPosition, map));
+    }
+
+    /** 每次空投部署后，在落点周围各生成一名盾牌兵和喷火兵。 */
+    private async SpawnParacargoGuards(target: Readonly<Vec3>, map: ZRSJZ_Map): Promise<void> {
+        const names = ['盾牌兵', '喷火兵'];
+        const prefabs = await Promise.all(names.map(async name => {
+            try { return await ZRSJZ_Tools.LoadPrefab(`Prefabs/Unit/Enemy/${name}`); }
+            catch (error) { console.error(`[空投守卫] 加载${name}失败`, error); return null; }
+        }));
+        if (!this.node?.isValid || !this.node.activeInHierarchy || this._isGameFinished
+            || this.CurMap !== map || !map?.Unit?.isValid) return;
+        const bounds = map.Map?.getComponent(UITransform)?.getBoundingBoxToWorld();
+        const occupied: Vec3[] = [];
+        prefabs.forEach((prefab, index) => {
+            if (!prefab) return;
+            const position = this.FindParacargoGuardPosition(target, occupied, bounds);
+            if (!position) { console.warn(`[空投守卫] ${names[index]}在落点附近没有可用站立位置`); return; }
+            const guard = instantiate(prefab);
+            guard.active = false;
+            guard.parent = map.Unit;
+            guard.setWorldPosition(position);
+            occupied.push(position);
+            guard.active = true;
+        });
+    }
+
+    private FindParacargoGuardPosition(target: Readonly<Vec3>, occupied: readonly Vec3[], bounds?: Rect): Vec3 | null {
+        const options = { ...ZRSJZ_PATH_CONFIG, ObstacleMask: ZRSJZ_TIER.地形, PreciseObstacles: true };
+        const radius = options.AgentRadius;
+        for (let attempt = 0; attempt < 65; attempt++) {
+            const angle = Math.random() * Math.PI * 2;
+            // 优先在落点180~360范围内随机站位；拥挤时尝试更近的位置及落点本身。
+            const distance = attempt === 64 ? 0 : attempt < 40 ? 180 + Math.random() * 180 : 40 + Math.random() * 140;
+            const candidate = new Vec3(target.x + Math.cos(angle) * distance, target.y + Math.sin(angle) * distance, target.z);
+            if (bounds && (candidate.x - radius < bounds.xMin || candidate.x + radius > bounds.xMax
+                || candidate.y + options.AgentOffsetY - radius < bounds.yMin
+                || candidate.y + options.AgentOffsetY + radius > bounds.yMax)) continue;
+            if (occupied.some(position => Vec3.distance(position, candidate) < radius * 2 + 20)) continue;
+            if (ZRSJZ_PathFinder.IsPositionWalkable(candidate, options)) return candidate;
+        }
+        return null;
     }
 
     /** 空投尚未实际生成时返回 null；生成后返回空投的最终落点世界坐标。 */
@@ -891,6 +940,8 @@ export class ZRSJZ_Game extends Component {
 
     /** 双人对局准备接管 TileMap 裁剪（包括存活玩家全屏）；单人对局保持引擎原始行为。 */
     private ConfigureTileMapForPlayerCount(): void {
+        // 在地图首次提交渲染数据前安装；单人/双人均可能触发原生共享索引覆盖。
+        InstallZRSJZNativeTileMapFix();
         this.RestoreBuiltInTileMapCulling();
         this._tiledLayers.length = 0;
         if (!this.CurMap?.node?.isValid) return;
@@ -1156,6 +1207,7 @@ export class ZRSJZ_Game extends Component {
             this._killCount,
             queueExperience,
         );
+        if (evacuationSuccess) void ZRSJZ_DouyinRanking.Upload(true);
         ZRSJZ_AchievementService.BattleFinished(
             evacuationSuccess, evacuationValue, this._elapsedGameTime,
             ZRSJZ_GameData.Instance.CurMap, this.IsTwoPlayerMode(),
@@ -1527,11 +1579,72 @@ export class ZRSJZ_Game extends Component {
         }).catch(error => console.error("[ZRSJZ_Game] 死亡特效创建失败", error));
     }
 
+    /** 视频成功后复用正式撤离，保留物资、任务进度和单局统计的统一结算。 */
+    private RequestVideoEvacuation(): void {
+        if (this.IsTutorial || !this._battleStarted || this._isGameFinished || this.GamePaused
+            || this._videoEvacuationCleanup || !this.Players.some(player => !player.IsDead)) return;
+        if (!Banner.Instance) return;
+        this.GamePaused = true;
+        let closed = false;
+        let sdk: any = null;
+        let timeout: ReturnType<typeof setTimeout>;
+        let watch: ReturnType<typeof setInterval>;
+        let returnTimer: ReturnType<typeof setTimeout>;
+        const cleanup = () => {
+            if (closed) return;
+            closed = true;
+            clearTimeout(timeout); clearTimeout(returnTimer); clearInterval(watch);
+            game.off(Game.EVENT_SHOW, onReturn, this);
+            sdk?.offClose?.(onClose); sdk?.offError?.(onClose);
+            if (this._videoEvacuationCleanup === cleanup) this._videoEvacuationCleanup = null;
+            if (!this._isGameFinished) this.GamePaused = false;
+        };
+        // 给平台先触发奖励回调的机会；关闭/失败本身不能视作观看成功。
+        const onClose = () => { clearTimeout(returnTimer); returnTimer = setTimeout(cleanup, 100); };
+        const onReturn = () => { clearTimeout(returnTimer); returnTimer = setTimeout(cleanup, 500); };
+        const bindSDK = () => {
+            const next = (Banner.Instance as any)?.rewardedVideoAd;
+            if (!next || next === sdk) return;
+            sdk?.offClose?.(onClose); sdk?.offError?.(onClose);
+            sdk = next; sdk.onClose?.(onClose); sdk.onError?.(onClose);
+        };
+        this._videoEvacuationCleanup = cleanup;
+        timeout = setTimeout(cleanup, 180000);
+        watch = setInterval(bindSDK, 100);
+        game.on(Game.EVENT_SHOW, onReturn, this);
+        try {
+            Banner.Instance.ShowVideoAd(() => {
+                if (!closed) this.CompleteVideoEvacuation();
+            });
+            if (!closed) bindSDK();
+        } catch (error) {
+            cleanup();
+            ZRSJZ_UIManager.Instance.ShowTip('视频暂时无法播放，请稍后重试');
+            console.warn('[视频撤离]', error);
+        }
+    }
+
+    /** 仅由本次激励视频的成功回调调用，按正常成功撤离结算本局。 */
+    private CompleteVideoEvacuation(): void {
+        const cleanup = this._videoEvacuationCleanup;
+        if (!cleanup) return;
+        if (!this.node?.isValid || !this.node.activeInHierarchy || ZRSJZ_Game.Instance !== this
+            || this.IsTutorial || this._isGameFinished || !this._battleStarted
+            || !this.Players.some(player => !player.IsDead)) { cleanup(); return; }
+        cleanup();
+        this._evacuationMethod = '视频撤离';
+        this._isEvacuating = true;
+        this.CompleteEvacuation();
+    }
+
     OnButtonClick(event: EventTouch) {
         if (this._isGameFinished) return;
         if (ZRSJZ_UIManager.Dragging) return;
         ZRSJZ_AudioManager.Instance.PlaySound("点击");
         switch (event.getCurrentTarget().name) {
+            case "马上撤离":
+                this.RequestVideoEvacuation();
+                break;
             case "小地图":
                 this.OpenMapPanel();
                 break;

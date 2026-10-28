@@ -1,5 +1,5 @@
 import { ZRSJZ_EventManager, ZRSJZ_MyEvent } from "../Manager/ZRSJZ_EventManager";
-import { ZRSJZ_MAIN_TASK_CONFIG, ZRSJZ_INVENTORY } from "../ZRSJZ_Constant";
+import { ZRSJZ_MAIN_TASK_CONFIG, ZRSJZ_MAIN_TASK_ORDER, ZRSJZ_INVENTORY } from "../ZRSJZ_Constant";
 import { ZRSJZ_GameData } from "../ZRSJZ_GameData";
 import { ZRSJZ_GradeService } from "./ZRSJZ_GradeService";
 import { ZRSJZ_SIDE_TASK_CONFIG, ZRSJZ_SIDE_TASK_LINES, ZRSJZ_TaskObjective } from '../ZRSJZ_TaskLines';
@@ -35,22 +35,23 @@ export class ZRSJZ_TaskService {
         }
         const data = ZRSJZ_GameData.Instance;
         if (!data.CurMainTask || (taskID && data.CurMainTask.TaskName !== taskID)
+            || data.MainTaskComplete.includes(data.CurMainTask.TaskName)
             || !this.IsTaskReadyToClaim(data.CurMainTask.TaskName)) return false;
         const taskName = data.CurMainTask.TaskName;
         this.GetTaskExperienceAward(taskName);
         data.MainTaskComplete.push(taskName);
+        // 老玩家可能先完成新顺序中靠后的任务；从头补齐未领奖任务，不能只取下一项。
+        data.CurMainTask = null;
+        data.NewMainTask = ZRSJZ_MAIN_TASK_ORDER.find(name => !data.MainTaskComplete.includes(name)) ?? '';
         if (taskName === '北境终局') {
             const currentRows = ZRSJZ_InventoryService.GetInventoryRow(ZRSJZ_INVENTORY.保险箱, 2);
             if (currentRows < 3) ZRSJZ_InventoryService.AddInventoryRow(ZRSJZ_INVENTORY.保险箱, 3 - currentRows);
         }
-        const curIndex: number = Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys()).indexOf(taskName);
-        if (curIndex + 1 < Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys()).length) {
-            data.NewMainTask = Array.from(ZRSJZ_MAIN_TASK_CONFIG.keys())[curIndex + 1];
+        if (data.NewMainTask) {
             // 新任务发布时立即固定经验，之后玩家等级和当前经验变化都不会改写奖励。
             this.GetTaskExperienceAward(data.NewMainTask);
             ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_ADD, data.NewMainTask);
         }
-        data.CurMainTask = null;
         ZRSJZ_EventManager.Emit(ZRSJZ_MyEvent.ZRSJZ_MAIN_TASK_SHOW);
         ZRSJZ_GameData.SaveData();
         return true;
@@ -71,6 +72,7 @@ export class ZRSJZ_TaskService {
         const data = ZRSJZ_GameData.Instance;
         if (data.CurMainTask || (taskID && taskID !== data.NewMainTask)) return;
         if (!data.NewMainTask || !ZRSJZ_MAIN_TASK_CONFIG.has(data.NewMainTask)) return;
+        if (data.MainTaskComplete.includes(data.NewMainTask)) return;
         const task = ZRSJZ_MAIN_TASK_CONFIG.get(data.NewMainTask);
         // 兼容没有发布快照的旧存档；一旦生成后只读取，不再重新计算。
         this.GetTaskExperienceAward(task.TaskName);
@@ -124,10 +126,12 @@ export class ZRSJZ_TaskService {
             if (!progress.accepted) return 0;
             return progress.count >= line.Tasks[index].Objective.count ? 2 : 1;
         }
+        const config = ZRSJZ_MAIN_TASK_CONFIG.get(taskName);
+        if (!config?.TaskTargets[0]) return -1;
         if (data.MainTaskComplete.includes(taskName)) {
             return 3;
         } else if (data.CurMainTask && data.CurMainTask.TaskName == taskName) {
-            if (data.CurMainTask.CurCount >= ZRSJZ_MAIN_TASK_CONFIG.get(taskName).TaskTargets[0].TaskTargetCount) {
+            if (data.CurMainTask.CurCount >= config.TaskTargets[0].TaskTargetCount) {
                 return 2;
             } else {
                 return 1;

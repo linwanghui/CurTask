@@ -61,6 +61,7 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
         targetWorldPosition: Readonly<Vec3>,
         config: Readonly<ZRSJZ_ParacargoConfig>,
         mapConfig: Readonly<ZRSJZ_MapConfig> = ZRSJZ_MAP_CONFIG.get(ZRSJZ_GameData.Instance.CurMap),
+        onAppeared?: () => void,
     ): void {
         if (!config || !mapConfig) {
             console.warn("[ZRSJZ_ParacargoBox] 缺少空投或地图配置");
@@ -88,6 +89,7 @@ export class ZRSJZ_ParacargoBox extends ZRSJZ_Box {
         this.scheduleOnce(() => {
             this.node.setWorldPosition(start);
             this.node.active = true;
+            onAppeared?.();
             ZRSJZ_UIManager.Instance.ShowTip("空投已投放！");
             tween(this.node)
                 .to(Math.max(0.1, config.DropDuration), { worldPosition: target }, { easing: "quadIn" })

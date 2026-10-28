@@ -26,10 +26,10 @@
             "_value": true
           },
           "skeletal-animation": {
-            "_value": true
+            "_value": false
           },
           "3d": {
-            "_value": true
+            "_value": false
           },
           "meshopt": {
             "_value": false
@@ -59,10 +59,10 @@
             "_value": true
           },
           "particle": {
-            "_value": true
+            "_value": false
           },
           "physics": {
-            "_value": true,
+            "_value": false,
             "_option": "physics-ammo"
           },
           "physics-ammo": {
@@ -106,10 +106,10 @@
             "_value": true
           },
           "primitive": {
-            "_value": true
+            "_value": false
           },
           "profiler": {
-            "_value": true
+            "_value": false
           },
           "occlusion-query": {
             "_value": false
@@ -127,25 +127,25 @@
             "_value": true
           },
           "video": {
-            "_value": true
+            "_value": false
           },
           "webview": {
-            "_value": true
+            "_value": false
           },
           "tween": {
             "_value": true
           },
           "websocket": {
-            "_value": true
+            "_value": false
           },
           "websocket-server": {
             "_value": false
           },
           "terrain": {
-            "_value": true
+            "_value": false
           },
           "light-probe": {
-            "_value": true
+            "_value": false
           },
           "tiled-map": {
             "_value": true
@@ -170,10 +170,10 @@
             }
           },
           "dragon-bones": {
-            "_value": true
+            "_value": false
           },
           "marionette": {
-            "_value": true
+            "_value": false
           },
           "procedural-animation": {
             "_value": false
@@ -193,42 +193,28 @@
           }
         },
         "flags": {
-          "LOAD_SPINE_MANUALLY": false,
-          "LOAD_BULLET_MANUALLY": false
+          "LOAD_SPINE_MANUALLY": false
         },
         "name": "迁移生成的配置",
         "includeModules": [
           "2d",
-          "3d",
           "affine-transform",
           "animation",
           "audio",
           "base",
-          "dragon-bones",
           "gfx-webgl",
           "gfx-webgl2",
           "graphics",
           "intersection-2d",
           "legacy-pipeline",
-          "light-probe",
-          "marionette",
           "mask",
-          "particle",
           "particle-2d",
           "physics-2d-box2d",
-          "physics-ammo",
-          "primitive",
-          "profiler",
           "rich-text",
-          "skeletal-animation",
           "spine-3.8",
-          "terrain",
           "tiled-map",
           "tween",
-          "ui",
-          "video",
-          "websocket",
-          "webview"
+          "ui"
         ],
         "noDeprecatedFeatures": {
           "value": false,

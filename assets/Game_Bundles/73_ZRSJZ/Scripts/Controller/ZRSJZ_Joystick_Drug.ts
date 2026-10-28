@@ -59,6 +59,7 @@ export class ZRSJZ_Joystick_Drug extends Component {
     }
 
     OnButtonClick(event: EventTouch) {
+        ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.StopAction();
         if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) return;
         if (ZRSJZ_UIManager.Dragging) return;
         const target = event.getCurrentTarget();

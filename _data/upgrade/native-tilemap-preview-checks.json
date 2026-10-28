@@ -1,0 +1,100 @@
+{
+  "results": [
+    {
+      "map": "沙漠",
+      "mode": "1p",
+      "layers": 69,
+      "snapshots": [
+        {
+          "batches": 42,
+          "vertices": 21692
+        },
+        {
+          "batches": 117,
+          "vertices": 22632
+        },
+        {
+          "batches": 38,
+          "vertices": 18364
+        },
+        {
+          "batches": 73,
+          "vertices": 24512
+        }
+      ]
+    },
+    {
+      "map": "雪地",
+      "mode": "2p",
+      "layers": 35,
+      "snapshots": [
+        {
+          "batches": 31,
+          "vertices": 21120
+        },
+        {
+          "batches": 54,
+          "vertices": 52532
+        },
+        {
+          "batches": 61,
+          "vertices": 50804
+        },
+        {
+          "batches": 90,
+          "vertices": 62104
+        }
+      ]
+    },
+    {
+      "map": "沙漠",
+      "mode": "2p",
+      "layers": 69,
+      "snapshots": [
+        {
+          "batches": 185,
+          "vertices": 52956
+        },
+        {
+          "batches": 135,
+          "vertices": 40212
+        },
+        {
+          "batches": 104,
+          "vertices": 50696
+        },
+        {
+          "batches": 280,
+          "vertices": 87044
+        }
+      ]
+    },
+    {
+      "map": "雪地",
+      "mode": "1p",
+      "layers": 35,
+      "snapshots": [
+        {
+          "batches": 30,
+          "vertices": 12628
+        },
+        {
+          "batches": 40,
+          "vertices": 13172
+        },
+        {
+          "batches": 30,
+          "vertices": 12380
+        },
+        {
+          "batches": 36,
+          "vertices": 18092
+        }
+      ]
+    }
+  ],
+  "errors": [
+    "Failed to load resource: net::ERR_FAILED",
+    "联系方式QQ在Json中未注册，当前使用默认联系QQ！"
+  ]
+}

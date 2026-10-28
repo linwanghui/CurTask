@@ -136,6 +136,7 @@ export class ZRSJZ_Skill_Button extends Component {
     }
 
     private OnTouchStart(event: EventTouch): void {
+        ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.StopAction();
         if (ZRSJZ_Game.Instance?.GetPlayer(this.PlayerIndex)?.IsFrozen) return;
         const player = ZRSJZ_Game.Instance.GetPlayer(this.PlayerIndex);
         if (this.SkillName === '露娜' || this.SkillName === '风翎') {

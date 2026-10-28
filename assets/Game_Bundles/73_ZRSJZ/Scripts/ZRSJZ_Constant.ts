@@ -17,7 +17,7 @@ export enum ZRSJZ_PANEL {
     商店界面 = "73_ZRSJZ/Prefabs/Panel/商店界面",
     仓库界面 = "73_ZRSJZ/Prefabs/Panel/仓库界面",
     角色界面 = "73_ZRSJZ/Prefabs/Panel/角色界面",
-    作弊界面 = "73_ZRSJZ/Prefabs/Panel/作弊界面",
+    作弊界面 = "73_ZRSJZ_DLC/Prefabs/Panel/作弊界面",
     道具弹窗 = "73_ZRSJZ/Prefabs/Panel/道具弹窗",
     背包弹窗 = "73_ZRSJZ/Prefabs/Panel/背包弹窗",
     物资弹窗 = "73_ZRSJZ/Prefabs/Panel/物资弹窗",
@@ -62,6 +62,7 @@ export enum ZRSJZ_PANEL {
     行动补给弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/行动补给弹窗",
     神秘商人弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/神秘商人弹窗",
     成就界面 = "73_ZRSJZ_DLC/Prefabs/Panel/成就界面",
+    排行榜界面 = "73_ZRSJZ_DLC/Prefabs/Panel/排行榜界面",
     战令界面 = "73_ZRSJZ_DLC/Prefabs/Panel/战令界面",
     头像框弹窗 = "73_ZRSJZ_DLC/Prefabs/Panel/头像框弹窗",
     避难所_升级界面 = "73_ZRSJZ_DLC_BNS/Prefabs/Panel/ZRSJZ_BNS_UpLevelPanel",
@@ -96,6 +97,7 @@ export const ZRSJZ_PANEL_PATH_CONFIG: Map<string, string> = new Map([
     ["曼德尔箱界面", "主页-曼德尔箱界面"],
     ["战令界面", "主页-战令界面"],
     ["活动界面", "主页-活动界面"],
+    ["铸枪界面", "主页-铸枪界面"],
 ])
 
 //物理层级
@@ -1931,6 +1933,17 @@ function CreateMainTaskPropAward(TaskAwardName: string, TaskAwardCount: number):
     return { TaskAwardName, TaskAwardCount };
 }
 
+/** 主线推进和列表展示共用顺序；任务名称是存档标识，调整难度时不得改名。 */
+export const ZRSJZ_MAIN_TASK_ORDER: readonly string[] = [
+    '初入禁区', '弹药补给', '物资变现',
+    '小镇初探', '街区清剿', '解放小镇',
+    '踏入古迹', '遗迹清剿', '黄沙守卫',
+    '北境远征', '雪原清剿', '冰原霸主',
+    '重返小镇', '暗巷肃清', '小镇决战',
+    '深入禁地', '沙海歼敌', '古迹终战',
+    '终极潜入', '极寒决战', '北境终局',
+];
+
 export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>> = new Map([
     ["初入禁区", {
         TaskName: "初入禁区",
@@ -1943,7 +1956,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
         ],
         TaskAwards: CreateMainTaskAwards(50000, 100, "1级子弹", "CN8-突击步枪", "黑色手表", "量子U盘"),
     }],
-    ["������补给", {
+    ["弹药补给", {
         TaskName: "弹药补给",
         TaskDesc: "前往商城购买1级子弹。充足的弹药是每次行动顺利完成的基础保障。",
         TaskTargets: [
@@ -2128,7 +2141,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
     }],
     ["古迹终战", {
         TaskName: "古迹终战",
-        TaskDesc: "盘踞古迹��首领掌握着北境行动的关键线索。进入绝密行动区域击败Boss，结束沙漠战役。",
+        TaskDesc: "盘踞古迹的首领掌握着北境绝密行动的关键线索。进入绝密行动区域击败Boss，结束沙漠战役。",
         TaskTargets: [
             {
                 TaskTargetName: "打败[沙漠古迹_绝密行动]Boss",
@@ -2139,7 +2152,7 @@ export const ZRSJZ_MAIN_TASK_CONFIG: Map<string, Readonly<ZRSJZ_MainTaskConfig>>
     }],
     ["北境远征", {
         TaskName: "北境远征",
-        TaskDesc: "追踪古迹中的线索前往极北之地。进入机密行动区域勘察雪原环境，并成功撤离。",
+        TaskDesc: "完成古迹外围调查后前往极北之地。进入机密行动区域勘察雪原环境，并成功撤离。",
         TaskTargets: [
             {
                 TaskTargetName: "进入[极北之地_机密行动]并成功撤离",
@@ -2996,11 +3009,12 @@ export const ZRSJZ_VORTEX_CONFIG = {
 /** 名称必须与 DLC/Sprites/动作系统/动作 中的图片名一致。 */
 export interface ZRSJZ_ActionConfig {
     Name: string;
-    Unlock: { Type: 'default' | 'level' | 'manual'; Level?: number; Description: string };
+    Animation: string;
+    Unlock: { Type: 'default' | 'level' | 'manual' | "视频解锁"; Level?: number; Description: string };
 }
 export const ZRSJZ_ACTION_MAX_EQUIPPED = 4;
 export const ZRSJZ_ACTION_CONFIG: ZRSJZ_ActionConfig[] = [
-    { Name: '浪子踢球', Unlock: { Type: 'default', Description: '默认解锁' } },
-    { Name: '狗熊哆嗦毛', Unlock: { Type: 'default', Description: '默认解锁' } },
-    { Name: '闪身步', Unlock: { Type: 'default', Description: '默认解锁' } },
+    { Name: '闪身步', Animation: '闪身步', Unlock: { Type: 'default', Description: '默认解锁' } },
+    { Name: '浪子踢球', Animation: '浪子踢球', Unlock: { Type: '视频解锁', Description: '视频解锁' } },
+    { Name: '捧腹大笑', Animation: '奶龙笑', Unlock: { Type: '视频解锁', Description: '视频解锁' } },
 ];

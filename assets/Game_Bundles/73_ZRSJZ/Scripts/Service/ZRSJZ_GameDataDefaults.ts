@@ -6,6 +6,7 @@ import {
     ZRSJZ_GridData,
     ZRSJZ_INVENTORY,
     ZRSJZ_MAIN_TASK_CONFIG,
+    ZRSJZ_MAIN_TASK_ORDER,
     ZRSJZ_PROP_CONFIG,
     ZRSJZ_SHOP_CONFIG,
     ZRSJZ_PropData,
@@ -19,6 +20,66 @@ import { CreateMatrixState } from '../ZRSJZ_MatrixState';
 
 /** 新存档初始化和旧存档迁移。此类不触发事件，也不主动写盘。 */
 export class ZRSJZ_GameDataDefaults {
+    /** 修复旧配置的乱码键；保留接取进度、领奖记录和发布时的经验快照。 */
+    private static RepairMainTaskNames(data: ZRSJZ_GameData): boolean {
+        const legacy = '\uFFFD'.repeat(6) + '补给';
+        const name = '弹药补给';
+        let changed = false;
+        if (data.NewMainTask === legacy) { data.NewMainTask = name; changed = true; }
+        if (data.CurMainTask?.TaskName === legacy) { data.CurMainTask.TaskName = name; changed = true; }
+        if (data.MainTaskComplete?.includes(legacy)) {
+            data.MainTaskComplete = Array.from(new Set(data.MainTaskComplete.map(task => task === legacy ? name : task)));
+            changed = true;
+        }
+        const awards = data.MainTaskExperienceAwards;
+        if (awards && Object.prototype.hasOwnProperty.call(awards, legacy)) {
+            if (awards[name] === undefined) awards[name] = awards[legacy];
+            delete awards[legacy];
+            changed = true;
+        }
+        return changed;
+    }
+
+    /** 同版本存档也可能缺少有效任务入口；只修复指针，不重置进度或补发奖励。 */
+    private static RepairMainTaskProgress(data: ZRSJZ_GameData): boolean {
+        if (data.Versions > ZRSJZ_GameData.Versions) return false;
+        let changed = false;
+        if (!Array.isArray(data.MainTaskComplete)) {
+            data.MainTaskComplete = [];
+            changed = true;
+        }
+        const current = data.CurMainTask;
+        if (current && !ZRSJZ_MAIN_TASK_CONFIG.has(current.TaskName)) {
+            // 旧任务名称失效时，只有目标能唯一对应现有任务才继承原计数。
+            const matches = ZRSJZ_MAIN_TASK_ORDER.filter(name =>
+                ZRSJZ_MAIN_TASK_CONFIG.get(name)?.TaskTargets[0]?.TaskTargetName === current.TaskTargetName);
+            if (matches.length === 1 && !data.MainTaskComplete.includes(matches[0])) {
+                data.CurMainTask = { ...current, TaskName: matches[0] };
+                const awards = data.MainTaskExperienceAwards;
+                if (awards?.[matches[0]] === undefined && awards?.[current.TaskName] !== undefined) {
+                    awards[matches[0]] = awards[current.TaskName];
+                }
+            } else {
+                // 无法识别的旧任务保留在读取器的原始存档备份中，不猜测完成或领奖状态。
+                data.CurMainTask = null;
+            }
+            changed = true;
+        }
+        if (data.CurMainTask && data.MainTaskComplete.includes(data.CurMainTask.TaskName)) {
+            data.CurMainTask = null;
+            changed = true;
+        }
+        const next = data.CurMainTask ? ''
+            : ZRSJZ_MAIN_TASK_CONFIG.has(data.NewMainTask) && !data.MainTaskComplete.includes(data.NewMainTask)
+                ? data.NewMainTask
+                : ZRSJZ_MAIN_TASK_ORDER.find(name => !data.MainTaskComplete.includes(name)) ?? '';
+        if (data.NewMainTask !== next) {
+            data.NewMainTask = next;
+            changed = true;
+        }
+        return changed;
+    }
+
     public static Initialize(data: ZRSJZ_GameData): void {
         data.UnlockedActions = ZRSJZ_ACTION_CONFIG.filter(item => item.Unlock.Type === 'default').map(item => item.Name);
         data.EquippedActions = data.UnlockedActions.slice(0, ZRSJZ_ACTION_MAX_EQUIPPED);
@@ -47,13 +108,24 @@ export class ZRSJZ_GameDataDefaults {
 
     public static Migrate(data: ZRSJZ_GameData, savedData: any): boolean {
         // 逐级补充缺失字段，不覆盖玩家已有数据；版本4→5增加独立支线进度。
-        let flag = false;
+        let flag = this.RepairMainTaskNames(data);
+        // 先归一化完成列表，供旧版本迁移中的 includes 使用。
+        if (!Array.isArray(data.MainTaskComplete)) {
+            data.MainTaskComplete = [];
+            flag = true;
+        }
         if (data.Versions == 0) {
             data.Versions++;
             if (savedData.IsTutorial === undefined) data.IsTutorial = false;
         }
 
         const loadData = () => {
+            if (data.Versions === 30) {
+                // 已接任务（包括完成待领奖）继续原目标；未接任务改为新顺序首个未领奖项。
+                // 不修改完成记录、奖励快照、物品和安全箱容量，也不在迁移中发奖。
+                data.NewMainTask = data.CurMainTask ? ''
+                    : ZRSJZ_MAIN_TASK_ORDER.find(name => !data.MainTaskComplete.includes(name)) ?? '';
+            }
             if (data.Versions === 29) {
                 const names = new Set(ZRSJZ_ACTION_CONFIG.map(item => item.Name));
                 const defaults = ZRSJZ_ACTION_CONFIG.filter(item => item.Unlock.Type === 'default').map(item => item.Name);
@@ -144,6 +216,7 @@ export class ZRSJZ_GameDataDefaults {
             loadData();
             flag = true;
         }
+        flag = this.RepairMainTaskProgress(data) || flag;
 
         if (!data.OwnedTitles?.includes('勇者')) {
             data.OwnedTitles = ['勇者', ...(data.OwnedTitles ?? [])];
