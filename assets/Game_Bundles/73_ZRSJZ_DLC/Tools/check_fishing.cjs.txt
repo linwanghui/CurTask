@@ -29,6 +29,13 @@ Data.Instance.PropData.mine={Name:'玉米鱼饵',CurCount:1,CurInventory:inv.背
 delete Data.Instance.PropData.store;assert.equal(Bait.Count('玉米鱼饵',0),0);assert.equal(Bait.Consume('玉米鱼饵',0),false);
 for(const location of [inv.仓库_全部,inv.仓库_物品,inv.仓库_装备,inv.仓库_武器,inv.仓库_弹药]){Data.Instance.PropData.store={Name:'玉米鱼饵',CurCount:1,CurInventory:location};assert.equal(Bait.Count('玉米鱼饵',0),1);assert.equal(Bait.Consume('玉米鱼饵',0),true);assert.equal(Data.Instance.PropData.store,undefined);}
 Fish.Ensure();assert.equal(Fish.State.offers.length,6);assert.ok(Fish.Refresh());
+assert.equal(Fish.RefreshCost,50);
+for(const name of ['宠物碎片','英雄碎片']){
+ const offer=Fish.State.offers.find(o=>o.name===name);assert.equal(offer.count,3);assert.equal(offer.cost,60);
+ offer.count=10;Fish.Ensure();assert.equal(offer.count,3);assert.equal(offer.cost,60);
+}
+Fish.State.points=49;assert.equal(Fish.Refresh(),'积分不足');assert.equal(Fish.State.points,49);
+Fish.State.points=50;assert.equal(Fish.Refresh(),'');assert.equal(Fish.State.points,0);
 Data.Instance.PropData.fish={Name:'青背鲫',CurCount:2,CurInventory:inv.背包};assert.ok(Fish.Submit('青背鲫'));Data.Instance.PropData.fish.CurInventory=inv.仓库_物品;
 assert.equal(Fish.Submit('青背鲫'),'');assert.equal(Fish.State.points,2);assert.equal(Data.Instance.PropData.fish.CurCount,1);
 Fish.State.points=10000;assert.equal(Fish.BeginExchange(0),'');const points=Fish.State.points;assert.ok(Fish.BeginExchange(0));assert.ok(Fish.Refresh());assert.equal(Fish.State.points,points);assert.ok(Fish.State.pending.ids.length);Fish.CompleteExchange();assert.ok(Fish.BeginExchange(0));assert.equal(Fish.Refresh(),'');

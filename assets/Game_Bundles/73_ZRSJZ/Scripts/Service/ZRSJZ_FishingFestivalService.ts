@@ -6,12 +6,20 @@ export interface FishingFestivalOffer { name: string; count: number; cost: numbe
 export interface FishingFestivalState { points: number; offers: FishingFestivalOffer[]; pending: { name: string; count: number; ids: string[] } | null; }
 
 export class ZRSJZ_FishingFestivalService {
-    static readonly RefreshCost = 5;
+    static readonly RefreshCost = 50;
     static get State(): FishingFestivalState {
         return ZRSJZ_GameData.Instance.FishingFestival ??= { points: 0, offers: [], pending: null };
     }
     static Ensure(): void {
-        if (!this.State.offers.length) { this.State.offers = this.Roll(); ZRSJZ_GameData.SaveData(); }
+        let changed = false;
+        if (!this.State.offers.length) { this.State.offers = this.Roll(); changed = true; }
+        // 兼容已生成的商店，只调整未兑换碎片数量，不改价格、售罄状态或待领取奖励。
+        for (const offer of this.State.offers) {
+            if (!offer.sold && ZRSJZ_FragmentService.IsFragment(offer.name) && offer.count !== 3) {
+                offer.count = 3; changed = true;
+            }
+        }
+        if (changed) ZRSJZ_GameData.SaveData();
     }
     static IsWarehouse(p: ZRSJZ_PropData): boolean {
         return [ZRSJZ_INVENTORY.仓库_全部, ZRSJZ_INVENTORY.仓库_物品, ZRSJZ_INVENTORY.仓库_装备,
@@ -46,7 +54,7 @@ export class ZRSJZ_FishingFestivalService {
         const pool = [...ZRSJZ_PROP_CONFIG.values()].filter(p => p.PropType === '物品'
             && p.Quality === ZRSJZ_PROP_QUALITY.红色 && p.UnitPrice > 0 && !names.includes(p.Name));
         while (names.length < 6 && pool.length) names.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0].Name);
-        return names.map(name => ({ name, count: ZRSJZ_FragmentService.IsFragment(name) ? 10 : 1, cost: this.Cost(name), sold: false }));
+        return names.map(name => ({ name, count: ZRSJZ_FragmentService.IsFragment(name) ? 3 : 1, cost: this.Cost(name), sold: false }));
     }
     static Refresh(): string {
         this.Ensure();

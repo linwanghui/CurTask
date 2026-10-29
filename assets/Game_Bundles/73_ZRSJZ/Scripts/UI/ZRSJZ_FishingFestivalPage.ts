@@ -86,6 +86,7 @@ export class ZRSJZ_FishingFestivalPage {
     Render():void {
         if(!isValid(this.page))return;
         this.Text(this.page,'积分','渔获积分：'+Fish.State.points);
+        this.Text(this.page.getChildByName('刷新'),'文字',`刷新奖励 · ${Fish.RefreshCost}积分`);
         this.fish.forEach((n,i)=>this.Text(n,'数量','仓库 ×'+Fish.Count(ZRSJZ_FISH_CATALOG[i].name)));
         this.offers.forEach((n,i)=>{
             if(!isValid(n))return;
