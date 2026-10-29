@@ -76,13 +76,15 @@ assert.equal(packets.length, 1); assert.equal(packets[0].kind, 'element_hit'); a
 Coop.Replica = false; game.GamePaused = true; e.ReceiveElementHit(100, 1, 0, poison); assert.equal(e._elements.poison.size, 0);
 game.GamePaused = false;
 
+const harmEffectRequests = [];
+const hitSounds = []; let hitFlashes = 0;
 const DamageEnemy = selected('Controller/ZRSJZ_EnemyBase.ts', ['BeHit'], {
     Coop, Online, ZRSJZ_Game: { Instance: game },
-    ZRSJZ_AudioManager: { Instance: { PlaySound() {} } },
-    ZRSJZ_PoolManager: { Instance: { GetNode: () => Promise.resolve(null) } }, console,
+    ZRSJZ_AudioManager: { Instance: { PlaySound(name) { hitSounds.push(name); } } },
+    ZRSJZ_PoolManager: { Instance: { GetNode: path => { harmEffectRequests.push(path); return Promise.resolve(null); } } }, console,
 });
 const d = Object.assign(new DamageEnemy(), { IsDead: false, ArmorReduction: 40, _elements: new State(), _health: 10000,
-    node: { worldPosition: { clone: () => ({}) } }, HP: { Show() {} }, beHitEffect() {},
+    node: { worldPosition: { clone: () => ({}) } }, HP: { Show() {} }, beHitEffect() { hitFlashes++; }, _hitFeedbackSerial: 0,
     _recoilCooldown: 0, _recoilOffset: { x: 0, y: 0 }, _pendingRecoil: { set() { throw Error('poison must never recoil'); } },
 });
 d.BeHit(100); near(d._health, 9940);
@@ -90,8 +92,48 @@ for (let i = 0; i < 10; i++) d._elements.hit(fire, false, false);
 d.BeHit(100); near(d._health, 9860, 'shared armor debuff applies without personal growth');
 for (let i = 0; i < 10; i++) d._elements.hit({ ...fire, source: 'b' }, false, false);
 d.BeHit(100); near(d._health, 9780, 'public armor shred uses maximum rather than sum');
+const flashesBeforePoison = hitFlashes, soundsBeforePoison = hitSounds.length, serialBeforePoison = d._hitFeedbackSerial;
 d.BeHit(72, 1, 1, true); near(d._health, 9708, 'poison ignores armor and hit direction');
+assert.equal(hitFlashes, flashesBeforePoison, 'poison ticks never flash or scale the enemy');
+assert.equal(hitSounds.length, soundsBeforePoison, 'poison ticks never play hit audio');
+assert.equal(d._hitFeedbackSerial, serialBeforePoison, 'poison does not create remote hit feedback');
 d.ArmorReduction = 0; d.BeHit(100); near(d._health, 9608, 'shred cannot turn armor negative');
+assert.deepEqual(harmEffectRequests, ['Prefabs/Effect/HarmEffect', 'Prefabs/Effect/HarmEffect', 'Prefabs/Effect/HarmEffect',
+    '73_ZRSJZ_DLC/Prefabs/Effect/HarmEffect', 'Prefabs/Effect/HarmEffect'], 'only poison ticks use the DLC damage display');
+assert.equal(hitFlashes, 4); assert.deepEqual(hitSounds, ['受击', '受击', '受击', '受击']);
+d._health = 10; let poisonDeath = false;
+d.Die = () => { poisonDeath = d._poisonDeath; }; d.BeHit(72, 0, 0, true);
+assert(poisonDeath); assert.equal(d._poisonDeath, false, 'death feedback suppression stays scoped to the poison death');
+assert.equal(hitFlashes, 4); assert.equal(hitSounds.length, 4);
+
+class NetVec { constructor(x=0,y=0,z=0) { Object.assign(this,{x,y,z}); } static distance() { return 0; } }
+const ReplicaEnemy = selected('Controller/ZRSJZ_EnemyBase.ts', ['ApplyOnlineState'], { Vec3: NetVec });
+let remoteFlashes = 0, remotePoisonDeath = false;
+const replica = Object.assign(new ReplicaEnemy(), { onlineStarted: true, IsDead: false, _health: 100, _onlineHitFeedbackSerial: 0,
+    node: { worldPosition: new NetVec(), setWorldPosition() {}, setScale() {} }, HP: { Show() {} }, EnemySkeleton: null,
+    StopMoving() {}, beHitEffect() { remoteFlashes++; }, Die() { remotePoisonDeath = this._poisonDeath; }, RefreshElementLabel() {},
+});
+const sync = (hp, hitFeedback, poisonDamage, dead = false) => replica.ApplyOnlineState({ x:0,y:0,hp,hitFeedback,poisonDamage,dead });
+sync(90,0,true); assert.equal(remoteFlashes,0);
+sync(80,1,false); assert.equal(remoteFlashes,1);
+sync(70,1,true); assert.equal(remoteFlashes,1);
+sync(50,2,true); assert.equal(remoteFlashes,2,'a direct hit followed by poison in the same network snapshot still gets direct-hit feedback');
+sync(0,2,true,true); assert(remotePoisonDeath); assert.equal(replica._poisonDeath,false);
+
+let kills = 0, deathFlashes = 0; const deathSounds = [];
+const DeathEnemy = selected('Controller/ZRSJZ_EnemyBase.ts', ['Die'], {
+    Online: { Battle: false }, ZRSJZ_Game: { Instance: { IsTutorial: true, RecordKill() { kills++; } } },
+    ZRSJZ_ENEMY_STATE: { DEAD: 4 }, ZRSJZ_AudioManager: { Instance: { PlaySound(name) { deathSounds.push(name); } } },
+    ZRSJZ_KillTipPanel: { NotifyKill() {} }, ZRSJZ_TaskService: { CompleteTask() {} }, ZRSJZ_GameData: { Instance: { CurMap: 'test' } },
+});
+const death = poison => Object.assign(new DeathEnemy(), { _poisonDeath: poison, IsDead: false, _elements: new State(),
+    _pendingRecoil: { set() {} }, _recoilOffset: { set() {} }, node: {}, Colliders: [{ enabled: true }],
+    unschedule() {}, changeColor() {}, SetTaskTargetMarker() {}, ChangeState() { this.IsDead = true; },
+    ClearNavigation() {}, StopMoving() {}, OnDeath() {}, beHitEffect() { deathFlashes++; },
+});
+const toxicDeath = death(true); toxicDeath.Die(); assert.equal(kills,1); assert.equal(deathFlashes,0); assert.deepEqual(deathSounds,['击杀']);
+assert.equal(toxicDeath.Colliders[0].enabled,false,'poison kills still complete normal death cleanup');
+death(false).Die(); assert.equal(kills,2); assert.equal(deathFlashes,1); assert.deepEqual(deathSounds,['击杀','击杀']);
 
 const FreezeEnemy = selected('Controller/ZRSJZ_EnemyBase.ts', ['BeginElementFreeze', 'lateUpdate', 'IsElementFrozen', 'OnAnimationEvent'], {
     Coop, Online, ZRSJZ_Game: { Instance: game },

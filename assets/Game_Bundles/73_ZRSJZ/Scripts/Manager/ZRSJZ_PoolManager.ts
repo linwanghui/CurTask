@@ -8,6 +8,7 @@ export class ZRSJZ_PoolManager extends Component {
     private static _instance: ZRSJZ_PoolManager | null = null;
     private readonly _poolMap: Map<string, NodePool> = new Map<string, NodePool>();
     private readonly _prefabMap: Map<string, Prefab> = new Map<string, Prefab>();
+    private readonly _nodePoolKeys = new WeakMap<Node, string>();
 
     public static get Instance(): ZRSJZ_PoolManager {
         if (!ZRSJZ_PoolManager._instance) {
@@ -43,7 +44,7 @@ export class ZRSJZ_PoolManager extends Component {
 
     public PutNode(node: Node): void {
         if (!node || !node.isValid) return;
-        const key = this.GetPoolKey(node.name);
+        const key = this._nodePoolKeys.get(node) ?? this.GetPoolKey(node.name);
         const pool = this.GetOrCreatePool(key);
         node.removeFromParent();
         node.active = false;
@@ -58,7 +59,9 @@ export class ZRSJZ_PoolManager extends Component {
         const cb = (prefab: Prefab) => {
             const pool = this.GetOrCreatePool(key);
             while (pool.size() < count) {
-                pool.put(instantiate(prefab));
+                const node = instantiate(prefab);
+                this._nodePoolKeys.set(node, key);
+                pool.put(node);
             }
         };
 
@@ -87,7 +90,9 @@ export class ZRSJZ_PoolManager extends Component {
 
     private GetOrCreateNode(key: string, prefab: Prefab): Node {
         const pool = this.GetOrCreatePool(key);
-        return pool.size() > 0 ? pool.get() : instantiate(prefab);
+        const node = pool.size() > 0 ? pool.get() : instantiate(prefab);
+        this._nodePoolKeys.set(node, key);
+        return node;
     }
 
     private GetOrCreatePool(key: string): NodePool {
@@ -117,7 +122,8 @@ export class ZRSJZ_PoolManager extends Component {
 
     private GetPoolKey(pathOrName: string): string {
         if (!pathOrName) return "";
-        return pathOrName.split("/").pop() || pathOrName;
+        const name = pathOrName.split("/").pop() || pathOrName;
+        return pathOrName.startsWith('73_ZRSJZ_DLC/') ? '73_ZRSJZ_DLC/' + name : name;
     }
 }
 

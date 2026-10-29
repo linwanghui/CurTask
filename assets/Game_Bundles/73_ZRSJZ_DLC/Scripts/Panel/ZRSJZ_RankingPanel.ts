@@ -54,7 +54,8 @@ export class ZRSJZ_RankingPanel extends ZRSJZ_Panel {
     protected onLoad(): void {
         this.Panel = find('Panel', this.node);
         this.Get('关闭').on(Button.EventType.CLICK, this.Close, this);
-        for (const type of ['wealth', 'raid', 'recharge'] as const) {
+        this.Get('页签/recharge').active = false;
+        for (const type of ['wealth', 'raid'] as const) {
             this.Get('页签/' + type).on(Button.EventType.CLICK, () => this.Select(type), this);
         }
         this.Get('刷新').on(Button.EventType.CLICK, () => this.nativeRanking ? NativeRanking.Refresh() : this.Select(this.type), this);
@@ -88,6 +89,7 @@ export class ZRSJZ_RankingPanel extends ZRSJZ_Panel {
     }
 
     public async Select(type: ZRSJZ_RankingType, replayIntro = false): Promise<void> {
+        if (type === 'recharge') type = 'wealth';
         const changed = this.type !== type;
         this.type = type;
         if (changed || replayIntro) this.PlayPodiumAnimations();

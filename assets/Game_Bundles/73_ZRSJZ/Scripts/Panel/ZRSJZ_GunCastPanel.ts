@@ -31,13 +31,13 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
     private at(path: string, root: Node = this.Panel): Node { return path.split('/').reduce((n, k) => n?.getChildByName(k), root); }
     private text(path: string, value: string) { const n = this.at(path); const l = n?.getComponent(Label) ?? n?.getComponentInChildren(Label); if (l) l.string = value; }
     private active(path: string, value: boolean) { const n = this.at(path); if (n) n.active = value; }
-    private bind(path: string, fn: () => void, feedback: boolean = true): void {
+    private bind(path: string, fn: () => void, feedback: boolean = true, scaleFeedback: boolean = feedback): void {
         const n = this.at(path);
         if (!n) return;
         const button = n.getComponent(Button) ?? n.addComponent(Button);
         button.clickEvents = [];
-        button.transition = feedback ? Button.Transition.SCALE : Button.Transition.NONE;
-        button.zoomScale = feedback ? 1.2 : 1;
+        button.transition = scaleFeedback ? Button.Transition.SCALE : Button.Transition.NONE;
+        button.zoomScale = scaleFeedback ? 1.2 : 1;
         n.on(Button.EventType.CLICK, () => {
             if (!this.CanClose) return;
             if (feedback) ZRSJZ_AudioManager.Instance.PlaySound('点击');
@@ -67,14 +67,13 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
         // 引导区域只提供遮罩范围和提示配置，实际提示由界面引导弹窗显示。
         this.active('指导区域', false);
         if (this.node.name === '铸枪入口弹窗') {
+            this.bindCatalogWeapons(true);
+            this.bindOutsideClose();
             this.bind('关闭', () => this.close()); for (const free of [true, false]) this.bind(free ? '免费入场' : '付费入场', () => { const error = S.enter(free); if (error) { UI.Instance.ShowTip(error); return; } this.close(); this.open('铸枪界面'); });
         } else if (this.node.name === '枪械图鉴弹窗') {
+            this.bindCatalogWeapons();
             const close = new Node('关闭'); close.parent = this.Panel; close.setPosition(540, 260); const l = close.addComponent(Label); l.string = '关闭'; this.bind('关闭', () => this.close());
-            // Panel 自带 BlockInputEvents；仅点击其外侧遮罩关闭，不穿透到铸枪界面。
-            const mask = this.node.getChildByName('Mask');
-            mask?.on(Node.EventType.TOUCH_END, () => {
-                if (!this.busy) this.close();
-            }, this);
+            this.bindOutsideClose();
         } else {
             void this.prepareImpactEffects(); this.bind('中心', () => this.strike(), false);
             // 外层“返回”是定位容器，实际可点击按钮在同名子节点中；退出仅隐藏界面，保留本炉存档。
@@ -96,6 +95,23 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
             for (const name of ['放弃本炉', '结束本炉']) this.bind('损毁弹板/Panel/' + name, () => this.finish());
             this.bind('损毁弹板/Panel/观看视频', () => { const round = S.load().round; if (!round?.broken || round.recovered) return; const token = round; this.busy = true; let called = false; Banner.Instance.ShowVideoAd(() => { if (called) return; called = true; const r = S.load().round; if (r && r.id === token.id && r.level === token.level && r.ads === token.ads) { S.recover(); } this.busy = false; if (isValid(this.node)) this.refresh(); }); this.scheduleOnce(() => { this.busy = false; }, 2); });
             this.anim = this.at('锤子')?.getComponent(sp.Skeleton);
+        }
+    }
+    private bindOutsideClose(): void {
+        // Panel 和 Mask 自带 BlockInputEvents，内容点击不会触发外侧遮罩，也不会穿透。
+        this.node.getChildByName('Mask')?.on(Node.EventType.TOUCH_END, () => {
+            if (this.CanClose) this.close();
+        }, this);
+    }
+    private bindCatalogWeapons(entrance: boolean = false): void {
+        const preview = (weapon: string): void => {
+            UI.Instance.ShowPanel(ZRSJZ_PANEL.道具弹窗, weapon, 0, true);
+        };
+        if (!entrance) for (let i = 0; i < C.weapons.length; i++) {
+            this.bind('Layout/Lv' + (i + 1), () => preview(C.weapons[i]), true, false);
+        }
+        for (const [element, branch] of [['冰', 0], ['毒', 2], ['火', 1]] as const) {
+            this.bind((entrance ? 'Layout' : 'LV13') + '/特殊武器底-' + element, () => preview(C.branches[branch].item), true, false);
         }
     }
     private readonly imageRequests = new WeakMap<Sprite, object>();

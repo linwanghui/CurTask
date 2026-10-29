@@ -2,6 +2,9 @@ import { Asset, assetManager, ImageAsset, sp } from 'cc';
 
 const MANIFEST = {
   "images": [
+{"key":"art/weapon37.png","bundle":"73_ZRSJZ","path":"Sprites/Weaponry/冲锋枪/蚀骨毒牙"},
+{"key":"art/weapon36.png","bundle":"73_ZRSJZ","path":"Sprites/Weaponry/冲锋枪/烈焰破军"},
+{"key":"art/weapon35.png","bundle":"73_ZRSJZ","path":"Sprites/Weaponry/冲锋枪/冰霜裁决"},
     {
       "key": "art/row.png",
       "bundle": "73_ZRSJZ_DLC",

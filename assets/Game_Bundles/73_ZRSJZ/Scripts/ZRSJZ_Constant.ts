@@ -168,6 +168,11 @@ export const ZRSJZ_PROP_CONFIG: Map<string, {
     MaxCount: number,
     CanForge?: boolean,
 }> = new Map([
+    // 万圣节收藏物资；图标位于 Sprites/Prop/万圣节，以道具名称加载。
+    ["缤纷糖罐", { Name: "缤纷糖罐", Quality: ZRSJZ_PROP_QUALITY.蓝色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 14000, MaxCount: 1, Description: "万圣节限定糖罐，南瓜装饰与缤纷糖果盛满节日的甜蜜惊喜。" }],
+    ["夜鸦巫帽", { Name: "夜鸦巫帽", Quality: ZRSJZ_PROP_QUALITY.紫色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 60000, MaxCount: 1, Description: "万圣节巡游的珍藏巫帽，鸦羽与月纹点缀着俏皮的节日装扮。" }],
+    ["南瓜提灯", { Name: "南瓜提灯", Quality: ZRSJZ_PROP_QUALITY.金色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 160000, MaxCount: 1, Description: "万圣节庆典的精雕南瓜提灯，温暖烛光照亮热闹的节日之夜。" }],
+    ["赤金宝冠", { Name: "赤金宝冠", Quality: ZRSJZ_PROP_QUALITY.红色, GridType: ZRSJZ_GRID_TYPE._2x2, PropType: "物品", UnitPrice: 900000, MaxCount: 1, Description: "万圣节庆典珍藏宝冠，赤金南瓜、枫叶纹饰与红宝石交映生辉。" }],
     //1x1 --  白
     ["八宝粥", { Name: "八宝粥", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 2300, MaxCount: 1 }],
     ["切割刀", { Name: "切割刀", Quality: ZRSJZ_PROP_QUALITY.白色, GridType: ZRSJZ_GRID_TYPE._1x1, PropType: "物品", UnitPrice: 2100, MaxCount: 1 }],
@@ -553,7 +558,7 @@ export const ZRSJZ_PROP_DESCRIPTION: ReadonlyMap<string, string> = new Map([
     ["红珊瑚鲤鱼", "通体呈红珊瑚色泽的稀有鲤鱼，鳞光艳丽，被视为吉祥与财富的象征。"],
     ["钻石级鱼子酱", "采用顶级鱼卵精制而成的钻石级鱼子酱，颗粒饱满、风味醇厚，是奢华宴席中的珍品。"],
     ["黄金方苹果", "外形方正、果皮泛着黄金光泽的珍稀苹果，果肉清甜爽脆，兼具观赏与收藏价值。"],
-    ["极品大红袍茶", "精选核心产区优质茶叶精制而成，茶香馥郁持久、滋味醇厚回甘，是难得的茶中珍品。"],
+    ["极品大红袍茶", "精����心产区优质茶叶精制而成，茶香馥郁持久、滋味醇厚回甘，是难得的茶中珍品。"],
 
 
     ["野生狗奶", "狗儿也有狗儿奶，内含时间宝石，保质期永久。"],
@@ -1727,7 +1732,7 @@ function CreateMapModeConfig(
     modeIndex: number,
 ): ZRSJZ_MapConfig {
     const hpMultiplier = ZRSJZ_MAP_HP_MULTIPLIERS[modeIndex];
-    const bossHPMultiplier = [1.5, 2.3, 3.5, 5, 7.5, 11][modeIndex];
+    const bossHPMultiplier = [1.7, 2.5, 3.7, 5, 7.5, 11][modeIndex];
     const harmMultiplier = ZRSJZ_MAP_HARM_MULTIPLIERS[modeIndex];
     const bossHarmMultiplier = ZRSJZ_MAP_BOSS_HARM_MULTIPLIERS[modeIndex];
     const speedMultiplier = ZRSJZ_MAP_SPEED_MULTIPLIERS[modeIndex];

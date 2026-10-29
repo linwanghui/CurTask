@@ -47,7 +47,10 @@ export const RANKING_CATALOG: { skins: string[]; weapons: string[]; weaponSkins:
     "科技斧",
     "熔岩剑",
     "赤牙",
-    "魔刀"
+    "魔刀",
+    "冰霜裁决",
+    "烈焰破军",
+    "蚀骨毒牙"
   ],
   "weaponSlots": {
     "CN8-突击步枪": "步枪",
@@ -76,7 +79,10 @@ export const RANKING_CATALOG: { skins: string[]; weapons: string[]; weaponSkins:
     "科技斧": "dao",
     "熔岩剑": "dao",
     "赤牙": "dao",
-    "魔刀": "dao"
+    "魔刀": "dao",
+    "冰霜裁决": "步枪",
+    "烈焰破军": "步枪",
+    "蚀骨毒牙": "步枪"
   },
   "weaponSkins": {
     "CN8-突击步枪": [
@@ -125,6 +131,15 @@ export const RANKING_CATALOG: { skins: string[]; weapons: string[]; weaponSkins:
     ],
     "焚天龙": [
       "焚天龙"
+    ],
+    "冰霜裁决": [
+      "冰霜裁决"
+    ],
+    "烈焰破军": [
+      "烈焰破军"
+    ],
+    "蚀骨毒牙": [
+      "蚀骨毒牙"
     ]
   }
 };

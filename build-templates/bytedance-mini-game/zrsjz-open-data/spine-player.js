@@ -57,10 +57,11 @@ module.exports = function (image, paint) {
                 if (!img || !(source instanceof spine.RegionAttachment)) { slot.setAttachment(null); continue; }
                 if (current.sourceAttachment !== source) {
                     const attachment = source.copy();
-                    // Match the game's resizeSlotRegion, preserving trimmed atlas offsets.
+                    // Standalone weapon images have no atlas trimming or rotation.
                     attachment.width = img.width; attachment.height = img.height;
                     attachment.setRegion({ ...source.region, width: img.width, height: img.height,
-                        originalWidth: img.width, originalHeight: img.height, u:0, v:0, u2:1, v2:1, rotate:false,
+                        originalWidth: img.width, originalHeight: img.height, offsetX:0, offsetY:0,
+                        u:0, v:0, u2:1, v2:1, rotate:false, degrees:0,
                         texture: { getImage: () => img } });
                     attachment.updateOffset(); current.attachment = attachment; current.sourceAttachment = source;
                 }

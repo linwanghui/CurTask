@@ -289,6 +289,20 @@ export class ZRSJZ_Start extends Component {
             }
         }
         switch (event.getCurrentTarget().name) {
+            case "Addchebianlang":
+                UIManager.ShowPanel(Panel.SidebarPanel);
+                break;
+            case "AddShortcut":
+                Banner.Instance.TTAddShortcut();
+                break;
+            case "AddSubscription":
+                Banner.Instance.TTSubscription(() => {
+                    console.log("订阅成功！");
+                }, () => { console.log("订阅失败！"); }, () => { });
+                break;
+            case "DYAppMessage":
+                Banner.Instance.ShareDYAppMessage();
+                break;
             case '铸枪':
                 ZRSJZ_UIManager.Instance.ShowPanel('73_ZRSJZ_DLC/Prefabs/Panel/' + (ZRSJZ_GunCastService.load().round ? '铸枪界面' : '铸枪入口弹窗'));
                 break;

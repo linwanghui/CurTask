@@ -1,4 +1,7 @@
-import { _decorator, Collider2D, BoxCollider2D, CircleCollider2D, PolygonCollider2D, Intersection2D, Component, Node, PhysicsSystem2D, Rect, RigidBody2D, tween, Tween, v3, Vec2, Vec3, Material, EffectAsset, assetManager, Label, UITransform, Color } from 'cc';
+import { _decorator, Collider2D, BoxCollider2D, CircleCollider2D, PolygonCollider2D, Intersection2D, Component, Node, PhysicsSystem2D, Rect, RigidBody2D, tween, Tween, v3, Vec2, Vec3, Material, EffectAsset, assetManager } from 'cc';
+import { ZRSJZ_DebuffDisplay } from '../UI/ZRSJZ_DebuffDisplay';
+import { ZRSJZ_EnemyFreezeVisual } from '../Effect/ZRSJZ_EnemyFreezeVisual';
+import { ZRSJZ_ElementStatusVisual } from '../Effect/ZRSJZ_ElementStatusVisual';
 import { ZRSJZ_ElementState, ZRSJZ_ElementShot, ZRSJZ_CopyElementShot, ZRSJZ_GetElement } from '../Service/ZRSJZ_ElementCombat';
 import {
     ZRSJZ_ANI,
@@ -50,6 +53,10 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     private onlinePosition: Vec3 = null;
     private soloState: any = null;
     private soloTaken = false;
+    private _lastDamagePoison = false;
+    private _hitFeedbackSerial = 0;
+    private _onlineHitFeedbackSerial = 0;
+    private _poisonDeath = false;
     public OnlineSuppressed = false;
     /** 原副本就地接管，不能重新 Init 血量、掉落或击杀计数。 */
     public TakeOverLocally(state: any): void {
@@ -89,7 +96,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             animation: skeleton?.getCurrent(0)?.animation?.name || '', hp: this._health,
             dead: this.IsDead, ax: this.EnemySkeleton?.AttackX || 0, ay: this.EnemySkeleton?.AttackY || 0,
             aim: this.EnemySkeleton?.HasDirection || false, bossAim: this.EnemySkeleton?.IsBossAttackDirection || false, stun: this.IsPetStunned || this.IsElementFrozen,
-            element: this.ElementDisplayState() };
+            element: this.ElementDisplayState(), hitFeedback: this._hitFeedbackSerial, poisonDamage: this._lastDamagePoison };
     }
     public ApplyOnlineState(state: any): void {
         if (!this.onlineStarted || this.IsDead) return;
@@ -98,10 +105,17 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         if (!this.onlinePosition || state.dead || Vec3.distance(this.node.worldPosition, target) > 1200) this.node.setWorldPosition(target);
         this.onlinePosition = target;
         this.node.setScale(state.sx, state.sy, 1);
-        if (state.hp < this._health && !state.dead) this.beHitEffect();
+        const directHit = Number.isFinite(state.hitFeedback) ? state.hitFeedback > this._onlineHitFeedbackSerial : !state.poisonDamage;
+        if (state.hp < this._health && !state.dead && directHit) this.beHitEffect();
+        if (Number.isFinite(state.hitFeedback)) this._onlineHitFeedbackSerial = state.hitFeedback;
         this._health = state.hp;
         this.HP?.Show(this._health);
-        if (state.dead) { this.Die(); return; }
+        if (state.dead) {
+            this._poisonDeath = !!state.poisonDamage;
+            try { this.Die(); } finally { this._poisonDeath = false; }
+            return;
+        }
+        this.RefreshElementLabel(state.element);
         const visual = this.EnemySkeleton;
         if (!visual) return;
         visual.node.setScale(state.fx, state.fy, 1);
@@ -110,7 +124,6 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         else visual.ResetBossAttackDirection();
         const skeleton = visual.Skeleton;
         skeleton.paused = !!state.stun;
-        this.RefreshElementLabel(state.element);
         if (state.animation && skeleton.skeletonData?.getRuntimeData()?.findAnimation(state.animation)
             && skeleton.getCurrent(0)?.animation?.name !== state.animation) {
             skeleton.setAnimation(0, state.animation, true);
@@ -124,7 +137,9 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     @property({ tooltip: '基础护甲减伤百分比（0~100），灼甲每层降低2个百分点' })
     ArmorReduction = 0;
     private readonly _elements = new ZRSJZ_ElementState();
-    private _elementLabel: Label = null;
+    private _debuffDisplay: ZRSJZ_DebuffDisplay = null;
+    private _elementFreezeVisual: ZRSJZ_EnemyFreezeVisual = null;
+    private _elementStatusVisual: ZRSJZ_ElementStatusVisual = null;
     private _elementResistUntil = 0;
     protected ElementActionVersion = 0;
     public get IsElementFrozen(): boolean { return this._elements.frozen; }
@@ -169,6 +184,9 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     /** 子类在攻击期间可能不调用 super.update；lateUpdate 保证毒伤/免疫仍推进。 */
     protected lateUpdate(dt: number): void {
         const game = ZRSJZ_Game.Instance;
+        this._elementStatusVisual?.Tick(dt, Coop.Stopped || !game || (game.GamePaused && !Online.Battle), !!game && !game.IsGameFinished && !this.IsDead);
+        this._elementFreezeVisual?.SetPaused(Coop.Stopped || !game || game.IsGameFinished || (game.GamePaused && !Online.Battle));
+        if (game?.IsGameFinished) this._elementFreezeVisual?.Clear();
         if (Coop.Replica || Coop.Stopped || this.IsDead || !game || game.IsGameFinished || (game.GamePaused && !Online.Battle)) return;
         const wasFrozen = this.IsElementFrozen;
         this._elements.advance(dt, harm => this.BeHit(harm, 0, 0, true));
@@ -181,19 +199,31 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
     private ElementDisplayState(): any {
         return { cold: this._elements.cold, fire: this._elements.fireStacks, poison: this._elements.poisonStacks,
-            frozen: this.IsElementFrozen, resist: this._elementResistUntil > this._elements.time };
+            frozen: this.IsElementFrozen, frozenRemaining: Math.max(0, this._elements.frozenUntil - this._elements.time),
+            resist: this._elementResistUntil > this._elements.time };
     }
     private RefreshElementLabel(state: any): void {
-        const text = state ? [state.resist ? '抗性' : '', state.frozen ? '冻结' : state.cold ? '寒意×' + state.cold : '',
-            state.fire ? '灼甲×' + state.fire : '', state.poison ? '中毒×' + state.poison : ''].filter(Boolean).join(' ') : '';
-        if (!text && !this._elementLabel) return;
-        if (!this._elementLabel?.isValid) {
-            const node = new Node('元素状态'); node.layer = this.node.layer; this.node.addChild(node); node.setPosition(0, 150, 0);
-            node.addComponent(UITransform).setContentSize(480, 40);
-            this._elementLabel = node.addComponent(Label); this._elementLabel.fontSize = 20; this._elementLabel.lineHeight = 24;
-            this._elementLabel.color = new Color(160, 235, 255, 255);
+        if (state?.cold > 0 || state?.fire > 0 || state?.poison > 0 || this._elementStatusVisual) {
+            if (!this._elementStatusVisual) {
+                const body = this.Colliders.find(collider => collider instanceof BoxCollider2D) as BoxCollider2D;
+                this._elementStatusVisual = new ZRSJZ_ElementStatusVisual(this.node, {
+                    x: body?.offset.x ?? 0, y: body?.offset.y ?? 240,
+                    width: body?.size.width ?? 200, height: body?.size.height ?? 480,
+                });
+            }
+            const game = ZRSJZ_Game.Instance;
+            this._elementStatusVisual.UpdateState(state);
+            this._elementStatusVisual.Tick(0, Coop.Stopped || !game || (game.GamePaused && !Online.Battle), !!game && !game.IsGameFinished && !this.IsDead);
         }
-        this._elementLabel.string = text; this._elementLabel.node.active = !!text;
+        if (state?.frozen || this._elementFreezeVisual) {
+            if (!this._elementFreezeVisual) this._elementFreezeVisual = new ZRSJZ_EnemyFreezeVisual(this.node);
+            const game = ZRSJZ_Game.Instance;
+            this._elementFreezeVisual.Update(!!state?.frozen && !this.ElementIsBoss && !this.IsDead,
+                state?.frozenRemaining ?? .8, this.Colliders[0]?.offset ?? { x: 0, y: 0 },
+                Coop.Stopped || !game || game.IsGameFinished || (game.GamePaused && !Online.Battle));
+        }
+        if (!this._debuffDisplay) this._debuffDisplay = new ZRSJZ_DebuffDisplay(this.node);
+        this._debuffDisplay.Update(state);
     }
 
     Other: Node = null;
@@ -312,6 +342,7 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected onLoad(): void {
+        this.RefreshElementLabel(null);
         this.SetTaskTargetMarker(false);
         this.Other = this.node.getChildByName("Other");
         const enemyName = this.EnemyName.trim() || this.node.name;
@@ -444,8 +475,10 @@ export abstract class ZRSJZ_EnemyBase extends Component {
     }
 
     protected onDisable(): void {
+        this._elementStatusVisual?.Clear();
+        this._elementFreezeVisual?.Clear();
         this._elements.clear(); this._elementResistUntil = 0; this.ElementActionVersion++;
-        if (this._elementLabel?.isValid) this._elementLabel.node.active = false;
+        this._debuffDisplay?.Hide();
         this.unschedule(this.changeColor);
         this.changeColor();
         this._hitSlow = this._recoilCooldown = 0;
@@ -595,6 +628,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         // 公共削甲取各来源最高值；独立毒伤不吃护甲、枪伤增益或击退。
         if (!poison) harm *= 1 - Math.max(0, Math.min(1, this.ArmorReduction / 100) - this._elements.armorShred());
         if (harm <= 0) return;
+        this._lastDamagePoison = poison;
+        if (!poison) this._hitFeedbackSerial++;
         const harmRequestGame = ZRSJZ_Game.Instance;
         const harmWorldPosition = this.node.worldPosition.clone();
         // 飘字使用本次实际扣除的生命值，避免致死溢出伤害被显示成实际扣血。
@@ -602,10 +637,13 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         this._health -= harm;
         if (this._health <= 0) {
             this._health = 0;
-            this.Die();
+            this._poisonDeath = poison;
+            try { this.Die(); } finally { this._poisonDeath = false; }
         } else {
-            ZRSJZ_AudioManager.Instance.PlaySound("受击");
-            this.beHitEffect();
+            if (!poison) {
+                ZRSJZ_AudioManager.Instance.PlaySound("受击");
+                this.beHitEffect();
+            }
             const length = Math.hypot(hitX, hitY);
             if (!poison && !this.IsElementFrozen && length > 0 && Number.isFinite(length)) {
                 this._hitSlow = 0.16;
@@ -618,7 +656,8 @@ export abstract class ZRSJZ_EnemyBase extends Component {
                 }
             }
         }
-        ZRSJZ_PoolManager.Instance.GetNode("Prefabs/Effect/HarmEffect").then((effect: Node) => {
+        const harmEffectPath = poison ? '73_ZRSJZ_DLC/Prefabs/Effect/HarmEffect' : 'Prefabs/Effect/HarmEffect';
+        ZRSJZ_PoolManager.Instance.GetNode(harmEffectPath).then((effect: Node) => {
             if (!effect?.isValid) return;
             const effectParent = harmRequestGame?.CurMap?.BulletParent;
             const harmEffect = effect.getComponent(ZRSJZ_HarmEffect);
@@ -688,7 +727,9 @@ export abstract class ZRSJZ_EnemyBase extends Component {
         }
 
         this._elements.clear(); this._elementResistUntil = 0;
-        if (this._elementLabel?.isValid) this._elementLabel.node.active = false;
+        this._elementStatusVisual?.Clear();
+        this._elementFreezeVisual?.Clear();
+        this._debuffDisplay?.Hide();
         if (this.EnemySkeleton?.Skeleton) this.EnemySkeleton.Skeleton.paused = false;
 
         this.unschedule(this.changeColor);
@@ -715,8 +756,10 @@ export abstract class ZRSJZ_EnemyBase extends Component {
             this.EnemySkeleton.HasDirection = false;
         }
         this.OnDeath();
-        // 致命一击也使用与普通受击一致的泛白反馈。
-        this.beHitEffect();
+        // 毒伤致死不追加打击泛白或缩放，所有正常击杀仍播放死亡音效。
+        if (!this._poisonDeath) {
+            this.beHitEffect();
+        }
         ZRSJZ_AudioManager.Instance.PlaySound("击杀");
         ZRSJZ_KillTipPanel.NotifyKill();
         ZRSJZ_TaskService.CompleteTask(`击杀[${ZRSJZ_GameData.Instance.CurMap}]中的敌人`, 1);
