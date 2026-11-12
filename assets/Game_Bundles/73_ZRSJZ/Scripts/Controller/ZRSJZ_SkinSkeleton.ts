@@ -82,6 +82,7 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
     }
 
     protected onEnable(): void {
+        if (isValid(this.Skeleton, true)) this.Skeleton.paused = false;
         this.BindEntranceEvents();
         // Spine 事件触发时当帧骨骼矩阵可能尚未更新，渲染前再读取最终姿势。
         director.on(Director.EVENT_BEFORE_DRAW, this.FlushMissiles, this);
@@ -91,6 +92,7 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
         this._entranceVersion++;
         this._animationSerial++;
         this._pendingComplete = null;
+        if (isValid(this.Skeleton, true)) this.Skeleton.paused = true;
         this.Skeleton?.setCompleteListener(null);
         this.Skeleton?.setStartListener(null);
         this.Skeleton?.setEventListener(null);
@@ -120,20 +122,21 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
         this.Skeleton?.setEventListener((trackEntry, event) => {
             if (typeof event === "number") return;
             if (!isValid(this, true) || !this.node.activeInHierarchy || trackEntry?.trackIndex !== 0) return;
-            const name = event.data.name;
+            const name = event?.data?.name ?? '';
             if (trackEntry.animation?.name === 'cc_乌鲁' && /^p[1-4]$/.test(name)) this._pendingMissiles.push(name);
             if (trackEntry.animation?.name === 'cc_蜂医' && name === 'fy') this._pendingFengYi = true;
         });
     }
 
     private FlushMissiles(): void {
+        if (!isValid(this, true) || !this.node.activeInHierarchy) return;
         const pending = this._pendingComplete;
         this._pendingComplete = null;
         if (pending && pending.serial === this._animationSerial && pending.entrance === this._entranceVersion
             && this.node.activeInHierarchy) pending.callback();
         for (const effect of this._completedEffects) {
             this._previewEffects.delete(effect);
-            if (isValid(effect, true)) effect.destroy();
+            this.RetirePreviewEffect(effect);
         }
         this._completedEffects.clear();
         if (this._pendingLuna) {
@@ -228,9 +231,37 @@ export class ZRSJZ_SkinSkeleton extends ZRSJZ_Skeleton {
         this._pendingFengYi = false;
         this._pendingMissiles.length = 0;
         this._previewEffects.forEach(effect => {
-            if (isValid(effect, true)) effect.destroy();
+            this.RetirePreviewEffect(effect);
         });
         this._previewEffects.clear();
+    }
+
+    private RetirePreviewEffect(effect: Node): void {
+        if (!isValid(effect, true)) return;
+        // JSB Spine 仍可能被本帧渲染队列引用，不能在关闭界面/绘制前直接释放。
+        for (const skeleton of effect.getComponentsInChildren(sp.Skeleton)) {
+            if (!isValid(skeleton, true)) continue;
+            skeleton.paused = true;
+            skeleton.setCompleteListener(null);
+            skeleton.setEventListener(null);
+            skeleton.setStartListener(null);
+        }
+        effect.active = false;
+        director.once(Director.EVENT_AFTER_DRAW, () => {
+            // onDisable 期间 NodeActivator 正在遍历父节点 children，不能立即移除兄弟节点。
+            if (!isValid(effect, true)) return;
+            effect.removeFromParent();
+            effect.destroy();
+        });
+    }
+
+    protected onDestroy(): void {
+        director.off(Director.EVENT_BEFORE_DRAW, this.FlushMissiles, this);
+        this._entranceVersion++;
+        this._animationSerial++;
+        this._pendingComplete = null;
+        this.ClearPreviewEffects();
+        super.onDestroy();
     }
 
     SetSkin(skinName: string): void {

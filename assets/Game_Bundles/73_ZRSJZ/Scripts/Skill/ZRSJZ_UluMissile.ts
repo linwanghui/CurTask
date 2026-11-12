@@ -1,4 +1,4 @@
-import { _decorator, Component, sp, Vec3 } from 'cc';
+import { _decorator, Component, director, Director, isValid, sp, Vec3 } from 'cc';
 import { ZRSJZ_PoolManager } from '../Manager/ZRSJZ_PoolManager';
 
 const { ccclass, property } = _decorator;
@@ -61,6 +61,7 @@ export class ZRSJZ_UluMissile extends Component {
     private _turnRise = 20;
     private _flightTime = 1;
     private _state: 'idle' | 'flying' | 'exploding' = 'idle';
+    private _explosionComplete = false;
     private _onExplode: ((position: Vec3) => void) | null = null;
     private _canAdvance: (() => boolean) | null = null;
     private _movementSpeedMultiplier = 1;
@@ -128,6 +129,7 @@ export class ZRSJZ_UluMissile extends Component {
     }
 
     protected update(dt: number): void {
+        if (this._explosionComplete) { this.Finish(); return; }
         if (this._state !== 'flying' || dt <= 0) return;
         if (this._canAdvance && !this._canAdvance()) return;
         if (this._getTarget) {
@@ -237,7 +239,10 @@ export class ZRSJZ_UluMissile extends Component {
         this.Missile.node.active = false;
         this.Explosion.node.active = true;
         this.Explosion.node.setWorldRotationFromEuler(0, 0, 0);
-        this.Explosion.setCompleteListener(() => this.Finish());
+        // 原生 Spine 回调栈中只置标记；下一次 update 再结束播放和回收。
+        this.Explosion.setCompleteListener(() => {
+            if (this._state === 'exploding') this._explosionComplete = true;
+        });
         this.Explosion.setAnimation(0, 'eff', false);
         const callback = this._onExplode;
         this._onExplode = null;
@@ -248,7 +253,14 @@ export class ZRSJZ_UluMissile extends Component {
         if (this._state !== 'exploding') return;
         this.Reset();
         if (this.RecycleToPool) ZRSJZ_PoolManager.Instance.PutNode(this.node);
-        else this.node.destroy();
+        else {
+            const node = this.node;
+            node.active = false;
+            node.removeFromParent();
+            director.once(Director.EVENT_AFTER_DRAW, () => {
+                if (isValid(node, true)) node.destroy();
+            });
+        }
     }
 
     protected onDisable(): void {
@@ -256,6 +268,7 @@ export class ZRSJZ_UluMissile extends Component {
     }
 
     private Reset(): void {
+        this._explosionComplete = false;
         this._state = 'idle';
         this._elapsed = 0;
         this._onExplode = null;

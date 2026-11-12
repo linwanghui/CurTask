@@ -345,8 +345,10 @@ export class ZRSJZ_GunCastPanel extends ZRSJZ_Panel {
             const entry = this.anim.setAnimation(0, 'qiaoji', false);
             this.hammerEntry = entry;
             this.anim.setTrackEventListener(entry, (_entry, event: any) => {
-                if (sequence !== this.strikeSequence || !this.hammerPlaying || this.completingStrike) return;
-                if (event.data.name === 'qiaoji' || event.data.name === 'qiaoda') this.qiaoda();
+                if (!isValid(this, true) || !this.node.activeInHierarchy || typeof event === 'number'
+                    || sequence !== this.strikeSequence || !this.hammerPlaying || this.completingStrike) return;
+                const name = event?.data?.name;
+                if (name === 'qiaoji' || name === 'qiaoda') this.qiaoda();
             });
             this.anim.setTrackCompleteListener(entry, () => this.completeStrike(sequence));
         } catch (error) {

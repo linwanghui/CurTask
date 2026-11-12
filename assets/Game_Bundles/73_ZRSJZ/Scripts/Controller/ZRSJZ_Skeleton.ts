@@ -359,7 +359,7 @@ export class ZRSJZ_Skeleton extends Component {
             if (slot && !slots.includes(slot)) slots.push(slot);
         }
         const result: { [slot: string]: string } = {};
-        for (const name of slots) result[name] = this.Skeleton?.findSlot(name)?.getAttachment()?.name || '';
+        for (const name of slots) result[name] = this.Skeleton?.findSlot(name)?.attachment?.name || '';
         return result;
     }
 
